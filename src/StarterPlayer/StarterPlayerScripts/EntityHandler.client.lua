@@ -1,0 +1,147 @@
+local event = game.ReplicatedStorage.Events.Entitys.NearByEntitys
+local Players = game:GetService("Players")
+local tweenservice = game:GetService("TweenService")
+local runservice = game:GetService("RunService")
+local controlls = require(script.Parent:WaitForChild("Controlls"))
+local entityinfo = require(game.ReplicatedStorage.EntityInfo)
+local function createselectionbox(name,color,addorne,size)
+    local sel = Instance.new("SelectionBox")
+    sel.Color3 = color
+    sel.Name = name
+    sel.LineThickness = size
+    sel.Adornee = addorne
+    return sel
+end
+local function changetext(nameLabel,STUDS_OFFSET_Y)
+nameLabel.TextScaled = true
+nameLabel.Size = UDim2.new(1, 0, 1, 0)
+
+local nameDisplayBillboard = nameLabel.Parent
+
+local textScaleSize = Vector2.new(1, 2)
+    local amountOfCharacter = string.len(nameLabel.Text)
+	local _, numberOfLines = string.gsub(nameLabel.Text, "\n", "\n")
+
+	if amountOfCharacter == 0 then
+		numberOfLines = 0
+	else
+		-- Adding the minimum of one line		
+		numberOfLines += 1
+	end
+
+	nameDisplayBillboard.Size = UDim2.new(
+		amountOfCharacter * textScaleSize.X,
+		0,
+		numberOfLines * textScaleSize.Y,
+		0
+	)
+
+	-- Putting on studs offset:
+	nameDisplayBillboard.StudsOffset = Vector3.new(0, STUDS_OFFSET_Y , 0)
+end
+runservice.Stepped:Connect(function(time, deltaTime)
+    if Players.LocalPlayer.Character and Players.LocalPlayer.Character.PrimaryPart and Players.LocalPlayer.Character.PrimaryPart.Position then
+    else
+        return
+    end
+	local data = event:InvokeServer(17) or {}
+    for i,v in ipairs(workspace.Entity:GetChildren())do
+        if data[v.Name] and v.Name ~= game.Players.LocalPlayer.Name  then
+            local nametag = v.PrimaryPart.Nametag
+            nametag.Text.Text = data[v.Name].CustomName or "No Name"
+            changetext(nametag.Text,v.PrimaryPart.Size.Y/2 +2.5)
+            if not data[v.Name].CustomName then 
+                nametag.Enabled =false
+            else
+                nametag.Enabled =true
+            end
+            tweenservice:Create(v.PrimaryPart,TweenInfo.new(0.25),{CFrame= CFrame.new(unpack(data[v.Name]["Position"]))*CFrame.fromOrientation(
+                math.rad((data[v.Name].Rotation[1])),
+                math.rad((data[v.Name].Rotation[2])),
+                math.rad((data[v.Name].Rotation[3]))
+            )}):Play()
+            local neck = v:FindFirstChild("Neck",true)
+            local MainWeld = v:FindFirstChild("MainWeld",true)
+            if data[v.Name].NotSaved.NeckRotation and neck then
+                tweenservice:Create(neck,TweenInfo.new(0.1),{C0= CFrame.new(neck.C0.Position)*
+                    CFrame.fromOrientation(unpack(data[v.Name].NotSaved.NeckRotation))}):Play()
+            end
+            if data[v.Name].NotSaved.BodyRotation and MainWeld then
+                tweenservice:Create(MainWeld,TweenInfo.new(0.1),{C0= CFrame.new(MainWeld.C0.Position)*
+                CFrame.fromOrientation(unpack(data[v.Name].NotSaved.BodyRotation))}):Play()
+            end
+        elseif v.Name ~= game.Players.LocalPlayer.Name then
+            v:Destroy()
+        end
+
+        data[v.Name] = nil
+    end
+    
+    for uuid,nbt in pairs(data)do
+        local entity = game.Workspace:FindFirstChild(nbt["Name"]):Clone()
+        local model = Instance.new("Model")
+        if nbt.HitBoxSize then
+            entity.Size = Vector3.new( nbt.HitBoxSize.x, nbt.HitBoxSize.y, nbt.HitBoxSize.z)
+        end
+        model.Parent = game.Workspace.Entity
+        entity.Name = "HitBox"
+        entity.CFrame = CFrame.new(0,0,0)
+        entity.Parent = model
+        model.Name = uuid
+        model.PrimaryPart = entity
+        local ori = {unpack(nbt["Rotation"])}
+		entity.Anchored = true
+        entity.CFrame = CFrame.new(unpack(nbt["Position"]))*CFrame.fromOrientation(math.rad(ori[1]),math.rad(ori[2]),math.rad(ori[3]))
+        local eyebox = Instance.new("Part")
+        eyebox.Color = Color3.new(0.921568, 0, 0)
+        eyebox.Material = Enum.Material.Plastic
+        eyebox.Size = Vector3.new( nbt.HitBoxSize.x, 0.01, nbt.HitBoxSize.z)
+        eyebox.Name = "EyeSight"
+        local weld = Instance.new("Weld")
+        weld.Part0 = eyebox
+        weld.Part1 = entity
+        weld.Parent = entity
+        eyebox.Parent = entity
+        eyebox.Anchored = false
+        eyebox.Position = Vector3.new(nbt["Position"][1],nbt["Position"][2]-nbt.HitBoxSize.y/2*math.sign(nbt["Position"][2])+(nbt.EyeOffset or 0 ),nbt.Position[3])
+        local eyese = createselectionbox("EyeSelection",Color3.new(1, 0, 0),eyebox,0.025)
+        eyese.Parent = model
+        local Hiboxes = createselectionbox("HitBoxSelection",Color3.new(0.345098, 0.725490, 0.945098),entity,0.027)
+        Hiboxes.Parent = model
+        entity.Transparency = 1
+        eyebox.Transparency = 1
+        local model2
+        if entityinfo[nbt.Name] and true then
+            local hitboxfloor = entity.CFrame.Y-entity.Size.Y/2
+            model2 = entityinfo[nbt.Name].Model:Clone()
+            model2.PrimaryPart.Anchored = false
+            local middle = hitboxfloor+(model2.PrimaryPart.Position.Y-(model2.PrimaryPart.Position.Y-model2.PrimaryPart.Size.Y/2))
+            model2.PrimaryPart.CFrame = CFrame.new(entity.CFrame.X,middle,entity.CFrame.Z)
+            local weld2 =Instance.new("Weld")
+            weld2.Name = "Entity_To_Model"
+            weld2.Part0 = model2.PrimaryPart
+            model2.Name = "Model"
+            model2.Parent = model
+            weld2.Part1 =entity
+            weld2.Parent = entity
+
+        end
+
+        if uuid == game.Players.LocalPlayer.Name  then
+            
+            game.Workspace.CurrentCamera.CameraSubject = eyebox
+            game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
+           -- game.Players.LocalPlayer.Character.PrimaryPart.CFrame = CFrame.new(entity.Position.X,  entity.Position.Y,  entity.Position.Z)
+        else
+            local nametag = game.ReplicatedStorage.Assests.Nametag:Clone()
+            nametag.Text.Text = nbt.CustomName or "No Name"
+            changetext(nametag.Text,entity.Size.Y/2 +2.5)
+            nametag.Parent = entity
+            if not nbt.CustomName then 
+                nametag.Enabled =false
+            else
+                nametag.Enabled =true
+            end
+        end
+	end
+end)
