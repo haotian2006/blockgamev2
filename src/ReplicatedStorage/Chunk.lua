@@ -1,6 +1,7 @@
 local Chunk = {}
 Chunk.__index = Chunk
 local qF = require(game.ReplicatedStorage.QuickFunctions)
+--block example: Name|Cubic:Grass
 function Chunk.new(cx,cz,data)
     if not cx or not cz then
         warn("Unable to create chunk")
