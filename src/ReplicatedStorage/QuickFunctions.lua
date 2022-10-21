@@ -22,6 +22,19 @@ function  qf.to2DChunk(index)
 	local x = index%dx
     return Vector2.new(x,math.floor(y))
 end
+function qf.xzcorners(x,y)
+	local cx,cz = tonumber(x),tonumber(y)
+	local coord0chunkoffset =  Vector3.new(cx*4*16,0,cz*4*16)
+	local coord0chunk = Vector3.new(0,0,0) + coord0chunkoffset
+	local Cornerx,Cornerz =Vector2.new(-32+cx*64,-32+cz*64) ,Vector2.new(28+cx*64,28+cz*64)
+	local pos = {}
+	for x = Cornerx.X, Cornerz.X,4 do
+		for z = Cornerx.Y,Cornerz.Y,4 do
+			table.insert(pos,x.."x"..z)
+		end
+	end
+	return pos
+end
 function  qf.ConvertString(str:string)
     local Sign,strr = unpack(str:split('%'))
     if not strr then strr = Sign Sign = "s" end
@@ -35,19 +48,6 @@ function  qf.ConvertString(str:string)
         warn("Sign",Sign,"Is not a valid Sign")
     end
     return strr
-end
-function qf.xzcorners(x,y)
-	local cx,cz = tonumber(x),tonumber(y)
-	local coord0chunkoffset =  Vector3.new(cx*4*16,0,cz*4*16)
-	local coord0chunk = Vector3.new(0,0,0) + coord0chunkoffset
-	local Cornerx,Cornerz =Vector2.new(-32+cx*64,-32+cz*64) ,Vector2.new(28+cx*64,28+cz*64)
-	local pos = {}
-	for x = Cornerx.X, Cornerz.X,4 do
-		for z = Cornerx.Y,Cornerz.Y,4 do
-			table.insert(pos,x.."x"..z)
-		end
-	end
-	return pos
 end
 function qf.DecompressBlockData(data:string,specificitems:table|string)
     --EX: 'Name|s%Cubic:dirt/Orientation|t%0,0,0/Position|0,0,0'
