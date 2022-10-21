@@ -5,7 +5,7 @@ data.LoadedEntitys = {}
 --<Client Only
 data.LocalPlayer = {}
 --<Server Only
-data.Chunks = {}
+data.CompressedChunks = {}
 data.Entitys = {}
 data.Players = {}
 

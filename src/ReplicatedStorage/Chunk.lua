@@ -1,6 +1,7 @@
 local Chunk = {}
 Chunk.__index = Chunk
 local qF = require(game.ReplicatedStorage.QuickFunctions)
+local runservice = game:GetService("RunService")
 --block example: Name|Cubic:Grass
 function Chunk.new(cx,cz,data)
     if not cx or not cz then
@@ -10,6 +11,7 @@ function Chunk.new(cx,cz,data)
     local ch = {}
     setmetatable(ch,Chunk)
     ch.RegionData = {}
+    ch.Entitys = {}
     ch.Setttings = data and data.Setttings or {}
     ch.Blocks = data and data.Blocks or {}
     ch.Chunk = {cx,cz}
@@ -39,4 +41,10 @@ end
 function Chunk:Destroy()
     setmetatable(self, nil)
 end
+if runservice:IsClient() then return Chunk end
+--server only functions
+function Chunk:Generate()
+    
+end
+
 return Chunk
