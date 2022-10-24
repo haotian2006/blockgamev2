@@ -1,10 +1,14 @@
 local qf = {}
 local settings = require(game.ReplicatedStorage.GameSettings)
-function  qf.to1DBlock(x,y,z)
+local blockmuti = 1/settings.GridSize
+local chunkmuti = 1/settings.ChunkSize.X
+function  qf.gridto1DBlock(x,y,z):number
+    if x < 0 then x *=-1 x -=1 end if y < 0 then y *=-1 y -=1  end if z < 0 then z *=-1 z -=1 end
     local dx,dy = settings.ChunkSize.X,settings.ChunkSize.Y
+    x,y,z = x%dx,y%dy,z%dx
     return (z * dx * dy) + (y * dx) + x
 end
-function qf.to3DBlcok(index)
+function qf.to3DBlock(index):Vector3
     local dx,dy = settings.ChunkSize.X,settings.ChunkSize.Y
     local z = math.floor(index / (dx * dy))
 	index -= (z * dx * dy)
@@ -12,14 +16,22 @@ function qf.to3DBlcok(index)
 	local x = index % dx
     return Vector3.new(x,y,z)
 end
+function qf.from1DToGrid(cx,cz,index,toblockinstead)
+    local coord = qf.to3DBlock(index) local x,y,z = coord.X,coord.Y,coord.Z
+    local dirx,dirz =1,1
+    if cx < 0 then x+=1 dirx = -1 cx-=cx*2+1 end if cz < 0 then z+=1 dirz = -1 cz-=cz*2+1 end
+    if toblockinstead then
+        return Vector3.new((x+settings.ChunkSize.X*cx)*dirx,y,(z+settings.ChunkSize.X*cz)*dirz)
+    else
+        return Vector3.new((x*settings.GridSize+settings.ChunkSize.X*cx)*dirx,y*4,(z*settings.GridSize+settings.ChunkSize.X*cz)*dirz) 
+    end
+end
 function  qf.to1DChunk(x,y)
     local dx = settings.GroupChunk
     return x+y*dx
 end
 function  qf.to2DChunk(index)
-    local dx = settings.GroupChunk
-	local y = index/dx
-	local x = index%dx
+    local dx = settings.GroupChunk local y = index/dx local x = index%dx
     return Vector2.new(x,math.floor(y))
 end
 function  qf.ConvertString(str:string)
@@ -36,6 +48,11 @@ function  qf.ConvertString(str:string)
     end
     return strr
 end
+function qf.convertchgridtoreal(cx,cz,x,y,z)
+    local dirx,dirz =1,1
+    if cx < 0 then x+=1 dirx = -1 cx-=cx*2+1 end if cz < 0 then z+=1 dirz = -1 cz-=cz*2+1 end
+    return Vector3.new((x*settings.GridSize+settings.ChunkSize.X*cx)*dirx,y*4,(z*settings.GridSize+settings.ChunkSize.X*cz)*dirz) 
+end
 function qf.xzcorners(x,y)
 	local cx,cz = tonumber(x),tonumber(y)
 	local coord0chunkoffset =  Vector3.new(cx*4*16,0,cz*4*16)
@@ -48,6 +65,45 @@ function qf.xzcorners(x,y)
 		end
 	end
 	return pos
+end
+function qf.GetBlockCoordsFromGrid(x,y,z)
+	local x = math.floor((0 + x)*blockmuti)
+	local z = math.floor((0 + z)*blockmuti)
+	local y = math.floor((0 + y)*blockmuti)
+	return x,y,z
+end
+function qf.GetChunkfromcoords(x,y,z)
+    x,y,z = qf.GetBlockCoordsFromGrid(x,y,z)
+	local cx =	tonumber(math.floor((x-0)*chunkmuti))
+	local cz= 	tonumber(math.floor((z-0)*chunkmuti))
+	return cx,cz
+end
+
+function qf.CompressBlockData(data:table)
+    local currentcompressed = ""
+    for key,value in data do
+        local typea = type(value)
+        currentcompressed..= key.."|"
+        local valuestr = ""
+        if typea =="string" then
+            valuestr..='s%'..value
+        elseif typea == "number" then
+            valuestr..='n%'..value
+        elseif typea == "table" then
+            valuestr..='t%'
+            for i,v in value do
+                valuestr..=v
+                if next(value,i) then
+                    valuestr..=","
+                end
+            end
+        end
+        currentcompressed..=valuestr
+        if next(data,key) then
+            currentcompressed..="/"
+        end
+    end
+    return currentcompressed
 end
 function qf.DecompressBlockData(data:string,specificitems:table|string)
     --EX: 'Name|s%Cubic:dirt/Orientation|t%0,0,0/Position|0,0,0'
