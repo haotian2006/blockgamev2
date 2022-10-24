@@ -2,6 +2,10 @@ local qf = {}
 local settings = require(game.ReplicatedStorage.GameSettings)
 local blockmuti = 1/settings.GridSize
 local chunkmuti = 1/settings.ChunkSize.X
+-- GRID : Real Position 
+-- Block : Grid/BlockSize
+-- Chunk : Use Blocks
+
 function  qf.gridto1DBlock(x,y,z):number
     if x < 0 then x *=-1 x -=1 end if y < 0 then y *=-1 y -=1  end if z < 0 then z *=-1 z -=1 end
     local dx,dy = settings.ChunkSize.X,settings.ChunkSize.Y
