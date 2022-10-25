@@ -45,7 +45,7 @@ function stuff.GenerateTerrain(M,data)
     local functions = M.GenerationHandler.IsAir
     local newdata = {}
     for i,v in data do
-			newdata[tostring(i)] = functions(v.X,v.Y,v.Z)
+			newdata[tostring(i)] = not functions(v.X,v.Y,v.Z)
     end
     return newdata
 end

@@ -47,13 +47,13 @@ function self.GlobalGet(func,data,times)
 	coroutine.yield()
 	return newdata
 end
-function self.GetTerrain(cx,cz,times)
+function self.GetTerrain(cx,cz,height,times)
 	if IsClient then return end
 	times = times or 3
 	local newdata = {}
 	local thread = coroutine.running()
 	local ammountdone = 0
-	local data = require(game.ServerStorage.GenerationHandler).GenerateTable(cx,cz,100)
+	local data = require(game.ServerStorage.GenerationHandler).GenerateTable(cx,cz,height)
 	for i,v in ipairs(self.divide(data,times)) do
 		task.spawn(function()
 			local cdata = self.DoSmt("GenerateTerrain",v)

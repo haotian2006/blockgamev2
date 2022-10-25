@@ -23,6 +23,9 @@ end
 function qf.from1DToGrid(cx,cz,index,toblockinstead)
     local coord = qf.to3DBlock(index) local x,y,z = coord.X,coord.Y,coord.Z
     local dirx,dirz =1,1
+    do
+        return Vector3.new((x+settings.ChunkSize.X*cx),y,(z+settings.ChunkSize.X*cz)) *(not toblockinstead and settings.GridSize or 1)
+    end
     if cx < 0 then x+=1 dirx = -1 cx-=cx*2+1 end if cz < 0 then z+=1 dirz = -1 cz-=cz*2+1 end
     if toblockinstead then
         return Vector3.new((x+settings.ChunkSize.X*cx)*dirx,y,(z+settings.ChunkSize.X*cz)*dirz)
@@ -53,9 +56,12 @@ function  qf.ConvertString(str:string)
     return strr
 end
 function qf.convertchgridtoreal(cx,cz,x,y,z)
+    do
+        return Vector3.new((x+settings.ChunkSize.X*cx),y,(z+settings.ChunkSize.X*cz)) *settings.GridSize
+    end
     local dirx,dirz =1,1
     if cx < 0 then x+=1 dirx = -1 cx-=cx*2+1 end if cz < 0 then z+=1 dirz = -1 cz-=cz*2+1 end
-    return Vector3.new((x*settings.GridSize+settings.ChunkSize.X*cx)*dirx,y*4,(z*settings.GridSize+settings.ChunkSize.X*cz)*dirz) 
+    return Vector3.new((x+settings.ChunkSize.X*cx)*dirx,y,(z+settings.ChunkSize.X*cz)*dirz) *settings.GridSize
 end
 function qf.xzcorners(x,y)
 	local cx,cz = tonumber(x),tonumber(y)
