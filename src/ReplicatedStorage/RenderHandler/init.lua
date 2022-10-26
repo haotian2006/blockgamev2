@@ -10,4 +10,14 @@ for i,v in ipairs(script:GetChildren())do
         end
     end
 end
+script.ChildAdded:Connect(function(v)
+    if v:IsA("ModuleScript") then
+        libs[v.Name] = require(v)
+        for i,fun in libs[v.Name] do
+            if type(fun) == "function" then
+                render[i] = fun
+            end
+        end
+    end
+end)
 return render

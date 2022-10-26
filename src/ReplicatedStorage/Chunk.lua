@@ -17,20 +17,16 @@ function Chunk.new(cx,cz,data)
     ch.Chunk = {cx,cz}
     return ch
 end
-function Chunk:GetBlock(x,y,z)
-    return self.Blocks[qF.to1D(x,y,z)]
+function Chunk:GetBlock(x,y,z)--realpos
+    return self.Blocks[qF.Realto1DBlock(x,y,z)]
 end
 function Chunk:GetBlocks()
     return self.Blocks
 end
-function Chunk:InsertBlock(x,y,z,data)
-    if x and not tonumber(z) then
-        x,y,z,data = x[1],x[2],x[3],y
-    end
-    self.Blocks[x] = self.Blocks[x] or {}
-    self.Blocks[x][y] = self.Blocks[x][y] or {}
-    self.Blocks[x][y][z] = data or self.Blocks[x][y][z]
-    return self.Blocks[x][y][z]
+function Chunk:InsertBlock(data,x,y,z)
+    local cc = qF.Realto1DBlock(x,y,z)
+    self.Blocks[cc] = data
+    return self.Blocks[cc]
 end
 function Chunk:GetNString():string
     return self.Chunk[1].."x"..self.Chunk[2]

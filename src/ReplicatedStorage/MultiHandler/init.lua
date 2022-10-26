@@ -4,7 +4,8 @@ local runservice = game:GetService("RunService")
 local IsClient = runservice:IsClient()
 local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",100,{
 	game.ReplicatedStorage.QuickFunctions
-	,not IsClient and game.ServerStorage.GenerationHandler
+	,not IsClient and game.ServerStorage.GenerationHandler,
+	game.ReplicatedStorage.GameSettings
 
 })
 function self.divide(original,times,destroy)
