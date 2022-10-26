@@ -1,5 +1,5 @@
 local qf = {}
-local settings = pcall(require,game.ReplicatedStorage.GameSettings)
+local found,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 local otherlibs
 function qf.ADDSETTINGS(libs)
     settings = libs.GameSettings
@@ -107,8 +107,8 @@ end
 function qf.GridIsInChunk(cx,cz,x,y,z)
     local dx,dz = math.sign(cx),math.sign(cz)
     dx = dx == 0 and 1 or dx dz = dz == 0 and 1 or dz
-    local sx,ex = 0,15 if dx == -1 then sx = -1 ex = -16 end
-    local sz,ez = 0,15 if dz == -1 then sz = -1 ez = -16 end
+    local sx,ex = 0,15 if dx == -1 then sx = -1 ex = -16 cx+=1 end
+    local sz,ez = 0,15 if dz == -1 then sz = -1 ez = -16 cz+=1 end
     sx,ex = sx+cx*chunkS.X,ex+cx*chunkS.X
     sz,ez = sz+cz*chunkS.X,ez+cz*chunkS.X
     local flagx,flagz 

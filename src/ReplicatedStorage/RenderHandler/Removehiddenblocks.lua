@@ -1,7 +1,7 @@
 local LocalizationService = game:GetService("LocalizationService")
 local self = {}
-local qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
-local settings = pcall(require,game.ReplicatedStorage.GameSettings)
+local f,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
+local f,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 function self.HideBlocks(cx,cz,chunks,blockstocheck,mods)
     local currentblockid 
     qf = qf or mods.QuickFunctions
