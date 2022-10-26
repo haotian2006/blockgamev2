@@ -16,9 +16,12 @@ local chunkmuti = 1/settings.ChunkSize.X
 -- Grid : Real/BlockSize
 -- Chunk : Uses Grid
 -- CHGrid : Basicly the the Real coord inside the chunk EX: 17 --> 1
-function  qf.Realto1DBlock(x,y,z):number
+function  qf.Realto1DBlock(x,y,z,ToblockInstead):number
     if x < 0 then x *=-1 x -=1 end if y < 0 then y *=-1 y -=1  end if z < 0 then z *=-1 z -=1 end
     local dx,dy = settings.ChunkSize.X,settings.ChunkSize.Y
+    if not ToblockInstead then
+        x *=settings.GridSize y*=settings.GridSize z*=settings.GridSize
+    end
     x,y,z = x%dx,y%dy,z%dx
     return (z * dx * dy) + (y * dx) + x
 end
@@ -48,7 +51,7 @@ function qf.cbt(From,To,...) --ConvertBlockType
     To = To:lower()
     local x,y,z
     if From == "grid" or  From == "real" or  From == "chgrid" or From == "1d" then
-         x,y,z = qf.CV3Type("tuple",...)
+         x,y,z= qf.CV3Type("tuple",...)
     end
     if From == "real" and To == "grid" then
         return Vector3.new(qf.GetBlockCoordsFromReal(x,y,z))
@@ -57,10 +60,10 @@ function qf.cbt(From,To,...) --ConvertBlockType
     elseif From == "real" and To == "1d" then
         return qf.Realto1DBlock(x,y,z)
     elseif From == "grid" and To == "1d" then
-        return qf.Realto1DBlock(x*settings.GridSize,y*settings.GridSize,z*settings.GridSize)
-    elseif From == "1d" and To == "block" then
-        return qf.from1DToReal(x,y,z,true)
-    elseif From == "1d" and To == "Real" then
+        return qf.Realto1DBlock(x,y,z,true)
+    elseif From == "1d" and To == "grid" then
+        return qf.from1DToReal(x,y,z,true)--x == cx,y == cz z == index
+    elseif From == "1d" and To == "real" then
         return qf.from1DToReal(x,y,z)
     end
 end
@@ -104,7 +107,10 @@ function qf.to2DChunk(index)
     local dx = settings.GroupChunk local y = index/dx local x = index%dx
     return Vector2.new(x,math.floor(y))
 end
-function qf.GridIsInChunk(cx,cz,x,y,z)
+function qf.GridIsInChunk(cx,cz,x,y,z,UseRealInstead)
+    if UseRealInstead then
+        x,y,z = qf.cv3type("tuple",qf.cbt("real","grid",x,y,z))
+    end
     local dx,dz = math.sign(cx),math.sign(cz)
     dx = dx == 0 and 1 or dx dz = dz == 0 and 1 or dz
     local sx,ex = 0,15 if dx == -1 then sx = -1 ex = -16 cx+=1 end
