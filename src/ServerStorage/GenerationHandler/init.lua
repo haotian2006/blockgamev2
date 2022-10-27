@@ -25,12 +25,12 @@ function generation.Noise(x, y, octaves, lacunarity, persistence, scale, seed)
 	end
 	return math.clamp(value, -1, 1)
 end
-function generation.GenerateTable(cx,cz,maxheight)
+function generation.GenerateTable(cx,cz)
 	local newtable = {}
     for x = 0,st.ChunkSize.X-1 do
 		for z = 0,st.ChunkSize.X-1 do
-			for y = 0,maxheight do
-				newtable[x..','..y..','..z] = qf.convertchgridtoreal(cx,cz,x,y,z)
+			for y = 0,st.ChunkSize.Y-1 do
+				newtable[tostring(qf.Realto1DBlock(x,y,z,true))] = qf.convertchgridtoreal(cx,cz,x,y,z)
 			end
 		end
 	end

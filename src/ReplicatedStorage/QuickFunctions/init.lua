@@ -16,16 +16,17 @@ local chunkmuti = 1/settings.ChunkSize.X
 -- Grid : Real/BlockSize
 -- Chunk : Uses Grid
 -- CHGrid : Basicly the the Real coord inside the chunk EX: 17 --> 1
-function  qf.Realto1DBlock(x,y,z,ToblockInstead):number
-    if x < 0 then x *=-1 x -=1 end if y < 0 then y *=-1 y -=1  end if z < 0 then z *=-1 z -=1 end
+function  qf.Realto1DBlock(x,y,z,fromblockinstead):number
+    --if x < 0 then x *=-1 x -=1 end if y < 0 then y *=-1 y -=1  end if z < 0 then z *=-1 z -=1 end
     local dx,dy = settings.ChunkSize.X,settings.ChunkSize.Y
-    if not ToblockInstead then
+    if not fromblockinstead then
         x *=settings.GridSize y*=settings.GridSize z*=settings.GridSize
     end
     x,y,z = x%dx,y%dy,z%dx
-    return (z * dx * dy) + (y * dx) + x
+    return (z * dx * dy) + (y * dx) + x +1
 end
 function qf.to3DBlock(index):Vector3
+    index = tonumber(index)-1
     local dx,dy = settings.ChunkSize.X,settings.ChunkSize.Y
     local z = math.floor(index / (dx * dy))
 	index -= (z * dx * dy)
@@ -50,8 +51,9 @@ function qf.cbt(From,To,...) --ConvertBlockType
     From = From:lower()
     To = To:lower()
     local x,y,z
+    local x = ...
     if From == "grid" or  From == "real" or  From == "chgrid" or From == "1d" then
-         x,y,z= qf.CV3Type("tuple",...)
+         x,y,z= unpack({...})
     end
     if From == "real" and To == "grid" then
         return Vector3.new(qf.GetBlockCoordsFromReal(x,y,z))
@@ -65,6 +67,8 @@ function qf.cbt(From,To,...) --ConvertBlockType
         return qf.from1DToReal(x,y,z,true)--x == cx,y == cz z == index
     elseif From == "1d" and To == "real" then
         return qf.from1DToReal(x,y,z)
+    elseif From == "1d" and To == "chgrid" then
+        return qf.to3DBlock(x)
     end
 end
 function qf.cv3type(typeto,...)-- ConvertVector3Type
@@ -108,7 +112,7 @@ function qf.to2DChunk(index)
     return Vector2.new(x,math.floor(y))
 end
 function qf.GridIsInChunk(cx,cz,x,y,z,UseRealInstead)
-    if UseRealInstead then
+    if false and UseRealInstead then
         x,y,z = qf.cv3type("tuple",qf.cbt("real","grid",x,y,z))
     end
     local dx,dz = math.sign(cx),math.sign(cz)
@@ -117,6 +121,7 @@ function qf.GridIsInChunk(cx,cz,x,y,z,UseRealInstead)
     local sz,ez = 0,15 if dz == -1 then sz = -1 ez = -16 cz+=1 end
     sx,ex = sx+cx*chunkS.X,ex+cx*chunkS.X
     sz,ez = sz+cz*chunkS.X,ez+cz*chunkS.X
+    if UseRealInstead then print(sx,ex,sz,ez) end
     local flagx,flagz 
     if dx == -1 then
         flagx = sx>=x and ex<= x
@@ -129,6 +134,13 @@ function qf.GridIsInChunk(cx,cz,x,y,z,UseRealInstead)
         flagz = ez >= z and sz <= z
     end
     return flagx and flagz
+end
+function qf.tonumbertableindex(tabl)
+    local tt = {}
+    for i,v in tabl do
+        tt[tonumber(i)] = v
+    end
+    return tt
 end
 function qf.ConvertString(str:string)
     local Sign,strr = unpack(str:split('%'))

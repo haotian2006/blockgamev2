@@ -1,5 +1,6 @@
 local greedy = {}
 local gs = require(game.ReplicatedStorage.GameSettings)
+local qf = require(game.ReplicatedStorage.QuickFunctions)
 local gridsize = gs.GridSize
 local function findintable(tab,x,y,z)
    if tab[x] and tab[x][y] and tab[x][y][z]   then
@@ -21,15 +22,18 @@ end
 local function decombine(str)
    return str:split(",")
 end
+local one = false
 function  greedy.meshtable(tabletodemesh)
    local startx,endx,startz,endz,starty,endy
    local D3 = {}
    local checked = {}
    local old = 0
-   for i,v in pairs(tabletodemesh)do
+   local c = 0
+
+   for i,v in tabletodemesh do
        if not v then continue end
        old+=1
-       local x,y,z = unpack(i:split(","))
+       local x,y,z = qf.cv3type("tuple",qf.cbt('1d','chgrid',i))--unpack(i:split(","))
        x,y,z = tonumber(x),tonumber(y),tonumber(z)
        if startx == nil then
            startx = x

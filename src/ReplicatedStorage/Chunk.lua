@@ -15,6 +15,7 @@ function Chunk.new(cx,cz,data)
     ch.Setttings = data and data.Setttings or {}
     ch.Blocks = data and data.Blocks or {}
     ch.Chunk = {cx,cz}
+    ch.Mode = "1D"
     return ch
 end
 function Chunk:GetBlock(x,y,z)--realpos

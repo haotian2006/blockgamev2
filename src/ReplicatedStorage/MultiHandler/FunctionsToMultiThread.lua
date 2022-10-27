@@ -21,6 +21,19 @@ function stuff.divide(original,times,destroy)
 	end
 	return tables
 end
+function  stuff.HideBlocks(M,...)
+	local func = M.RenderHandler.HideBlocks
+	local dot = {...}
+	table.insert(dot,M)
+	return func(unpack(dot))
+end
+function stuff.CreatePart(M,Ammount)
+	local parts = {}
+	for i =1,Ammount do
+		table.insert(parts,Instance.new("Part"))
+	end
+	return parts
+end
 function stuff.CompressBlockData(M,data)
     local functions = M.QuickFunctions.CompressBlockData
     local newdata = {}
@@ -45,7 +58,7 @@ function stuff.GenerateTerrain(M,data)
     local functions = M.GenerationHandler.IsAir
     local newdata = {}
     for i,v in data do
-			newdata[tostring(i)] = not functions(v.X,v.Y,v.Z)
+		newdata[tostring(i)] = (not functions(v.X,v.Y,v.Z)) and v or nil
     end
     return newdata
 end
