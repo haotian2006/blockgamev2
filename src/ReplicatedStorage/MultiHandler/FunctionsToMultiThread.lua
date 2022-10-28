@@ -58,9 +58,23 @@ function stuff.GenerateTerrain(M,data)
     local functions = M.GenerationHandler.IsAir
     local newdata = {}
     for i,v in data do
-		newdata[tostring(i)] = (not functions(v.X,v.Y,v.Z)) and v or nil
+		newdata[i] = (not functions(v.X,v.Y,v.Z)) and true or nil
     end
     return newdata
+end
+function stuff.DHandler(M,...)
+	local whichonetocall
+	local dots = {...}
+	for i,v in ipairs(dots) do
+		if type(v) == "table" and v[1] and v[2] and v[1] == "handler" then
+			whichonetocall = v[2]
+			table.remove(dots,i)
+			continue
+		end		
+	end
+	if stuff[whichonetocall] then
+		return stuff[whichonetocall](M,unpack(dots))
+	end
 end
 function stuff.Handler(M,...)
 	local whichonetocall

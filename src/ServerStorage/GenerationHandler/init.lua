@@ -30,7 +30,7 @@ function generation.GenerateTable(cx,cz)
     for x = 0,st.ChunkSize.X-1 do
 		for z = 0,st.ChunkSize.X-1 do
 			for y = 0,st.ChunkSize.Y-1 do
-				newtable[tostring(qf.Realto1DBlock(x,y,z,true))] = qf.convertchgridtoreal(cx,cz,x,y,z)
+				newtable[x..','..y..','..z] = qf.convertchgridtoreal(cx,cz,x,y,z)
 			end
 		end
 	end

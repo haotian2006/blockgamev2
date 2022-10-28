@@ -50,10 +50,10 @@ end
 function qf.cbt(From,To,...) --ConvertBlockType
     From = From:lower()
     To = To:lower()
-    local x,y,z
+    local x,y,z,z2,z3
     local x = ...
     if From == "grid" or  From == "real" or  From == "chgrid" or From == "1d" then
-         x,y,z= unpack({...})
+         x,y,z,z2,z3= unpack({...})
     end
     if From == "real" and To == "grid" then
         return Vector3.new(qf.GetBlockCoordsFromReal(x,y,z))
@@ -69,6 +69,12 @@ function qf.cbt(From,To,...) --ConvertBlockType
         return qf.from1DToReal(x,y,z)
     elseif From == "1d" and To == "chgrid" then
         return qf.to3DBlock(x)
+    elseif From == "chgrid" and To == "grid" then
+        return qf.convertchgridtoreal(x,y,z,z2,z3,true)
+    elseif From == "chgrid" and To == "real" then
+        return qf.convertchgridtoreal(x,y,z,z2,z3)
+    elseif From == "grid" and To == "chgrid" then
+        return Vector3.new(x%chunkS.X,y,z%chunkS.X)
     end
 end
 function qf.cv3type(typeto,...)-- ConvertVector3Type
@@ -156,9 +162,9 @@ function qf.ConvertString(str:string)
     end
     return strr
 end
-function qf.convertchgridtoreal(cx,cz,x,y,z)
+function qf.convertchgridtoreal(cx,cz,x,y,z,toblockinstead)
     do
-        return Vector3.new((x+settings.ChunkSize.X*cx),y,(z+settings.ChunkSize.X*cz)) *settings.GridSize
+        return Vector3.new((x+settings.ChunkSize.X*cx),y,(z+settings.ChunkSize.X*cz)) *(not toblockinstead and settings.GridSize or 1)
     end
     local dirx,dirz =1,1
     if cx < 0 then x+=1 dirx = -1 cx-=cx*2+1 end if cz < 0 then z+=1 dirz = -1 cz-=cz*2+1 end

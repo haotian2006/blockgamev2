@@ -33,7 +33,7 @@ function  greedy.meshtable(tabletodemesh)
    for i,v in tabletodemesh do
        if not v then continue end
        old+=1
-       local x,y,z = qf.cv3type("tuple",qf.cbt('1d','chgrid',i))--unpack(i:split(","))
+       local x,y,z = qf.cv3type("tuple",i)--unpack(i:split(","))
        x,y,z = tonumber(x),tonumber(y),tonumber(z)
        if startx == nil then
            startx = x

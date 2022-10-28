@@ -3,10 +3,18 @@ local self = {}
 local f,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local f,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 = +x 3 = -x 4 = +z 5 = -z
+    if type(chunks) == "string" then
+        local c = game.HttpService:JSONDecode(chunks)
+        chunks = {}
+        chunks[1] = c
+    end
     local currentblockid 
     local new = {}
-    qf = qf or libs.QuickFunctions
-    settings = settings or libs.GameSettings
+    if libs then
+        qf = qf or libs.QuickFunctions
+        qf.ADDSETTINGS(libs)
+        settings = settings or libs.GameSettings
+    end
     local siz = settings.GridSize
     local acas = 0
     local alreadychecked = {{},{},{},{},{}}
@@ -18,29 +26,29 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
             return alreadychecked[wt][x..','..y..','..z]
         end
         acas+=1 
-        local nn = tostring(qf.cbt("grid","1d",x,y,z))
+        local nn = tostring(qf.cv3type("string",qf.cbt("grid","chgrid",x,y,z)))
         local a = chunks[wt][nn]
         alreadychecked[wt][x..','..y..','..z] = a
         return a
     end
     local function IsAnBorder(x,y,z)
         local walls,ammount = {},0
-        if not qf.GridIsInChunk(cx,cz,x+1,y,z)then
-            walls["x1"] = true
-            ammount+=1
-        end
-        if not qf.GridIsInChunk(cx,cz,x-1,y,z)then
-            walls["x-1"] = true
-            ammount+=1
-        end
-        if not qf.GridIsInChunk(cx,cz,x,y,z+1)then
-            walls["z1"] = true
-            ammount+=1
-        end
-        if not qf.GridIsInChunk(cx,cz,x,y,z-1)then
-            walls["z-1"] = true
-            ammount+=1
-        end
+        -- if not qf.GridIsInChunk(cx,cz,x+1,y,z)then
+        --     walls["x1"] = true
+        --     ammount+=1
+        -- end
+        -- if not qf.GridIsInChunk(cx,cz,x-1,y,z)then
+        --     walls["x-1"] = true
+        --     ammount+=1
+        -- end
+        -- if not qf.GridIsInChunk(cx,cz,x,y,z+1)then
+        --     walls["z1"] = true
+        --     ammount+=1
+        -- end
+        -- if not qf.GridIsInChunk(cx,cz,x,y,z-1)then
+        --     walls["z-1"] = true
+        --     ammount+=1
+        -- end
         return walls,ammount
     end
     local function checksurroundingblocks(x,y,z)
@@ -78,7 +86,7 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
     end
     for index,data in blockstocheck do
         if not data then continue end
-        currentblockid = qf.cbt("1d","grid",cx,cz,index)
+        currentblockid = qf.cbt("chgrid","grid",cx,cz,qf.cv3type("tuple",index))
         new[index] = (not (can(currentblockid.X,currentblockid.Y,currentblockid.Z) )and data) or nil
     end
     return new
