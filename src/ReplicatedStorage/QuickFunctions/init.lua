@@ -109,6 +109,38 @@ function qf.cv3type(typeto,...)-- ConvertVector3Type
     end
     return ret
 end
+function qf.cv2type(typeto,...)-- ConvertVector3Type
+    local typeto = string.lower(typeto)
+    local x,y
+    local typea = typeof(...)
+    typea = string.lower(typea)
+    local checkfortup = {...}
+    local value = ...
+    if  checkfortup[3] then
+        x,y = ...
+    elseif typea == "string" then
+        x,y = unpack(string.split(value,","))
+    elseif typea == "vector3" or typea == "cframe" or value.X then
+        x,y = value.X,value.Y,value.Z
+    elseif typea == "table" then
+        x,y = unpack(value)
+    end
+    if not x or not y then return end 
+    x,y = tonumber(x),tonumber(y)
+    local ret
+    if typeto == "string" then
+        ret = x..","..y
+    elseif typeto == "table" then
+        ret = {x,y}
+     elseif typeto =="vector2" then
+        ret = Vector3.new(x,y)
+	elseif typeto =="cframe" then
+		ret = CFrame.new(x,y)
+	elseif typeto == "tuple" then
+		return x,y
+    end
+    return ret
+end
 function qf.to1DChunk(x,y)
     local dx = settings.GroupChunk
     return x+y*dx
@@ -195,7 +227,6 @@ function qf.GetChunkfromReal(x,y,z)
 	local cz= 	tonumber(math.floor((z-0)*chunkmuti))
 	return cx,cz
 end
-
 function qf.CompressBlockData(data:table)
     local currentcompressed = ""
     for key,value in data do

@@ -3,7 +3,7 @@ local workersmodule = require(game.ReplicatedStorage.WorkerThreads)
 local runservice = game:GetService("RunService")
 local IsClient = runservice:IsClient()
 local https = game:GetService("HttpService")
-local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",100,{
+local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",600,{
 	game.ReplicatedStorage.QuickFunctions
 	,not IsClient and game.ServerStorage.GenerationHandler,
 	game.ReplicatedStorage.GameSettings,
