@@ -1,7 +1,9 @@
 local Chunk = {}
 Chunk.__index = Chunk
 local qF = require(game.ReplicatedStorage.QuickFunctions)
+local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
+local multihandler = require(game.ReplicatedStorage.MultiHandler)
 --block example: Name|Cubic:Grass
 function Chunk.new(cx,cz,data)
     if not cx or not cz then
@@ -15,7 +17,6 @@ function Chunk.new(cx,cz,data)
     ch.Setttings = data and data.Setttings or {}
     ch.Blocks = data and data.Blocks or {}
     ch.Chunk = {cx,cz}
-    ch.Mode = "1D"
     return ch
 end
 function Chunk:GetBlock(x,y,z)--realpos
@@ -41,7 +42,7 @@ end
 if runservice:IsClient() then return Chunk end
 --server only functions
 function Chunk:Generate()
-    
+    self.Blocks = multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],6)
 end
 
 return Chunk

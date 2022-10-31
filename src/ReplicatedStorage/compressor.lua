@@ -1,3 +1,4 @@
+local LocalizationService = game:GetService("LocalizationService")
 -- Module by 1waffle1, optimized by boatbomber
 -- https://devforum.roblox.com/t/text-compression/163637
 local c ={}
@@ -12,7 +13,26 @@ do -- populate dictionary
 		end
 	end
 end
-
+local function divide(original,times,destroy)
+	local tables = {}
+	for i =1,times do
+		table.insert(tables,{})
+	end
+	local length = 0
+	for i,v in pairs(original)do
+		length +=1
+		for t =times,1,-1 do
+			if length%t ==0 then
+				tables[t][i] = v
+				break
+			end
+		end
+		if  destroy then
+			original[i] = nil
+		end
+	end
+	return tables
+end
 local escapemap = {}
 do -- Populate escape map
 	for i = 1, 34 do
@@ -136,5 +156,27 @@ function c.decompress(text)
 	end
 	return unescape(table.concat(sequence))
 end
-
+function  c.decompresslargetable(ctable)
+	local new = {}
+	for i,v in ctable do
+		local data = game.HttpService:JSONDecode(c.decompress(v))
+		if typeof(data) == "table" then
+			for i,v in data do
+				new[i] = v
+			end
+		else
+			new[i] = data
+		end
+	end
+	return new
+end
+function c.compresslargetable(table,times)
+	times = times or 3
+	local compressed = {}
+	for i,v in divide(table,times)do
+		local a = game.HttpService:JSONEncode(v)
+		compressed[i] = c.compress(a)
+	end
+	return compressed
+end
 return c
