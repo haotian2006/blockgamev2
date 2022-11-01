@@ -8,7 +8,7 @@ local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsT
 	,not IsClient and game.ServerStorage.GenerationHandler or nil,
 	game.ReplicatedStorage.GameSettings,
 	game.ReplicatedStorage.RenderHandler.Culling,
-	game.ReplicatedStorage.compressor,
+	game.ReplicatedStorage.compressor, 
 
 })
 -- local DWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"DHandler",100,{
