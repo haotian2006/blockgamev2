@@ -3,11 +3,11 @@ local self = {}
 local f,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local f,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 = +x 3 = -x 4 = +z 5 = -z
-    if type(chunks) == "string" then
-        local c = game.HttpService:JSONDecode(chunks)
-        chunks = {}
-        chunks[1] = c
-    end
+    -- if type(chunks) == "string" then
+    --     local c = game.HttpService:JSONDecode(chunks)
+    --     chunks = {}
+    --     chunks[1] = c
+    -- end
     local currentblockid 
     local new = {}
     if libs then
@@ -27,6 +27,7 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
         end
         acas+=1 
         local nn = tostring(qf.cv3type("string",qf.cbt("grid","chgrid",x,y,z)))
+
         local a = chunks[wt][nn]
         alreadychecked[wt][x..','..y..','..z] = a
         return a

@@ -22,7 +22,7 @@ function stuff.divide(original,times,destroy)
 	return tables
 end
 function  stuff.HideBlocks(M,...)
-	local func = M.RenderHandler.HideBlocks
+	local func = M.Culling.HideBlocks
 	local dot = {...}
 	table.insert(dot,M)
 	return func(unpack(dot))

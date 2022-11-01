@@ -5,9 +5,9 @@ local IsClient = runservice:IsClient()
 local https = game:GetService("HttpService")
 local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",600,{
 	game.ReplicatedStorage.QuickFunctions
-	,not IsClient and game.ServerStorage.GenerationHandler,
+	,not IsClient and game.ServerStorage.GenerationHandler or nil,
 	game.ReplicatedStorage.GameSettings,
-	game.ReplicatedStorage.RenderHandler,
+	game.ReplicatedStorage.RenderHandler.Culling,
 	game.ReplicatedStorage.compressor,
 
 })
@@ -21,7 +21,6 @@ local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsT
 -- })
 
 local compressor = require(game.ReplicatedStorage.compressor)
-local genhand = require(game.ServerStorage.GenerationHandler)
 function self.divide(original,times,destroy)
 	local tables = {}
 	for i =1,times do
@@ -64,6 +63,7 @@ function self.GlobalGet(func,data,times)
 end
 function self.GetTerrain(cx,cz,times)
 	if IsClient then return end
+	local genhand = require(game.ServerStorage.GenerationHandler)
 	times = times or 3
 	local newdata = {}
 	local thread = coroutine.running()
@@ -85,15 +85,14 @@ function self.GetTerrain(cx,cz,times)
 	return newdata
 end
 function self.HideBlocks(cx,cz,chunks,times)
-	if IsClient then return end
 	times = times or 3
 	local newdata = {}
 	local thread = coroutine.running()
 	local ammountdone = 0
-	local sterilise = https:JSONEncode(chunks[1])
+--	local sterilise = https:JSONEncode(chunks[1])
 	for i,v in ipairs(self.divide(chunks[1],times)) do
 		task.spawn(function()
-			local cdata = self.DoSmt("HideBlocks",cx,cz,sterilise,v)
+			local cdata = self.DoSmt("HideBlocks",cx,cz,chunks,v)
 			--local cdata = self.DDoSmt("HideBlocks",cx,cz,true,true)
 			for e,c in cdata do
 				newdata[tostring(e)] = c
@@ -108,7 +107,6 @@ function self.HideBlocks(cx,cz,chunks,times)
 	return newdata
 end
 function self.CreatePart(ammount,times)
-	if IsClient then return end
 	times = times or 3
 	local newdata = {}
 	local thread = coroutine.running()

@@ -36,13 +36,16 @@ end
 function Chunk:GetNTuple():IntValue|IntValue
     return self.Chunk[1],self.Chunk[2]
 end
+function Chunk:SetData(which,data)
+    self[which] = data
+end
 function Chunk:Destroy()
     setmetatable(self, nil)
 end
 if runservice:IsClient() then return Chunk end
 --server only functions
 function Chunk:Generate()
-    self.Blocks = multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],6)
+    self.Blocks = multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],20)
 end
 
 return Chunk

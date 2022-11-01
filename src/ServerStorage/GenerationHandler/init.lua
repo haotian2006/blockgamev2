@@ -3,15 +3,15 @@ local qf = require(game.ReplicatedStorage.QuickFunctions)
 local st = require(game.ReplicatedStorage.GameSettings)
 local part_scale  = 4
 local noise_scale = 100
-local height_scale = 40*2
+local height_scale = 60*2
 
 local octaves = 1 
 local lacunarity = 0
 local persistence = 2
 local seed = 12345
 
-local max_height = 40*4
-local noiseScale2 = 40*2
+local max_height = 60*4
+local noiseScale2 = 60*2
 function generation.Noise(x, y, octaves, lacunarity, persistence, scale, seed)
 	local value = 0 
 	local x1 = x 

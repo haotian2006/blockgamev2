@@ -1,0 +1,1 @@
+local data = require(game.ReplicatedStorage.DataHandler)

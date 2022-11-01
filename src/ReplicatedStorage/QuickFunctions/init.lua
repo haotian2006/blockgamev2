@@ -47,6 +47,20 @@ function qf.from1DToReal(cx,cz,index,toblockinstead)
         return Vector3.new((x*settings.GridSize+settings.ChunkSize.X*cx)*dirx,y*4,(z*settings.GridSize+settings.ChunkSize.X*cz)*dirz) 
     end
 end
+function qf.GetSurroundingChunk(cx,cz,render)
+	local coords ={cx..","..cz}
+	for i = 1,render,1 do
+		for x = cx-i,cx+i do
+			for z = cz-i,cz+i do
+				local combined = x..","..z
+				if not table.find(coords,combined) then
+					table.insert(coords,combined)
+				end
+			end
+		end
+	end
+	return coords
+end
 function qf.cbt(From,To,...) --ConvertBlockType
     From = From:lower()
     To = To:lower()
@@ -88,7 +102,7 @@ function qf.cv3type(typeto,...)-- ConvertVector3Type
         x,y,z  = ...
     elseif typea == "string" then
         x,y,z = unpack(string.split(value,","))
-    elseif typea == "vector3" or typea == "cframe" or value.X then
+    elseif typea == "vector3" or typea == "cframe" or value["X"] then
         x,y,z = value.X,value.Y,value.Z
     elseif typea == "table" then
         x,y,z = unpack(value)
@@ -109,19 +123,19 @@ function qf.cv3type(typeto,...)-- ConvertVector3Type
     end
     return ret
 end
-function qf.cv2type(typeto,...)-- ConvertVector3Type
+function qf.cv2type(typeto,...)-- ConvertVector2Type
     local typeto = string.lower(typeto)
     local x,y
     local typea = typeof(...)
     typea = string.lower(typea)
     local checkfortup = {...}
     local value = ...
-    if  checkfortup[3] then
+    if  checkfortup[2] then
         x,y = ...
     elseif typea == "string" then
         x,y = unpack(string.split(value,","))
-    elseif typea == "vector3" or typea == "cframe" or value.X then
-        x,y = value.X,value.Y,value.Z
+    elseif typea == "vector3" or typea == "cframe" or value["X"] then
+        x,y = value.X,value.Y
     elseif typea == "table" then
         x,y = unpack(value)
     end
