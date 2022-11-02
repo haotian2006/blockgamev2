@@ -44,8 +44,22 @@ function qf.from1DToReal(cx,cz,index,toblockinstead)
     if toblockinstead then
         return Vector3.new((x+settings.ChunkSize.X*cx)*dirx,y,(z+settings.ChunkSize.X*cz)*dirz)
     else
-        return Vector3.new((x*settings.GridSize+settings.ChunkSize.X*cx)*dirx,y*4,(z*settings.GridSize+settings.ChunkSize.X*cz)*dirz) 
+        return Vector3.new((x*settings.GridSize+settings.ChunkSize.X*cx)*dirx,y*gridS,(z*settings.GridSize+settings.ChunkSize.X*cz)*dirz) 
     end
+end
+function qf.SortTables(position,tables)
+    position = Vector2.new(position.X,position.Z)
+    local new = {}
+    for i,v in tables do
+        local cx,cz = unpack(string.split(i,","))
+        local vp = qf.convertchgridtoreal(cx,cz,8,0,8)
+        vp = Vector2.new(vp.X,vp.Z)
+        table.insert(new,{i,(position-vp).Magnitude})
+    end
+    table.sort(new,function(a,b)
+        return a[2] < b[2]
+    end)
+    return new
 end
 function qf.GetSurroundingChunk(cx,cz,render)
 	local coords ={cx..","..cz}
@@ -169,8 +183,8 @@ function qf.GridIsInChunk(cx,cz,x,y,z,UseRealInstead)
     end
     local dx,dz = math.sign(cx),math.sign(cz)
     dx = dx == 0 and 1 or dx dz = dz == 0 and 1 or dz
-    local sx,ex = 0,15 if dx == -1 then sx = -1 ex = -16 cx+=1 end
-    local sz,ez = 0,15 if dz == -1 then sz = -1 ez = -16 cz+=1 end
+    local sx,ex = 0,chunkS.X-1 if dx == -1 then sx = -1 ex = -chunkS.X cx+=1 end
+    local sz,ez = 0,chunkS.X-1 if dz == -1 then sz = -1 ez = -chunkS.X cz+=1 end
     sx,ex = sx+cx*chunkS.X,ex+cx*chunkS.X
     sz,ez = sz+cz*chunkS.X,ez+cz*chunkS.X
     if UseRealInstead then print(sx,ex,sz,ez) end
@@ -216,19 +230,7 @@ function qf.convertchgridtoreal(cx,cz,x,y,z,toblockinstead)
     if cx < 0 then x+=1 dirx = -1 cx-=cx*2+1 end if cz < 0 then z+=1 dirz = -1 cz-=cz*2+1 end
     return Vector3.new((x+settings.ChunkSize.X*cx)*dirx,y,(z+settings.ChunkSize.X*cz)*dirz) *settings.GridSize
 end
-function qf.xzcorners(x,y)
-	local cx,cz = tonumber(x),tonumber(y)
-	local coord0chunkoffset =  Vector3.new(cx*4*16,0,cz*4*16)
-	local coord0chunk = Vector3.new(0,0,0) + coord0chunkoffset
-	local Cornerx,Cornerz =Vector2.new(-32+cx*64,-32+cz*64) ,Vector2.new(28+cx*64,28+cz*64)
-	local pos = {}
-	for x = Cornerx.X, Cornerz.X,4 do
-		for z = Cornerx.Y,Cornerz.Y,4 do
-			table.insert(pos,x.."x"..z)
-		end
-	end
-	return pos
-end
+
 function qf.GetBlockCoordsFromReal(x,y,z)
 	local x = math.floor((0 + x)*blockmuti)
 	local z = math.floor((0 + z)*blockmuti)

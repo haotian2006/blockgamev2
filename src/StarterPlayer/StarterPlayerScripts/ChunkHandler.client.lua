@@ -6,15 +6,20 @@ local toload = {}
 local currentlyloading = {}
 local queued = {}
 local render = require(game.ReplicatedStorage.RenderHandler.Render)
+local runservicer = game:GetService("RunService")
 task.spawn(function()
     while true do
-        for chunk,_ in toload do
+        local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+        chr:WaitForChild("HumanoidRootPart")
+        for i,v in qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,toload) do
+            local chunk = v[1]
             local cx,cz = qf.cv2type("tuple",chunk)
-            toload[chunk] = nil
-            render.render(cx,cz)
-            break
+            if render.render(cx,cz) then
+                toload[chunk] = nil
+                break
+            end
         end
-        task.wait(.2)
+        runservicer.RenderStepped:Wait()
     end
 end)
 local function GetChunks(cx,cz)
@@ -31,11 +36,12 @@ local function GetCleanedChunk(cx,cz)
 end
 local function srender(p)
     local cx,cz = qf.GetChunkfromReal(qf.cv3type("tuple",p)) 
-    local s= qf.GetSurroundingChunk(cx,cz,1)
+    local s= qf.GetSurroundingChunk(cx,cz,10)
     for i,v in s do
         local cx,cz = qf.cv2type("tuple",v)
         if not datahandler.GetChunk(cx,cz) and not queued[cx..','..cz] then
             GetChunks(cx,cz)
+            runservicer.RenderStepped:Wait()
         end
     end
 end

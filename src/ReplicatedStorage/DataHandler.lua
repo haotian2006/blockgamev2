@@ -28,7 +28,7 @@ game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,
         local new = data.CreateChunk(nil,cx,cz)
         new:Generate()
     end
-    print("e")
+    --print("e")
    game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,data.GetChunk(cx,cz):GetBlocks() )
     -- game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,compresser.compresslargetable(data.GetChunk(cx,cz):GetBlocks(),6) )
 end)
