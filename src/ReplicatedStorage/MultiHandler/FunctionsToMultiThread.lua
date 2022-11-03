@@ -58,6 +58,7 @@ function stuff.GenerateTerrain(M,data)
     local functions = M.GenerationHandler.IsAir
     local newdata = {}
     for i,v in data do
+		--v = M.QuickFunctions.cv3type("vector3",i)
 		newdata[i] = (not functions(v.X,v.Y,v.Z)) and true or nil
     end
     return newdata

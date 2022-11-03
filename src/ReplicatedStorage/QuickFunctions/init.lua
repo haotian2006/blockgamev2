@@ -16,6 +16,66 @@ local chunkmuti = 1/settings.ChunkSize.X
 -- Grid : Real/BlockSize
 -- Chunk : Uses Grid
 -- CHGrid : Basicly the the Real coord inside the chunk EX: 17 --> 1
+
+--other
+function qf.SortTables(position,tables)
+    position = Vector2.new(position.X,position.Z)
+    local new = {}
+    for i,v in tables do
+        if type(i) == "number" then i = v end
+        local cx,cz = unpack(string.split(i,","))
+        local vp = qf.convertchgridtoreal(cx,cz,8,0,8)
+        vp = Vector2.new(vp.X,vp.Z)
+        table.insert(new,{i,(position-vp).Magnitude})
+    end
+    table.sort(new,function(a,b)
+        return a[2] < b[2]
+    end)
+    return new
+end
+function qf.tonumbertableindex(tabl)
+    local tt = {}
+    for i,v in tabl do
+        tt[tonumber(i)] = v
+    end
+    return tt
+end
+--block/chunk
+function qf.GetChunkfromReal(x,y,z)
+    x,y,z = qf.GetBlockCoordsFromReal(x,y,z)
+	local cx =	tonumber(math.floor((x-0)*chunkmuti))
+	local cz= 	tonumber(math.floor((z-0)*chunkmuti))
+	return cx,cz
+end
+function qf.convertchgridtoreal(cx,cz,x,y,z,toblockinstead):Vector3
+    do
+        return Vector3.new((x+settings.ChunkSize.X*cx),y,(z+settings.ChunkSize.X*cz)) *(not toblockinstead and settings.GridSize or 1)
+    end
+    local dirx,dirz =1,1
+    if cx < 0 then x+=1 dirx = -1 cx-=cx*2+1 end if cz < 0 then z+=1 dirz = -1 cz-=cz*2+1 end
+    return Vector3.new((x+settings.ChunkSize.X*cx)*dirx,y,(z+settings.ChunkSize.X*cz)*dirz) *settings.GridSize
+end
+function qf.GetBlockCoordsFromReal(x,y,z)
+	local x = math.floor((0 + x)*blockmuti)
+	local z = math.floor((0 + z)*blockmuti)
+	local y = math.floor((0 + y)*blockmuti)
+	return x,y,z
+end
+function qf.GetSurroundingChunk(cx,cz,render)
+	local coords ={cx..","..cz}
+	for i = 1,render,1 do
+		for x = cx-i,cx+i do
+			for z = cz-i,cz+i do
+				local combined = x..","..z
+				if not table.find(coords,combined) then
+					table.insert(coords,combined)
+				end
+			end
+		end
+	end
+	return coords
+end
+--Converting Data types
 function  qf.Realto1DBlock(x,y,z,fromblockinstead):number
     --if x < 0 then x *=-1 x -=1 end if y < 0 then y *=-1 y -=1  end if z < 0 then z *=-1 z -=1 end
     local dx,dy = settings.ChunkSize.X,settings.ChunkSize.Y
@@ -47,34 +107,6 @@ function qf.from1DToReal(cx,cz,index,toblockinstead)
         return Vector3.new((x*settings.GridSize+settings.ChunkSize.X*cx)*dirx,y*gridS,(z*settings.GridSize+settings.ChunkSize.X*cz)*dirz) 
     end
 end
-function qf.SortTables(position,tables)
-    position = Vector2.new(position.X,position.Z)
-    local new = {}
-    for i,v in tables do
-        local cx,cz = unpack(string.split(i,","))
-        local vp = qf.convertchgridtoreal(cx,cz,8,0,8)
-        vp = Vector2.new(vp.X,vp.Z)
-        table.insert(new,{i,(position-vp).Magnitude})
-    end
-    table.sort(new,function(a,b)
-        return a[2] < b[2]
-    end)
-    return new
-end
-function qf.GetSurroundingChunk(cx,cz,render)
-	local coords ={cx..","..cz}
-	for i = 1,render,1 do
-		for x = cx-i,cx+i do
-			for z = cz-i,cz+i do
-				local combined = x..","..z
-				if not table.find(coords,combined) then
-					table.insert(coords,combined)
-				end
-			end
-		end
-	end
-	return coords
-end
 function qf.cbt(From,To,...) --ConvertBlockType
     From = From:lower()
     To = To:lower()
@@ -104,6 +136,20 @@ function qf.cbt(From,To,...) --ConvertBlockType
     elseif From == "grid" and To == "chgrid" then
         return Vector3.new(x%chunkS.X,y,z%chunkS.X)
     end
+end
+function qf.ConvertString(str:string)
+    local Sign,strr = unpack(str:split('%'))
+    if not strr then strr = Sign Sign = "s" end
+    if Sign == "s" then
+        return tostring(strr)
+    elseif Sign == "t"  then
+        return strr:split(',')
+    elseif Sign == "n"  then
+        return tonumber(strr)
+    else
+        warn("Sign",Sign,"Is not a valid Sign")
+    end
+    return strr
 end
 function qf.cv3type(typeto,...)-- ConvertVector3Type
     local typeto = string.lower(typeto)
@@ -201,48 +247,7 @@ function qf.GridIsInChunk(cx,cz,x,y,z,UseRealInstead)
     end
     return flagx and flagz
 end
-function qf.tonumbertableindex(tabl)
-    local tt = {}
-    for i,v in tabl do
-        tt[tonumber(i)] = v
-    end
-    return tt
-end
-function qf.ConvertString(str:string)
-    local Sign,strr = unpack(str:split('%'))
-    if not strr then strr = Sign Sign = "s" end
-    if Sign == "s" then
-        return tostring(strr)
-    elseif Sign == "t"  then
-        return strr:split(',')
-    elseif Sign == "n"  then
-        return tonumber(strr)
-    else
-        warn("Sign",Sign,"Is not a valid Sign")
-    end
-    return strr
-end
-function qf.convertchgridtoreal(cx,cz,x,y,z,toblockinstead)
-    do
-        return Vector3.new((x+settings.ChunkSize.X*cx),y,(z+settings.ChunkSize.X*cz)) *(not toblockinstead and settings.GridSize or 1)
-    end
-    local dirx,dirz =1,1
-    if cx < 0 then x+=1 dirx = -1 cx-=cx*2+1 end if cz < 0 then z+=1 dirz = -1 cz-=cz*2+1 end
-    return Vector3.new((x+settings.ChunkSize.X*cx)*dirx,y,(z+settings.ChunkSize.X*cz)*dirz) *settings.GridSize
-end
-
-function qf.GetBlockCoordsFromReal(x,y,z)
-	local x = math.floor((0 + x)*blockmuti)
-	local z = math.floor((0 + z)*blockmuti)
-	local y = math.floor((0 + y)*blockmuti)
-	return x,y,z
-end
-function qf.GetChunkfromReal(x,y,z)
-    x,y,z = qf.GetBlockCoordsFromReal(x,y,z)
-	local cx =	tonumber(math.floor((x-0)*chunkmuti))
-	local cz= 	tonumber(math.floor((z-0)*chunkmuti))
-	return cx,cz
-end
+--Compression
 function qf.CompressBlockData(data:table)
     local currentcompressed = ""
     for key,value in data do

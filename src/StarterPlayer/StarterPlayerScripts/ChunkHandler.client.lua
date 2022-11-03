@@ -9,14 +9,16 @@ local render = require(game.ReplicatedStorage.RenderHandler.Render)
 local runservicer = game:GetService("RunService")
 task.spawn(function()
     while true do
-        local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
-        chr:WaitForChild("HumanoidRootPart")
-        for i,v in qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,toload) do
-            local chunk = v[1]
-            local cx,cz = qf.cv2type("tuple",chunk)
-            if render.render(cx,cz) then
-                toload[chunk] = nil
-                break
+        for i=0,6 do
+            local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+            chr:WaitForChild("HumanoidRootPart")
+            for i,v in qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,toload) do
+                local chunk = v[1]
+                local cx,cz = qf.cv2type("tuple",chunk)
+                if render.render(cx,cz) then
+                    toload[chunk] = nil
+                    break
+                end
             end
         end
         runservicer.RenderStepped:Wait()
@@ -35,20 +37,27 @@ local function GetCleanedChunk(cx,cz)
     return mulithandler.HideBlocks(cx,cz)
 end
 local function srender(p)
-    local cx,cz = qf.GetChunkfromReal(qf.cv3type("tuple",p)) 
-    local s= qf.GetSurroundingChunk(cx,cz,10)
-    for i,v in s do
+    local cx1,cz1 = qf.GetChunkfromReal(qf.cv3type("tuple",p.Position)) 
+    local s= qf.GetSurroundingChunk(cx1,cz1,10)
+    local passed = 0
+    for i,v in qf.SortTables(p.Position,s) do
+        v = v[1]
+        passed+=1
         local cx,cz = qf.cv2type("tuple",v)
+        local ccx,ccz =  qf.GetChunkfromReal(qf.cv3type("tuple",p.Position)) 
+        if (ccx ~= cx1 or ccz ~= cz1 )and passed>=18 then
+            break
+        end
         if not datahandler.GetChunk(cx,cz) and not queued[cx..','..cz] then
             GetChunks(cx,cz)
-            runservicer.RenderStepped:Wait()
+            task.wait(.05)
         end
     end
 end
 local char = game.Workspace:WaitForChild(game.Players.LocalPlayer.Name,math.huge)
 task.wait(1)
 local oldchunk =""
-    srender(char.PrimaryPart.Position)
+    srender(char.PrimaryPart)
 	print("done")
 	while char do
 		local currentChunk,c = qf.GetChunkfromReal(qf.cv3type("tuple",char.PrimaryPart.Position)) 
@@ -57,7 +66,7 @@ local oldchunk =""
 		if currentChunk ~= oldchunk and true then
 			oldchunk = currentChunk
 		--	newload(char.PrimaryPart)
-            srender(char.PrimaryPart.Position)
+            srender(char.PrimaryPart)
 		end
 	task.wait(0.1)
 end
