@@ -38,6 +38,10 @@ local function roundpos(v3)
 	return Vector3.new(math.floor(v3.X+0.5),math.floor(v3.Y+0.5),math.floor(v3.Z+0.5))
 end
 local Resolution = 1
+function generation.proceduralNum(x,y,s,max)
+	local thingy = 4
+	return math.abs((math.noise((x/thingy)+.1,(y/thingy)+0.1,s)+.5)*max)
+end
 function generation.CreateWorm(cx,cz) -- cx and cy is the chunk it is being generated in
 	--note that all math.random functions will be changed so it will be procedural generated instead
 	local sx,sy,sz = math.random(0,7),math.random(0,127),math.random(0,7)-- generate a random startposition
