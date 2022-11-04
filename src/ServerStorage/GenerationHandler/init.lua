@@ -40,20 +40,19 @@ end
 local Resolution = 1
 function generation.proceduralNum(x,y,s,max)
 	local thingy = 4
-	return math.abs((math.noise((x/thingy)+.1,(y/thingy)+0.1,s)+.5)*max)
+	return math.round(math.abs((math.noise((x/thingy)+.1,(y/thingy)+0.1,s)+.5)*max))
 end
 function generation.CreateWorm(cx,cz) -- cx and cy is the chunk it is being generated in
 	--note that all math.random functions will be changed so it will be procedural generated instead
-	local sx,sy,sz = math.random(0,7),math.random(0,127),math.random(0,7)-- generate a random startposition
-	local ammount = math.random(0,3) -- how much branches from the startpos 
+	local sx,sy,sz = generation.proceduralNum(cx*1.3,cz,seed*2,7),generation.proceduralNum(cx,cz,seed,127),generation.proceduralNum(cx*.12,cz*1.6,seed,7)-- generate a random startposition
+	local ammount =  generation.proceduralNum(cx,cz,seed,3) -- how much branches from the startpos 
 	local worms = {}
-	print(ammount)
 	for ci = 1,ammount do
 		local c = BrickColor.random()-- doing this so each branch will be a diffrent color
 		local wormdata = {}
 		local WormP = CFrame.new(qf.convertchgridtoreal(cx,cz,sx,sy,sz,true))--[[convert it to grid positon from local grid ex: if cx is 0 and chgrid = 1 then grid = 1 
 																			 but if cx == 1 and chgrid = 1 then grid = 8 ]]
-		local maxlength = math.random(50,maxwormlength) --worm length
+		local maxlength = generation.proceduralNum(cx*.4,cz*.23,seed,50) --worm length
 		for i=1, maxlength do
 			local x,y,z = math.noise(WormP.X/Resolution+.1,seed+ci)+0.01,math.noise(WormP.Y/Resolution+.1,seed+ci)+0.01,math.noise(WormP.Z/Resolution+.1,seed+ci)+0.01 -- get a direaction
 			WormP = WormP*CFrame.Angles(x*(1+ci),y*(1+ci),z*(1+ci))*CFrame.new(0,0,-Resolution) -- adding ci so it adds an offset
