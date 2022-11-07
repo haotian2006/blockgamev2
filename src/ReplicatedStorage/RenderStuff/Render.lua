@@ -5,7 +5,7 @@ local multihandler = require(game.ReplicatedStorage.MultiHandler)
 local greedymesh = require(script.Parent.GreedyMesh)
 local csize =require(game.ReplicatedStorage.GameSettings).ChunkSize.X
 local gridS = require(game.ReplicatedStorage.GameSettings).GridSize
-local culling = require(game.ReplicatedStorage.RenderHandler.Culling)
+local culling = require(game.ReplicatedStorage.RenderStuff.Culling)
 function self.render(cx,cz)
     -- print(  bd.GetChunk(cx+1,cz) and true, bd.GetChunk(cx-1,cz) and true, 
     -- bd.GetChunk(cx,cz+1) and true, bd.GetChunk(cx,cz-1) and true)
@@ -19,7 +19,7 @@ function self.render(cx,cz)
                 -- bd.GetChunk(cx,cz-1):GetBlocks(),
             }
            -- local culling = culling.HideBlocks(cx,cz,t,bd.GetChunk(cx,cz):GetBlocks())
-            local culling = multihandler.HideBlocks(cx,cz,t,7)
+            local culling = multihandler.HideBlocks(cx,cz,t,1)
             local meshed = greedymesh.meshtable(culling)
             local ammountofblocks = 0
             for i,v in meshed do

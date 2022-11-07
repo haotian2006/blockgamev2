@@ -3,11 +3,20 @@ local self = {}
 local f,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local f,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 = +x 3 = -x 4 = +z 5 = -z
-    -- if type(chunks) == "string" then
-    --     local c = game.HttpService:JSONDecode(chunks)
-    --     chunks = {}
-    --     chunks[1] = c
-    -- end
+    if type(chunks) == "string" then
+        local c = libs.compressor.decompresslargetable(chunks)
+        chunks = {}
+        chunks[1] = c
+    end
+    if not chunks then
+        chunks = {}
+        chunks[1] = blockstocheck
+    end
+    if not blockstocheck then
+        blockstocheck =  chunks
+        local p = chunks
+        chunks = {p}
+    end
     local currentblockid 
     local new = {}
     if libs then

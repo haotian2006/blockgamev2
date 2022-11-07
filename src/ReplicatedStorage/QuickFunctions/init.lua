@@ -24,7 +24,7 @@ function qf.SortTables(position,tables)
     for i,v in tables do
         if type(i) == "number" then i = v end
         local cx,cz = unpack(string.split(i,","))
-        local vp = qf.convertchgridtoreal(cx,cz,8,0,8)
+        local vp = qf.convertchgridtoreal(cx,cz,gridS,0,gridS)
         vp = Vector2.new(vp.X,vp.Z)
         table.insert(new,{i,(position-vp).Magnitude})
     end
@@ -41,8 +41,10 @@ function qf.tonumbertableindex(tabl)
     return tt
 end
 --block/chunk
-function qf.GetChunkfromReal(x,y,z)
-    x,y,z = qf.GetBlockCoordsFromReal(x,y,z)
+function qf.GetChunkfromReal(x,y,z,blockinstead)
+    if not blockinstead then
+        x,y,z = qf.GetBlockCoordsFromReal(x,y,z)
+    end
 	local cx =	tonumber(math.floor((x-0)*chunkmuti))
 	local cz= 	tonumber(math.floor((z-0)*chunkmuti))
 	return cx,cz
@@ -275,6 +277,7 @@ function qf.CompressBlockData(data:table)
     return currentcompressed
 end
 function qf.DecompressBlockData(data:string,specificitems:table|string)
+    if type(data) ~= "string" then return data end 
     --EX: 'Name|s%Cubic:dirt/Orientation|t%0,0,0/Position|0,0,0'
     --(s) = string, (t) = table, (n) = number 
     -- (/) is like a comma (|) is the equal key in index = value (%) determines the type of the value, default is string

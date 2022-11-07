@@ -3,20 +3,22 @@ local workersmodule = require(game.ReplicatedStorage.WorkerThreads)
 local runservice = game:GetService("RunService")
 local IsClient = runservice:IsClient()
 local https = game:GetService("HttpService")
-local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",600,{
+local libarystosend = {
 	game.ReplicatedStorage.QuickFunctions
 	,not IsClient and game.ServerStorage.GenerationHandler or nil,
 	game.ReplicatedStorage.GameSettings,
-	game.ReplicatedStorage.RenderHandler.Culling,
+	game.ReplicatedStorage.RenderStuff.Culling,
 	game.ReplicatedStorage.compressor, 
 
-})
+}
+local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",500,libarystosend)
+local LargeWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"LargeHandler",100,libarystosend)
 -- local DWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"DHandler",100,{
 -- 	game.ReplicatedStorage.QuickFunctions,
 -- 	game.ReplicatedStorage.compressor,
 -- 	not IsClient and game.ServerStorage.GenerationHandler,
 -- 	game.ReplicatedStorage.GameSettings,
--- 	game.ReplicatedStorage.RenderHandler,
+-- 	game.ReplicatedStorage.RenderStuff,
 
 -- })
 
@@ -88,11 +90,12 @@ function self.HideBlocks(cx,cz,chunks,times)
 	times = times or 3
 	local newdata = {}
 	local thread = coroutine.running()
-	local ammountdone = 0
---	local sterilise = https:JSONEncode(chunks[1])
+	local ammountdone = 0 
+	--local sterilise = compressor.compresslargetable(chunks[1],5)
 	for i,v in ipairs(self.divide(chunks[1],times)) do
 		task.spawn(function()
-			local cdata = self.DoSmt("HideBlocks",cx,cz,chunks,v)
+		--	local cdata = self.LargeSend("HideBlocks",{3},2,cx,cz,v,false)
+			local cdata = self.DoSmt("HideBlocks",cx,cz,v,false)
 			--local cdata = self.DDoSmt("HideBlocks",cx,cz,true,true)
 			for e,c in cdata do
 				newdata[tostring(e)] = c
@@ -105,6 +108,9 @@ function self.HideBlocks(cx,cz,chunks,times)
 	end
 	coroutine.yield()
 	return newdata
+end
+function self.GenerateWorms(cx,cz)
+	return self.DoSmt("GenerateWorms",cx,cz)
 end
 function self.CreatePart(ammount,times)
 	times = times or 3
@@ -135,16 +141,32 @@ function self.CreatePart(ammount,times)
 	coroutine.yield()
 	return newdata
 end
-function self.DDoSmt(func,...)
-    local dots = {...}
-    table.insert(dots,{'handler',func})
-	local c = unpack(dots)
-    return DWorkers:DoWork(unpack(dots))
+function self.LargeSend(func,indexs,times,...)
+	local workertouse = LargeWorkers:GetNextWorker()
+	local dots = {...}
+	local newdata = {}
+	for i,v in indexs do
+		local data = dots[v]
+		newdata[v] = self.divide(data,times) 
+		dots[v] = ""
+	end
+	for i =1,times do
+		local datatosend = {}
+		for c,v in newdata do
+			datatosend[tostring(c)] = v[i]
+		end
+		if i == times then
+			table.insert(dots,{'handler',func})
+
+			return  workertouse:Invoke(datatosend,unpack(dots))
+		else
+			workertouse:Invoke(datatosend)
+		end
+	end
 end
 function self.DoSmt(func,...)
     local dots = {...}
     table.insert(dots,{'handler',func})
-	local c = unpack(dots)
     return Workers:DoWork(unpack(dots))
 end
 return self 

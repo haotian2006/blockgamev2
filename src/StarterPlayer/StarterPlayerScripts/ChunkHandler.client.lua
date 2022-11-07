@@ -5,7 +5,7 @@ local mulithandler = require(game.ReplicatedStorage.MultiHandler)
 local toload = {}
 local currentlyloading = {}
 local queued = {}
-local render = require(game.ReplicatedStorage.RenderHandler.Render)
+local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local runservicer = game:GetService("RunService")
 task.spawn(function()
     while true do
@@ -21,24 +21,48 @@ task.spawn(function()
                 end
             end
         end
-        runservicer.RenderStepped:Wait()
+        runservicer.Heartbeat:Wait()
     end
 end)
+-- local todecode = {}
+-- task.spawn(function()
+--     while true do
+--         runservicer.Heartbeat:Wait()
+--         task.wait(1)
+--         local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait() chr:WaitForChild("HumanoidRootPart")
+--         for i,v in qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,todecode) do
+--             i = v[1]
+--             v = todecode[i]
+--             todecode[i] = nil
+--             task.spawn(function()
+--                 local cx,cz = qf.cv2type("tuple",i)
+--                 queued[i] = false
+--                 datahandler.CreateChunk({Blocks = mulithandler.DoSmt("DecompressBlockData",v,2)},cx,cz)
+--                 toload[i] = true
+--             end)
+--             if i == 12 then
+--                 break
+--             end
+--         end
+--     end
+-- end)
 local function GetChunks(cx,cz)
     queued[cx..','..cz] = true
     game.ReplicatedStorage.Events.GetChunk:FireServer(cx,cz)
 end
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
+   -- todecode[cx..','..cz] = data
     toload[cx..','..cz] = true
     queued[cx..','..cz] = false
     datahandler.CreateChunk({Blocks = data},cx,cz)
+   -- datahandler.CreateChunk({Blocks =data},cx,cz)
 end)
 local function GetCleanedChunk(cx,cz)
     return mulithandler.HideBlocks(cx,cz)
 end
 local function srender(p)
     local cx1,cz1 = qf.GetChunkfromReal(qf.cv3type("tuple",p.Position)) 
-    local s= qf.GetSurroundingChunk(cx1,cz1,10)
+    local s= qf.GetSurroundingChunk(cx1,cz1,5)
     local passed = 0
     for i,v in qf.SortTables(p.Position,s) do
         v = v[1]
@@ -50,7 +74,7 @@ local function srender(p)
         end
         if not datahandler.GetChunk(cx,cz) and not queued[cx..','..cz] then
             GetChunks(cx,cz)
-            task.wait(.05)
+            task.wait(.1)
         end
     end
 end

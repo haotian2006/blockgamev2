@@ -54,18 +54,31 @@ function stuff.DecompressBlockData(M,data)
     end
     return newdata
 end
+function stuff.GenerateWorms(M,cx,cz)
+    local functions = M.GenerationHandler.runfunctionfrommuti
+	return  functions(M,"CreateWorms",cx,cz)
+
+end
 function stuff.GenerateTerrain(M,data)
-    local functions = M.GenerationHandler.IsAir
+    local functions = M.GenerationHandler.runfunctionfrommuti
     local newdata = {}
     for i,v in data do
-		--v = M.QuickFunctions.cv3type("vector3",i)
-		newdata[i] = (not functions(v.X,v.Y,v.Z)) and true or nil
+		--v = M.QuickFunctions.cv3type("vector3",i) 'Type|s%Cubic:Dirt'
+		newdata[i] = (not functions(M,"IsAir",v.X,v.Y,v.Z)) and 'Type|s%Cubic:Dirt' or nil
     end
     return newdata
 end
-function stuff.DHandler(M,...)
-	local whichonetocall
+local queue = {}
+function stuff.LargeHandler(M,combine,...)
+	local whichonetocall = ""
 	local dots = {...}
+	for i,v in combine do
+		local i = tonumber(i)
+		queue[i] = queue[i] or {}
+		for cc,vv in v do
+			queue[i][cc] = vv
+		end
+	end
 	for i,v in ipairs(dots) do
 		if type(v) == "table" and v[1] and v[2] and v[1] == "handler" then
 			whichonetocall = v[2]
@@ -73,7 +86,11 @@ function stuff.DHandler(M,...)
 			continue
 		end		
 	end
-	if stuff[whichonetocall] then
+	if stuff[whichonetocall] and next({...}) then
+		for i,v in queue do
+			dots[i] = v
+		end
+		queue = {}
 		return stuff[whichonetocall](M,unpack(dots))
 	end
 end
