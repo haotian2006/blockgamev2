@@ -3,7 +3,7 @@ local LocalizationService = game:GetService("LocalizationService")
 local generation = {}
 local c,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local c,st = pcall(require,game.ReplicatedStorage.GameSettings)
-local part_scale  = 4
+local part_scale  = 3
 local noise_scale = 100
 local height_scale = 60/2
 
