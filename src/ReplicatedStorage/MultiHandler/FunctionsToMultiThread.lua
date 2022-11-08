@@ -64,7 +64,7 @@ function stuff.GenerateTerrain(M,data)
     local newdata = {}
     for i,v in data do
 		--v = M.QuickFunctions.cv3type("vector3",i) 'Type|s%Cubic:Dirt'
-		newdata[i] = (not functions(M,"IsAir",v.X,v.Y,v.Z)) and 'Type|s%Cubic:Dirt' or nil
+		newdata[i] = (not functions(M,"IsAir",v.X,v.Y,v.Z)) and true or nil
     end
     return newdata
 end

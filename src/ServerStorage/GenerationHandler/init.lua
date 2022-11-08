@@ -38,20 +38,44 @@ end
 local function roundpos(v3)
 	return Vector3.new(math.floor(v3.X+0.5),math.floor(v3.Y+0.5),math.floor(v3.Z+0.5))
 end
-function generation.color(data)
-	for i,v in data do
-		local x,y,z = qf.cv3type("tuple",i)
-		if not data[qf.cv3type("string",x,y+1,z)] then
-			data[i] = ""
-		end
-	end
-end
 function generation.proceduralNum(x,y,s,max,min)
 	local thingy = 4
 	min = min or 0
 	return math.clamp( math.round(math.abs((math.noise((x/thingy)+.1,(y/thingy)+0.1,s)+.5)*max)),min,math.huge)
 end
 local maxres = 5
+function generation.CreateBedrock(cx,cz,gtable):table
+	for x = 0,st.ChunkSize.X-1 do
+		for z = 0,st.ChunkSize.X-1 do
+			local combine = qf.cv3type("string",x,0,z)
+			gtable[combine] = 'Type|s%Cubic:Bedrock'
+		end
+	end	
+	return gtable
+end
+function generation.Color(cx,cz,gtable):table
+	local function getColor(x,y,z)
+		local combine = qf.cv3type("string",x,y,z)
+		local self = gtable[combine]
+		local above = gtable[qf.cv3type("string",x,y+1,z)]
+		if not above and self then
+			return 'Type|s%Cubic:Grass'
+		elseif (above == 'Type|s%Cubic:Grass' or not gtable[qf.cv3type("string",x,y+3,z)]  ) and self  then
+			return 'Type|s%Cubic:Dirt'
+		elseif self then
+			return'Type|s%Cubic:Stone'
+		end
+	end
+	for y = st.ChunkSize.Y-1,0,-1 do
+		for x = 0,st.ChunkSize.X-1 do
+			for z = 0,st.ChunkSize.X-1 do
+				local combine = qf.cv3type("string",x,y,z)
+				gtable[combine] = getColor(x,y,z)
+			end
+		end	
+	end
+	return gtable
+end
 function generation.CreateWorms(cx,cz) -- cx and cy is the chunk it is being generated in
 	--note that all math.random functions will be changed so it will be procedural generated instead
 	local ammountofcaves =  generation.proceduralNum(cx,cz,seed,6)

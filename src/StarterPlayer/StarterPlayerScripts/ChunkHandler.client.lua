@@ -69,7 +69,7 @@ local function srender(p)
         passed+=1
         local cx,cz = qf.cv2type("tuple",v)
         local ccx,ccz =  qf.GetChunkfromReal(qf.cv3type("tuple",p.Position)) 
-        if (ccx ~= cx1 or ccz ~= cz1 )and passed>=18 then
+        if (ccx ~= cx1 or ccz ~= cz1 )and passed>=6 then
             break
         end
         if not datahandler.GetChunk(cx,cz) and not queued[cx..','..cz] then

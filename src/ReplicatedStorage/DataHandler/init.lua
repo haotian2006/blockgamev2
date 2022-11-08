@@ -51,6 +51,7 @@ task.spawn(function()
                     chun:Generate()     
                     game.ReplicatedStorage.Events.GetChunk:FireClient(v[1],v[2],v[3],self.GetChunk(v[2],v[3]):GetBlocks() )
                 end)
+                if i%10 == 0 then task.wait(.2) end
                 task.wait()
             end
             task.wait()
@@ -60,7 +61,7 @@ end)
 game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)
     -- local position = player.Character.PrimaryPart.Position
     local new = self.GetChunk(cx,cz)
-    if new and new.Setttings.Generated then
+    if new and new:IsGenerating() then
         game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
         return 
     end

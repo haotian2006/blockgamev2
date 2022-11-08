@@ -95,7 +95,7 @@ function self.HideBlocks(cx,cz,chunks,times)
 	for i,v in ipairs(self.divide(chunks[1],times)) do
 		task.spawn(function()
 		--	local cdata = self.LargeSend("HideBlocks",{3},2,cx,cz,v,false)
-			local cdata = self.DoSmt("HideBlocks",cx,cz,v,false)
+			local cdata = self.DoSmt("HideBlocks",cx,cz,chunks,v)
 			--local cdata = self.DDoSmt("HideBlocks",cx,cz,true,true)
 			for e,c in cdata do
 				newdata[tostring(e)] = c

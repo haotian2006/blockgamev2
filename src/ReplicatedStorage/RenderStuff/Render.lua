@@ -19,7 +19,7 @@ function self.render(cx,cz)
                 -- bd.GetChunk(cx,cz-1):GetBlocks(),
             }
            -- local culling = culling.HideBlocks(cx,cz,t,bd.GetChunk(cx,cz):GetBlocks())
-            local culling = multihandler.HideBlocks(cx,cz,t,1)
+            local culling = multihandler.HideBlocks(cx,cz,t,3)
             local meshed = greedymesh.meshtable(culling)
             local ammountofblocks = 0
             for i,v in meshed do
@@ -33,6 +33,17 @@ function self.render(cx,cz)
 				local p = blocks[1]
 				p.Parent = folder
 				table.remove(blocks,1)
+                local name = v.data.Type
+                p.Material = Enum.Material.SmoothPlastic
+                if name == 'Cubic:Grass' then
+                    p.Color = Color3.new(0.172549, 0.721568, 0.062745)
+                elseif name == 'Cubic:Dirt'  then
+                    p.Color = Color3.new(0.580392, 0.2, 0.047058)
+                elseif name == 'Cubic:Stone' then
+                    p.Color = Color3.new(0.305882, 0.305882, 0.305882)
+                elseif name == 'Cubic:Bedrock' then
+                    p.Color = Color3.new(0, 0, 0)
+                end
 				p.Position = Vector3.new(v.real.X+cx*csize,v.real.Y,v.real.Z+cz*csize)*gridS
 				p.Anchored = true
 				p.Size = Vector3.new(v.l*gridS,v.h*gridS,v.w*gridS)

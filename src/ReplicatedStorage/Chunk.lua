@@ -53,6 +53,7 @@ function Chunk:Destroy()
     setmetatable(self, nil)
 end
 if runservice:IsClient() then return Chunk end
+local terrainh = require(game.ServerStorage.GenerationHandler)
 --server only functions
 function Chunk:LoadToLoad()
     for i,v in self.ToLoad do
@@ -107,6 +108,12 @@ function Chunk:GenerateCavesNearBy()
         task.wait()
     until times == #stuff-1
 end
+function Chunk:IsGenerating()
+    if self.Generating then
+        repeat task.wait()until self.Generating == false
+    end
+    return self.Generating
+end
 function Chunk:Generate()
     if self.Setttings.Generated then return end
     self.Setttings.Generated = true
@@ -116,13 +123,14 @@ function Chunk:Generate()
         return
     end
     self.Generating = true
-    self.Blocks = multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],92)
+    self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],92)) 
     if not self.Setttings.GeneratedCaves  then
        self:DoCaves()
     end
    self:GenerateCavesNearBy()
    task.wait()
    self:LoadToLoad()
+   self.Blocks = terrainh.CreateBedrock(self.Chunk[1],self.Chunk[2],self.Blocks)
     self.Generating = false
 end
 

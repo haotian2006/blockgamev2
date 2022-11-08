@@ -1,6 +1,7 @@
 local greedy = {}
 local gs = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
+local mulitthread = require(game.ReplicatedStorage.MultiHandler)
 local gridsize = gs.GridSize
 local function findintable(tab,x,y,z)
    if tab[x] and tab[x][y] and tab[x][y][z]   then
@@ -29,7 +30,7 @@ function  greedy.meshtable(tabletodemesh)
    local checked = {}
    local old = 0
    local c = 0
-
+   tabletodemesh = mulitthread.GlobalGet("DecompressBlockData",tabletodemesh,5)
    for i,v in tabletodemesh do
        if not v then continue end
        old+=1
@@ -71,7 +72,7 @@ function  greedy.meshtable(tabletodemesh)
    local ssx,ssz,ssy = startx,startz,starty
    local new,total = {},0
    local lastx,lastz,lasty 
-   local function createblock(sx,ex,sz,ez,sy,ey)
+   local function createblock(sx,ex,sz,ez,sy,ey,data)
        local l = math.sqrt((sx-ex)^2)
        local midpointx = (sx+ex )/2
        l += l ~= -1 and 1 or 0
@@ -81,24 +82,40 @@ function  greedy.meshtable(tabletodemesh)
        local h = math.sqrt((sy-ey)^2)
        local midpointy = (sy+ey )/2
        h += h ~= -1 and 1 or 0
-       return {startx = sx,endx = ex,startz = sz,endz = ez,starty = sy,endy = ey,h=h,l=l,w=w,real = Vector3.new(midpointx,midpointy,midpointz)},midpointx..','..midpointy..','..midpointz
+       return {data = data ,startx = sx,endx = ex,startz = sz,endz = ez,starty = sy,endy = ey,h=h,l=l,w=w,real = Vector3.new(midpointx,midpointy,midpointz)},midpointx..','..midpointy..','..midpointz
+   end
+   local function compare(x,y,z,xx,yy,zz)
+        local d1 = findintable(D3,x,y,z)
+        local d2 = findintable(D3,xx,yy,zz)
+        if d1 and d2 then
+            if d1.Type ~= d2.Type then
+                return false
+            end
+        end
+        return true
    end
    while currentz <= endz+1 do
        while currentx <= endx+1 do
            while currenty <= endy+1 do
-               if findintable(D3,currentx,currenty,currentz) and not findintable(checked,currentx,currenty,currentz) then
-                   if not findintable(D3,lastx,lasty,lastz) then
+               if findintable(D3,currentx,currenty,currentz) and not findintable(checked,currentx,currenty,currentz)and compare(lastx,lasty,lastz,currentx,currenty,currentz)  then
+                   if not findintable(D3,lastx,lasty,lastz)  then
                        startx = currentx
                        startz = currentz
                        starty = currenty
                    end
                    addtotabl(checked,true,currentx,currenty,currentz)
-               elseif not findintable(D3,currentx,currenty,currentz) and findintable(D3,startx,starty,startz) and startx and startz and starty and lastx and lastz and lasty then
-                   local data,index = createblock(startx,lastx,startz,lastz,starty, lasty)
+               elseif (not findintable(D3,currentx,currenty,currentz)or not compare(lastx,lasty,lastz,currentx,currenty,currentz) )and findintable(D3,startx,starty,startz) and startx and startz and starty and lastx and lastz and lasty then
+                   local data,index = createblock(startx,lastx,startz,lastz,starty, lasty,findintable(D3,lastx,lasty,lastz))
                    new[index] = data
-                   startx = nil
-                   startz = nil
-                   starty = nil
+                   if not compare(lastx,lasty,lastz,currentx,currenty,currentz) then
+                    startx = currentx
+                    startz = currentz
+                    starty = currenty
+                   else
+                    startx = nil
+                    startz = nil
+                    starty = nil
+                 end
                end
                lastx = currentx
                lastz = currentz
@@ -132,7 +149,7 @@ function  greedy.meshtable(tabletodemesh)
        while true do
            move(currentdir ==-1 and true or nil)
            local c = new[rx..','..ry..','..rz]
-           if c and c.w == w and c.l == l and c.h == h then
+           if c and c.w == w and c.l == l and c.h == h and c.data.Type == info.data.Type then
                if currentdir == -1 then
                    sx = c.startx
                    sz = c.startz
@@ -151,7 +168,7 @@ function  greedy.meshtable(tabletodemesh)
                break
            end
        end
-       return involved,createblock(sx,ex,sz,ez,sy,ey)
+       return involved,createblock(sx,ex,sz,ez,sy,ey,info.data)
    end
    local cc ={}
    for key,value in pairs(shallowCopy(new)) do
