@@ -139,20 +139,6 @@ function qf.cbt(From,To,...) --ConvertBlockType
         return Vector3.new(x%chunkS.X,y,z%chunkS.X)
     end
 end
-function qf.ConvertString(str:string)
-    local Sign,strr = unpack(str:split('%'))
-    if not strr then strr = Sign Sign = "s" end
-    if Sign == "s" then
-        return tostring(strr)
-    elseif Sign == "t"  then
-        return strr:split(',')
-    elseif Sign == "n"  then
-        return tonumber(strr)
-    else
-        warn("Sign",Sign,"Is not a valid Sign")
-    end
-    return strr
-end
 function qf.cv3type(typeto,...)-- ConvertVector3Type
     local typeto = string.lower(typeto)
     local x,y,z 
@@ -250,6 +236,36 @@ function qf.GridIsInChunk(cx,cz,x,y,z,UseRealInstead)
     return flagx and flagz
 end
 --Compression
+function qf.ConvertSubTablesToStr(tab:table):string
+    
+end
+function qf.ConvertString(str:string)
+    local Sign,strr = unpack(str:split('%'))
+    if not strr then strr = Sign Sign = "s" end
+    if Sign == "s" then
+        return tostring(strr)
+    elseif Sign == "t"  then
+        if strr:match("=") then
+            local tablea = {}
+            for i,v in strr:split(',') do
+                local index,value = unpack(v:split("="))
+                if not value then
+                    value = index
+                    index = i
+                end
+                tablea[index] = value
+            end
+            return tablea
+        else
+            return (strr == '' and {}) or strr:split(',')
+        end
+    elseif Sign == "n"  then
+        return tonumber(strr)
+    else
+        warn("Sign",Sign,"Is not a valid Sign")
+    end
+    return strr
+end
 function qf.CompressBlockData(data:table)
     local currentcompressed = ""
     for key,value in data do
@@ -263,6 +279,9 @@ function qf.CompressBlockData(data:table)
         elseif typea == "table" then
             valuestr..='t%'
             for i,v in value do
+                if type(i) ~= "number" then
+                    valuestr..=i..'='
+                end
                 valuestr..=v
                 if next(value,i) then
                     valuestr..=","
@@ -276,22 +295,17 @@ function qf.CompressBlockData(data:table)
     end
     return currentcompressed
 end
-function qf.DecompressBlockData(data:string,specificitems:table|string)
+function qf.DecompressBlockData(data:string,specificitems:table|string):table|ValueBase
     if type(data) ~= "string" then return data end 
     --EX: 'Name|s%Cubic:dirt/Orientation|t%0,0,0/Position|0,0,0'
     --(s) = string, (t) = table, (n) = number 
     -- (/) is like a comma (|) is the equal key in index = value (%) determines the type of the value, default is string
     local is1 = false local spi = nil if type(specificitems) == "string" then spi = {}table.insert(spi,specificitems) is1 = true
     else spi = specificitems end if spi then local spi2 ={} for i,v in spi do spi2[v] = i end spi = spi2 end
-    if not data then warn("There Is No Data To Convert") return end
-    local seperated = data:split('/') local newdata = {}
-    for i,v in ipairs(seperated) do
-        local index,value = unpack(v:split('|'))
-        if not value then value = index index = #newdata+1 end
-        if spi and not spi[index] then continue end
-        if spi and next(spi) == nil  then break end
-        newdata[index] = qf.ConvertString(value)
-        if spi then spi[index] = nil end
+    if not data then warn("There Is No Data To Convert") return end  local seperated = data:split('/') local newdata = {}
+    for i,v in ipairs(seperated) do local index,value = unpack(v:split('|')) if not value then value = index index = #newdata+1 end
+        if spi and not spi[index] then continue end if spi and next(spi) == nil  then break end
+        newdata[index] = qf.ConvertString(value) if spi then spi[index] = nil end 
     end
     return is1 and newdata[next(newdata)] or newdata
 end

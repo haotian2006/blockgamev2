@@ -34,7 +34,15 @@
     "Workspace": {
       "$className": "Workspace",
       "$ignoreUnknownInstances": true,
-      "$path": "src/Workspace"
+      "$path": "src/Workspace",
+      "$properties": {
+        "Archivable": true
+      }
+    },
+    "MaterialService": {
+      "$className": "MaterialService",
+      "$ignoreUnknownInstances": true,
+      "$path": "src/MaterialService"
     }
   }
 }

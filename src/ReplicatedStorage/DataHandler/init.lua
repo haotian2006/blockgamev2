@@ -23,6 +23,13 @@ function self.CreateChunk(cdata,cx,cz)
     self.LoadedChunks[qf.cv2type("string",cx,cz)] = ChunkObj.new(cx,cz,cdata)
     return self.LoadedChunks[qf.cv2type("string",cx,cz)] 
 end
+function self.DestroyChunk(cx,cz)
+    local c = self.GetChunk(cx,cz)
+    if c then
+        c:Destroy()
+        self.LoadedChunks[qf.cv2type("string",cx,cz)] = nil
+    end
+end
 if runservice:IsClient() then return self end
 --<server functions
 function self.AddToLoad(cx,cz,stuff)
@@ -51,7 +58,7 @@ task.spawn(function()
                     chun:Generate()     
                     game.ReplicatedStorage.Events.GetChunk:FireClient(v[1],v[2],v[3],self.GetChunk(v[2],v[3]):GetBlocks() )
                 end)
-                if i%10 == 0 then task.wait(.2) end
+                if i%5 == 0 then task.wait(.1) end
                 task.wait()
             end
             task.wait()

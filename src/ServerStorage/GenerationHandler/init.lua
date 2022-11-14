@@ -80,7 +80,7 @@ function generation.CreateWorms(cx,cz) -- cx and cy is the chunk it is being gen
 	--note that all math.random functions will be changed so it will be procedural generated instead
 	local ammountofcaves =  generation.proceduralNum(cx,cz,seed,6)
 	local worms = {}
-	if ammountofcaves == 3 or ammountofcaves == 2 then
+	if ammountofcaves == 2 then
 	local caves = 1
 	--for caves = 2,ammountofcaves+1 do
 		local sx,sy,sz = generation.proceduralNum(cx*1.3,cz*caves,seed+caves,7),generation.proceduralNum(cx*caves,cz*caves,seed+caves,50),generation.proceduralNum(cx*.12*caves,cz*1.6,seed+caves,7)-- generate a random startposition

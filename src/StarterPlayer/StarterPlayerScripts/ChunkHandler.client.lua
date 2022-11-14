@@ -6,13 +6,18 @@ local toload = {}
 local currentlyloading = {}
 local queued = {}
 local render = require(game.ReplicatedStorage.RenderStuff.Render)
+local settings = require(game.ReplicatedStorage.GameSettings)
+local resource = require(game.ReplicatedStorage.ResourceHandler)
+resource:Init()
 local runservicer = game:GetService("RunService")
 task.spawn(function()
     while true do
         for i=0,6 do
             local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
             chr:WaitForChild("HumanoidRootPart")
-            for i,v in qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,toload) do
+            local c =  qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,toload)
+            game.Players.LocalPlayer.PlayerGui.Debugging.Storage.Text = "ToLoad: "..#c
+            for i,v in c do
                 local chunk = v[1]
                 local cx,cz = qf.cv2type("tuple",chunk)
                 if render.render(cx,cz) then
@@ -51,6 +56,13 @@ local function GetChunks(cx,cz)
     game.ReplicatedStorage.Events.GetChunk:FireServer(cx,cz)
 end
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
+   if false then  
+    local p = Instance.new("Part",workspace)
+    p.Anchored = true
+    p.CanCollide = false
+    p.Material = Enum.Material.Neon
+    p.Position = Vector3.new(cx*8*3,180,cz*8*3)
+   end
    -- todecode[cx..','..cz] = data
     toload[cx..','..cz] = true
     queued[cx..','..cz] = false
@@ -61,8 +73,21 @@ local function GetCleanedChunk(cx,cz)
     return mulithandler.HideBlocks(cx,cz)
 end
 local function srender(p)
+    for v,i in datahandler.LoadedChunks  do
+		local splited = v:split(",")
+		local vector = Vector2.new(splited[1],splited[2])*settings.ChunkSize.X*settings.GridSize
+        local pv = Vector2.new(p.Position.X,p.Position.Z)
+		if (vector-pv).Magnitude > 10*settings.ChunkSize.X*settings.GridSize then
+           -- print()
+            task.spawn( function()
+                toload[v] = nil
+                queued[v] = nil
+                render.DeLoad(splited[1],splited[2])
+            end)
+        end
+	end
     local cx1,cz1 = qf.GetChunkfromReal(qf.cv3type("tuple",p.Position)) 
-    local s= qf.GetSurroundingChunk(cx1,cz1,5)
+    local s= qf.GetSurroundingChunk(cx1,cz1,7)
     local passed = 0
     for i,v in qf.SortTables(p.Position,s) do
         v = v[1]
@@ -74,7 +99,7 @@ local function srender(p)
         end
         if not datahandler.GetChunk(cx,cz) and not queued[cx..','..cz] then
             GetChunks(cx,cz)
-            task.wait(.1)
+            task.wait(.08)
         end
     end
 end

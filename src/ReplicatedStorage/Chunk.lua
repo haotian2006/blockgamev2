@@ -1,5 +1,7 @@
 local Chunk = {}
 local qF = require(game.ReplicatedStorage.QuickFunctions)
+local settings = require(game.ReplicatedStorage.GameSettings)
+local chunksize = settings.ChunkSize
 local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
 local multihandler = require(game.ReplicatedStorage.MultiHandler)
@@ -39,6 +41,43 @@ function Chunk:InsertBlock(data,x,y,z)
     local cc = qF.Realto1DBlock(x,y,z)
     self.Blocks[cc] = data
     return self.Blocks[cc]
+end
+function  Chunk:GetEdge(dir)
+    local new = {}
+    if dir == "x" then
+        local x = 0
+        for y = 0, chunksize.Y-1 do
+            for z =0,chunksize.X-1 do
+                local str= x..','..y..','..z
+                new[str] = self.Blocks[str]
+            end
+        end
+    elseif dir == "x-1" then
+        local x = chunksize.X-1
+        for y = 0, chunksize.Y-1 do
+            for z =0,chunksize.X-1 do
+                local str= x..','..y..','..z
+                new[str] = self.Blocks[str]
+            end
+        end
+    elseif dir == "z" then
+        local z = 0
+        for y = 0, chunksize.Y-1 do
+            for x =0,chunksize.X-1 do
+                local str= x..','..y..','..z
+                new[str] = self.Blocks[str]
+            end
+        end
+    else
+        local z = chunksize.X-1
+        for y = 0, chunksize.Y-1 do
+            for x =0,chunksize.X-1 do
+                local str= x..','..y..','..z
+                new[str] = self.Blocks[str]
+            end
+        end
+    end
+    return new
 end
 function Chunk:GetNString():string
     return self.Chunk[1]..","..self.Chunk[2]
@@ -123,7 +162,7 @@ function Chunk:Generate()
         return
     end
     self.Generating = true
-    self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],92)) 
+    self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],50)) 
     if not self.Setttings.GeneratedCaves  then
        self:DoCaves()
     end
@@ -133,5 +172,4 @@ function Chunk:Generate()
    self.Blocks = terrainh.CreateBedrock(self.Chunk[1],self.Chunk[2],self.Blocks)
     self.Generating = false
 end
-
 return Chunk
