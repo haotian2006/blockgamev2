@@ -236,8 +236,13 @@ function qf.GridIsInChunk(cx,cz,x,y,z,UseRealInstead)
     return flagx and flagz
 end
 --Compression
+--{a = {b = {},c = 1}}
+-- t%a = {}
 function qf.ConvertSubTablesToStr(tab:table):string
-    
+    local str = ""
+    for i,v in tab do
+        if 
+    end
 end
 function qf.ConvertString(str:string)
     local Sign,strr = unpack(str:split('%'))
