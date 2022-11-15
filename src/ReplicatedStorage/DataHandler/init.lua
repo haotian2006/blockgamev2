@@ -58,7 +58,7 @@ task.spawn(function()
                     chun:Generate()     
                     game.ReplicatedStorage.Events.GetChunk:FireClient(v[1],v[2],v[3],self.GetChunk(v[2],v[3]):GetBlocks() )
                 end)
-                if i%5 == 0 then task.wait(.1) end
+                if i%2 == 0 then task.wait() end
                 task.wait()
             end
             task.wait()

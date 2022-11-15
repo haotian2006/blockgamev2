@@ -62,9 +62,12 @@ end
 function stuff.GenerateTerrain(M,data)
     local functions = M.GenerationHandler.runfunctionfrommuti
     local newdata = {}
+	local index = 0
     for i,v in data do
 		--v = M.QuickFunctions.cv3type("vector3",i) 'Type|s%Cubic:Dirt'
+		index+=1
 		newdata[i] = (not functions(M,"IsAir",v.X,v.Y,v.Z)) and true or nil
+		--if index%500 == 0 then task.wait() end
     end
     return newdata
 end

@@ -241,7 +241,9 @@ end
 function qf.ConvertSubTablesToStr(tab:table):string
     local str = ""
     for i,v in tab do
-        if 
+        if type(v) == "table" then
+            
+        end
     end
 end
 function qf.ConvertString(str:string)

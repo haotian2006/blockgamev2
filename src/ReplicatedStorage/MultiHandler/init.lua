@@ -94,6 +94,9 @@ function self.HideBlocks(cx,cz,chunks,times)
 	local sterilise = game:GetService("HttpService"):JSONEncode(chunks)
 	for i,v in ipairs(self.divide(chunks[1],times)) do
 		task.spawn(function()
+			if i%5 ==0 then
+				task.wait()
+			   end
 		--	local cdata = self.LargeSend("HideBlocks",{3},2,cx,cz,v,false)
 			local cdata = self.DoSmt("HideBlocks",cx,cz,sterilise,v)
 			--local cdata = self.DDoSmt("HideBlocks",cx,cz,true,true)
