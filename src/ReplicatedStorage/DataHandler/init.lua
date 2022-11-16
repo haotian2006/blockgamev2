@@ -52,13 +52,11 @@ task.spawn(function()
         self.WhileLoop = true
         while true do
             for i,v in ipairs(self.SendToClient) do
-                task.spawn(function()
+
                     table.remove(self.SendToClient,i)
                     local chun = self.GetChunk(v[2],v[3],true)
                     chun:Generate()     
                     game.ReplicatedStorage.Events.GetChunk:FireClient(v[1],v[2],v[3],self.GetChunk(v[2],v[3]):GetBlocks() )
-                end)
-                if i%2 == 0 then task.wait() end
                 task.wait()
             end
             task.wait()

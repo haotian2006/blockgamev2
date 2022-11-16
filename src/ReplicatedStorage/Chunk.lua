@@ -151,7 +151,7 @@ function Chunk:IsGenerating()
     if self.Generating then
         repeat task.wait()until self.Generating == false
     end
-    return self.Generating
+    return self.Generating or self.Setttings.Generated
 end
 function Chunk:Generate()
     if self.Setttings.Generated then return end
@@ -162,11 +162,11 @@ function Chunk:Generate()
         return
     end
     self.Generating = true
-    self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],25)) 
+    self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],1)) 
     if not self.Setttings.GeneratedCaves  then
-       self:DoCaves()
+      -- self:DoCaves()
     end
-   self:GenerateCavesNearBy()
+  -- self:GenerateCavesNearBy()
    task.wait()
    self:LoadToLoad()
    self.Blocks = terrainh.CreateBedrock(self.Chunk[1],self.Chunk[2],self.Blocks)
