@@ -162,7 +162,7 @@ function Chunk:Generate()
         return
     end
     self.Generating = true
-    self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],1)) 
+    self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],2)) 
     if not self.Setttings.GeneratedCaves  then
       -- self:DoCaves()
     end

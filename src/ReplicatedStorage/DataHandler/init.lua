@@ -47,20 +47,54 @@ script.DoFunc.OnInvoke = function(func,...)
    return
 end
 self.SendToClient = {}
+self.InProgress = {}
 task.spawn(function()
+    local times = 0
     if not self.WhileLoop then
         self.WhileLoop = true
+        times+=1
         while true do
-            for i,v in ipairs(self.SendToClient) do
-
-                    table.remove(self.SendToClient,i)
-                    local chun = self.GetChunk(v[2],v[3],true)
-                    chun:Generate()     
-                    game.ReplicatedStorage.Events.GetChunk:FireClient(v[1],v[2],v[3],self.GetChunk(v[2],v[3]):GetBlocks() )
-                task.wait()
+            local d = qf.divide(self.SendToClient,#game.Players:GetPlayers())
+            for i,v in d do
+                local function a()
+                    for c,p in v do
+                        if not self.SendToClient[c] or self.InProgress[c] then continue end 
+                        self.InProgress[c] = true
+                        --task.spawn(function()
+                        local cx,cz = unpack(string.split(c,","))
+                        cx,cz = tonumber(cx),tonumber(cz)
+                         local chun = self.GetChunk(cx,cz,true)
+                         chun:Generate()     
+                         for i,v in self.SendToClient[c] do
+                             game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
+                         end
+                         self.SendToClient[c] = nil
+                         self.InProgress[c] = nil
+                    end
+                end
+                if i ~= #d then
+                    task.spawn(a)
+                else
+                    a()
+                end
             end
+            -- for i,v in pairs(self.SendToClient) do
+            --     if not self.SendToClient[i] then continue end 
+            --        --task.spawn(function()
+            --        local cx,cz = unpack(string.split(i,","))
+            --        cx,cz = tonumber(cx),tonumber(cz)
+            --         local chun = self.GetChunk(cx,cz,true)
+            --         chun:Generate()     
+            --         for i,v in self.SendToClient[i] do
+            --             game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
+            --         end
+            --         self.SendToClient[i] = nil
+            --       -- end)
+            --        --if i %6 == 0 then task.wait(.05) end 
+            -- end
             task.wait()
         end
+        if times%6 == 0 then times = 0 task.wait(.5) end
     end
 end)
 game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)
@@ -72,7 +106,8 @@ game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,
     end
      --new:Generate()
      --print("e")
-     table.insert(self.SendToClient,{player,cx,cz})
+     self.SendToClient[cx..','..cz] =  self.SendToClient[cx..','..cz] or {}
+     table.insert(self.SendToClient[cx..','..cz],player )
     --game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
    --                                                              task.wait(1)
    -- self.GetChunk(cx,cz).Blocks = {}

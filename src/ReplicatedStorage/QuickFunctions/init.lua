@@ -40,6 +40,26 @@ function qf.tonumbertableindex(tabl)
     end
     return tt
 end
+function qf.divide(original,times,destroy)
+	local tables = {}
+	for i =1,times do
+		table.insert(tables,{})
+	end
+	local length = 0
+	for i,v in pairs(original)do
+		length +=1
+		for t =times,1,-1 do
+			if length%t ==0 then
+				tables[t][i] = v
+				break
+			end
+		end
+		if  destroy then
+			original[i] = nil
+		end
+	end
+	return tables
+end
 --block/chunk
 function qf.GetChunkfromReal(x,y,z,blockinstead)
     if not blockinstead then
