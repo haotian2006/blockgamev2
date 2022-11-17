@@ -24,6 +24,10 @@ local function decombine(str)
    return str:split(",")
 end
 local one = false
+greedy.Blocks = {}
+function greedy.InsertBlock(x,y,z,data )
+    
+end
 function  greedy.meshtable(tabletodemesh)
    local startx,endx,startz,endz,starty,endy
    local D3 = {}

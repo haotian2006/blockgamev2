@@ -164,9 +164,9 @@ function Chunk:Generate()
     self.Generating = true
     self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],2)) 
     if not self.Setttings.GeneratedCaves  then
-      -- self:DoCaves()
+      self:DoCaves()
     end
-  -- self:GenerateCavesNearBy()
+  self:GenerateCavesNearBy()
    task.wait()
    self:LoadToLoad()
    self.Blocks = terrainh.CreateBedrock(self.Chunk[1],self.Chunk[2],self.Blocks)

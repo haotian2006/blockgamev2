@@ -59,6 +59,7 @@ task.spawn(function()
                 local function a()
                     for c,p in v do
                         if not self.SendToClient[c] or self.InProgress[c] then continue end 
+                       task.spawn(function()
                         self.InProgress[c] = true
                         --task.spawn(function()
                         local cx,cz = unpack(string.split(c,","))
@@ -70,6 +71,8 @@ task.spawn(function()
                          end
                          self.SendToClient[c] = nil
                          self.InProgress[c] = nil
+                       end)
+                       task.wait(0.01)
                     end
                 end
                 if i ~= #d then

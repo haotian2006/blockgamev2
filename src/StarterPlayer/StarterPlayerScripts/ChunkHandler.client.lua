@@ -12,7 +12,7 @@ resource:Init()
 local runservicer = game:GetService("RunService")
 task.spawn(function()
     while true do
-        for i=0,6 do
+        for i=0,20 do
             local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
             chr:WaitForChild("HumanoidRootPart")
             local c =  qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,toload)
@@ -22,7 +22,7 @@ task.spawn(function()
                 local cx,cz = qf.cv2type("tuple",chunk)
                 if render.render(cx,cz) then
                     toload[chunk] = nil
-                    break
+                    --break
                 end
             end
         end
@@ -99,7 +99,7 @@ local function srender(p)
         end
         if not datahandler.GetChunk(cx,cz) and not queued[cx..','..cz] then
             GetChunks(cx,cz)
-            task.wait(.08)
+            task.wait(.04)
         end
     end
 end
