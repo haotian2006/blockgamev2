@@ -71,12 +71,6 @@ task.spawn(function()
                     self.SendToClient[c] = nil
                     self.InProgress[c] = nil
                 end
-            
-                -- if i%2 then
-                --     task.spawn(fun)
-                -- else
-                --     fun()
-                -- end
                 task.spawn(fun)
             end 
             -- for i,v in pairs(self.SendToClient) do
@@ -95,7 +89,6 @@ task.spawn(function()
             -- end
             task.wait()
         end
-        if times%6 == 0 then times = 0 task.wait(.1) end
     end
 end)
 game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)

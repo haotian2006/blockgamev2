@@ -99,7 +99,7 @@ local function srender(p)
         end
         if not datahandler.GetChunk(cx,cz) and not queued[cx..','..cz] then
             GetChunks(cx,cz)
-           -- task.wait()
+            task.wait(.02)
         end
     end
 end
