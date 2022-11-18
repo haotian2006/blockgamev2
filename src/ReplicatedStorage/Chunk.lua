@@ -155,6 +155,7 @@ function Chunk:IsGenerating()
 end
 function Chunk:Generate()
     if self.Setttings.Generated then return end
+    local generationhand = require(game.ServerStorage.GenerationHandler)
     self.Setttings.Generated = true
     self.Setttings.GeneratedCaves = self.Setttings.GeneratedCaves or false
     if self.Generating then
@@ -162,11 +163,13 @@ function Chunk:Generate()
         return
     end
     self.Generating = true
-    self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],2)) 
-    if not self.Setttings.GeneratedCaves  then
-      self:DoCaves()
-    end
-  self:GenerateCavesNearBy()
+    local t = multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],16)
+   --local t = generationhand.GenerateTerrain(self.Chunk[1],self.Chunk[2])
+    self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],t) 
+--     if not self.Setttings.GeneratedCaves  then
+--       self:DoCaves()
+--     end
+--   self:GenerateCavesNearBy()
    task.wait()
    self:LoadToLoad()
    self.Blocks = terrainh.CreateBedrock(self.Chunk[1],self.Chunk[2],self.Blocks)

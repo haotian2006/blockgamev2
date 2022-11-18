@@ -54,33 +54,31 @@ task.spawn(function()
         self.WhileLoop = true
         times+=1
         while true do
-            local d = qf.divide(self.SendToClient,#game.Players:GetPlayers())
-            for i,v in d do
-                local function a()
-                    for c,p in v do
-                        if not self.SendToClient[c] or self.InProgress[c] then continue end 
-                       task.spawn(function()
-                        self.InProgress[c] = true
-                        --task.spawn(function()
-                        local cx,cz = unpack(string.split(c,","))
-                        cx,cz = tonumber(cx),tonumber(cz)
-                         local chun = self.GetChunk(cx,cz,true)
-                         chun:Generate()     
-                         for i,v in self.SendToClient[c] do
-                             game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
-                         end
-                         self.SendToClient[c] = nil
-                         self.InProgress[c] = nil
-                       end)
-                       task.wait(0.01)
+            local i = 0
+            for c,v in self.SendToClient do
+                if not self.SendToClient[c] or self.InProgress[c] then continue end 
+                i +=1
+                local function fun()
+                    self.InProgress[c] = true
+                    --task.spawn(function()
+                    local cx,cz = unpack(string.split(c,","))
+                    cx,cz = tonumber(cx),tonumber(cz)
+                    local chun = self.GetChunk(cx,cz,true)
+                    chun:Generate()     
+                    for i,v in self.SendToClient[c] do
+                        game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
                     end
+                    self.SendToClient[c] = nil
+                    self.InProgress[c] = nil
                 end
-                if i ~= #d then
-                    task.spawn(a)
-                else
-                    a()
-                end
-            end
+            
+                -- if i%2 then
+                --     task.spawn(fun)
+                -- else
+                --     fun()
+                -- end
+                task.spawn(fun)
+            end 
             -- for i,v in pairs(self.SendToClient) do
             --     if not self.SendToClient[i] then continue end 
             --        --task.spawn(function()
@@ -97,7 +95,7 @@ task.spawn(function()
             -- end
             task.wait()
         end
-        if times%6 == 0 then times = 0 task.wait(.5) end
+        if times%6 == 0 then times = 0 task.wait(.1) end
     end
 end)
 game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)

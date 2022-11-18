@@ -11,8 +11,8 @@ local libarystosend = {
 	game.ReplicatedStorage.compressor, 
 
 }
-local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",500,libarystosend)
-local LargeWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"LargeHandler",100,libarystosend)
+local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",300,libarystosend)
+local LargeWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"LargeHandler",10,libarystosend)
 -- local DWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"DHandler",100,{
 -- 	game.ReplicatedStorage.QuickFunctions,
 -- 	game.ReplicatedStorage.compressor,
@@ -73,7 +73,7 @@ function self.GetTerrain(cx,cz,times)
 	local data = genhand.GenerateTable(cx,cz)
 	for i,v in ipairs(self.divide(data,times)) do
 		task.spawn(function()
-			local cdata = self.DoSmt("GenerateTerrain",v)
+			local cdata = self.DoSmt("GenerateTerrain",v,cx,cz)
 			for e,c in cdata do
 				newdata[e] = c
 			end

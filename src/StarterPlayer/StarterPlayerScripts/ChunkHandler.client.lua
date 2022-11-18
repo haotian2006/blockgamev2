@@ -56,7 +56,10 @@ local function GetChunks(cx,cz)
     game.ReplicatedStorage.Events.GetChunk:FireServer(cx,cz)
 end
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
-   if false then  
+    toload[cx..','..cz] = true
+    queued[cx..','..cz] = false
+    datahandler.CreateChunk({Blocks = data},cx,cz)
+   if true then  
     local p = Instance.new("Part",workspace)
     p.Anchored = true
     p.CanCollide = false
@@ -64,9 +67,6 @@ game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data
     p.Position = Vector3.new(cx*8*3,180,cz*8*3)
    end
    -- todecode[cx..','..cz] = data
-    toload[cx..','..cz] = true
-    queued[cx..','..cz] = false
-    datahandler.CreateChunk({Blocks = data},cx,cz)
    -- datahandler.CreateChunk({Blocks =data},cx,cz)
 end)
 local function GetCleanedChunk(cx,cz)
@@ -99,7 +99,7 @@ local function srender(p)
         end
         if not datahandler.GetChunk(cx,cz) and not queued[cx..','..cz] then
             GetChunks(cx,cz)
-            task.wait(.04)
+           -- task.wait()
         end
     end
 end

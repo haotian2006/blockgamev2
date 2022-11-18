@@ -34,7 +34,7 @@ function  values.Change(uuid,valuepath:string,value)
             parentvalue = parentvalue[v]
         end
         if parentvalue == nil then
-            warn("Path Does Not Exsist | Path:",valuepath,"uuid:",uuid)
+            warn("Path Does Not Exist | Path:",valuepath,"uuid:",uuid)
         end
     end
     if not  values.events[uuid] then  values.events[uuid] = {} end

@@ -255,6 +255,15 @@ function qf.GridIsInChunk(cx,cz,x,y,z,UseRealInstead)
     end
     return flagx and flagz
 end
+function qf.combinetostring(...)
+    local c = ""
+    local a =  {...}
+    for i,v in a do
+        c ..=v
+        if i+1 ~= #a then c ..=',' end 
+    end
+    return c
+end
 --Compression
 --{a = {b = {},c = 1}}
 -- t%a = {}

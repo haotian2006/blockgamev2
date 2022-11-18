@@ -59,19 +59,28 @@ function stuff.GenerateWorms(M,cx,cz)
 	return  functions(M,"CreateWorms",cx,cz)
 
 end
-function stuff.GenerateTerrain(M,data)
+function stuff.GenerateTerrain(M,data,cx,cz)
     local functions = M.GenerationHandler.runfunctionfrommuti
     local newdata = {}
 	local index = 0
     for i,v in data do
+		local x,z = unpack(i:split(','))
+		local isblock = false
+		for y = 60,0,-1 do
+			local v = M.QuickFunctions.convertchgridtoreal(cx,cz,x,y,z,true)
+			index+=1
+			local isair = (not functions(M,"IsAir",v.X,v.Y,v.Z)) and true
+			newdata[x..','..y..','..z] =  isblock or isair or nil
+			isblock = isblock or isair
+		end
 		--v = M.QuickFunctions.cv3type("vector3",i) 'Type|s%Cubic:Dirt'
-		index+=1
-		newdata[i] = (not functions(M,"IsAir",v.X,v.Y,v.Z)) and true or nil
 		--if index%500 == 0 then task.wait() end
     end
     return newdata
 end
+
 local queue = {}
+
 function stuff.LargeHandler(M,combine,...)
 	local whichonetocall = ""
 	local dots = {...}

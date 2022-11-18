@@ -55,12 +55,12 @@ function generation.CreateBedrock(cx,cz,gtable):table
 end
 function generation.Color(cx,cz,gtable):table
 	local function getColor(x,y,z)
-		local combine = qf.cv3type("string",x,y,z)
+		local combine = x..','..y..','..z
 		local self = gtable[combine]
-		local above = gtable[qf.cv3type("string",x,y+1,z)]
+		local above = gtable[x..','..(y+1)..','..z]
 		if not above and self then
 			return 'Type|s%Cubic:Grass'
-		elseif (above == 'Type|s%Cubic:Grass' or not gtable[qf.cv3type("string",x,y+3,z)]  ) and self  then
+		elseif (above == 'Type|s%Cubic:Grass' or not gtable[x..','..(y+3)..','..z]  ) and self  then
 			return 'Type|s%Cubic:Dirt'
 		elseif self then
 			return'Type|s%Cubic:Stone'
@@ -69,8 +69,8 @@ function generation.Color(cx,cz,gtable):table
 	for y = st.ChunkSize.Y-1,0,-1 do
 		for x = 0,st.ChunkSize.X-1 do
 			for z = 0,st.ChunkSize.X-1 do
-				local combine = qf.cv3type("string",x,y,z)
-				gtable[combine] = getColor(x,y,z)
+				local combine = x..','..y..','..z
+				 gtable[combine] = getColor(x,y,z)
 			end
 		end	
 	end
@@ -107,7 +107,7 @@ function generation.CreateWorms(cx,cz) -- cx and cy is the chunk it is being gen
 							for z1 = 1, Resolution*2 do
 								local worldSpace = Vector3.new(-x1+x,-y1+y,-z1+z)
 								if Vector3.new(x1-Resolution,y1-Resolution,z1-Resolution).Magnitude <= Resolution-.1 then
-									wormdata[qf.cv3type("string",worldSpace)] = false
+									wormdata[qf.combinetostring(worldSpace.X,worldSpace.Y,worldSpace.Z)] = false
 								end
 							end
 						end
@@ -140,8 +140,21 @@ function generation.GenerateTable(cx,cz)
 	local newtable = {}
     for x = 0,st.ChunkSize.X-1 do
 		for z = 0,st.ChunkSize.X-1 do
-			for y = 0,st.ChunkSize.Y-1 do
-				newtable[x..','..y..','..z] = qf.convertchgridtoreal(cx,cz,x,y,z,true)
+				newtable[x..','..z] = false
+		end
+	end
+	return newtable
+end
+function generation.GenerateTerrain(cx,cz)
+	local newtable = {}
+    for x = 0,st.ChunkSize.X-1 do
+		for z = 0,st.ChunkSize.X-1 do
+			local setblocktoston = false
+			for y = max_height-1,0,-1 do
+				local v = qf.convertchgridtoreal(cx,cz,x,y,z,true)
+				local d = (not generation.IsAir(v.X,v.Y,v.Z) and true) or false 
+				newtable[x..','..y..','..z] = setblocktoston or d or nil
+				setblocktoston = setblocktoston or d
 			end
 		end
 	end
