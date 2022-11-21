@@ -48,6 +48,7 @@ script.DoFunc.OnInvoke = function(func,...)
 end
 self.SendToClient = {}
 self.InProgress = {}
+
 task.spawn(function()
     local times = 0
     if not self.WhileLoop then
@@ -59,19 +60,21 @@ task.spawn(function()
                 if not self.SendToClient[c] or self.InProgress[c] then continue end 
                 i +=1
                 local function fun()
+                    local a = self.SendToClient[c]
+                    self.SendToClient[c] = nil
                     self.InProgress[c] = true
                     --task.spawn(function()
                     local cx,cz = unpack(string.split(c,","))
                     cx,cz = tonumber(cx),tonumber(cz)
                     local chun = self.GetChunk(cx,cz,true)
                     chun:Generate()     
-                    for i,v in self.SendToClient[c] do
+                    for i,v in a do
                         game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
                     end
-                    self.SendToClient[c] = nil
                     self.InProgress[c] = nil
                 end
                 task.spawn(fun)
+                if i%20 == 0 then task.wait() end
             end 
             -- for i,v in pairs(self.SendToClient) do
             --     if not self.SendToClient[i] then continue end 
@@ -91,6 +94,7 @@ task.spawn(function()
         end
     end
 end)
+
 game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)
     -- local position = player.Character.PrimaryPart.Position
     local new = self.GetChunk(cx,cz)
@@ -108,4 +112,14 @@ game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,
    -- self.GetChunk(cx,cz).Setttings.Generated = false
      -- game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,compresser.compresslargetable(self.GetChunk(cx,cz):GetBlocks(),6) )
  end)
+--  game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)
+--     -- local position = player.Character.PrimaryPart.Position
+--     local new = self.GetChunk(cx,cz,true)
+--      new:Generate()
+--     game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
+--    --                                                              task.wait(1)
+--    -- self.GetChunk(cx,cz).Blocks = {}
+--    -- self.GetChunk(cx,cz).Setttings.Generated = false
+--      -- game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,compresser.compresslargetable(self.GetChunk(cx,cz):GetBlocks(),6) )
+--  end)
 return self

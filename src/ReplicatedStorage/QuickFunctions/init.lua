@@ -260,7 +260,7 @@ function qf.combinetostring(...)
     local a =  {...}
     for i,v in a do
         c ..=v
-        if i+1 ~= #a then c ..=',' end 
+        if i ~= #a then c ..=',' end 
     end
     return c
 end

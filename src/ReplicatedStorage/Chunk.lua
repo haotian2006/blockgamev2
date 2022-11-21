@@ -115,10 +115,13 @@ function Chunk:DoCaves()
     local chunks = {}
     for i,v in stuff do
         for positon,data in v do
-            local x,y,z = qF.cv3type("tuple",positon)
-            local chunk = qF.cv2type("string",qF.GetChunkfromReal(x,y,z,true))
+            local x,y,z = unpack(positon:split(','))
+            local a,b = qF.GetChunkfromReal(x,y,z,true)
+            local chunk = qF.combinetostring(a,b)
             chunks[chunk] = chunks[chunk] or {}
-            chunks[chunk][qF.cv3type('string',qF.cbt("grid","chgrid",x,y,z))] = data
+            local c = qF.cbt("grid","chgrid",x,y,z)
+            x,y,z = c.X,c.Y,c.Z
+            chunks[chunk][qF.combinetostring(x,y,z)] = data
         end    
     end
     for i,v in chunks do
@@ -166,10 +169,10 @@ function Chunk:Generate()
     local t = multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],16)
    --local t = generationhand.GenerateTerrain(self.Chunk[1],self.Chunk[2])
     self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],t) 
---     if not self.Setttings.GeneratedCaves  then
---       self:DoCaves()
---     end
---   self:GenerateCavesNearBy()
+    if not self.Setttings.GeneratedCaves  then
+      self:DoCaves()
+    end
+  self:GenerateCavesNearBy()
    task.wait()
    self:LoadToLoad()
    self.Blocks = terrainh.CreateBedrock(self.Chunk[1],self.Chunk[2],self.Blocks)
