@@ -297,6 +297,9 @@ function qf.ConvertString(str:string)
         end
     elseif Sign == "n"  then
         return tonumber(strr)
+    elseif Sign == "v3" then
+        local c = strr:split(',')
+        return Vector3.new(c[1],c[2],c[3])
     else
         warn("Sign",Sign,"Is not a valid Sign")
     end
@@ -305,7 +308,7 @@ end
 function qf.CompressBlockData(data:table)
     local currentcompressed = ""
     for key,value in data do
-        local typea = type(value)
+        local typea = typeof(value)
         currentcompressed..= key.."|"
         local valuestr = ""
         if typea =="string" then
@@ -323,6 +326,8 @@ function qf.CompressBlockData(data:table)
                     valuestr..=","
                 end
             end
+        elseif typea == "vector3" then
+            valuestr..='v3%'..value.X..','..value.Y..','..value.Z
         end
         currentcompressed..=valuestr
         if next(data,key) then 
@@ -334,7 +339,7 @@ end
 function qf.DecompressBlockData(data:string,specificitems:table|string):table|ValueBase
     if type(data) ~= "string" then return data end  
     --EX: 'Name|s%Cubic:dirt/Orientation|t%0,0,0/Position|0,0,0'
-    --(s) = string, (t) = table, (n) = number 
+    --(s) = string, (t) = table, (n) = number ,(v3) = vector3
     -- (/) is like a comma (|) is the equal key in index = value (%) determines the type of the value, default is string
     local is1 = false local spi = nil if type(specificitems) == "string" then spi = {} table.insert(spi,specificitems) is1 = true
     else spi = specificitems end if spi then local spi2 ={} for i,v in spi do spi2[v] = i end spi = spi2 end
