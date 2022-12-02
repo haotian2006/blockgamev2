@@ -26,10 +26,10 @@ uis.InputBegan:Connect(function(input, gameProcessedEvent)
             local function second()
                 if v[2] then
                     if type(v[2]) == "string" then
+                        controls.Functionsdown[v[2]] = controls.Functionsdown[v[2]] or {}
+                        controls.Functionsdown[v[2]][key] = true
                         if controls.func[v[2]] then
                             task.spawn(controls.func[v[2]],key)
-                        else
-                            controls.Functionsdown[v[2]] = key
                         end
                     else
                         task.spawn(v[2],key)
@@ -50,6 +50,9 @@ uis.InputEnded:Connect(function(input, gameProcessedEvent)
     if gameProcessedEvent then return end 
     local key = getkeyfrominput(input)
     controls.KeysPressed[key] = nil
+    for i,v in controls.Functionsdown do
+        
+    end
 end)
 function controls.renderupdate(dt)
     for i,v in controls.Render do
