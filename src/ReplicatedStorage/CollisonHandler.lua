@@ -21,7 +21,7 @@ function  collisions.IsGrounded(entity)
         position.Y-(hitbox.y/2),
         position.Z+hitbox.z/2 
 )
-    local gridsize = 3
+    local gridsize = 1
 --a
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
@@ -147,7 +147,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
     local normal = vector3(0,0,0)
     local mintime = 1
     local zack 
-    local gridsize = 3
+    local gridsize = 1
     local bppos,bpsize = collisions.GetBroadPhase(position,vector3(hitbox.X,hitbox.Y,hitbox.Z),velocity)
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do

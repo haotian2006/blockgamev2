@@ -60,6 +60,17 @@ function qf.divide(original,times,destroy)
 	end
 	return tables
 end
+function qf.EditVector3(vector3:Vector3,position:number,Changeto:number):Vector3
+    position = position:lower()
+    if position == 'x' then
+        return Vector3.new(Changeto,vector3.Y,vector3.Z)
+    elseif position =='y' then
+        return Vector3.new(vector3.X,Changeto,vector3.Z)
+    elseif position == 'z' then
+        return Vector3.new(vector3.X,vector3.Y,Changeto)
+    end
+    return vector3
+end
 --block/chunk
 function qf.GetChunkfromReal(x,y,z,blockinstead)
     if not blockinstead then
@@ -326,7 +337,7 @@ function qf.CompressBlockData(data:table)
                     valuestr..=","
                 end
             end
-        elseif typea == "vector3" then
+        elseif typea == "Vector3" then
             valuestr..='v3%'..value.X..','..value.Y..','..value.Z
         end
         currentcompressed..=valuestr

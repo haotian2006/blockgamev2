@@ -1,5 +1,7 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local self = {}
-local ResourcePacks = game.ReplicatedStorage.ResourcePacks
+local ResourcePacks = game.ReplicatedStorage.ResourcePacks or Instance.new("Folder",game.ReplicatedStorage)
+ResourcePacks.Name = "ResourcePacks"
 local Assets = game.ReplicatedStorage.Assets
 function self.AddInstanceChildren(Object,AssetObj)
     local Folder = AssetObj
