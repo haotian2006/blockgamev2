@@ -89,7 +89,7 @@ function Chunk:SetData(which,data)
     self[which] = data
 end
 function Chunk:Destroy()
-    setmetatable(self, nil)
+    setmetatable(self, nil) self = nil
 end
 if runservice:IsClient() then return Chunk end
 local terrainh = require(game.ServerStorage.GenerationHandler)

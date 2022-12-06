@@ -2,7 +2,7 @@ local entity = {
     ["description"] = {
         is_spawnable = false,
         is_summonable = false,
-    },
+    }, 
     components ={
         Name = "Player",
         HitBox = {
