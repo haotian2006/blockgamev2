@@ -7,6 +7,7 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 function entity.new(data)
     local self = data or {}
     self.Id = data.Id or genuuid()
+    self.Position = data.Position or Vector3.new()
     self.Type = data.Type or warn("No Entity Type Giving for:",self.Id) 
     self.Velocity = self.Velocity or {}
     setmetatable(self,entity)
@@ -63,7 +64,8 @@ function entity:Jump(Height)
     
 end
 function entity:Kill()
-    
+
+    self:Destroy()
 end
 function entity:Destroy()
     setmetatable(self,nil) self = nil

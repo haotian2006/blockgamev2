@@ -61,7 +61,7 @@ function qf.divide(original,times,destroy)
 	return tables
 end
 function qf.EditVector3(vector3:Vector3,position:number,Changeto:number):Vector3
-    position = position:lower()
+   -- position = position:lower()
     if position == 'x' then
         return Vector3.new(Changeto,vector3.Y,vector3.Z)
     elseif position =='y' then

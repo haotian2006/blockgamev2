@@ -1,6 +1,6 @@
 local RunService = game:GetService("RunService")
 local collisions ={}
-local refunction = require(script.Parent.Functions)
+local qf = require(game.ReplicatedStorage.QuickFunctions)
 local blockhandler
 local vector3 = Vector3.new
 local function getincreased(min,goal2,increased2)
@@ -40,54 +40,53 @@ function  collisions.IsGrounded(entity)
     end 
     return false
 end
-function  collisions.entityvsterrain(entity,velocity)
-    local oldv = velocity
+function  collisions.entityvsterrain(entity)
+    local oldv = entity:GetVelocity()
+    local velocity = entity:GetVelocity()
     local position = entity.Position
     local oldp = vector3(position.X,position.Y,position.Z)
    -- print(velocity.Y)
     local remainingtime = 1
     local MinTime
     local normal = vector3(0,0,0)
-    local hitbox = entity.HitBoxSize
-    local originaly = velocity.Y
     for i =1,3,1 do
       
-    velocity.X *= (1-math.abs(normal.X))*remainingtime
-    velocity.Y *= (1-math.abs(normal.Y))*remainingtime
-    velocity.Z *= (1-math.abs(normal.Z))*remainingtime
+    velocity = vector3(
+        velocity.X * (1-math.abs(normal.X))*remainingtime,
+        velocity.Y * (1-math.abs(normal.Y))*remainingtime,
+        velocity.Z * (1-math.abs(normal.Z))*remainingtime
+        )
         local bb
         normal = vector3()
         MinTime,normal,bb,velocity = collisions.entityvsterrainloop(entity,position,velocity,{},false,oldv)
-        local placevelocity = vector3()
-        placevelocity.X = velocity.X*MinTime
-        placevelocity.Y = velocity.Y*MinTime
-        placevelocity.Z = velocity.Z*MinTime
-        position.X += placevelocity.X
-        position.Y += placevelocity.Y
-        position.Z += placevelocity.Z
+        local placevelocity = vector3(velocity.X*MinTime,velocity.Y*MinTime,velocity.Z*MinTime)
+        position = vector3(
+            position.X + placevelocity.X,
+            position.Y + placevelocity.Y,
+            position.Z + placevelocity.Z
+        )
         if MinTime <1 then
             --epsilon 
             if velocity.X >0 and velocity.X ~= 0.00000001 then
-                position.X -= 0.001
+                position = qf.EditVector3(position,"x",position.X - 0.001)
             elseif velocity.X <0 then
-                position.X += 0.001
+                position = qf.EditVector3(position,"x",position.X + 0.001)
             end
             if velocity.Y >0 then
-                position.Y -= 0.0001
+                position = qf.EditVector3(position,"y",position.Y - 0.0001)
             elseif velocity.Y <0 then
-                position.Y += 0.001
+                position = qf.EditVector3(position,"y",position.Y + 0.001)
             end
             if velocity.Z >0 and velocity.Z ~= 0.00000001 then
-                position.Z -= 0.00001
+                position = qf.EditVector3(position,"z",position.Z - 0.00001)
             elseif velocity.Z <0 then
-                position.Z += 0.00001
+                position = qf.EditVector3(position,"z",position.Z + 0.00001)
             end
         end
         remainingtime = 1.0-MinTime
         if remainingtime <=0 then break end
         
     end
-    velocity = vector3()
     return  position
 end
 function collisions.GetBroadPhase(b1,s1,velocity)
