@@ -1,7 +1,7 @@
 local RunService = game:GetService("RunService")
 local collisions ={}
 local qf = require(game.ReplicatedStorage.QuickFunctions)
-local blockhandler
+local maindata = require(game.ReplicatedStorage.DataHandler)
 local vector3 = Vector3.new
 local function getincreased(min,goal2,increased2)
 	local direaction = min - goal2
@@ -26,7 +26,7 @@ function  collisions.IsGrounded(entity)
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
-                local block,a = refunction.GetBlock({x,y,z})
+                local block = maindata.GetBlock(x,y,z)
                 if block then
                    local a2 = refunction.convertPositionto(a,"table")
                    local newpos ,newsize,n2,s2,n3,s3,n4,s4 = collisions.DealWithRotation(block)
@@ -48,7 +48,7 @@ function  collisions.entityvsterrain(entity)
    -- print(velocity.Y)
     local remainingtime = 1
     local MinTime
-    local normal = vector3(0,0,0)
+    local normal = {X =0,Y=0,Z=0}
     for i =1,3,1 do
       
     velocity = vector3(
@@ -57,7 +57,7 @@ function  collisions.entityvsterrain(entity)
         velocity.Z * (1-math.abs(normal.Z))*remainingtime
         )
         local bb
-        normal = vector3()
+        normal = {X =0,Y=0,Z=0}
         MinTime,normal,bb,velocity = collisions.entityvsterrainloop(entity,position,velocity,{},false,oldv)
         local placevelocity = vector3(velocity.X*MinTime,velocity.Y*MinTime,velocity.Z*MinTime)
         position = vector3(
@@ -91,14 +91,16 @@ function  collisions.entityvsterrain(entity)
 end
 function collisions.GetBroadPhase(b1,s1,velocity)
     b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
-    local position = vector3()
-    local size = vector3()
-    position.X = velocity.X >0 and b1.X or b1.X + velocity.X
-    position.Y = velocity.Y >0 and b1.Y or b1.Y + velocity.Y
-    position.Z = velocity.Z >0 and b1.Z or b1.Z + velocity.Z
-    size.X = velocity.X >0 and velocity.X+s1.X or s1.X - velocity.X
-    size.Y = velocity.Y >0 and velocity.Y+s1.Y or s1.Y - velocity.Y
-    size.Z = velocity.Z >0 and velocity.Z+s1.Z or s1.Z - velocity.Z
+    local position = vector3(
+        velocity.X >0 and b1.X or b1.X + velocity.X,
+        velocity.Y >0 and b1.Y or b1.Y + velocity.Y,
+        velocity.Z >0 and b1.Z or b1.Z + velocity.Z
+        )
+    local size = vector3(    
+        velocity.X >0 and velocity.X+s1.X or s1.X - velocity.X,
+        velocity.Y >0 and velocity.Y+s1.Y or s1.Y - velocity.Y,
+        velocity.Z >0 and velocity.Z+s1.Z or s1.Z - velocity.Z
+        )
     return position,size
 end
 function collisions.AABBcheck(b1,b2,s1,s2,isbp)
@@ -143,7 +145,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
         position.Y+hitbox.Y/2+(velocity.Y >0 and velocity.Y+1 or 0), 
         position.Z+hitbox.Z/2+(velocity.Z >0 and velocity.Z+1 or 0)   
     )
-    local normal = vector3(0,0,0)
+    local normal = {X =0,Y=0,Z=0}
     local mintime = 1
     local zack 
     local gridsize = 1
@@ -151,30 +153,29 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
-                local block,a = refunction.GetBlock(vector3(x,y,z),false,position)
-
-                if whitelist and whitelist[a] then continue end
+                local block = maindata.GetBlock(x,y,z)
+                if whitelist and whitelist[x..','..y..','..z] then continue end
                 if block then
                    local typejump 
                    local needed
                    local maxheight
                    local currentmin = 1
-                   local newpos ,newsize = collisions.DealWithRotation(block)
+                   local newpos ,newsize = vector3(x,y,z),vector3(3,3,3) --collisions.DealWithRotation(block)
                    if  collisions.AABBcheck(bppos,newpos,bpsize,newsize,true) then  
                     local collisiontime1,newnormal1 = collisions.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize,velocity,mintime)
                     if collisiontime1 < 1 then
-                       zack = {newpos,newsize}
+                       zack = Vector2.new(newpos,newsize)
                         currentmin = collisiontime1
                         normal = newnormal1
-                        local a,b,c = collisions.shouldjump(entity,position,newpos,newsize)
-                        if not needed or c.Y >=maxheight.Y  then
-                          typejump,needed,maxheight =  a,b,c
-                        end
+                        -- local a,b,c = collisions.shouldjump(entity,position,newpos,newsize)
+                        -- if not needed or c.Y >=maxheight.Y  then
+                        --   typejump,needed,maxheight =  a,b,c
+                        -- end
                      end
                     end
                     mintime = currentmin < mintime and currentmin or mintime
                      if mintime < 1 and not looop and typejump  then
-                        local direaction = refunction.convertPositionto(refunction.GetUnit(maxheight,position),"table")
+                        --local direaction = refunction.convertPositionto(refunction.GetUnit(maxheight,position),"table")
 
                     end
                 end
@@ -188,10 +189,10 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
     local aaa = b2
     b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)--get the bottem left corners
     b2 = vector3(b2.X-s2.X/2,b2.Y-s2.Y/2,b2.Z-s2.Z/2)
-    local InvEntry = vector3()
-    local InvExit = vector3()
-    local Entry = vector3()
-    local Exit = vector3()
+    local InvEntry = {X =0,Y=0,Z=0}
+    local InvExit = {X =0,Y=0,Z=0}
+    local Entry = {X =0,Y=0,Z=0}
+    local Exit = {X =0,Y=0,Z=0}
     if velocity.X> 0 then
         InvEntry.X = b2.X - (b1.X+s1.X)
         InvExit.X = (b2.X+s2.X) - b1.X
@@ -276,7 +277,7 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
             return 1,6
         end
     end
-    local normal = vector3(0,0,0)
+    local normal = {X =0,Y=0,Z=0}
     if Entry.X > Entry.Z then
         if Entry.X > Entry.Y then
             normal.X = -math.sign(velocity.X)

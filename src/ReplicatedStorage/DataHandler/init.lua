@@ -10,9 +10,10 @@ self.CompressedChunks = {}
 self.Players = {}
 
 local multihandeler = require(game.ReplicatedStorage.MultiHandler)
+local LocalizationService = game:GetService("LocalizationService")
 local runservice = game:GetService("RunService")
 local ChunkObj = require(game.ReplicatedStorage.Chunk)
-local compresser = require(game.ReplicatedStorage.compressor)
+local compresser = require(game.ReplicatedStorage.compressor) 
 function self.GetChunk(cx,cz,create)
     if not self.LoadedChunks[qf.cv2type("string",cx,cz)] and create then
         self.CreateChunk(nil,cx,cz)
@@ -28,6 +29,14 @@ function self.DestroyChunk(cx,cz)
     if c then
         c:Destroy()
         self.LoadedChunks[qf.cv2type("string",cx,cz)] = nil
+    end
+end
+function self.GetBlock(x,y,z)
+    local cx,cz = qf.GetChunkfromReal(x,y,z,true)
+    local chunk = self.GetChunk(cx,cz)
+    local localgrid = qf.cbt("grid","chgrid",x,y,z )
+    if chunk then
+       return chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z)
     end
 end
 if runservice:IsClient() then return self end

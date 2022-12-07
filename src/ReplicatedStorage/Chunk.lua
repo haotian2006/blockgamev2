@@ -19,7 +19,7 @@ function Chunk.new(cx,cz,data)
     ch.Setttings = data and data.Setttings or {}
     ch.Blocks = data and data.Blocks or {}
     ch.ToLoad = data and data.ToLoad or {}
-    ch.Chunk = {cx,cz}
+    ch.Chunk = Vector2.new(cx,cz)
     ch.Generating = false
     return ch
 end
@@ -80,10 +80,10 @@ function  Chunk:GetEdge(dir)
     return new
 end
 function Chunk:GetNString():string
-    return self.Chunk[1]..","..self.Chunk[2]
+    return self.Chunk.X..","..self.Chunk.Y
 end
 function Chunk:GetNTuple():IntValue|IntValue
-    return self.Chunk[1],self.Chunk[2]
+    return self.Chunk.X,self.Chunk.Y
 end
 function Chunk:SetData(which,data)
     self[which] = data
@@ -111,7 +111,7 @@ function Chunk:DoCaves()
     end
     self.GeneratingCaves = true
     self.Setttings.GeneratedCaves = true
-    local stuff = multihandler.GenerateWorms(self.Chunk[1],self.Chunk[2])
+    local stuff = multihandler.GenerateWorms(self.Chunk.X,self.Chunk.Y)
     local chunks = {}
     for i,v in stuff do
         for positon,data in v do
@@ -166,16 +166,16 @@ function Chunk:Generate()
         return
     end
     self.Generating = true
-    local t = multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],16)
-   --local t = generationhand.GenerateTerrain(self.Chunk[1],self.Chunk[2])
-    self.Blocks = terrainh.Color(self.Chunk[1],self.Chunk[2],t) 
+    local t = multihandler.GetTerrain(self.Chunk.X,self.Chunk.Y,16)
+   --local t = generationhand.GenerateTerrain(self.Chunk.X,self.Chunk.Y)
+    self.Blocks = terrainh.Color(self.Chunk.X,self.Chunk.Y,t) 
     if not self.Setttings.GeneratedCaves  then
       self:DoCaves()
     end
   self:GenerateCavesNearBy()
    task.wait()
    self:LoadToLoad()
-   self.Blocks = terrainh.CreateBedrock(self.Chunk[1],self.Chunk[2],self.Blocks)
+   self.Blocks = terrainh.CreateBedrock(self.Chunk.X,self.Chunk.Y,self.Blocks)
     self.Generating = false
 end
 return Chunk

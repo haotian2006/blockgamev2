@@ -4,6 +4,17 @@ local https = game:GetService("HttpService")
 local genuuid = https.GenerateGUID
 local entitydata = game.ServerStorage.Entitys
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
+local function interpolate(startVector3, finishVector3, alpha)
+    local function currentState(start, finish, alpha)
+        return start + (finish - start)*alpha
+
+    end
+    return Vector3.new(
+        currentState(startVector3.X, finishVector3.X, alpha),
+        currentState(startVector3.Y, finishVector3.Y, alpha),
+        currentState(startVector3.Z, finishVector3.Z, alpha)
+    )
+end
 function entity.new(data)
     local self = data or {}
     self.Id = data.Id or genuuid()
@@ -54,8 +65,9 @@ function entity:GetVelocity():Vector3
     end
     return Vector3.new(x,y,z)
 end
-function entity:Update()
-    local velocity = self:GetVelocity()
+function entity:Update(dt)
+    local newp = CollisionHandler.entityvsterrain(self)
+    self.Position = interpolate(self.Position,newp,dt) 
 end
 function entity:GoTo(x,y,z)
     

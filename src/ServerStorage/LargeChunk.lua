@@ -31,10 +31,10 @@ function LChunk:InsertBlock(data,x,y,z)
     return self.Blocks[cc]
 end
 function LChunk:GetNString():string
-    return self.Chunk[1].."x"..self.Chunk[2]
+    return self.Chunk.X.."x"..self.Chunk.Y
 end
 function LChunk:GetNTuple():IntValue|IntValue
-    return self.Chunk[1],self.Chunk[2]
+    return self.Chunk.X,self.Chunk.Y
 end
 function LChunk:SetData(which,data)
     self[which] = data
@@ -48,7 +48,7 @@ function LChunk:Generate()
         return
     end
     self.Generating = true
-    self.Blocks = multihandler.GetTerrain(self.Chunk[1],self.Chunk[2],20)
+    self.Blocks = multihandler.GetTerrain(self.Chunk.X,self.Chunk.Y,20)
     self.Generating = false
 end
 
