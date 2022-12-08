@@ -15,7 +15,7 @@ local LocalizationService = game:GetService("LocalizationService")
 local runservice = game:GetService("RunService")
 local ChunkObj = require(game.ReplicatedStorage.Chunk)
 local compresser = require(game.ReplicatedStorage.compressor) 
-function self.AddEntity(uuid,address)
+function self.AddEntity(uuid:string,address:table)
     self.AmmountOfEntities += 1
     self.LoadedEntities[uuid] = address or warn(uuid,"Does not have data")
 end
@@ -24,11 +24,19 @@ function self.RemoveEntity(uuid)
     self.LoadedEntities[uuid] = nil
 end
 function self.EntitiesinR(x,y,z,r )
-    x = x or 0
+    x,y,z,r = x or 0, y or 0 ,z or 0 ,r or 0
+    local vector = Vector3.new(x,y,z)
+    local entitys = {}
+    for i,v in self.LoadedEntities do
+        if (v.Position - vector).Magnitude <= r then
+            entitys[i] = v
+        end
+    end
+    return entitys
 end
 function self.loadEntitys(chunk)
     for i,v in chunk.Entities do
-        self.AddEntity(i)
+        self.AddEntity(i,v)
     end
 end
 function self.GetChunk(cx,cz,create)
