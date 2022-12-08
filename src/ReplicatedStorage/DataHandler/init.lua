@@ -2,18 +2,35 @@ local qf = require(game.ReplicatedStorage.QuickFunctions)
 local self = {}
 --<Both
 self.LoadedChunks = {}
-self.LoadedEntitys = {}
+self.LoadedEntities = {}
+self.AmmountOfEntities = 0
 --<Client Only
 self.LocalPlayer = {}
 --<Server Only
 self.CompressedChunks = {}
-self.Players = {}
+self.Players = {} 
 
 local multihandeler = require(game.ReplicatedStorage.MultiHandler)
 local LocalizationService = game:GetService("LocalizationService")
 local runservice = game:GetService("RunService")
 local ChunkObj = require(game.ReplicatedStorage.Chunk)
 local compresser = require(game.ReplicatedStorage.compressor) 
+function self.AddEntity(uuid,address)
+    self.AmmountOfEntities += 1
+    self.LoadedEntities[uuid] = address or warn(uuid,"Does not have data")
+end
+function self.RemoveEntity(uuid)
+    self.AmmountOfEntities -= 1
+    self.LoadedEntities[uuid] = nil
+end
+function self.EntitiesinR(x,y,z,r )
+    x = x or 0
+end
+function self.loadEntitys(chunk)
+    for i,v in chunk.Entities do
+        self.AddEntity(i)
+    end
+end
 function self.GetChunk(cx,cz,create)
     if not self.LoadedChunks[qf.cv2type("string",cx,cz)] and create then
         self.CreateChunk(nil,cx,cz)
