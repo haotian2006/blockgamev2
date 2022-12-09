@@ -24,17 +24,6 @@ function entity.new(data)
     setmetatable(self,entity)
     return self
 end
-function entity:AddComponent(cpname,cpdata)
-    if cpname == "Type" then warn("The Name: 'Type' cannot be used as a component name") end 
-    if self[cpname] and type(cpdata) == "table" and cpdata["AddTo"] then
-        for i,v in cpdata do
-            self[cpname][i] = v
-        end
-    else
-        self[cpname] = cpdata
-    end
-    return self
-end
 function entity.Create(type,data)
     local ehand = entitydata:FindFirstChild(type)
     if not ehand then return nil end 
@@ -45,6 +34,17 @@ function entity.Create(type,data)
     end
     for cname,cdata in data or {} do
         self:AddComponent(cname,cdata)
+    end
+    return self
+end
+function entity:AddComponent(cpname,cpdata)
+    if cpname == "Type" then warn("The Name: 'Type' cannot be used as a component name") end 
+    if self[cpname] and type(cpdata) == "table" and cpdata["AddTo"] then
+        for i,v in cpdata do
+            self[cpname][i] = v
+        end
+    else
+        self[cpname] = cpdata
     end
     return self
 end
