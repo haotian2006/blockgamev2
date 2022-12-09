@@ -30,7 +30,7 @@ function  collisions.IsGrounded(entity)
                 if block then
                    local a2 = refunction.convertPositionto(a,"table")
                    local newpos ,newsize,n2,s2,n3,s3,n4,s4 = collisions.DealWithRotation(block)
-                   if  collisions.AABBcheck(vector3(position.X, position.Y-1,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize) then 
+                   if  collisions.AABBcheck(vector3(position.X, position.Y-1,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then 
                     return true,block
                     end  
                 end
@@ -134,22 +134,22 @@ function collisions.shouldjump(entity,pos,p,s,pri)
     return nil
 end
 function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop,old)
-    local hitbox = entity.HitBoxSize
+    local hitbox = entity.HitBox
     local min = vector3(
-        position.X-hitbox.x/2+(velocity.X <0 and velocity.X-1 or 0)   ,
-        position.Y-hitbox.y/2+(velocity.Y <0 and velocity.Y-1 or 0), 
-        position.Z-hitbox.z/2+(velocity.Z <0 and velocity.Z-1 or 0)   
+        position.X-hitbox.X/2+(velocity.X <0 and velocity.X-1 or 0)   ,
+        position.Y-hitbox.Y/2+(velocity.Y <0 and velocity.Y-1 or 0), 
+        position.Z-hitbox.X/2+(velocity.Z <0 and velocity.Z-1 or 0)   
     )   
     local max = vector3(
         position.X+hitbox.X/2 +(velocity.X >0 and velocity.X+1 or 0),
         position.Y+hitbox.Y/2+(velocity.Y >0 and velocity.Y+1 or 0), 
-        position.Z+hitbox.Z/2+(velocity.Z >0 and velocity.Z+1 or 0)   
+        position.Z+hitbox.X/2+(velocity.Z >0 and velocity.Z+1 or 0)   
     )
     local normal = {X =0,Y=0,Z=0}
     local mintime = 1
     local zack 
     local gridsize = 1
-    local bppos,bpsize = collisions.GetBroadPhase(position,vector3(hitbox.X,hitbox.Y,hitbox.Z),velocity)
+    local bppos,bpsize = collisions.GetBroadPhase(position,vector3(hitbox.X,hitbox.Y,hitbox.X),velocity)
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
@@ -162,7 +162,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                    local currentmin = 1
                    local newpos ,newsize = vector3(x,y,z),vector3(3,3,3) --collisions.DealWithRotation(block)
                    if  collisions.AABBcheck(bppos,newpos,bpsize,newsize,true) then  
-                    local collisiontime1,newnormal1 = collisions.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize,velocity,mintime)
+                    local collisiontime1,newnormal1 = collisions.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize,velocity,mintime)
                     if collisiontime1 < 1 then
                        zack = Vector2.new(newpos,newsize)
                         currentmin = collisiontime1

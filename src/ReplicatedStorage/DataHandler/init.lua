@@ -15,21 +15,27 @@ local LocalizationService = game:GetService("LocalizationService")
 local runservice = game:GetService("RunService")
 local ChunkObj = require(game.ReplicatedStorage.Chunk)
 local compresser = require(game.ReplicatedStorage.compressor) 
+local settings = require(game.ReplicatedStorage.GameSettings)
 function self.AddEntity(uuid:string,address:table)
     self.AmmountOfEntities += 1
-    self.LoadedEntities[uuid] = address or warn(uuid,"Does not have data")
+    if type(uuid) == "table" then
+        self.LoadedEntities[uuid.Id] = uuid
+    else
+        self.LoadedEntities[uuid] = address or warn(uuid,"Does not have data")
+    end
 end
 function self.RemoveEntity(uuid)
     self.AmmountOfEntities -= 1
     self.LoadedEntities[uuid] = nil
 end
-function self.EntitiesinR(x,y,z,r )
-    x,y,z,r = x or 0, y or 0 ,z or 0 ,r or 0
-    local vector = Vector3.new(x,y,z)
+function self.EntitiesinR(x,y,z,r,ConvertToClient )
+    x,y,z,r = x or 0, y ,z or 0 ,r or 0
+    local vector = Vector3.new(x,y or 0,z)
     local entitys = {}
     for i,v in self.LoadedEntities do
+        if not y then vector = Vector3.new(x,v.Position.Y,z) end 
         if (v.Position - vector).Magnitude <= r then
-            entitys[i] = v
+            entitys[i] = not ConvertToClient and v or v:ConvertToClient()
         end
     end
     return entitys
@@ -128,12 +134,20 @@ task.spawn(function()
         end
     end
 end)
-
+self.EntityLoop = false
+if not self.EntityLoop then
+    self.EntityLoop = true
+    game:GetService("RunService").Stepped:Connect(function(time, deltaTime)
+        for id,entity in self.LoadedEntities do
+            task.spawn(entity.Update,entity,deltaTime)
+        end
+    end)
+end
 game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)
     -- local position = player.Character.PrimaryPart.Position
     local new = self.GetChunk(cx,cz)
     if new and new:IsGenerating() then
-        game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
+        game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,new:GetBlocks() )
         return 
     end
      --new:Generate()

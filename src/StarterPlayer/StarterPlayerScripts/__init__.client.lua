@@ -8,8 +8,33 @@ local queued = {}
 local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
+local control = require(script.Parent.Controller)
+local tweenservice = game:GetService("TweenService")
 resource:Init()
 local runservicer = game:GetService("RunService")
+game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entitys)
+    for i,v in game.Workspace.Entities:GetChildren() do
+        if not entitys[i] then
+            v:Destroy()
+        end
+    end
+    for i,v in entitys do
+        local e = game.Workspace.Entities:FindFirstChild(i)
+        if e then
+            tweenservice:Create(e,TweenInfo.new(0.1),{Position = v.Position*3}):Play()
+        else
+            --datahandler.LoadedEntities[i] = v
+            local hitbox = Instance.new("Part",workspace.Entities)
+            hitbox.Size = Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X)*settings.GridSize
+            hitbox.CanCollide = false
+            hitbox.Anchored = true
+            hitbox.Transparency = 0.5
+            hitbox.Position = v.Position*3
+            hitbox.Name = i
+            
+        end
+    end
+end)
 task.spawn(function()
     while true do
         for i=0,20 do
@@ -59,7 +84,7 @@ game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data
     toload[cx..','..cz] = true
     queued[cx..','..cz] = false
     datahandler.CreateChunk({Blocks = data},cx,cz)
-   if true then  
+   if false then  
     local p = Instance.new("Part",workspace)
     p.Anchored = true
     p.CanCollide = false

@@ -1,7 +1,7 @@
 local entity = {}
 entity.__index = entity
 local https = game:GetService("HttpService")
-local genuuid = https.GenerateGUID
+local genuuid = function()  return https:GenerateGUID(false) end 
 local entitydata = game.ServerStorage.Entitys
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local function interpolate(startVector3, finishVector3, alpha)
@@ -43,10 +43,19 @@ function entity.Create(type,data)
     for cname,cdata in ehand.components do
         self:AddComponent(cname,cdata)
     end
-    for cname,cdata in data do
-        self:AddComponent(cname.cdata)
+    for cname,cdata in data or {} do
+        self:AddComponent(cname,cdata)
     end
     return self
+end
+function entity:ConvertToClient()
+    local new = {}
+    for i,v in self do
+        if type(v) ~="function" and i ~= "ServerOnly" then
+            new[i] = v
+        end
+    end
+    return new
 end
 function entity:GetVelocity():Vector3
     local x,y,z = 0,0,0
@@ -66,7 +75,7 @@ function entity:GetVelocity():Vector3
     return Vector3.new(x,y,z)
 end
 function entity:Update(dt)
-    local newp = CollisionHandler.entityvsterrain(self)
+    local newp = CollisionHandler.entityvsterrain(self)--self.Position + self:GetVelocity()--
     self.Position = interpolate(self.Position,newp,dt) 
 end
 function entity:GoTo(x,y,z)
