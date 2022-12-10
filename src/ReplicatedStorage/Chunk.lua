@@ -32,8 +32,15 @@ end
 game.Players.PlayerAdded:Connect(function(x)
     
 end)
-function Chunk:GetBlock(x,y,z)--realpos
-    return self.Blocks[qF.Realto1DBlock(x,y,z)]
+function Chunk:GetBlock(x,y,z,islocal)--realpos
+    if islocal then
+        if self.Blocks[x..','..y..','..z] then
+            return self.Blocks[x..','..y..','..z],x..','..y..','..z 
+        end
+    else
+        return self.Blocks[qF.Realto1DBlock(x,y,z)]
+    end
+
 end
 function Chunk:GetBlocks()
     return self.Blocks

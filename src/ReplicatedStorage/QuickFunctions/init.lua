@@ -10,8 +10,8 @@ repeat
 until settings
 local gridS = settings.GridSize
 local chunkS = settings.ChunkSize
-local blockmuti = 1/settings.GridSize
-local chunkmuti = 1/settings.ChunkSize.X
+local blockd = settings.GridSize
+local chunkd = settings.ChunkSize.X
 -- Real : Real Position 
 -- Grid : Real/BlockSize
 -- Chunk : Uses Grid
@@ -76,8 +76,8 @@ function qf.GetChunkfromReal(x,y,z,blockinstead)
     if not blockinstead then
         x,y,z = qf.GetBlockCoordsFromReal(x,y,z)
     end
-	local cx =	tonumber(math.floor((x-0)*chunkmuti))
-	local cz= 	tonumber(math.floor((z-0)*chunkmuti))
+	local cx =	tonumber(math.floor((x-0)/chunkd))
+	local cz= 	tonumber(math.floor((z-0)/chunkd))
 	return cx,cz
 end
 function qf.convertchgridtoreal(cx,cz,x,y,z,toblockinstead):Vector3
@@ -89,9 +89,9 @@ function qf.convertchgridtoreal(cx,cz,x,y,z,toblockinstead):Vector3
     return Vector3.new((x+settings.ChunkSize.X*cx)*dirx,y,(z+settings.ChunkSize.X*cz)*dirz) *settings.GridSize
 end
 function qf.GetBlockCoordsFromReal(x,y,z)
-	local x = math.floor((0 + x)*blockmuti)
-	local z = math.floor((0 + z)*blockmuti)
-	local y = math.floor((0 + y)*blockmuti)
+	local x = math.floor((0 + x)/blockd)
+	local z = math.floor((0 + z)/blockd)
+	local y = math.floor((0 + y)/blockd)
 	return x,y,z
 end
 function qf.GetSurroundingChunk(cx,cz,render)

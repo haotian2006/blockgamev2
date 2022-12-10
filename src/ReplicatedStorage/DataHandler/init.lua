@@ -24,6 +24,9 @@ function self.AddEntity(uuid:string,address:table)
         self.LoadedEntities[uuid] = address or warn(uuid,"Does not have data")
     end
 end
+local function round(x)
+    return math.floor(x)
+end
 function self.RemoveEntity(uuid)
     self.AmmountOfEntities -= 1
     self.LoadedEntities[uuid] = nil
@@ -46,28 +49,28 @@ function self.loadEntitys(chunk)
     end
 end
 function self.GetChunk(cx,cz,create)
-    if not self.LoadedChunks[qf.cv2type("string",cx,cz)] and create then
+    if not self.LoadedChunks[cx..','..cz] and create then
         self.CreateChunk(nil,cx,cz)
     end
-    return self.LoadedChunks[qf.cv2type("string",cx,cz)] 
+    return self.LoadedChunks[cx..','..cz] 
 end
 function self.CreateChunk(cdata,cx,cz)
-    self.LoadedChunks[qf.cv2type("string",cx,cz)] = ChunkObj.new(cx,cz,cdata)
-    return self.LoadedChunks[qf.cv2type("string",cx,cz)] 
+    self.LoadedChunks[cx..','..cz] = ChunkObj.new(cx,cz,cdata)
+    return self.LoadedChunks[cx..','..cz] 
 end
 function self.DestroyChunk(cx,cz)
     local c = self.GetChunk(cx,cz)
     if c then
         c:Destroy()
-        self.LoadedChunks[qf.cv2type("string",cx,cz)] = nil
+        self.LoadedChunks[cx..','..cz] = nil
     end
 end
 function self.GetBlock(x,y,z)
     local cx,cz = qf.GetChunkfromReal(x,y,z,true)
     local chunk = self.GetChunk(cx,cz)
-    local localgrid = qf.cbt("grid","chgrid",x,y,z )
+    local localgrid = qf.cbt("grid","chgrid",round(x),round(y),round(z) )
     if chunk then
-       return chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z)
+       return unpack({chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z,true)})
     end
 end
 if runservice:IsClient() then return self end

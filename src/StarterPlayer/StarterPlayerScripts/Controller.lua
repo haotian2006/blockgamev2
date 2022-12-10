@@ -21,7 +21,7 @@ local function getkeyfrominput(input)
         return input.UserInputType.Name:lower()
     end
 end
-local speed = 4
+local speed = .2--5.612
 function Render.Move(dt)
     local LookVector = Camera.CFrame.LookVector
     local RightVector = Camera.CFrame.RightVector

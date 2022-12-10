@@ -14,7 +14,7 @@ resource:Init()
 local runservicer = game:GetService("RunService")
 game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entitys)
     for i,v in game.Workspace.Entities:GetChildren() do
-        if not entitys[i] then
+        if not entitys[v.Name] then
             v:Destroy()
         end
     end
