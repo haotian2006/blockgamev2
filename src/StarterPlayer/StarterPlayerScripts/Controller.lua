@@ -1,4 +1,6 @@
 local controls = {pc = {},mode = 'pc',func = {}}
+local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
+local data = require(game.ReplicatedStorage.DataHandler)
 controls.pc = {
     Foward = {'w',"Foward"},-- Name = {key,function}
     Left = {{'a',"c"},"Left"},
@@ -14,6 +16,17 @@ local Render = controls.Render
 local runservice = game:GetService("RunService")
 local uis = game:GetService("UserInputService")
 local FD = controls.Functionsdown 
+local function interpolate(startVector3, finishVector3, alpha)
+    local function currentState(start, finish, alpha)
+        return start + (finish - start)*alpha
+
+    end
+    return Vector3.new(
+        currentState(startVector3.X, finishVector3.X, alpha),
+        currentState(startVector3.Y, finishVector3.Y, alpha),
+        currentState(startVector3.Z, finishVector3.Z, alpha)
+    )
+end
 local function getkeyfrominput(input)
     if input.KeyCode.Name ~= "Unknown" then
         return input.KeyCode.Name:lower()
@@ -21,8 +34,38 @@ local function getkeyfrominput(input)
         return input.UserInputType.Name:lower()
     end
 end
-local speed = .2--5.612
+local speed = 5.612
+function GetVelocity(self):Vector3
+    local x,y,z = 0,0,0
+    for i,v in self.Velocity do
+        if typeof(v) == "Vector3" then
+            x+= v.X 
+            y+= v.Y
+            z+= v.Z
+        end
+    end
+    if x == 0 then
+        x = 0.00000001
+    end
+    if z == 0 then
+        z = 0.00000001
+    end
+    return Vector3.new(x,y,z)
+end
+function Render.UpdateEntity(dt)
+    if not data.LocalPlayer or not next(data.LocalPlayer) then return end 
+    local self = data.LocalPlayer
+    self.Position = data.GLocalPlayer.Position
+    local velocity = GetVelocity(self)
+    local p2 = interpolate(self.Position,self.Position+velocity,dt) 
+    velocity = (p2-self.Position)
+    local newp = CollisionHandler.entityvsterrain(self,velocity)--self.Position + self:GetVelocity()--
+    data.GLocalPlayer.Grounded = CollisionHandler.IsGrounded(self)
+    self.Entity.Position = newp*3
+    data.GLocalPlayer.Position = newp
+end
 function Render.Move(dt)
+    if not data.LocalPlayer or not next(data.LocalPlayer) then return end 
     local LookVector = Camera.CFrame.LookVector
     local RightVector = Camera.CFrame.RightVector
     LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit
@@ -33,7 +76,24 @@ function Render.Move(dt)
     local Right = RightVector*(FD["Right"]and 1 or 0)
     local velocity = foward + Back + Left+ Right
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) *speed 
-    game.ReplicatedStorage.Events.SendEntities:FireServer(velocity)
+    data.GLocalPlayer.Velocity["Movement"] = velocity
+   -- game.ReplicatedStorage.Events.SendEntities:FireServer(velocity)
+end
+function Render.Fall(dt)
+    local entity =   data.LocalPlayer
+    if not entity or not next(entity) then return end 
+    data.GLocalPlayer.FallTicks = data.GLocalPlayer.FallTicks or 0
+    local fallrate = (((((0.99)^data.GLocalPlayer.FallTicks)-1)*3.92)/1.2)
+
+    if data.GLocalPlayer.Grounded  or data.GLocalPlayer.Jumping == true then -- or not entity.CanFall
+        data.GLocalPlayer.Velocity.Fall = Vector3.new(0,0,0) 
+        data.GLocalPlayer.IsFalling = false
+        data.GLocalPlayer.FallTicks = 0
+    elseif not data.GLocalPlayer.Grounded  then
+        data.GLocalPlayer.FallTicks += 1
+        data.GLocalPlayer.Velocity.Fall = Vector3.new(0,fallrate,0) 
+    end
+
 end
 uis.InputBegan:Connect(function(input, gameProcessedEvent)
     if gameProcessedEvent then return end 
@@ -82,5 +142,5 @@ function controls.renderupdate(dt)
         task.spawn(v,dt)
     end
 end
-runservice.Stepped:Connect(controls.renderupdate)
+runservice.Heartbeat:Connect(controls.renderupdate)
 return controls

@@ -6,6 +6,7 @@ self.LoadedEntities = {}
 self.AmmountOfEntities = 0
 --<Client Only
 self.LocalPlayer = {}
+self.GLocalPlayer = {}
 --<Server Only
 self.CompressedChunks = {}
 self.Players = {} 
@@ -140,7 +141,7 @@ end)
 self.EntityLoop = false
 if not self.EntityLoop then
     self.EntityLoop = true
-    game:GetService("RunService").Stepped:Connect(function(time, deltaTime)
+    game:GetService("RunService").Heartbeat:Connect(function( deltaTime)
         for id,entity in self.LoadedEntities do
             task.spawn(entity.Update,entity,deltaTime)
         end

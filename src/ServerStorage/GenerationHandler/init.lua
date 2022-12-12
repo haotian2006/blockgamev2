@@ -41,7 +41,7 @@ end
 function generation.proceduralNum(x,y,s,max,min)
 	local thingy = 4
 	min = min or 0
-	return math.clamp( math.round(math.abs((math.noise((x/thingy)+.1,(y/thingy)+0.1,s)+.5)*max)),min,math.huge)
+	return Random.new(s*x*y+x+y+s):NextInteger(min,max)--math.clamp( math.round(math.abs((math.noise((x/thingy)+.1,(y/thingy)+0.1,s)+.5)*max)),min,math.huge)
 end
 local maxres = 5
 function generation.CreateBedrock(cx,cz,gtable):table

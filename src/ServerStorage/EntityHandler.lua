@@ -75,7 +75,7 @@ function entity:GetVelocity():Vector3
     return Vector3.new(x,y,z)
 end
 function entity:Update(dt)
-    local newp = CollisionHandler.entityvsterrain(self)--self.Position + self:GetVelocity()--
+    local newp = CollisionHandler.entityvsterrain(self,self:GetVelocity())--self.Position + self:GetVelocity()--
     self.Position = newp--interpolate(self.Position,newp,dt) 
 end
 function entity:GoTo(x,y,z)

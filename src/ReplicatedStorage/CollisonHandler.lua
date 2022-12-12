@@ -12,27 +12,31 @@ local function round(x)
 end
 function  collisions.IsGrounded(entity)
     local position = entity.Position
-    local hitbox = entity.HitBoxSize
+    local hitbox = entity.HitBox
     local min = vector3(
-        position.X-hitbox.x/2,
-        position.Y-(hitbox.y/2+0.03),
-        position.Z-hitbox.z/2
+        position.X-hitbox.X/2,
+        position.Y-(hitbox.Y/2+0.0225),
+        position.Z-hitbox.X/2
     )   
     local max = vector3(
-        position.X+hitbox.x/2,
-        position.Y-(hitbox.y/2),
-        position.Z+hitbox.z/2 
+        position.X+hitbox.X/2,
+        position.Y-(hitbox.Y/2),
+        position.Z+hitbox.X/2 
 )
     local gridsize = 1
 --a
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
-                local block = maindata.GetBlock(x,y,z)
+                local block,coords = maindata.GetBlock(x,y,z)
                 if block then
-                   local a2 = refunction.convertPositionto(a,"table")
-                   local newpos ,newsize,n2,s2,n3,s3,n4,s4 = collisions.DealWithRotation(block)
-                   if  collisions.AABBcheck(vector3(position.X, position.Y-1,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then 
+                    local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
+                    --local chg =  qf.cbt("grid","chgrid",round(x),round(y),round(z) )
+                    local bx,by,bz = unpack(coords:split(","))
+                    local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
+                    bx,by,bz = a.X,a.Y,a.Z
+                   local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
+                   if  collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then 
                     return true,block
                     end  
                 end
@@ -42,15 +46,16 @@ function  collisions.IsGrounded(entity)
     end 
     return false
 end
-function  collisions.entityvsterrain(entity)
-    local oldv = entity:GetVelocity()
-    local velocity = entity:GetVelocity()
+function  collisions.entityvsterrain(entity,velocity)
+    local oldv = velocity
+    local velocity = velocity
     local position = entity.Position
     local oldp = vector3(position.X,position.Y,position.Z)
    -- print(velocity.Y)
     local remainingtime = 1
     local MinTime
     local normal = {X =0,Y=0,Z=0}
+    local allnormal = {X =0,Y=0,Z=0}
     for i =1,3,1 do
       
     velocity = vector3(
@@ -60,11 +65,14 @@ function  collisions.entityvsterrain(entity)
         )
         local bb
         MinTime,normal,bb = collisions.entityvsterrainloop(entity,position,velocity,{},false,oldv)
+        allnormal.X += normal.X
+        allnormal.Y += normal.Y
+        allnormal.Z += normal.Z
         local placevelocity = vector3(velocity.X,velocity.Y,velocity.Z)*MinTime
         position += placevelocity
         if MinTime <1 then
             --epsilon 
-            if velocity.X >0 and velocity.X ~= 0.00000001 then
+            if velocity.X >0 and velocity.X ~= 9.99999993922529e-09 then
                 position = qf.EditVector3(position,"x",position.X - 0.001)
             elseif velocity.X <0 then
                 position = qf.EditVector3(position,"x",position.X + 0.001)
@@ -74,7 +82,7 @@ function  collisions.entityvsterrain(entity)
             elseif velocity.Y <0 then
                 position = qf.EditVector3(position,"y",position.Y + 0.001)
             end
-            if velocity.Z >0 and velocity.Z ~= 0.00000001 then
+            if velocity.Z >0 and velocity.Z ~= 9.99999993922529e-09 then
                 position = qf.EditVector3(position,"z",position.Z - 0.00001)
             elseif velocity.Z <0 then
                 position = qf.EditVector3(position,"z",position.Z + 0.00001)
@@ -84,7 +92,7 @@ function  collisions.entityvsterrain(entity)
         if remainingtime <=0 then break end
         
     end
-    return  position
+    return  position,allnormal
 end
 function collisions.GetBroadPhase(b1,s1,velocity)
     b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)

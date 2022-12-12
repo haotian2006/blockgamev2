@@ -20,8 +20,9 @@ game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entity
     end
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i)
+
         if e then
-            tweenservice:Create(e,TweenInfo.new(0.1),{Position = v.Position*3}):Play()
+           -- tweenservice:Create(e,TweenInfo.new(0.1),{Position = v.Position*3}):Play()
         else
             --datahandler.LoadedEntities[i] = v
             local hitbox = Instance.new("Part",workspace.Entities)
@@ -31,7 +32,16 @@ game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entity
             hitbox.Transparency = 0.5
             hitbox.Position = v.Position*3
             hitbox.Name = i
-            
+            datahandler.GLocalPlayer.Position = v.Position
+            datahandler.GLocalPlayer.Velocity = v.Velocity
+            datahandler.GLocalPlayer.Grounded = v.Grounded
+        end
+        if i == tostring(game.Players.LocalPlayer.UserId) then
+            v.Entity =  game.Workspace.Entities:FindFirstChild(i)
+            v.Velocity = datahandler.GLocalPlayer.Velocity
+            v.Position = datahandler.GLocalPlayer.Position 
+            v.Grounded = datahandler.GLocalPlayer.Grounded 
+            datahandler.LocalPlayer = v
         end
     end
 end)
