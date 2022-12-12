@@ -6,10 +6,12 @@ controls.pc = {
     Left = {{'a',"c"},"Left"},
     Right = {'d',"Right"},
     Back = {'s',"Back"},
+    Jump = {'space',"Jump"},
 }
 controls.KeysPressed = {}
 controls.Render = {}
 controls.Functionsdown = {}
+local GPlayer = data.GLocalPlayer
 local Camera = game.Workspace.CurrentCamera
 local func = controls.func
 local Render = controls.Render
@@ -26,6 +28,33 @@ local function interpolate(startVector3, finishVector3, alpha)
         currentState(startVector3.Y, finishVector3.Y, alpha),
         currentState(startVector3.Z, finishVector3.Z, alpha)
     )
+end
+function func.HandleJump()
+    if  GPlayer.Jumping == true then return end
+    local e 
+    local jumpedamount =0 
+    local jumpheight =  5.9
+    e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
+        local jump = jumpheight*(1*deltaTime)*4.5
+        if GPlayer.Grounded  and GPlayer.Jumping == false then
+            if jumpedamount == 0 then
+                jumpedamount += jumpheight*(1*deltaTime)*4.5
+            end 
+           end
+        if jumpedamount > 0 and jumpedamount <=jumpheight  then
+         jumpedamount += jumpheight*(deltaTime)*4.5
+         jump = jumpheight*(1*deltaTime)*4.5
+         GPlayer.Jumping = true
+         else
+            GPlayer.Jumping = false
+             jump = 0
+             jumpedamount = 0
+             GPlayer.Velocity.Jump = Vector3.new()
+             e:Disconnect()
+        end
+        local touse = jump--fps.Value>62 and (jump/deltaTime)/60 or jump
+        GPlayer.Velocity.Jump =Vector3.new(0,touse,0)
+    end)
 end
 local function getkeyfrominput(input)
     if input.KeyCode.Name ~= "Unknown" then
@@ -77,6 +106,7 @@ function Render.Move(dt)
     local velocity = foward + Back + Left+ Right
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) *speed 
     data.GLocalPlayer.Velocity["Movement"] = velocity
+    if FD["Jump"] then func.HandleJump() end 
    -- game.ReplicatedStorage.Events.SendEntities:FireServer(velocity)
 end
 function Render.Fall(dt)

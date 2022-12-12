@@ -37,6 +37,7 @@ game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entity
             datahandler.GLocalPlayer.Grounded = v.Grounded
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
+            v.Jumping = datahandler.GLocalPlayer.Jumping
             v.Entity =  game.Workspace.Entities:FindFirstChild(i)
             v.Velocity = datahandler.GLocalPlayer.Velocity
             v.Position = datahandler.GLocalPlayer.Position 
