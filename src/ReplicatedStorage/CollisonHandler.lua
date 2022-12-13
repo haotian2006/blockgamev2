@@ -36,7 +36,7 @@ function  collisions.IsGrounded(entity)
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
                     bx,by,bz = a.X,a.Y,a.Z
                    local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
-                   if  collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then 
+                   if  collisions.AABBcheck(vector3(position.X, position.Y-0.04,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then 
                     return true,block
                     end  
                 end
@@ -178,6 +178,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                    local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1) --collisions.DealWithRotation(block)
                    if  collisions.AABBcheck(bppos,newpos,bpsize,newsize,true) then  
                     local collisiontime1,newnormal1 = collisions.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize,velocity,mintime)
+                    if not (collisiontime1 <1) then print(newnormal1) end 
                     if collisiontime1 < 1 then
                         b(a.X,a.Y,a.Z)
                        zack = Vector2.new(newpos,newsize)

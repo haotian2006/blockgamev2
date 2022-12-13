@@ -35,6 +35,13 @@ game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entity
             datahandler.GLocalPlayer.Position = v.Position
             datahandler.GLocalPlayer.Velocity = v.Velocity
             datahandler.GLocalPlayer.Grounded = v.Grounded
+            workspace.CurrentCamera.CameraSubject = hitbox
+            task.spawn(function()
+                while task.wait(.5) do
+                    game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
+                    game.Players.LocalPlayer.Character:PivotTo(CFrame.new(datahandler.GLocalPlayer.Position*3-Vector3.new(0,30,0)))
+                end
+            end)
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
             v.Jumping = datahandler.GLocalPlayer.Jumping

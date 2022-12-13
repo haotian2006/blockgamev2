@@ -1,5 +1,6 @@
 local controls = {pc = {},mode = 'pc',func = {}}
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
+local qf = require(game.ReplicatedStorage.QuickFunctions)
 local data = require(game.ReplicatedStorage.DataHandler)
 controls.pc = {
     Foward = {'w',"Foward"},-- Name = {key,function}
@@ -33,17 +34,18 @@ function func.HandleJump()
     if  GPlayer.Jumping == true then return end
     local e 
     local jumpedamount =0 
-    local jumpheight =  5.9
+    local jumpheight =  3
+    local muti = jumpheight
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
-        local jump = jumpheight*(1*deltaTime)*4.5
-        if GPlayer.Grounded  and GPlayer.Jumping == false then
+        local jump = jumpheight*muti
+        if GPlayer.Grounded  and not GPlayer.Jumping then
             if jumpedamount == 0 then
-                jumpedamount += jumpheight*(1*deltaTime)*4.5
+                jumpedamount += jumpheight*(deltaTime)*muti
             end 
            end
         if jumpedamount > 0 and jumpedamount <=jumpheight  then
-         jumpedamount += jumpheight*(deltaTime)*4.5
-         jump = jumpheight*(1*deltaTime)*4.5
+         jumpedamount += jumpheight*(deltaTime)*muti
+         jump = jumpheight*muti
          GPlayer.Jumping = true
          else
             GPlayer.Jumping = false
@@ -111,11 +113,14 @@ function Render.Move(dt)
 end
 function Render.Fall(dt)
     local entity =   data.LocalPlayer
-    if not entity or not next(entity) then return end 
+    if not entity or not next(entity) or not GPlayer or not next(GPlayer)  then return end 
+    local cx,cz = qf.GetChunkfromReal(GPlayer.Position.X,GPlayer.Position.Y,GPlayer.Position.Z,true)
+    if not data.GetChunk(cx,cz) then return end 
     data.GLocalPlayer.FallTicks = data.GLocalPlayer.FallTicks or 0
-    local fallrate = (((((0.99)^data.GLocalPlayer.FallTicks)-1)*3.92)/1.2)
+    local max = 5
+    local fallrate = (((0.99^data.GLocalPlayer.FallTicks)-1)*max)*max
 
-    if data.GLocalPlayer.Grounded  or data.GLocalPlayer.Jumping == true then -- or not entity.CanFall
+    if data.GLocalPlayer.Grounded  or data.GLocalPlayer.Jumping  then -- or not entity.CanFall
         data.GLocalPlayer.Velocity.Fall = Vector3.new(0,0,0) 
         data.GLocalPlayer.IsFalling = false
         data.GLocalPlayer.FallTicks = 0
