@@ -178,7 +178,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                    local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1) --collisions.DealWithRotation(block)
                    if  collisions.AABBcheck(bppos,newpos,bpsize,newsize,true) then  
                     local collisiontime1,newnormal1 = collisions.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize,velocity,mintime)
-                    if not (collisiontime1 <1) then print(newnormal1) end 
+                 --   if not (collisiontime1 <1) then print(newnormal1) end 
                     if collisiontime1 < 1 then
                         b(a.X,a.Y,a.Z)
                        zack = Vector2.new(newpos,newsize)
@@ -218,6 +218,7 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
 
         Entry.X = InvEntry.X/velocity.X
         Exit.X = InvExit.X/velocity.X
+        print(Entry.X)
     elseif velocity.X <0 then
         InvEntry.X = (b2.X+s2.X) - b1.X
         InvExit.X = b2.X - (b1.X+s1.X)
