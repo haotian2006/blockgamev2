@@ -2,7 +2,7 @@ local RunService = game:GetService("RunService")
 local collisions ={}
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local maindata = require(game.ReplicatedStorage.DataHandler)
-local vector3 = Vector3.new
+local vector3 = Vector3.new--function(x,y,z)return {X = x or 0 , Y= y or 0,Z= z or 0} end
 local function getincreased(min,goal2,increased2)
 	local direaction = min - goal2
 	return goal2 +increased2*-math.sign(direaction)
@@ -68,11 +68,11 @@ function  collisions.entityvsterrain(entity,velocity)
         allnormal.X += normal.X
         allnormal.Y += normal.Y
         allnormal.Z += normal.Z
-        local placevelocity = vector3(velocity.X,velocity.Y,velocity.Z)*MinTime
+        local placevelocity = Vector3.new(velocity.X,velocity.Y,velocity.Z)*MinTime
         position += placevelocity
         if MinTime <1 then
             --epsilon 
-            if velocity.X >0 and velocity.X ~= 9.99999993922529e-09 then
+            if velocity.X >0 and velocity.X ~= -1.e-08 then
                 position = qf.EditVector3(position,"x",position.X - 0.001)
             elseif velocity.X <0 then
                 position = qf.EditVector3(position,"x",position.X + 0.001)
@@ -82,7 +82,7 @@ function  collisions.entityvsterrain(entity,velocity)
             elseif velocity.Y <0 then
                 position = qf.EditVector3(position,"y",position.Y + 0.001)
             end
-            if velocity.Z >0 and velocity.Z ~= 9.99999993922529e-09 then
+            if velocity.Z >0 and velocity.Z ~= -1.e-08 then
                 position = qf.EditVector3(position,"z",position.Z - 0.00001)
             elseif velocity.Z <0 then
                 position = qf.EditVector3(position,"z",position.Z + 0.00001)
@@ -202,8 +202,10 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
     return mintime,normal,zack,velocity
 end
 --b1:entitypos b2:blockpos s1:entitysize s2:blocksize o1:entity orientation o2:block orientation 
+
 function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
     local aaa = b2
+    local a = b1.X-s1.X/2
     b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)--get the bottem left corners
     b2 = vector3(b2.X-s2.X/2,b2.Y-s2.Y/2,b2.Z-s2.Z/2)
     local InvEntry = {X =0,Y=0,Z=0}
@@ -219,17 +221,16 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
     elseif velocity.X <0 then
         InvEntry.X = (b2.X+s2.X) - b1.X
         InvExit.X = b2.X - (b1.X+s1.X)
-       
         Entry.X = InvEntry.X/velocity.X
         Exit.X = InvExit.X/velocity.X
     else
-        InvEntry.X = (b2.X+s2.X) - b1.X
-        InvExit.X = b2.X - (b1.X+s1.X)
+        -- InvEntry.X = (b2.X+s2.X) - b1.X
+        -- InvExit.X = b2.X - (b1.X+s1.X)
 
         Entry.X = -math.huge
         Exit.X = math.huge
     end
-
+  --  print(InvEntry.X,Entry.X,velocity.X)
     if velocity.Y> 0 then
         InvEntry.Y = b2.Y - (b1.Y+s1.Y)
         InvExit.Y = (b2.Y+s2.Y) - b1.Y
@@ -266,16 +267,18 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
         Exit.Z = math.huge
     end
     local entrytime = math.max(math.max(Entry.X,Entry.Z),Entry.Y)
-    local a 
     if entrytime == Entry.X then
-        a = "a" 
+        a = "a"
     elseif entrytime == Entry.Y then
-        a = "b" 
-    else
-        a = "c" 
+        a = "b"
+    else 
+        a = "c"
+    end
+    if entrytime == Entry.X and entrytime == Entry.Z then
+        a = "d"
     end
     if entrytime >= mintime then return 1.0,1 end
-    if entrytime < 0 then return 1.0,entrytime end
+    if entrytime < 0 then return 1.0,a end
 
     local exittime = math.min(math.min(Exit.X,Exit.Z),Exit.Y)
     if entrytime > exittime then return 1.0,3 end

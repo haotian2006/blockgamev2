@@ -67,10 +67,10 @@ function entity:GetVelocity():Vector3
         end
     end
     if x == 0 then
-        x = 0.00000001
+        x = -0.00000001
     end
     if z == 0 then
-        z = 0.00000001
+        z = -0.00000001
     end
     return Vector3.new(x,y,z)
 end
