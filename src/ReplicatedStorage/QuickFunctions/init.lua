@@ -76,8 +76,8 @@ function qf.GetChunkfromReal(x,y,z,blockinstead)
     if not blockinstead then
         x,y,z = qf.GetBlockCoordsFromReal(x,y,z)
     end
-	local cx =	tonumber(math.floor((x-0)/chunkd))
-	local cz= 	tonumber(math.floor((z-0)/chunkd))
+	local cx =	tonumber(math.floor((x)/chunkd))
+	local cz= 	tonumber(math.floor((z)/chunkd))
 	return cx,cz
 end
 function qf.convertchgridtoreal(cx,cz,x,y,z,toblockinstead):Vector3

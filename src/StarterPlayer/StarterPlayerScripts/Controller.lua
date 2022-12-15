@@ -99,8 +99,8 @@ function Render.Move(dt)
     if not data.LocalPlayer or not next(data.LocalPlayer) then return end 
     local LookVector = Camera.CFrame.LookVector
     local RightVector = Camera.CFrame.RightVector
-    LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit
-    RightVector = Vector3.new(RightVector.X,0,RightVector.Z).Unit
+    LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit -- Vector3.new(1,0,0)--
+    RightVector = Vector3.new(RightVector.X,0,RightVector.Z).Unit --Vector3.new(0,0,1)--
     local foward = LookVector*(FD["Foward"]and 1 or 0)
     local Back = -LookVector*(FD["Back"]and 1 or 0)
     local Left = -RightVector*(FD["Left"]and 1 or 0)

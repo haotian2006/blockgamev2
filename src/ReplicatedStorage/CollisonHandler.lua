@@ -23,13 +23,16 @@ function  collisions.IsGrounded(entity)
         position.Y-(hitbox.Y/2),
         position.Z+hitbox.X/2 
 )
-    local gridsize = 1
+    local gridsize = .5
 --a
+    local whitelist = {}
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z)
+                if whitelist and whitelist[coords] then continue end
                 if block then
+                    whitelist[coords] = true
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
                     --local chg =  qf.cbt("grid","chgrid",round(x),round(y),round(z) )
                     local bx,by,bz = unpack(coords:split(","))
@@ -121,6 +124,9 @@ function collisions.AABBcheck(b1,b2,s1,s2,isbp)
                 b1.Z+s1.Z < b2.Z or 
                 b1.Z>b2.Z+s2.Z )                                      
 end
+function  HitboxL(x,y,z)
+    local a = workspace.HitboxL  a.Position = Vector3.new(x,y,z)*3 a.Anchored = true   
+end
 function b(x,y,z) local a = workspace.IDK a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true end 
 function collisions.shouldjump(entity,pos,p,s,pri)
     local hitbox = entity.HitBoxSize
@@ -142,45 +148,50 @@ end
 function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop,old)
     local hitbox = entity.HitBox
     local min = vector3(
-        position.X-hitbox.X/2+(velocity.X <0 and velocity.X-.25 or 0)   ,
-        position.Y-hitbox.Y/2+(velocity.Y <0 and velocity.Y-.25 or 0), 
-        position.Z-hitbox.X/2+(velocity.Z <0 and velocity.Z-.25 or 0)   
+        position.X-hitbox.X/2+(velocity.X <0 and velocity.X or 0)   ,
+        position.Y-hitbox.Y/2+(velocity.Y <0 and velocity.Y or 0), 
+        position.Z-hitbox.X/2+(velocity.Z <0 and velocity.Z or 0)   
     )   
    -- print(position.Z-hitbox.X,min.Z,(velocity.Z <0 and velocity.Z-.25 or 0) )
     local max = vector3(
-        position.X+hitbox.X/2 +(velocity.X >0 and velocity.X+.25 or 0),
-        position.Y+hitbox.Y/2+(velocity.Y >0 and velocity.Y+.25 or 0), 
-        position.Z+hitbox.X/2+(velocity.Z >0 and velocity.Z+.25 or 0)   
+        position.X+hitbox.X/2 +(velocity.X >0 and velocity.X or 0),
+        position.Y+hitbox.Y/2+(velocity.Y >0 and velocity.Y or 0), 
+        position.Z+hitbox.X/2+(velocity.Z >0 and velocity.Z or 0)   
     )
+   -- HitboxL(max.X,min.Y,min.Z)
     local normal = {X =0,Y=0,Z=0}
     local mintime = 1
     local zack 
-    local gridsize = 1
+    local gridsize = .5
     local bppos,bpsize = collisions.GetBroadPhase(position,vector3(hitbox.X,hitbox.Y,hitbox.X),velocity)
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
+        HitboxL(x,max.Y,max.Z)
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z)
                 if whitelist and whitelist[coords] then continue end
                 if block then
+                    whitelist[coords] = true
+                    
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
                     --local chg =  qf.cbt("grid","chgrid",round(x),round(y),round(z) )
                     local bx,by,bz = unpack(coords:split(","))
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
                     bx,by,bz = a.X,a.Y,a.Z
-                    
+                    b(a.X,a.Y,a.Z)
                     --print(cx,cz,'|',a,"|",min.X,x,max.X)
                     --print(position,'|',x,y,z,'|',qf.cbt("chgrid",'grid',-1,1,bx,by,bz))
                    local typejump 
                    local needed
                    local maxheight
                    local currentmin = 1
-                   local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1) --collisions.DealWithRotation(block)
+                   local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1) --collisions.DealWithRotation(block
+                   
                    if  collisions.AABBcheck(bppos,newpos,bpsize,newsize,true) then  
                     local collisiontime1,newnormal1 = collisions.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize,velocity,mintime)
-                 --   if not (collisiontime1 <1) then print(newnormal1) end 
+                  --  if not (collisiontime1 <1) then print(newnormal1) end 
                     if collisiontime1 < 1 then
-                        b(a.X,a.Y,a.Z)
+                        --b(a.X,a.Y,a.Z)
                        zack = Vector2.new(newpos,newsize)
                         currentmin = collisiontime1
                         normal = newnormal1
@@ -189,7 +200,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                         --   typejump,needed,maxheight =  a,b,c
                         -- end
                      end
-                    end
+                   end
                     mintime = currentmin < mintime and currentmin or mintime
                      if mintime < 1 and not looop and typejump  then
                         --local direaction = refunction.convertPositionto(refunction.GetUnit(maxheight,position),"table")
@@ -218,7 +229,7 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
 
         Entry.X = InvEntry.X/velocity.X
         Exit.X = InvExit.X/velocity.X
-        print(Entry.X)
+      --  print(Entry.X)
     elseif velocity.X <0 then
         InvEntry.X = (b2.X+s2.X) - b1.X
         InvExit.X = b2.X - (b1.X+s1.X)
@@ -279,7 +290,7 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
         a = "d"
     end
     if entrytime >= mintime then return 1.0,1 end
-    if entrytime < 0 then return 1.0,a end
+    if entrytime < 0 then return 1.0,entrytime end
 
     local exittime = math.min(math.min(Exit.X,Exit.Z),Exit.Y)
     if entrytime > exittime then return 1.0,3 end
