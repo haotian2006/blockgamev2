@@ -113,7 +113,7 @@ function Render.Move(dt)
 end
 function Render.Fall(dt)
     local entity =   data.LocalPlayer
-    if not entity or not next(entity) or not GPlayer or not next(GPlayer)  then return end 
+    if not entity or not next(entity) or not GPlayer or not next(GPlayer) or false  then return end 
     local cx,cz = qf.GetChunkfromReal(GPlayer.Position.X,GPlayer.Position.Y,GPlayer.Position.Z,true)
     if not data.GetChunk(cx,cz) then return end 
     data.GLocalPlayer.FallTicks = data.GLocalPlayer.FallTicks or 0
