@@ -117,7 +117,7 @@ function self.render(cx,cz)
 					ammountofblocks +=1
 				end
 			end	
-            local folder = Instance.new("Folder")
+            local folder = Instance.new("Model")
 			local blocks,stillneed = {},ammountofblocks--self.GetBlocks(ammountofblocks)
             local rest = stillneed > 0 and multihandler.CreatePart(stillneed,stillneed < 20 and 1 or 20) or {}
            -- print(stillneed,#blocks)

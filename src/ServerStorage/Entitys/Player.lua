@@ -5,7 +5,7 @@ local entity = {
     }, 
     components ={
         Name = "Player",
-        HitBox = Vector2.new(0.6,1.8),
+        HitBox = Vector2.new(0.1,1.8),
         CanJump = true,
     },
     component_groups = {

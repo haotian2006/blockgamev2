@@ -28,6 +28,9 @@ end
 local function round(x)
     return math.floor(x+.5)
 end
+local function round2(x)
+    return math.floor(x)
+end
 function self.RemoveEntity(uuid)
     self.AmmountOfEntities -= 1
     self.LoadedEntities[uuid] = nil
@@ -66,11 +69,18 @@ function self.DestroyChunk(cx,cz)
         self.LoadedChunks[cx..','..cz] = nil
     end
 end
+function high(x,z)
+    if workspace.Chunks:FindFirstChild(x..','..z) and not workspace.Chunks:FindFirstChild(x..','..z):FindFirstChildWhichIsA("Highlight") then
+       local a = Instance.new("Highlight",workspace.Chunks:FindFirstChild(x..','..z)) 
+       game:GetService("Debris"):AddItem(a,1)
+    end
+end
 function self.GetBlock(x,y,z)
-    local cx,cz = qf.GetChunkfromReal(x,y,z,true)
+    local cx,cz = qf.GetChunkfromReal(round2(x),round2(y),round2(z),true)
+    high(cx,cz)
     local chunk = self.GetChunk(cx,cz)
-    local localgrid = qf.cbt("grid","chgrid",(x),(y),(z) )
-    localgrid = Vector3.new(round(localgrid.X),round(localgrid.Y),round(localgrid.Z))
+    local localgrid = Vector3.new(round(x)%8,round(y),round(z)%8)--qf.cbt("grid","chgrid",(x),(y),(z) )
+    localgrid = Vector3.new((localgrid.X),(localgrid.Y),(localgrid.Z))
     if chunk then
        return unpack({chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z,true)})
     end

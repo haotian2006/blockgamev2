@@ -128,6 +128,8 @@ function  HitboxL(x,y,z)
     local a = workspace.HitboxL  a.Position = Vector3.new(x,y,z)*3 a.Anchored = true   
 end
 function b(x,y,z) local a = workspace.IDK a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true end 
+function c(x,y,z) local a = workspace.IDK:Clone() a.Parent = workspace a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true game:GetService("Debris"):AddItem(a,1) end 
+
 function collisions.shouldjump(entity,pos,p,s,pri)
     local hitbox = entity.HitBoxSize
     local feetpos = pos.Y - hitbox.y/2 
@@ -165,12 +167,12 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
     local gridsize = .5
     local bppos,bpsize = collisions.GetBroadPhase(position,vector3(hitbox.X,hitbox.Y,hitbox.X),velocity)
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
-        HitboxL(x,max.Y,max.Z)
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z)
                 if whitelist and whitelist[coords] then continue end
                 if block then
+                    --c(x,y,z)
                     whitelist[coords] = true
                     
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)

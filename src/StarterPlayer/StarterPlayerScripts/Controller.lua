@@ -65,7 +65,7 @@ local function getkeyfrominput(input)
         return input.UserInputType.Name:lower()
     end
 end
-local speed = 5.612
+local speed = .5--5.612
 function GetVelocity(self):Vector3
     local x,y,z = 0,0,0
     for i,v in self.Velocity do
