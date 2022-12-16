@@ -26,10 +26,10 @@ function self.AddEntity(uuid:string,address:table)
     end
 end
 local function round(x)
-    return math.floor(x+.5)
+    return math.floor(x)
 end
 local function round2(x)
-    return math.floor(x)
+    return math.round(x)
 end
 function self.RemoveEntity(uuid)
     self.AmmountOfEntities -= 1
@@ -76,7 +76,7 @@ function high(x,z)
     end
 end
 function self.GetBlock(x,y,z)
-    local cx,cz = qf.GetChunkfromReal(round2(x),round2(y),round2(z),true)
+    local cx,cz = qf.GetChunkfromReal((x),(y),(z),true)
     high(cx,cz)
     local chunk = self.GetChunk(cx,cz)
     local localgrid = Vector3.new(round(x)%8,round(y),round(z)%8)--qf.cbt("grid","chgrid",(x),(y),(z) )

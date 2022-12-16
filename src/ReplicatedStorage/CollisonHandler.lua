@@ -166,6 +166,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
     local zack 
     local gridsize = .5
     local bppos,bpsize = collisions.GetBroadPhase(position,vector3(hitbox.X,hitbox.Y,hitbox.X),velocity)
+    HitboxL(min.X,min.Y,min.Z)
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
