@@ -1,4 +1,4 @@
-local controls = {pc = {},mode = 'pc',func = {}}
+local controls = {pc = {},mode = 'pc',func = {},mtick = {}}
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local data = require(game.ReplicatedStorage.DataHandler)
@@ -16,6 +16,7 @@ local GPlayer = data.GLocalPlayer
 local Camera = game.Workspace.CurrentCamera
 local func = controls.func
 local Render = controls.Render
+local mtick = controls.mtick
 local runservice = game:GetService("RunService")
 local uis = game:GetService("UserInputService")
 local FD = controls.Functionsdown 
@@ -34,8 +35,8 @@ function func.HandleJump()
     if  GPlayer.Jumping == true then return end
     local e 
     local jumpedamount =0 
-    local jumpheight =  3
-    local muti = jumpheight
+    local jumpheight = data.LocalPlayer.JumpHeight or 0 --1.25
+    local muti = 4.5
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
         local jump = jumpheight*muti
         if GPlayer.Grounded  and not GPlayer.Jumping then
@@ -65,7 +66,6 @@ local function getkeyfrominput(input)
         return input.UserInputType.Name:lower()
     end
 end
-local speed = .5--5.612
 function GetVelocity(self):Vector3
     local x,y,z = 0,0,0
     for i,v in self.Velocity do
@@ -92,7 +92,7 @@ function Render.UpdateEntity(dt)
     velocity = (p2-self.Position)
     local newp = CollisionHandler.entityvsterrain(self,velocity)--self.Position + self:GetVelocity()--
     data.GLocalPlayer.Grounded = CollisionHandler.IsGrounded(self)
-    self.Entity.Position = newp*3
+    self.Entity.PrimaryPart.CFrame = CFrame.new(newp*3)
     data.GLocalPlayer.Position = newp
 end
 function Render.Move(dt)
@@ -106,19 +106,19 @@ function Render.Move(dt)
     local Left = -RightVector*(FD["Left"]and 1 or 0)
     local Right = RightVector*(FD["Right"]and 1 or 0)
     local velocity = foward + Back + Left+ Right
-    velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) *speed 
+    velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) * (data.LocalPlayer.Speed or 0 )
     data.GLocalPlayer.Velocity["Movement"] = velocity
     if FD["Jump"] then func.HandleJump() end 
    -- game.ReplicatedStorage.Events.SendEntities:FireServer(velocity)
 end
-function Render.Fall(dt)
+function mtick.Fall()
     local entity =   data.LocalPlayer
     if not entity or not next(entity) or not GPlayer or not next(GPlayer) or false  then return end 
     local cx,cz = qf.GetChunkfromReal(GPlayer.Position.X,GPlayer.Position.Y,GPlayer.Position.Z,true)
     if not data.GetChunk(cx,cz) then return end 
     data.GLocalPlayer.FallTicks = data.GLocalPlayer.FallTicks or 0
-    local max = 5
-    local fallrate = (((0.99^data.GLocalPlayer.FallTicks)-1)*max)*max
+    local max = entity.FallRate or 150
+    local fallrate =(((0.99^data.GLocalPlayer.FallTicks)-1)*max)/1.4
 
     if data.GLocalPlayer.Grounded  or data.GLocalPlayer.Jumping  then -- or not entity.CanFall
         data.GLocalPlayer.Velocity.Fall = Vector3.new(0,0,0) 
@@ -177,5 +177,13 @@ function controls.renderupdate(dt)
         task.spawn(v,dt)
     end
 end
+task.spawn(function()
+    local one = 1/60
+    while task.wait(one) do
+        for i,v in mtick do
+            task.spawn(v)
+        end
+    end
+end)
 runservice.Heartbeat:Connect(controls.renderupdate)
 return controls

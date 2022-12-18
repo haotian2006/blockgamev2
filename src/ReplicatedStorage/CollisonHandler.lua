@@ -29,7 +29,7 @@ function  collisions.IsGrounded(entity)
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
-                local block,coords = maindata.GetBlock(x,y,z)
+                local block,coords = maindata.GetBlock(x,y,z,true)
                 if whitelist and whitelist[coords] then continue end
                 if block then
                     whitelist[coords] = true
@@ -124,8 +124,9 @@ function collisions.AABBcheck(b1,b2,s1,s2,isbp)
                 b1.Z+s1.Z < b2.Z or 
                 b1.Z>b2.Z+s2.Z )                                      
 end
-function  HitboxL(x,y,z)
-    local a = workspace.HitboxL  a.Position = Vector3.new(x,y,z)*3 a.Anchored = true   
+local a = workspace.HitboxL
+function  HitboxL(x,y,z)  
+    a.Position = Vector3.new(x,y,z)*3 a.Anchored = true   
 end
 function b(x,y,z) local a = workspace.IDK a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true end 
 function c(x,y,z) local a = workspace.IDK:Clone() a.Parent = workspace a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true game:GetService("Debris"):AddItem(a,1) end 
@@ -166,7 +167,8 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
     local zack 
     local gridsize = .5
     local bppos,bpsize = collisions.GetBroadPhase(position,vector3(hitbox.X,hitbox.Y,hitbox.X),velocity)
-    HitboxL(min.X,min.Y,min.Z)
+ --   HitboxL(getincreased(min.X,max.X,gridsize),max.Y,max.Z)
+   -- print(min)
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
         for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
@@ -181,7 +183,6 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                     local bx,by,bz = unpack(coords:split(","))
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
                     bx,by,bz = a.X,a.Y,a.Z
-                    b(a.X,a.Y,a.Z)
                     --print(cx,cz,'|',a,"|",min.X,x,max.X)
                     --print(position,'|',x,y,z,'|',qf.cbt("chgrid",'grid',-1,1,bx,by,bz))
                    local typejump 
@@ -194,10 +195,11 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                     local collisiontime1,newnormal1 = collisions.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize,velocity,mintime)
                   --  if not (collisiontime1 <1) then print(newnormal1) end 
                     if collisiontime1 < 1 then
-                        --b(a.X,a.Y,a.Z)
+                        b(a.X,a.Y,a.Z)
                        zack = Vector2.new(newpos,newsize)
                         currentmin = collisiontime1
                         normal = newnormal1
+                       -- print(normal)
                         -- local a,b,c = collisions.shouldjump(entity,position,newpos,newsize)
                         -- if not needed or c.Y >=maxheight.Y  then
                         --   typejump,needed,maxheight =  a,b,c

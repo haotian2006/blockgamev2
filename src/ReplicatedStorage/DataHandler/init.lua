@@ -26,7 +26,7 @@ function self.AddEntity(uuid:string,address:table)
     end
 end
 local function round(x)
-    return math.floor(x)
+    return math.floor(x+.5)
 end
 local function round2(x)
     return math.round(x)
@@ -69,15 +69,29 @@ function self.DestroyChunk(cx,cz)
         self.LoadedChunks[cx..','..cz] = nil
     end
 end
+self.HitBox = self.Hitbox or workspace.HitboxL:Clone()
+
+local a = self.HitBox
+a.Parent = workspace
+a.BrickColor = BrickColor.new("Curry")
+function  HitboxL(x,y,z)
+  a.Position = Vector3.new(x,y,z)*3 a.Anchored = true   
+end
 function high(x,z)
     if workspace.Chunks:FindFirstChild(x..','..z) and not workspace.Chunks:FindFirstChild(x..','..z):FindFirstChildWhichIsA("Highlight") then
        local a = Instance.new("Highlight",workspace.Chunks:FindFirstChild(x..','..z)) 
        game:GetService("Debris"):AddItem(a,1)
     end
 end
-function self.GetBlock(x,y,z)
+function c(x,y,z) local a = workspace.IDK:Clone() a.Parent = workspace a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true game:GetService("Debris"):AddItem(a,1) end 
+function self.GetBlock(x,y,z,a)
     local cx,cz = qf.GetChunkfromReal((x),(y),(z),true)
-    high(cx,cz)
+  --  print(type(cz), cz ==1 , cz)
+--  if Vector3.new(round(x),round(y),round(z)) == Vector3.new(-6, 58, 10) and not a then c(x,y,z) end 
+    -- if cx == -1 and cz == 1 and not a then
+    --     HitboxL(x,y,z)
+    -- end
+   -- high(cx,cz)
     local chunk = self.GetChunk(cx,cz)
     local localgrid = Vector3.new(round(x)%8,round(y),round(z)%8)--qf.cbt("grid","chgrid",(x),(y),(z) )
     localgrid = Vector3.new((localgrid.X),(localgrid.Y),(localgrid.Z))

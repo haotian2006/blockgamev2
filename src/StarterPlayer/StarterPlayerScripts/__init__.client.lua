@@ -12,6 +12,18 @@ local control = require(script.Parent.Controller)
 local tweenservice = game:GetService("TweenService")
 resource:Init()
 local runservicer = game:GetService("RunService")
+local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent)  sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
+local function createEye(offset,hitbox)
+    local eye = Instance.new("Part",hitbox.Parent)
+    eye.Size = Vector3.new(hitbox.Size.X,0,hitbox.Size.Z)
+    eye.Name = "Eye"
+    eye.Transparency = 1
+    local weld = Instance.new("Motor6D",eye)
+    weld.Part0 = hitbox
+    weld.Part1 = eye
+    weld.C0 = offset and CFrame.new(hitbox.Position + Vector3.new(0,offset/2,0)*settings.GridSize) or CFrame.new(hitbox.Position)
+    return eye
+end
 game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entitys)
     for i,v in game.Workspace.Entities:GetChildren() do
         if not entitys[v.Name] then
@@ -22,20 +34,27 @@ game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entity
         local e = game.Workspace.Entities:FindFirstChild(i)
 
         if e then
-           -- tweenservice:Create(e,TweenInfo.new(0.1),{Position = v.Position*3}):Play()
+           -- tweenservice:Create(e,TweenInfo.new(0.1),{CFrame = CFrame(v.Position*3)}):Play()
         else
             --datahandler.LoadedEntities[i] = v
-            local hitbox = Instance.new("Part",workspace.Entities)
-            hitbox.Size = Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X)*settings.GridSize
+            local model = Instance.new("Model",workspace.Entities)
+            local hitbox = Instance.new("Part",model)
+            model.PrimaryPart = hitbox
+            hitbox.Size = (Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X) or Vector3.new(1,1,1))*settings.GridSize 
+            local eye = createEye(v.EyeLevel,hitbox)
+            local eyebox = createAselectionBox(eye,Color3.new(1, 0, 0))
+            eyebox.Parent = hitbox
+            createAselectionBox(hitbox)
             hitbox.CanCollide = false
             hitbox.Anchored = true
-            hitbox.Transparency = 0.5
-            hitbox.Position = v.Position*3
-            hitbox.Name = i
+            hitbox.Transparency = 1
+            hitbox.Name = "HitBox"
+            hitbox.CFrame = CFrame.new(v.Position*3)
+            model.Name = i
             datahandler.GLocalPlayer.Position = v.Position
             datahandler.GLocalPlayer.Velocity = v.Velocity
             datahandler.GLocalPlayer.Grounded = v.Grounded
-            workspace.CurrentCamera.CameraSubject = hitbox
+            workspace.CurrentCamera.CameraSubject = eye
             task.spawn(function()
                 while task.wait(.5) do
                     game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
