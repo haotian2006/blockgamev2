@@ -85,7 +85,7 @@ function generation.CreateWorms(cx,cz) -- cx and cy is the chunk it is being gen
 	--for caves = 2,ammountofcaves+1 do
 		local sx,sy,sz = generation.proceduralNum(cx*1.3,cz*caves,seed+caves,7),generation.proceduralNum(cx*caves,cz*caves,seed+caves,50),generation.proceduralNum(cx*.12*caves,cz*1.6,seed+caves,7)-- generate a random startposition
 		local ammount =  generation.proceduralNum(sz,sx/caves,seed,2) -- how much branches from the startpos 
-		local Resolution = generation.proceduralNum(sz,sx/caves,seed,maxres,4)
+		local Resolution = generation.proceduralNum(sz,sx/caves,seed,maxres,3)
 		for ci = 1,ammount do
 			--local c = BrickColor.random()-- doing this so each branch will be a diffrent color
 			local wormdata = {}

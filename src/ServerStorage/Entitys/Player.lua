@@ -5,7 +5,7 @@ local entity = {
     }, 
     components ={
         Name = "Player",
-        EyeLevel = 1.45,
+        EyeLevel = 1.5,
         HitBox = Vector2.new(0.6,1.8),
         CanJump = true,
         JumpHeight = 1.25,

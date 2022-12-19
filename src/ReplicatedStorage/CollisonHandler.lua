@@ -195,7 +195,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                     local collisiontime1,newnormal1 = collisions.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize,velocity,mintime)
                   --  if not (collisiontime1 <1) then print(newnormal1) end 
                     if collisiontime1 < 1 then
-                        b(a.X,a.Y,a.Z)
+                      --  b(a.X,a.Y,a.Z)
                        zack = Vector2.new(newpos,newsize)
                         currentmin = collisiontime1
                         normal = newnormal1

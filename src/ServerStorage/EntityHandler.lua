@@ -27,7 +27,7 @@ end
 function entity.Create(type,data)
     local ehand = entitydata:FindFirstChild(type)
     if not ehand then return nil end 
-    local self = entity.new({Type = type})
+    local self = entity.new({Type = type,Model = type})
     ehand = require(ehand)
     for cname,cdata in ehand.components do
         self:AddComponent(cname,cdata)

@@ -21,9 +21,9 @@ function self.LoadPack(PackName:string)
     if pack then
         for i,v in pack:GetChildren() do
             if v:IsA("Folder") then
-                -- local Folder = Assets:FindFirstChild(v.Name) or Instance.new("Folder",Assets)
-                -- Folder.Name = v.Name
-                -- self.AddInstanceChildren(v,Folder)
+                local Folder = Assets:FindFirstChild(v.Name) or Instance.new("Folder",Assets)
+                Folder.Name = v.Name
+                self.AddInstanceChildren(v,Folder)
             elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
                 self[v.Name] = self[v.Name] or {}
                 for i,data in require(v)do
@@ -36,11 +36,11 @@ end
 function self:Init()
     for i,v in ResourcePacks:GetChildren()do
         self.LoadPack(v.Name)
-        -- local Info
-        -- if v:FindFirstChild("Info") then Info = v:FindFirstChild("Info") end
-        -- if Info then Info.Parent = nil end
-        -- v:ClearAllChildren()
-        -- if Info then Info.Parent = v end
+        local Info
+        if v:FindFirstChild("Info") then Info = v:FindFirstChild("Info") end
+        if Info then Info.Parent = nil end
+        v:ClearAllChildren()
+        if Info then Info.Parent = v end
     end
 end
 function self.GetBlock(Name)
