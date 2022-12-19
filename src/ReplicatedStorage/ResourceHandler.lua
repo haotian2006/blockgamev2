@@ -46,4 +46,7 @@ end
 function self.GetBlock(Name)
     return self["Blocks"] and self["Blocks"][Name] or nil
 end
+function self.GetEntity(Name)
+    return self["Entities"] and self["Entities"][Name] or nil 
+end
 return self

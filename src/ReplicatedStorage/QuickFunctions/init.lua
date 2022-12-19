@@ -74,7 +74,7 @@ end
 --block/chunk
 function qf.GetChunkfromReal(x,y,z,blockinstead)
     if not blockinstead then
-        x,y,z = x/3,y/3,z/3
+        x,y,z = x/gridS,y/gridS,z/gridS
     end
 	local cx =	tonumber(math.floor((x+.5)/chunkd))
 	local cz= 	tonumber(math.floor((z+.5)/chunkd))
