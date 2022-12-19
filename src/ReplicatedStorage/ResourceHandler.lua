@@ -31,16 +31,16 @@ function self.LoadPack(PackName:string)
                 end
             end
         end
+        local Info
+        if pack:FindFirstChild("Info") then Info = pack:FindFirstChild("Info") end
+        if Info then Info.Parent = nil end
+        pack:ClearAllChildren()
+        if Info then Info.Parent = pack end
     end
 end
 function self:Init()
     for i,v in ResourcePacks:GetChildren()do
         self.LoadPack(v.Name)
-        local Info
-        if v:FindFirstChild("Info") then Info = v:FindFirstChild("Info") end
-        if Info then Info.Parent = nil end
-        v:ClearAllChildren()
-        if Info then Info.Parent = v end
     end
 end
 function self.GetBlock(Name)
