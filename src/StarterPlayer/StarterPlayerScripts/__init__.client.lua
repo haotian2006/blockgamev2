@@ -29,6 +29,21 @@ local function createEye(offset,hitbox)
     weld.C0 = offset and CFrame.new(hitbox.Position + Vector3.new(0,offset/2,0)*settings.GridSize) or CFrame.new(hitbox.Position)
     return eye
 end
+local function CreateModel(Data,ParentModel)
+    local model = resource.GetEntityModelFromData(Data)
+    if model then
+        model = model:Clone()
+        model.Parent = ParentModel
+        model.Name = "EntityModel"
+        local weld = Instance.new("Motor6D",ParentModel.PrimaryPart)
+        weld.Name = "EntityModelWeld"
+        weld.Part0 = ParentModel.PrimaryPart
+        weld.Part1 = model.PrimaryPart
+        model.PrimaryPart.CFrame = ParentModel.PrimaryPart.CFrame
+        --weld.C0 = CFrame.new(ParentModel.PrimaryPart.Position)
+        return model
+    end
+end
 EntityBridge:Connect(function(entitys)
     for i,v in game.Workspace.Entities:GetChildren() do
         if not entitys[v.Name] then
@@ -49,6 +64,7 @@ EntityBridge:Connect(function(entitys)
             local eye = createEye(v.EyeLevel,hitbox)
             local eyebox = createAselectionBox(eye,Color3.new(1, 0, 0))
             eyebox.Parent = hitbox
+            CreateModel(v,model)
             createAselectionBox(hitbox)
             hitbox.CanCollide = false
             hitbox.Anchored = true

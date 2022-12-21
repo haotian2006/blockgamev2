@@ -36,6 +36,7 @@ end
 local function checkempty(tab)
     return not (tab and next(tab))
 end
+local ExtraJump = 0
 function func.HandleJump()
     if  GPlayer.Jumping == true then return end
     local e 
@@ -44,7 +45,9 @@ function func.HandleJump()
     local muti = 4.5
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
         local jump = jumpheight*muti
-        if GPlayer.Grounded  and not GPlayer.Jumping then
+        local datacondition = DateTime.now().UnixTimestampMillis/1000-ExtraJump <=0.05
+        if (GPlayer.Grounded or datacondition)  and not GPlayer.Jumping then
+            if datacondition then  ExtraJump = 0  end
             if jumpedamount == 0 then
                 jumpedamount += jumpheight*(deltaTime)*muti
             end 
@@ -88,6 +91,7 @@ function GetVelocity(self):Vector3
     end
     return Vector3.new(x,y,z)
 end
+local last 
 function Render.UpdateEntity(dt)
     if checkempty(data.LocalPlayer) then return end 
     local self = data.LocalPlayer
@@ -96,7 +100,12 @@ function Render.UpdateEntity(dt)
     local p2 = interpolate(self.Position,self.Position+velocity,dt) 
     velocity = (p2-self.Position)
     local newp = CollisionHandler.entityvsterrain(self,velocity)--self.Position + self:GetVelocity()--
-    data.GLocalPlayer.Grounded = CollisionHandler.IsGrounded(self)
+    local g = CollisionHandler.IsGrounded(self)
+    if last and not g and not GPlayer.Jumping then
+        ExtraJump = DateTime.now().UnixTimestampMillis/1000
+    end
+    data.GLocalPlayer.Grounded = g
+    last = g
     self.Entity.PrimaryPart.CFrame = CFrame.new(newp*3)
     data.GLocalPlayer.Position = newp
     EntityBridge:Fire(newp)

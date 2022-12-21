@@ -11,7 +11,6 @@ self.GLocalPlayer = {}
 self.CompressedChunks = {}
 self.Players = {} 
 local multihandeler = require(game.ReplicatedStorage.MultiHandler)
-local LocalizationService = game:GetService("LocalizationService")
 local runservice = game:GetService("RunService")
 local ChunkObj = require(game.ReplicatedStorage.Chunk)
 local compresser = require(game.ReplicatedStorage.compressor) 
@@ -103,7 +102,7 @@ function self.GetBlock(x,y,z,a)
 end
 if runservice:IsClient() then return self end
 --<server functions
-local WorldDataStore = game:GetService("DataStoreService"):GetDataStore("World-1")
+--local WorldDataStore = game:GetService("DataStoreService"):GetDataStore("World-1")
 function self.AddToLoad(cx,cz,stuff)
     local c = self.GetChunk(cx,cz,true)
     c:AddToLoad(stuff)
