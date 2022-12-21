@@ -1,8 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local self = {Assets = {}}
+local self = {}
 local ResourcePacks = game.ReplicatedStorage.ResourcePacks or Instance.new("Folder",game.ReplicatedStorage)
 ResourcePacks.Name = "ResourcePacks"
-local Assets = self.Assets
 function self.AddInstanceChildren(Object,AssetObj)
     local Folder = AssetObj
     for i,stuff in Object:GetChildren() do
@@ -19,8 +18,8 @@ function self.LoadPack(PackName:string)
     if pack then
         for i,v in pack:GetChildren() do
             if v:IsA("Folder") then
-                 Assets[v.Name] = Assets[v.Name] or {}
-                 self.AddInstanceChildren(v, Assets[v.Name])
+                 self[v.Name] = self[v.Name] or {}
+                 self.AddInstanceChildren(v, self[v.Name])
             elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
                 self[v.Name] = self[v.Name] or {}
                 for i,data in require(v)do
@@ -49,8 +48,8 @@ function self.GetEntity(Name)
 end
 function self.GetEntityModelFromData(Data)
     local Type,model,ModelId,TextureId = Data.Type,Data.Model,Data.ModelId or 0,Data.TextureId or 0
-    if model and self.Assets.Models.Entities[model] then
-        return self.Assets.Models.Entities[model]
+    if model and self.Models.Entities[model] then
+        return self.Models.Entities[model]
     else
         local entity = self.GetBlock(Type)
         return entity.Model
