@@ -1,5 +1,7 @@
 local controls = {pc = {},mode = 'pc',func = {},mtick = {}}
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
+local bridge = require(game.ReplicatedStorage.BridgeNet)
+local EntityBridge = bridge.CreateBridge("EntityBridge")
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local data = require(game.ReplicatedStorage.DataHandler)
 controls.pc = {
@@ -30,6 +32,9 @@ local function interpolate(startVector3, finishVector3, alpha)
         currentState(startVector3.Y, finishVector3.Y, alpha),
         currentState(startVector3.Z, finishVector3.Z, alpha)
     )
+end
+local function checkempty(tab)
+    return not (tab and next(tab))
 end
 function func.HandleJump()
     if  GPlayer.Jumping == true then return end
@@ -84,7 +89,7 @@ function GetVelocity(self):Vector3
     return Vector3.new(x,y,z)
 end
 function Render.UpdateEntity(dt)
-    if not data.LocalPlayer or not next(data.LocalPlayer) then return end 
+    if checkempty(data.LocalPlayer) then return end 
     local self = data.LocalPlayer
     self.Position = data.GLocalPlayer.Position
     local velocity = GetVelocity(self)
@@ -94,9 +99,10 @@ function Render.UpdateEntity(dt)
     data.GLocalPlayer.Grounded = CollisionHandler.IsGrounded(self)
     self.Entity.PrimaryPart.CFrame = CFrame.new(newp*3)
     data.GLocalPlayer.Position = newp
+    EntityBridge:Fire(newp)
 end
 function Render.Move(dt)
-    if not data.LocalPlayer or not next(data.LocalPlayer) then return end 
+    if checkempty(data.LocalPlayer) then return end 
     local LookVector = Camera.CFrame.LookVector
     local RightVector = Camera.CFrame.RightVector
     LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit -- Vector3.new(1,0,0)--
@@ -113,7 +119,7 @@ function Render.Move(dt)
 end
 function mtick.Fall()
     local entity =   data.LocalPlayer
-    if not entity or not next(entity) or not GPlayer or not next(GPlayer) or false  then return end 
+    if  checkempty(entity) or  checkempty(entity) or false  then return end 
     local cx,cz = qf.GetChunkfromReal(GPlayer.Position.X,GPlayer.Position.Y,GPlayer.Position.Z,true)
     if not data.GetChunk(cx,cz) then return end 
     data.GLocalPlayer.FallTicks = data.GLocalPlayer.FallTicks or 0

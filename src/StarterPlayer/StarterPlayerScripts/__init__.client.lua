@@ -1,5 +1,9 @@
 
 local qf = require(game.ReplicatedStorage.QuickFunctions)
+local bridge = require(game.ReplicatedStorage.BridgeNet)
+local EntityBridge = bridge.CreateBridge("EntityBridge")
+--bridge.Start({})
+local GetChunk = bridge.CreateBridge("GetChunk")
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local mulithandler = require(game.ReplicatedStorage.MultiHandler)
 local toload = {}
@@ -9,6 +13,7 @@ local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
 local control = require(script.Parent.Controller)
+local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 resource:Init()
 local runservicer = game:GetService("RunService")
@@ -24,7 +29,7 @@ local function createEye(offset,hitbox)
     weld.C0 = offset and CFrame.new(hitbox.Position + Vector3.new(0,offset/2,0)*settings.GridSize) or CFrame.new(hitbox.Position)
     return eye
 end
-game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entitys)
+EntityBridge:Connect(function(entitys)
     for i,v in game.Workspace.Entities:GetChildren() do
         if not entitys[v.Name] then
             v:Destroy()
@@ -33,9 +38,9 @@ game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entity
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i)
 
-        if e then
-           -- tweenservice:Create(e,TweenInfo.new(0.1),{CFrame = CFrame(v.Position*3)}):Play()
-        else
+        if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
+            tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.01),{CFrame = CFrame.new(v.Position*3)}):Play()
+        elseif not e then
             --datahandler.LoadedEntities[i] = v
             local model = Instance.new("Model",workspace.Entities)
             local hitbox = Instance.new("Part",model)
@@ -51,16 +56,18 @@ game.ReplicatedStorage.Events.SendEntities.OnClientEvent:Connect(function(entity
             hitbox.Name = "HitBox"
             hitbox.CFrame = CFrame.new(v.Position*3)
             model.Name = i
-            datahandler.GLocalPlayer.Position = v.Position
-            datahandler.GLocalPlayer.Velocity = v.Velocity
-            datahandler.GLocalPlayer.Grounded = v.Grounded
-            workspace.CurrentCamera.CameraSubject = eye
-            task.spawn(function()
-                while task.wait(.5) do
-                    game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
-                    game.Players.LocalPlayer.Character:PivotTo(CFrame.new(datahandler.GLocalPlayer.Position*3-Vector3.new(0,30,0)))
-                end
-            end)
+            if i == tostring(game.Players.LocalPlayer.UserId) then
+                datahandler.GLocalPlayer.Position = v.Position
+                datahandler.GLocalPlayer.Velocity = v.Velocity
+                datahandler.GLocalPlayer.Grounded = v.Grounded
+                workspace.CurrentCamera.CameraSubject = eye
+                task.spawn(function()
+                    while task.wait(.5) do
+                        game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
+                        game.Players.LocalPlayer.Character:PivotTo(CFrame.new(datahandler.GLocalPlayer.Position*3-Vector3.new(0,30,0)))
+                    end
+                end)
+            end
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
             v.Jumping = datahandler.GLocalPlayer.Jumping

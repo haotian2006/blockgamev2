@@ -17,6 +17,9 @@ local runservice = game:GetService("RunService")
 local ChunkObj = require(game.ReplicatedStorage.Chunk)
 local compresser = require(game.ReplicatedStorage.compressor) 
 local settings = require(game.ReplicatedStorage.GameSettings)
+local bridge = require(game.ReplicatedStorage.BridgeNet)
+local EntityBridge = bridge.CreateBridge("EntityBridge")
+local GetChunk = bridge.CreateBridge("GetChunk")
 function self.AddEntity(uuid:string,address:table)
     self.AmmountOfEntities += 1
     if type(uuid) == "table" then
