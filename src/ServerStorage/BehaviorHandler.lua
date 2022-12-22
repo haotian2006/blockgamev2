@@ -1,15 +1,16 @@
-local self = {Assets = {}}
+local self = {}
 local BehaviorPacks = game.ServerStorage.BehaviorPacks or Instance.new("Folder",game.ServerStorage)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ResourcePacks = require(ReplicatedStorage.ResourceHandler)
+local ResourcePacks = require(ReplicatedStorage.ResourceHandler) 
 BehaviorPacks.Name = "BehaviorPacks"
-local Assets = self.Assets
 function self.AddInstanceChildren(Object,AssetObj)
     local Folder = AssetObj
     for i,stuff in Object:GetChildren() do
         if stuff:IsA("Folder") then
             Folder[stuff.Name] = Folder[stuff.Name] or {}
             self.AddInstanceChildren(stuff,Folder[stuff.Name])
+        elseif stuff:IsA("ModuleScript") then
+            Folder[stuff.Name] = require(stuff)
         else
             Folder[stuff.Name] = stuff
         end
@@ -20,8 +21,8 @@ function self.LoadPack(PackName:string)
     if pack then
         for i,v in pack:GetChildren() do
             if v:IsA("Folder") then
-                 Assets[v.Name] = Assets[v.Name] or {}
-                 self.AddInstanceChildren(v, Assets[v.Name])
+                self[v.Name] = self[v.Name] or {}
+                 self.AddInstanceChildren(v, self[v.Name])
             elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
                 self[v.Name] = self[v.Name] or {}
                 for i,data in require(v)do
@@ -36,5 +37,8 @@ function self:Init()
         self.LoadPack(v.Name)
     end
     print(self)
+end
+function self.GetEntity(Name)
+    return self.Entities[Name]
 end
 return self

@@ -4,6 +4,7 @@ local https = game:GetService("HttpService")
 local genuuid = function()  return https:GenerateGUID(false) end 
 local entitydata = game.ServerStorage.Entitys
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
+local behhandler = require(game.ServerStorage.BehaviorHandler)
 local function interpolate(startVector3, finishVector3, alpha)
     local function currentState(start, finish, alpha)
         return start + (finish - start)*alpha
@@ -25,11 +26,10 @@ function entity.new(data)
     return self
 end
 function entity.Create(type,data)
-    local ehand = entitydata:FindFirstChild(type)
+    local ehand = behhandler.GetEntity(type)
     if not ehand then return nil end 
     local self = entity.new({Type = type,Model = type})
-    ehand = require(ehand)
-    for cname,cdata in ehand.components do
+    for cname,cdata in ehand.components or {} do
         self:AddComponent(cname,cdata)
     end
     for cname,cdata in data or {} do

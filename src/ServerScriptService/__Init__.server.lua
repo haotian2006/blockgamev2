@@ -1,6 +1,7 @@
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 --bridge.Start({})
 local EntityBridge = bridge.CreateBridge("EntityBridge")
+require(game.ServerStorage.BehaviorHandler):Init()
 local data = require(game.ReplicatedStorage.DataHandler)
 local entityahndler = require(game.ServerStorage.EntityHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
@@ -9,8 +10,9 @@ game.Players.PlayerAdded:Connect(function(player)
     data.AddEntity(entity)
     game:GetService("RunService").Heartbeat:Connect(function()
         if player.Character and player.Character.PrimaryPart then
-            local Pb = player.Character.PrimaryPart.Position
-            EntityBridge:FireTo(player,data.EntitiesinR(Pb.X/Cfig.GridSize,Pb.Y/Cfig.GridSize,Pb.Z/Cfig.GridSize,100,true))
+            local Pb = entity.Position
+            local a = data.EntitiesinR(Pb.X,Pb.Y,Pb.Z,100,true)
+            EntityBridge:FireTo(player,a)
         end
     end)
 end)

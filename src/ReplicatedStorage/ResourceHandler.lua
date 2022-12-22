@@ -8,6 +8,8 @@ function self.AddInstanceChildren(Object,AssetObj)
         if stuff:IsA("Folder") then
             Folder[stuff.Name] = Folder[stuff.Name] or {}
             self.AddInstanceChildren(stuff,Folder[stuff.Name])
+        elseif stuff:IsA("ModuleScript") then
+            Folder[stuff.Name] = require(stuff)
         else
             Folder[stuff.Name] = stuff
         end
