@@ -38,7 +38,12 @@ function self:Init()
     end
     print(self)
 end
+function self.GetBehavior(name)
+    if not self.Behaviors then return end
+    return self.Behaviors[name]
+end
 function self.GetEntity(Name)
+    if not self.Entities then return end 
     return self.Entities[Name]
 end
 return self

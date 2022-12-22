@@ -1,2 +1,9 @@
-local bh = {}
-return bh
+return {
+    ['behavior.Random_Stroll'] = {
+        func = function(entity,data)
+        
+        end,
+        bhtype = "Movement",
+
+    }
+}
