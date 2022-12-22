@@ -59,7 +59,9 @@ end
 function entity:BehaviorCanRun(behavior,bhdata)
     local bh = behhandler.GetBehavior(behavior)
     local type,piority = bhdata.bhtype or bh.bhtype or "deafult", bhdata.piority or behavior.piority or 10
-
+    for bh1,bhdata1 in self.NotSaved.behaviors or {} do
+        
+    end
 end
 function entity:AddComponent(cpname,cpdata)
     if SpecialNames[cpname]  then warn("The Name: '"..cpname.."' cannot be used as a component name",self) return self end 
