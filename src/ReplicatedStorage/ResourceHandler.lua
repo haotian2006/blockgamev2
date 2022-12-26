@@ -40,7 +40,7 @@ function self:Init()
     for i,v in ResourcePacks:GetChildren()do
         self.LoadPack(v.Name)
     end
-    print(self)
+   -- print(self)
 end
 function self.GetBlock(Name)
     return self["Blocks"] and self["Blocks"][Name] or nil
@@ -53,7 +53,7 @@ function self.GetEntityModelFromData(Data)
     if model and self.Models.Entities[model] then
         return self.Models.Entities[model]
     else
-        local entity = self.GetBlock(Type)
+        local entity = self.GetEntity(Type)
         return entity.Model
     end
 end

@@ -36,7 +36,7 @@ function self:Init()
     for i,v in BehaviorPacks:GetChildren()do
         self.LoadPack(v.Name)
     end
-    print(self)
+    --print(self)
 end
 function self.GetBehavior(name)
     if not self.Behaviors then return end

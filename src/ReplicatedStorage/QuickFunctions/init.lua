@@ -71,6 +71,16 @@ function qf.EditVector3(vector3:Vector3,position:number,Changeto:number):Vector3
     end
     return vector3
 end
+function qf.worldCFrameToC0ObjectSpace(motor6DJoint:Motor6D,worldCFrame:CFrame):CFrame
+	local part1CF = motor6DJoint.Part1.CFrame
+	local c1Store = motor6DJoint.C1
+	local c0Store = motor6DJoint.C0
+	local relativeToPart1 =c0Store*c1Store:Inverse()*part1CF:Inverse()*worldCFrame*c1Store
+	relativeToPart1 -= relativeToPart1.Position
+	
+	local goalC0CFrame = relativeToPart1+c0Store.Position--New orientation but keep old C0 joint position
+	return goalC0CFrame
+end
 --block/chunk
 function qf.GetChunkfromReal(x,y,z,blockinstead)
     if not blockinstead then

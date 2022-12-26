@@ -44,6 +44,24 @@ local function CreateModel(Data,ParentModel)
         return model
     end
 end
+local function updateorientation(entity,entitydata,tween)
+    for i,v in entitydata["OrientationData"] or {} do
+        local c = entity:FindFirstChild(i,true)
+        if c then
+            local cfram =CFrame.new(c.C0.Position)*v*resource.GetEntityModelFromData(entitydata):FindFirstChild(i,true).C0.Rotation
+            if not tween then
+                c.C0 = cfram
+            else
+                tweenservice:Create(c,TweenInfo.new(0.1),{C0 = cfram}):Play()
+            end
+        end
+    end
+end
+local function combinevelocity(v1,v2)
+    for i,v in v2 do
+        v1[i] = v
+    end
+end
 EntityBridge:Connect(function(entitys)
     for i,v in game.Workspace.Entities:GetChildren() do
         if not entitys[v.Name] then
@@ -54,7 +72,8 @@ EntityBridge:Connect(function(entitys)
         local e = game.Workspace.Entities:FindFirstChild(i)
 
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
-            tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.01),{CFrame = CFrame.new(v.Position*3)}):Play()
+            tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.1),{CFrame = CFrame.new(v.Position*3)}):Play()
+            updateorientation(e,v or {},true)
         elseif not e then
             --datahandler.LoadedEntities[i] = v
             local model = Instance.new("Model",workspace.Entities)
@@ -72,9 +91,10 @@ EntityBridge:Connect(function(entitys)
             hitbox.Name = "HitBox"
             hitbox.CFrame = CFrame.new(v.Position*3)
             model.Name = i
+            updateorientation(model,v["OrientationData"] or {})
             if i == tostring(game.Players.LocalPlayer.UserId) then
                 datahandler.GLocalPlayer.Position = v.Position
-                datahandler.GLocalPlayer.Velocity = v.Velocity
+                datahandler.GLocalPlayer.Velocity = {}
                 datahandler.GLocalPlayer.Grounded = v.Grounded
                 workspace.CurrentCamera.CameraSubject = eye
                 task.spawn(function()
@@ -88,7 +108,8 @@ EntityBridge:Connect(function(entitys)
         if i == tostring(game.Players.LocalPlayer.UserId) then
             v.Jumping = datahandler.GLocalPlayer.Jumping
             v.Entity =  game.Workspace.Entities:FindFirstChild(i)
-            v.Velocity = datahandler.GLocalPlayer.Velocity
+            combinevelocity(v.Velocity,datahandler.GLocalPlayer.Velocity)
+            --v.Velocity = datahandler.GLocalPlayer.Velocity
             v.Position = datahandler.GLocalPlayer.Position 
             v.Grounded = datahandler.GLocalPlayer.Grounded 
             datahandler.LocalPlayer = v
@@ -193,7 +214,7 @@ task.wait(1)
 local oldchunk =""
     srender(char.PrimaryPart)
 	print("done")
-	while char do
+	while char and true do
 		local currentChunk,c = qf.GetChunkfromReal(qf.cv3type("tuple",char.PrimaryPart.Position)) 
 		currentChunk = currentChunk.."x"..c
 		--shouldprint(currentChunk ~= oldchunk)

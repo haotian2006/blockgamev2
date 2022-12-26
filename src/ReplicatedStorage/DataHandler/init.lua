@@ -18,6 +18,7 @@ local settings = require(game.ReplicatedStorage.GameSettings)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local GetChunk = bridge.CreateBridge("GetChunk")
+local isserver = runservice:IsServer()
 function self.AddEntity(uuid:string,address:table)
     self.AmmountOfEntities += 1
     if type(uuid) == "table" then
@@ -87,17 +88,13 @@ end
 function c(x,y,z) local a = workspace.IDK:Clone() a.Parent = workspace a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true game:GetService("Debris"):AddItem(a,1) end 
 function self.GetBlock(x,y,z,a)
     local cx,cz = qf.GetChunkfromReal((x),(y),(z),true)
-  --  print(type(cz), cz ==1 , cz)
---  if Vector3.new(round(x),round(y),round(z)) == Vector3.new(-6, 58, 10) and not a then c(x,y,z) end 
-    -- if cx == -1 and cz == 1 and not a then
-    --     HitboxL(x,y,z)
-    -- end
-   -- high(cx,cz)
     local chunk = self.GetChunk(cx,cz)
     local localgrid = Vector3.new(round(x)%8,round(y),round(z)%8)--qf.cbt("grid","chgrid",(x),(y),(z) )
     localgrid = Vector3.new((localgrid.X),(localgrid.Y),(localgrid.Z))
-    if chunk then
+    if chunk and (not isserver or chunk.Setttings["Generated"]) then
        return unpack({chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z,true)})
+    else
+       return "Null",localgrid.X..','..localgrid.Y..','..localgrid.Z
     end
 end
 if runservice:IsClient() then return self end
@@ -165,15 +162,15 @@ task.spawn(function()
         end
     end
 end)
-self.EntityLoop = false
-if not self.EntityLoop then
-    self.EntityLoop = true
-    game:GetService("RunService").Heartbeat:Connect(function( deltaTime)
-        for id,entity in self.LoadedEntities do
-            task.spawn(entity.Update,entity,deltaTime)
-        end
-    end)
-end
+-- self.EntityLoop = false
+-- if not self.EntityLoop then
+--     self.EntityLoop = true
+--     game:GetService("RunService").Heartbeat:Connect(function( deltaTime)
+--         for id,entity in self.LoadedEntities do
+--             task.spawn(entity.Update,entity,deltaTime)
+--         end
+--     end)
+-- end
 game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)
     -- local position = player.Character.PrimaryPart.Position
     local new = self.GetChunk(cx,cz)

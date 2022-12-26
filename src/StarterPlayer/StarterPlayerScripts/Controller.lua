@@ -1,9 +1,10 @@
-local controls = {pc = {},mode = 'pc',func = {},mtick = {}}
+local controls = {pc = {},mode = 'pc',func = {},mtick = {},RenderStepped = {}}
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local data = require(game.ReplicatedStorage.DataHandler)
+local camera = game.Workspace.CurrentCamera
 controls.pc = {
     Foward = {'w',"Foward"},-- Name = {key,function}
     Left = {{'a',"c"},"Left"},
@@ -38,7 +39,7 @@ local function checkempty(tab)
 end
 local ExtraJump = 0
 function func.HandleJump()
-    if  GPlayer.Jumping == true then return end
+    if  GPlayer.Jumping or data.LocalPlayer["CanNotJump"] then return end
     local e 
     local jumpedamount =0 
     local jumpheight = data.LocalPlayer.JumpHeight or 0 --1.25
@@ -77,7 +78,7 @@ end
 function GetVelocity(self):Vector3
     local x,y,z = 0,0,0
     for i,v in self.Velocity do
-        if typeof(v) == "Vector3" then
+        if typeof(v) == "Vector3" and v == v then
             x+= v.X 
             y+= v.Y
             z+= v.Z
@@ -108,7 +109,9 @@ function Render.UpdateEntity(dt)
     last = g
     self.Entity.PrimaryPart.CFrame = CFrame.new(newp*3)
     data.GLocalPlayer.Position = newp
-    EntityBridge:Fire(newp)
+    local neck =  self.Entity:FindFirstChild("Neck",true)
+    local MainWeld = self.Entity:FindFirstChild("MainWeld",true)
+    EntityBridge:Fire(newp,{Neck = neck.C0.Rotation,MainWeld = MainWeld.C0.Rotation})
 end
 function Render.Move(dt)
     if checkempty(data.LocalPlayer) then return end 
@@ -142,6 +145,64 @@ function mtick.Fall()
     elseif not data.GLocalPlayer.Grounded  then
         data.GLocalPlayer.FallTicks += 1
         data.GLocalPlayer.Velocity.Fall = Vector3.new(0,fallrate,0) 
+    end
+
+end
+local follow = false
+local oldyy = 180
+local playerinfo = {}
+local second 
+function controls.RenderStepped.Camera()
+    if not checkempty(data.LocalPlayer) then
+        local Current_Entity = data.LocalPlayer.Entity
+        second = second or Current_Entity:FindFirstChild("SecondLayer",true)
+        local muti
+        local entityw = Current_Entity
+        local Torso = entityw:FindFirstChild("Torso",true)
+        local neck =  entityw:FindFirstChild("Neck",true)
+        local MainWeld = entityw:FindFirstChild("MainWeld",true)
+        if neck and Torso and MainWeld then
+        local upordown = math.sign(camera.CFrame.LookVector.Unit:Dot(Vector3.new(0,1,0)))
+        local goalCF = CFrame.lookAt(neck.Part1.Position, neck.Part1.Position+camera.CFrame.LookVector, Torso.CFrame.UpVector)
+        local xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
+        if math.abs(math.deg(yy)) <= 125 and upordown ==-1 then
+           follow = true
+        end
+        if math.abs(math.deg(yy)) >= 55 and upordown == 1 then
+            follow = true
+         end
+        if (oldyy < math.abs(yy) and upordown == -1 )or  (oldyy > math.abs(yy) and upordown == 1 ) then
+            follow = false
+        end
+
+        if (FD["Foward"]) and not (FD["Back"]) or not (FD["Foward"]) and (FD["Back"])  and not (FD["Left"]) and not (FD["Right"]) then
+            muti = 0
+        end
+        if ((FD["Foward"]) and (FD["Left"]) ) or  (FD["Left"]) and not (FD["Back"]) and not (FD["Right"]) then
+            muti = 120
+        end
+        if ((FD["Foward"]) and (FD["Right"])) or (FD["Right"]) and not (FD["Left"]) and  not (FD["Back"])  then
+            muti = -120
+        end
+        if not (FD["Foward"]) and not (FD["Left"]) and  (FD["Back"]) and (FD["Right"]) then
+            muti = 120
+        end
+        if not (FD["Foward"]) and  (FD["Left"]) and   (FD["Back"])   then
+            muti = -120
+        end
+        if follow ==true or muti then
+            local pos =  MainWeld.C0.Position
+            local mad = muti
+             muti = muti or (upordown == 1 and 50 or 120)
+             xx, yy, zz = qf.worldCFrameToC0ObjectSpace(MainWeld,goalCF*CFrame.fromOrientation(0,muti*(mad and 1 or math.sign(yy)),0)):ToOrientation()
+             game:GetService("TweenService"):Create(MainWeld,TweenInfo.new(0.1),{C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)}):Play()
+             -- MainWeld.C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)
+         end
+         xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
+        -- game:GetService("TweenService"):Create(neck,TweenInfo.new(1),{C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)}):Play()
+     neck.C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)--refunction.worldCFrameToC0ObjectSpace(neck,goalCF)
+         oldyy = math.abs(yy)
+    end
     end
 
 end
@@ -201,4 +262,9 @@ task.spawn(function()
     end
 end)
 runservice.Heartbeat:Connect(controls.renderupdate)
+runservice.RenderStepped:Connect(function(dt)
+    for i,v in controls.RenderStepped do
+        task.spawn(v,dt)
+    end
+end)
 return controls
