@@ -26,7 +26,7 @@ local entity = {
         --     priority = 2,
         --     interval = 120,
         -- },
-        --["behavior.Fall"] = {} 
+        ["behavior.Fall"] = {} 
     },
     component_groups = {
 

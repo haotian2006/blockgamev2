@@ -13,7 +13,7 @@ game.Players.PlayerAdded:Connect(function(player)
         task.wait()
     end
 end)
-local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7, 60, 10)})
+local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 60, 10)})
 data.AddEntity(entity)
 EntityBridge:Connect(function(plr,P,odata)
     local entity = data.LoadedEntities[tostring(plr.UserId)]

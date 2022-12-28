@@ -4,13 +4,17 @@ local bridge = require(game.ReplicatedStorage.BridgeNet)
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local data = require(game.ReplicatedStorage.DataHandler)
+local Ray = require(game.ReplicatedStorage.Ray)
 local camera = game.Workspace.CurrentCamera
+local debugger = require(game.ReplicatedStorage.Debugger)
+local lp = game.Players.LocalPlayer
 controls.pc = {
     Foward = {'w',"Foward"},-- Name = {key,function}
     Left = {{'a',"c"},"Left"},
     Right = {'d',"Right"},
     Back = {'s',"Back"},
     Jump = {'space',"Jump"},
+    Attack = {'mousebutton1',"Attack"}
 }
 controls.KeysPressed = {}
 controls.Render = {}
@@ -67,6 +71,15 @@ function func.HandleJump()
         local touse = jump--fps.Value>62 and (jump/deltaTime)/60 or jump
         GPlayer.Velocity.Jump =Vector3.new(0,touse,0)
     end)
+end
+function func.Attack()
+    local lookvector = Camera.CFrame.LookVector
+    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*100,true,false,true,{tostring(lp.UserId)})
+    if #raystuff >= 1 then
+        print("hit")
+        debugger.HighLightEntity(raystuff[1],1)
+       -- debugger.HighLightBlock(unpack(raystuff[1]:split(',')))
+    end
 end
 local function getkeyfrominput(input)
     if input.KeyCode.Name ~= "Unknown" then
@@ -162,47 +175,76 @@ function controls.RenderStepped.Camera()
         local neck =  entityw:FindFirstChild("Neck",true)
         local MainWeld = entityw:FindFirstChild("MainWeld",true)
         if neck and Torso and MainWeld then
-        local upordown = math.sign(camera.CFrame.LookVector.Unit:Dot(Vector3.new(0,1,0)))
-        local goalCF = CFrame.lookAt(neck.Part1.Position, neck.Part1.Position+camera.CFrame.LookVector, Torso.CFrame.UpVector)
-        local xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
-        if math.abs(math.deg(yy)) <= 125 and upordown ==-1 then
-           follow = true
-        end
-        if math.abs(math.deg(yy)) >= 55 and upordown == 1 then
+            local upordown = math.sign(camera.CFrame.LookVector.Unit:Dot(Vector3.new(0,1,0)))
+            local goalCF = CFrame.lookAt(neck.Part1.Position, neck.Part1.Position+camera.CFrame.LookVector, Torso.CFrame.UpVector)
+            local xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
+            if math.abs(math.deg(yy)) <= 125 and upordown ==-1 then
             follow = true
-         end
-        if (oldyy < math.abs(yy) and upordown == -1 )or  (oldyy > math.abs(yy) and upordown == 1 ) then
-            follow = false
-        end
+            end
+            if math.abs(math.deg(yy)) >= 55 and upordown == 1 then
+                follow = true
+            end
+            if (oldyy < math.abs(yy) and upordown == -1 )or  (oldyy > math.abs(yy) and upordown == 1 ) then
+                follow = false
+            end
 
-        if (FD["Foward"]) and not (FD["Back"]) or not (FD["Foward"]) and (FD["Back"])  and not (FD["Left"]) and not (FD["Right"]) then
-            muti = 0
+            if (FD["Foward"]) and not (FD["Back"]) or not (FD["Foward"]) and (FD["Back"])  and not (FD["Left"]) and not (FD["Right"]) then
+                muti = 0
+            end
+            if ((FD["Foward"]) and (FD["Left"]) ) or  (FD["Left"]) and not (FD["Back"]) and not (FD["Right"]) then
+                muti = 120
+            end
+            if ((FD["Foward"]) and (FD["Right"])) or (FD["Right"]) and not (FD["Left"]) and  not (FD["Back"])  then
+                muti = -120
+            end
+            if not (FD["Foward"]) and not (FD["Left"]) and  (FD["Back"]) and (FD["Right"]) then
+                muti = 120
+            end
+            if not (FD["Foward"]) and  (FD["Left"]) and   (FD["Back"])   then
+                muti = -120
+            end
+            if follow ==true or muti then
+                local pos =  MainWeld.C0.Position
+                local mad = muti
+                muti = muti or (upordown == 1 and 50 or 120)
+                xx, yy, zz = qf.worldCFrameToC0ObjectSpace(MainWeld,goalCF*CFrame.fromOrientation(0,muti*(mad and 1 or math.sign(yy)),0)):ToOrientation()
+                game:GetService("TweenService"):Create(MainWeld,TweenInfo.new(0.1),{C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)}):Play()
+                -- MainWeld.C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)
+            end
+            xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
+            -- game:GetService("TweenService"):Create(neck,TweenInfo.new(1),{C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)}):Play()
+        neck.C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)--refunction.worldCFrameToC0ObjectSpace(neck,goalCF)
+            oldyy = math.abs(yy)
         end
-        if ((FD["Foward"]) and (FD["Left"]) ) or  (FD["Left"]) and not (FD["Back"]) and not (FD["Right"]) then
-            muti = 120
+        if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then
+            --print("fps")
+           -- Player.PlayerGui.Arms.vp.Visible = true
+            second.Parent = nil
+            if playerinfo[1] == nil then
+               for i,v in ipairs(Current_Entity:GetDescendants())do
+                local success = pcall(function()  v["Transparency"] = v["Transparency"] end)
+                    if success and v.Transparency == 0 then
+                        table.insert(playerinfo,v)
+                        v.Transparency =1
+                    end
+               end
+            else
+                for i,v in ipairs(playerinfo)do
+                    if  v["Transparency"] then
+                        v.Transparency =1
+                    end
+               end
+            end
+        elseif Current_Entity then
+            --print("not fps")
+            --Player.PlayerGui.Arms.vp.Visible = false
+            second.Parent = Current_Entity:FindFirstChild("Model",true)
+            for i,v in ipairs(playerinfo)do
+                if  v["Transparency"] then
+                    v.Transparency =0
+                end
+           end
         end
-        if ((FD["Foward"]) and (FD["Right"])) or (FD["Right"]) and not (FD["Left"]) and  not (FD["Back"])  then
-            muti = -120
-        end
-        if not (FD["Foward"]) and not (FD["Left"]) and  (FD["Back"]) and (FD["Right"]) then
-            muti = 120
-        end
-        if not (FD["Foward"]) and  (FD["Left"]) and   (FD["Back"])   then
-            muti = -120
-        end
-        if follow ==true or muti then
-            local pos =  MainWeld.C0.Position
-            local mad = muti
-             muti = muti or (upordown == 1 and 50 or 120)
-             xx, yy, zz = qf.worldCFrameToC0ObjectSpace(MainWeld,goalCF*CFrame.fromOrientation(0,muti*(mad and 1 or math.sign(yy)),0)):ToOrientation()
-             game:GetService("TweenService"):Create(MainWeld,TweenInfo.new(0.1),{C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)}):Play()
-             -- MainWeld.C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)
-         end
-         xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
-        -- game:GetService("TweenService"):Create(neck,TweenInfo.new(1),{C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)}):Play()
-     neck.C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)--refunction.worldCFrameToC0ObjectSpace(neck,goalCF)
-         oldyy = math.abs(yy)
-    end
     end
 
 end

@@ -198,7 +198,24 @@ function entity:UpdatePosition(dt)
     end
     self.Data.Grounded = CollisionHandler.IsGrounded(self)
 end
+function entity:RemoveFromChunk()
+    if self.Chunk and datahandler.GetChunk(self.Chunk.X,self.Chunk.Y) then
+        datahandler.GetChunk(self.Chunk.X,self.Chunk.Y).Entities[self.Id] = nil
+    end
+end
+function entity:UpdateChunk()
+    local cx,cz = qf.GetChunkfromReal(self.Position.X,self.Position.Y,self.Position.Z,true)
+    local chunk = datahandler.GetChunk(cx,cz)
+    if self.Chunk and self.Chunk ~= Vector2.new(cx,cz) then
+        self:RemoveFromChunk()
+    end
+    if chunk then
+        chunk.Entities[self.Id] = self
+    end
+    self.Chunk = Vector2.new(cx,cz)
+end
 function entity:Update(dt)
+    self:UpdateChunk()
     self.NotSaved = self.NotSaved or {}
     self.NotSaved.DeltaTime = dt
     self:DoBehaviors(dt)
@@ -284,5 +301,7 @@ function entity:Kill()
 end
 function entity:Destroy()
     setmetatable(self,nil) self = nil
+    datahandler.RemoveEntity(self.Id)
+    self:RemoveFromChunk()
 end
 return entity

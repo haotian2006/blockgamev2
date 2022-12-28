@@ -17,7 +17,7 @@ local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 resource:Init()
 local runservicer = game:GetService("RunService")
-local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent)  sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
+local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent) sb.Visible = false sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
 local function createEye(offset,hitbox)
     local eye = Instance.new("Part",hitbox.Parent)
     eye.Size = Vector3.new(hitbox.Size.X,0,hitbox.Size.Z)
@@ -66,11 +66,33 @@ EntityBridge:Connect(function(entitys)
     for i,v in game.Workspace.Entities:GetChildren() do
         if not entitys[v.Name] then
             v:Destroy()
+            i = v.Name
+            if datahandler.LoadedEntities[i] then
+                local last = datahandler.LoadedEntities[i]
+                local chunk = datahandler.GetChunk(last.Chunk.X,last.Chunk.Y)
+                if chunk then
+                    chunk.Entities[i] = nil
+                end
+                datahandler.LoadedEntities[i] = nil
+            end
         end
     end
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i)
-
+        if datahandler.LoadedEntities[i] then
+            local last = datahandler.LoadedEntities[i]
+            if v.Chunk ~= datahandler.LoadedEntities[i].Chunk then
+                local chunk = datahandler.GetChunk(last.Chunk.X,last.Chunk.Y)
+                if chunk then
+                    chunk.Entities[i] = nil
+                end
+            end
+            local chunk = datahandler.GetChunk(v.Chunk.X,v.Chunk.Y)
+            if chunk then
+                chunk.Entities[i] = v
+            end
+        end
+        datahandler.LoadedEntities[i]  = v
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
             tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.1),{CFrame = CFrame.new(v.Position*3)}):Play()
             updateorientation(e,v or {},true)
@@ -214,15 +236,15 @@ task.wait(1)
 local oldchunk =""
     srender(char.PrimaryPart)
 	print("done")
-	while char and true do
-		local currentChunk,c = qf.GetChunkfromReal(qf.cv3type("tuple",char.PrimaryPart.Position)) 
-		currentChunk = currentChunk.."x"..c
-		--shouldprint(currentChunk ~= oldchunk)
-		if currentChunk ~= oldchunk and true then
-			oldchunk = currentChunk
-		--	newload(char.PrimaryPart)
-            srender(char.PrimaryPart)
-		end
+while char and false do
+    local currentChunk,c = qf.GetChunkfromReal(qf.cv3type("tuple",char.PrimaryPart.Position)) 
+    currentChunk = currentChunk.."x"..c
+    --shouldprint(currentChunk ~= oldchunk)
+    if currentChunk ~= oldchunk and true then
+        oldchunk = currentChunk
+    --	newload(char.PrimaryPart)
+        srender(char.PrimaryPart)
+    end
 	task.wait(0.1)
 end
 

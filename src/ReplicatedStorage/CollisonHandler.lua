@@ -111,6 +111,18 @@ function collisions.GetBroadPhase(b1,s1,velocity)
         )
     return position,size
 end
+function collisions.AABBvsPoint(point:Vector3,b1,s1)
+    local min = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
+    local max = vector3(b1.X+s1.X/2,b1.Y+s1.Y/2,b1.Z+s1.Z/2)
+    return(
+        point.X >= min.X and
+        point.X <= max.X and 
+        point.Y >= min.Y and
+        point.Y <= max.Y and 
+        point.Z >= min.Z and
+        point.Z <= max.Z  
+    )
+end 
 function collisions.AABBcheck(b1,b2,s1,s2,isbp)
     if  isbp == true then
     else

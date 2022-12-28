@@ -6,7 +6,7 @@ local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
 local multihandler = require(game.ReplicatedStorage.MultiHandler)
 Chunk.__index = Chunk
-
+ 
 --block example: Name|Cubic:Grass
 function Chunk.new(cx,cz,data)
     if not cx or not cz then
@@ -22,6 +22,13 @@ function Chunk.new(cx,cz,data)
     ch.ToLoad = data and data.ToLoad or {}
     ch.Chunk = Vector2.new(cx,cz)
     ch.Generating = false
+    -- if cx == -1 and cz == 1 then
+    --     task.spawn(function()
+    --         while task.wait(1) do
+    --             print(ch.Entities)
+    --         end
+    --     end)
+    -- end
     return ch
 end
 function Chunk:AddToLoad(stuff)
