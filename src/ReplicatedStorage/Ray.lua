@@ -11,7 +11,7 @@ function ray.Cast(Origin: Vector3, Direction: Vector3,BreakOnFirstHit:boolean,Ig
     end
     BlackList = newlist
     if IgnoreBlocks and IgnoreEntities then error("Why Cast a ray and waste resources bruv") end 
-    if typeof(Origin) ~= "Vector3" or typeof(Direction) ~= "Vector3" then error("Wrong Arguments are sent") end
+    if typeof(Origin) ~= "Vector3" or typeof(Direction) ~= "Vector3" then error("Wrong Arguments sent") end
     local increaseby =  .1 
     local unit = Direction.Unit*increaseby
     local currentposition = Origin
