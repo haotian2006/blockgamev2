@@ -77,12 +77,19 @@ function func.Attack()
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
-    rayinfo.IgnoreBlocks = true
-    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*100,rayinfo)
+   -- rayinfo.IgnoreEntities = true
+    rayinfo.MorePreciseBlockDetection = true
+    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
     if #raystuff >= 1 then
         print("hit")
-        debugger.HighLightEntity(raystuff[1],1)
-       -- debugger.HighLightBlock(unpack(raystuff[1]:split(',')))
+        local split = raystuff[1]:split('eE~|:')
+        if not split[2] then
+            debugger.HighLightBlock(unpack(raystuff[1]:split(',')))
+        else
+
+            debugger.HighLightEntity(split[2],1)
+        end
+       -- debugger.HighLightEntity(raystuff[1],1)
     end
 end
 local function getkeyfrominput(input)

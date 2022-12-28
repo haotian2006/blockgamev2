@@ -49,7 +49,7 @@ function  collisions.IsGrounded(entity)
     end 
     return false
 end
-function  collisions.entityvsterrain(entity,velocity)
+function  collisions.entityvsterrain(entity,velocity,IsRay)
     local oldv = velocity
     local velocity = velocity
     local position = entity.Position
@@ -59,6 +59,7 @@ function  collisions.entityvsterrain(entity,velocity)
     local MinTime
     local normal = {X =0,Y=0,Z=0}
     local allnormal = {X =0,Y=0,Z=0}
+    local bba
     for i =1,3,1 do
       
     velocity = vector3(
@@ -67,7 +68,11 @@ function  collisions.entityvsterrain(entity,velocity)
         velocity.Z * (1-math.abs(normal.Z))*remainingtime
         )
         local bb
-        MinTime,normal,bb = collisions.entityvsterrainloop(entity,position,velocity,{},false,oldv)
+        MinTime,normal,bb = collisions.entityvsterrainloop(entity,position,velocity,{},IsRay,oldv)
+        if bb and IsRay then
+            return nil,nil,bb
+        end
+        bba = bba or bb
         allnormal.X += normal.X
         allnormal.Y += normal.Y
         allnormal.Z += normal.Z
@@ -95,7 +100,7 @@ function  collisions.entityvsterrain(entity,velocity)
         if remainingtime <=0 then break end
         
     end
-    return  position,allnormal
+    return  position,allnormal,bba
 end
 function collisions.GetBroadPhase(b1,s1,velocity)
     b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
@@ -207,7 +212,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                   --  if not (collisiontime1 <1) then print(newnormal1) end 
                     if collisiontime1 < 1 then
                       --  b(a.X,a.Y,a.Z)
-                       zack = newpos
+                        zack = {block,coords,vector3(bx,by,bz)}
                         currentmin = collisiontime1
                         normal = newnormal1
                         typejump, needed,maxheight = collisions.shouldjump(entity,newpos,newsize)
