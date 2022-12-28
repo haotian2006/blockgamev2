@@ -74,7 +74,11 @@ function func.HandleJump()
 end
 function func.Attack()
     local lookvector = Camera.CFrame.LookVector
-    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*100,true,false,true,{tostring(lp.UserId)})
+    local rayinfo = Ray.newInfo()
+    rayinfo.BreakOnFirstHit = true
+    rayinfo.BlackList = {tostring(lp.UserId)}
+    rayinfo.IgnoreBlocks = true
+    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*100,rayinfo)
     if #raystuff >= 1 then
         print("hit")
         debugger.HighLightEntity(raystuff[1],1)
