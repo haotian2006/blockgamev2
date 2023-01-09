@@ -62,7 +62,7 @@ return {
             local max = entity.FallRate or 150
             local fallrate =(((0.99^entity.Data.FallTicks)-1)*max)/1.4
         
-            if entity.Data.Grounded  or entity.Data.Jumping  then -- or not entity.CanFall
+            if entity.Data.Grounded  or entity.NotSaved.Jumping or entity.NotSaved.NoFall   then -- or not entity.CanFall
                 entity.Velocity.Fall = Vector3.new(0,0,0) 
                 entity.Data.IsFalling = false
                 entity.Data.FallTicks = 0

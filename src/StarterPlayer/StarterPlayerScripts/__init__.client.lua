@@ -13,6 +13,7 @@ local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
 local control = require(script.Parent.Controller)
+local entityhandler = require(game.ReplicatedStorage.EntityHandler)
 local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 resource:Init()
@@ -39,8 +40,10 @@ local function CreateModel(Data,ParentModel)
         weld.Name = "EntityModelWeld"
         weld.Part0 = ParentModel.PrimaryPart
         weld.Part1 = model.PrimaryPart
-        model.PrimaryPart.CFrame = ParentModel.PrimaryPart.CFrame
-        --weld.C0 = CFrame.new(ParentModel.PrimaryPart.Position)
+        local MiddleOffset = ParentModel.PrimaryPart.Size.Y-(ParentModel.PrimaryPart.Size.Y/2+model.PrimaryPart.Size.Y/2)
+        local pos =ParentModel.PrimaryPart.Position 
+        model.PrimaryPart.CFrame = CFrame.new(pos.X,pos.Y-MiddleOffset,pos.Z)
+        weld.C0 = CFrame.new(0,-MiddleOffset,0)
         return model
     end
 end
@@ -58,10 +61,16 @@ local function updateorientation(entity,entitydata,tween)
     end
 end
 local function combinevelocity(v1,v2)
-    for i,v in v2 do
-        v1[i] = v
+    for i,v in v2.Velocity do
+        v1:AddVelocity(i,v)
     end
 end
+bridge.CreateBridge("DoMover"):Connect(function(entity,Mover,...)
+    local mover = game.ReplicatedStorage.EntityMovers:FindFirstChild(Mover)
+    if mover and datahandler.LoadedEntities[entity] then
+        require(mover).new(datahandler.LoadedEntities[entity],...)
+    end
+end)
 EntityBridge:Connect(function(entitys)
     for i,v in game.Workspace.Entities:GetChildren() do
         if not entitys[v.Name] then
@@ -70,35 +79,35 @@ EntityBridge:Connect(function(entitys)
             if datahandler.LoadedEntities[i] then
                 local last = datahandler.LoadedEntities[i]
                 local chunk = datahandler.GetChunk(last.Chunk.X,last.Chunk.Y)
-                if chunk then
-                    chunk.Entities[i] = nil
-                end
-                datahandler.LoadedEntities[i] = nil
+                datahandler.LoadedEntities[i]:Destroy()
             end
         end
     end
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i)
-        if datahandler.LoadedEntities[i] then
-            local last = datahandler.LoadedEntities[i]
-            if v.Chunk ~= datahandler.LoadedEntities[i].Chunk then
-                local chunk = datahandler.GetChunk(last.Chunk.X,last.Chunk.Y)
-                if chunk then
-                    chunk.Entities[i] = nil
-                end
-            end
-            local chunk = datahandler.GetChunk(v.Chunk.X,v.Chunk.Y)
-            if chunk then
-                chunk.Entities[i] = v
-            end
-        end
-        datahandler.LoadedEntities[i]  = v
+        -- if datahandler.LoadedEntities[i] then
+        --     local last = datahandler.LoadedEntities[i]
+        --     if v.Chunk ~= datahandler.LoadedEntities[i].Chunk then
+        --         local chunk = datahandler.GetChunk(last.Chunk.X,last.Chunk.Y)
+        --         if chunk then
+        --             chunk.Entities[i] = nil
+        --         end
+        --     end
+        --     local chunk = datahandler.GetChunk(v.Chunk.X,v.Chunk.Y)
+        --     if chunk then
+        --         chunk.Entities[i] = v
+        --     end
+        -- end
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
+            datahandler.LoadedEntities[i]:UpdateEntity(v)
             tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.1),{CFrame = CFrame.new(v.Position*3)}):Play()
             updateorientation(e,v or {},true)
         elseif not e then
             --datahandler.LoadedEntities[i] = v
+            local entity = entityhandler.new(v)
+            datahandler.AddEntity(i,entity)
             local model = Instance.new("Model",workspace.Entities)
+            entity.Entity = model
             local hitbox = Instance.new("Part",model)
             model.PrimaryPart = hitbox
             hitbox.Size = (Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X) or Vector3.new(1,1,1))*settings.GridSize 
@@ -115,26 +124,22 @@ EntityBridge:Connect(function(entitys)
             model.Name = i
             updateorientation(model,v["OrientationData"] or {})
             if i == tostring(game.Players.LocalPlayer.UserId) then
-                datahandler.GLocalPlayer.Position = v.Position
-                datahandler.GLocalPlayer.Velocity = {}
-                datahandler.GLocalPlayer.Grounded = v.Grounded
+                -- datahandler.GLocalPlayer.Position = v.Position
+                -- datahandler.GLocalPlayer.Velocity = {}
+                -- datahandler.GLocalPlayer.Grounded = v.Grounded
                 workspace.CurrentCamera.CameraSubject = eye
                 task.spawn(function()
-                    while task.wait(.5) do
+                    while task.wait(.5) and datahandler.LoadedEntities[i] do
                         game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
-                        game.Players.LocalPlayer.Character:PivotTo(CFrame.new(datahandler.GLocalPlayer.Position*3-Vector3.new(0,30,0)))
+                        game.Players.LocalPlayer.Character:PivotTo(CFrame.new(datahandler.LoadedEntities[i].Position*3-Vector3.new(0,30,0)))
                     end
                 end)
             end
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
-            v.Jumping = datahandler.GLocalPlayer.Jumping
-            v.Entity =  game.Workspace.Entities:FindFirstChild(i)
-            combinevelocity(v.Velocity,datahandler.GLocalPlayer.Velocity)
-            --v.Velocity = datahandler.GLocalPlayer.Velocity
-            v.Position = datahandler.GLocalPlayer.Position 
-            v.Grounded = datahandler.GLocalPlayer.Grounded 
-            datahandler.LocalPlayer = v
+            datahandler.LoadedEntities[i]:UpdateEntityClient(v)
+            combinevelocity(datahandler.LoadedEntities[i],v)
+            datahandler.LocalPlayer = datahandler.LoadedEntities[i]
         end
     end
 end)
@@ -223,7 +228,7 @@ local function srender(p)
         local cx,cz = qf.cv2type("tuple",v)
         local ccx,ccz =  qf.GetChunkfromReal(qf.cv3type("tuple",p.Position)) 
         if (ccx ~= cx1 or ccz ~= cz1 )and passed>=6 then
-            break
+          --  break
         end
         if not datahandler.GetChunk(cx,cz) and not queued[cx..','..cz] then
             GetChunks(cx,cz)

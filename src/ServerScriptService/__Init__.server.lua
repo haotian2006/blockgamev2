@@ -2,8 +2,11 @@ local bridge = require(game.ReplicatedStorage.BridgeNet)
 --bridge.Start({})
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 require(game.ServerStorage.BehaviorHandler):Init()
+for i,v in game.ServerStorage.ServerStuff:GetChildren() do
+    require(v)
+end
 local data = require(game.ReplicatedStorage.DataHandler)
-local entityahndler = require(game.ServerStorage.EntityHandler)
+local entityahndler = require(game.ReplicatedStorage.EntityHandler)
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
 game.Players.PlayerAdded:Connect(function(player)
@@ -15,6 +18,7 @@ game.Players.PlayerAdded:Connect(function(player)
 end)
 local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 60, 10)})
 data.AddEntity(entity)
+local domoverbridge = bridge.CreateBridge("DoMover")
 EntityBridge:Connect(function(plr,P,odata)
     local entity = data.LoadedEntities[tostring(plr.UserId)]
     if entity then 
@@ -22,7 +26,21 @@ EntityBridge:Connect(function(plr,P,odata)
      entity.OrientationData = odata
     end
 end)
+game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvector)
+    local entity = data.LoadedEntities[id]
+    --entity:AddVelocity("KnockBack",Vector3.new(lookvector.X,.5,lookvector.Z)*100)
+    local velocity = Vector3.new(lookvector.X*2,1,lookvector.Z*2)
+    if entity.ClientControll then
+        local player = (function() for i,v in game.Players:GetPlayers() do if tostring(v.UserId) == entity.ClientControll then return v end end end)()
+        if player then
+            domoverbridge:FireTo(player,id,"Curve",velocity,.2)
+        end
+    else
+        --entity:AddBodyVelocity("Kb",Vector3.new(lookvector.X*2,1,lookvector.Z*2))
+        require(game.ReplicatedStorage.EntityMovers.Curve).new(entity,velocity,.2)
+    end
 
+end)
 game:GetService("RunService").Heartbeat:Connect(function( deltaTime)
     local entitycollisons = {}
     for id,entity in data.LoadedEntities do
@@ -46,4 +64,5 @@ game:GetService("RunService").Heartbeat:Connect(function( deltaTime)
     for id,entity in data.LoadedEntities do
         entity:ClearVelocity()
     end
+    
 end)

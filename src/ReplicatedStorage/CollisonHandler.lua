@@ -80,7 +80,7 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
         position += placevelocity
         if MinTime <1 then
             --epsilon 
-            if velocity.X >0 and velocity.X ~= -1.e-08 then
+            if velocity.X >0 and velocity.X ~= -9.99999993922529e-09 then
                 position = qf.EditVector3(position,"x",position.X - 0.001)
             elseif velocity.X <0 then
                 position = qf.EditVector3(position,"x",position.X + 0.001)
@@ -90,7 +90,7 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
             elseif velocity.Y <0 then
                 position = qf.EditVector3(position,"y",position.Y + 0.001)
             end
-            if velocity.Z >0 and velocity.Z ~= -1.e-08 then
+            if velocity.Z >0 and velocity.Z ~= -9.99999993922529e-09 then
                 position = qf.EditVector3(position,"z",position.Z - 0.00001)
             elseif velocity.Z <0 then
                 position = qf.EditVector3(position,"z",position.Z + 0.00001)
@@ -166,6 +166,40 @@ function collisions.shouldjump(entity,bp,bs)
     end
     return nil
 end
+function collisions.AABBvsTerrain(position,hitbox)
+    local min = vector3(
+        position.X-hitbox.X/2,
+        position.Y-hitbox.Y/2, 
+        position.Z-hitbox.Z/2   
+    )   
+   -- print(position.Z-hitbox.X,min.Z,(velocity.Z <0 and velocity.Z-.25 or 0) )
+    local max = vector3(
+        position.X+hitbox.X/2,
+        position.Y+hitbox.Y/2, 
+        position.Z+hitbox.Z/2   
+    ) 
+    local gridsize =.1
+    local whitelist = {}
+    for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
+        for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
+            for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
+                local block,coords = maindata.GetBlock(x,y,z,true)
+                if whitelist and whitelist[coords] then continue end
+                if block and block ~= "Null" then
+                    whitelist[coords] = true
+                    local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
+                    local bx,by,bz = unpack(coords:split(","))
+                    local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
+                    bx,by,bz = a.X,a.Y,a.Z
+                   local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
+                   if  collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize) then 
+                    return true,block,qf.combinetostring(bx,by,bz)
+                    end  
+                end
+            end 
+        end 
+    end 
+end
 function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop,old)
     local hitbox = entity.HitBox
     local min = vector3(
@@ -237,13 +271,9 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                            elseif typejump == "Full" and entity["AutoJump"]   then
                                local m2,n2,z2 = collisions.entityvsterrainloop(entity,vector3(position.X,position.Y,position.Z),vector3(0, 1,0),{[coords] = true},true)
                                if not m2 or m2 <1 then
-                                print(z2,zack)
+                               -- print(z2,zack)
                                else
-                                if RunService:IsServer() then
-                                    entity:Jump()
-                                else
-                                    require(game.Players.LocalPlayer.PlayerScripts:FindFirstChild("Controller")).func.HandleJump()
-                                end
+                                entity:Jump()
                                end
                            end
 

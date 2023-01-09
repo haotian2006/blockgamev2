@@ -10,7 +10,7 @@ local entity = {
         JumpHeight = 1.25,
         Speed = 5.612,
         CanCollideWithEntities = true,
-        ["behavior.Fall"] = {} 
+        DoGravity = true,
     },
     component_groups = {
 

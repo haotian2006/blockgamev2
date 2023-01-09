@@ -3,6 +3,7 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local qf = require(game.ReplicatedStorage.QuickFunctions)
+local resource = require(game.ReplicatedStorage.ResourceHandler)
 local data = require(game.ReplicatedStorage.DataHandler)
 local Ray = require(game.ReplicatedStorage.Ray)
 local camera = game.Workspace.CurrentCamera
@@ -39,7 +40,7 @@ local function interpolate(startVector3, finishVector3, alpha)
     )
 end
 local function checkempty(tab)
-    return not (tab and next(tab))
+    return not (tab and next(tab) ~= nil)
 end
 local ExtraJump = 0
 function func.HandleJump()
@@ -77,18 +78,21 @@ function func.Attack()
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
+    rayinfo.Debug = false
    -- rayinfo.IgnoreEntities = true
-    rayinfo.MorePreciseBlockDetection = true
-    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
+    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*4,rayinfo)
     if #raystuff >= 1 then
-        print("hit")
-        local split = raystuff[1]:split('eE~|:')
-        if not split[2] then
-            debugger.HighLightBlock(unpack(raystuff[1]:split(',')))
-        else
-
-            debugger.HighLightEntity(split[2],1)
+        --print("hit")
+        local newpos = {}
+        for i,v in raystuff do
+            if  type(v) ~= "table" then
+                table.insert(newpos,Vector3.new(unpack(v:split(','))))
+            elseif type(v) == "table" then
+                debugger.HighLightEntity(v[1],1)
+                game.ReplicatedStorage.Events.KB:FireServer(v[1],Camera.CFrame.LookVector)
+            end
         end
+        debugger.HighLightMutiBlocks(newpos)
        -- debugger.HighLightEntity(raystuff[1],1)
     end
 end
@@ -117,6 +121,7 @@ function GetVelocity(self):Vector3
     return Vector3.new(x,y,z)
 end
 local last 
+--[[
 function Render.UpdateEntity(dt)
     if checkempty(data.LocalPlayer) then return end 
     local self = data.LocalPlayer
@@ -135,7 +140,25 @@ function Render.UpdateEntity(dt)
     data.GLocalPlayer.Position = newp
     local neck =  self.Entity:FindFirstChild("Neck",true)
     local MainWeld = self.Entity:FindFirstChild("MainWeld",true)
-    EntityBridge:Fire(newp,{Neck = neck.C0.Rotation,MainWeld = MainWeld.C0.Rotation})
+    local plrmodel = resource.GetEntityModelFromData(data.LocalPlayer)
+    local eneck = plrmodel:FindFirstChild("Neck",true)
+    local eMainWeld = plrmodel:FindFirstChild("MainWeld",true)
+    EntityBridge:Fire(newp,{Neck = neck.C0.Rotation*eneck.C0.Rotation:Inverse(),MainWeld = MainWeld.C0.Rotation*MainWeld.C0.Rotation:Inverse()})
+end]]
+function Render.Update(dt)
+    local self = data.LocalPlayer
+    for i,v in data.LoadedEntities do
+        v:Update(dt)
+    end
+    if checkempty(data.LocalPlayer) then return end 
+    local neck =  self.Entity:FindFirstChild("Neck",true)
+    local MainWeld = self.Entity:FindFirstChild("MainWeld",true)
+    local plrmodel = resource.GetEntityModelFromData(data.LocalPlayer)
+    local eneck = plrmodel:FindFirstChild("Neck",true)
+    local eMainWeld = plrmodel:FindFirstChild("MainWeld",true)
+    self.Entity.PrimaryPart.CFrame = CFrame.new(self.Position*3)
+    EntityBridge:Fire(self.Position,{Neck = neck.C0.Rotation*eneck.C0.Rotation:Inverse(),MainWeld = MainWeld.C0.Rotation*eMainWeld.C0.Rotation:Inverse()})
+    self:ClearVelocity()
 end
 function Render.Move(dt)
     if checkempty(data.LocalPlayer) then return end 
@@ -149,27 +172,28 @@ function Render.Move(dt)
     local Right = RightVector*(FD["Right"]and 1 or 0)
     local velocity = foward + Back + Left+ Right
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) * (data.LocalPlayer.Speed or 0 )
-    data.GLocalPlayer.Velocity["Movement"] = velocity
-    if FD["Jump"] then func.HandleJump() end 
+    data.LocalPlayer.Velocity["Movement"] = velocity
+    if FD["Jump"] then data.LocalPlayer:Jump() 
+end 
    -- game.ReplicatedStorage.Events.SendEntities:FireServer(velocity)
 end
 function mtick.Fall()
-    local entity =   data.LocalPlayer
-    if  checkempty(entity) or  checkempty(entity) or false  then return end 
-    local cx,cz = qf.GetChunkfromReal(GPlayer.Position.X,GPlayer.Position.Y,GPlayer.Position.Z,true)
-    if not data.GetChunk(cx,cz) then return end 
-    data.GLocalPlayer.FallTicks = data.GLocalPlayer.FallTicks or 0
-    local max = entity.FallRate or 150
-    local fallrate =(((0.99^data.GLocalPlayer.FallTicks)-1)*max)/1.4
+    -- local entity =   data.LocalPlayer
+    -- if  checkempty(entity) or  checkempty(entity) or false  then return end 
+    -- local cx,cz = qf.GetChunkfromReal(GPlayer.Position.X,GPlayer.Position.Y,GPlayer.Position.Z,true)
+    -- if not data.GetChunk(cx,cz) then return end 
+    -- data.GLocalPlayer.FallTicks = data.GLocalPlayer.FallTicks or 0
+    -- local max = entity.FallRate or 150
+    -- local fallrate =(((0.99^data.GLocalPlayer.FallTicks)-1)*max)/1.4
 
-    if data.GLocalPlayer.Grounded  or data.GLocalPlayer.Jumping  then -- or not entity.CanFall
-        data.GLocalPlayer.Velocity.Fall = Vector3.new(0,0,0) 
-        data.GLocalPlayer.IsFalling = false
-        data.GLocalPlayer.FallTicks = 0
-    elseif not data.GLocalPlayer.Grounded  then
-        data.GLocalPlayer.FallTicks += 1
-        data.GLocalPlayer.Velocity.Fall = Vector3.new(0,fallrate,0) 
-    end
+    -- if data.GLocalPlayer.Grounded  or data.GLocalPlayer.Jumping  then -- or not entity.CanFall
+    --     data.GLocalPlayer.Velocity.Fall = Vector3.new(0,0,0) 
+    --     data.GLocalPlayer.IsFalling = false
+    --     data.GLocalPlayer.FallTicks = 0
+    -- elseif not data.GLocalPlayer.Grounded  then
+    --     data.GLocalPlayer.FallTicks += 1
+    --     data.GLocalPlayer.Velocity.Fall = Vector3.new(0,fallrate,0) 
+    -- end
 
 end
 local follow = false

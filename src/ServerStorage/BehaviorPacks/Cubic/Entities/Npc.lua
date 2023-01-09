@@ -11,12 +11,13 @@ local entity = {
         Speed = 2,
         CanCollideWithEntities = true,
         AutoJump = true,
-        ['behavior.Random_Stroll'] ={
-            priority = 1,
-            maxXZ = 5,
-            maxy = 0,
-            interval = 120,  
-        },
+        DoGravity = true,
+        -- ['behavior.Random_Stroll'] ={
+        --     priority = 1,
+        --     maxXZ = 5,
+        --     maxy = 0,
+        --     interval = 120,  
+        -- },
         ['behavior.LookAtPlayer'] ={
             priority = 10,
             MaxRange = 10,
@@ -26,7 +27,6 @@ local entity = {
         --     priority = 2,
         --     interval = 120,
         -- },
-        ["behavior.Fall"] = {} 
     },
     component_groups = {
 

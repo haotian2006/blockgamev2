@@ -2,13 +2,19 @@ local ray = {}
 local Data = require(game.ReplicatedStorage.DataHandler)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local collisonH = require(game.ReplicatedStorage.CollisonHandler)
+local debugpart = Instance.new("Part")
+debugpart.Size = Vector3.new(.1,.1,.1)
+debugpart.Anchored = true
+debugpart.Shape = Enum.PartType.Ball
+debugpart.Material = Enum.Material.Neon
+debugpart.Transparency = .5
 function ray.newInfo()
     return {
         BreakOnFirstHit = false,
         IgnoreEntities = false,
         IgnoreBlocks = false,
         BlackList = {},
-        MorePreciseBlockDetection = false,
+        Debug = false,
     }
 end
 function ray.Cast(Origin: Vector3, Direction: Vector3,rayinfo)  
@@ -18,43 +24,34 @@ function ray.Cast(Origin: Vector3, Direction: Vector3,rayinfo)
         newlist[v] = true
     end
     rayinfo.BlackList = newlist
-    if rayinfo.IgnoreBlocks and rayinfo.IgnoreEntities then error("Why Cast a ray and waste resources bruv") end 
     if typeof(Origin) ~= "Vector3" or typeof(Direction) ~= "Vector3" then error("Wrong Arguments sent") end
-    local increaseby =  .1 
+    local increaseby =  .1
     local unit = Direction.Unit*increaseby
     local currentposition = Origin
     local distanceneeded = (Direction).Magnitude
     local distancetraveled = 0
     local hittargets = {}
     local hitname = {}
-    if not rayinfo.IgnoreBlocks and rayinfo.MorePreciseBlockDetection  then
-       local rayentity = {Position = Origin,HitBox = Vector2.new(.01,.01)}
-       local a,a,hitinfo = collisonH.entityvsterrain(rayentity,Direction,true)
-
-       if hitinfo and hitinfo[1] and hitinfo[1] ~= "Null" then
-            local strcoord = hitinfo[2]
-            local bx,by,bz = hitinfo[3].X,hitinfo[3].Y,hitinfo[3].Z
-            if not hitname[bx..','..by..','..bz] and not rayinfo.BlackList[bx..','..by..','..bz] then
-                table.insert(hittargets,bx..','..by..','..bz)
-                hitname[bx..','..by..','..bz] = true
-                if rayinfo.BreakOnFirstHit then
-                    return hittargets
-                end
-            end
-       end 
+    local debugfolder = rayinfo.Debug and Instance.new("Folder",workspace)
+    if debugfolder then
+        game:GetService("Debris"):AddItem(debugfolder,3)
     end
     repeat
         local x,y,z = currentposition.X,currentposition.Y,currentposition.Z
+        if rayinfo.Debug then
+            debugfolder.Name = "Debug"
+            local clone = debugpart:Clone()
+            clone.Parent = debugfolder
+            clone.Position = Vector3.new(x,y,z)*3
+        end
         local cx,cz = qf.GetChunkfromReal(x,y,z,true)
-        if not rayinfo.IgnoreBlocks and not rayinfo.MorePreciseBlockDetection  then
-            local block,strcoord = Data.GetBlock(x,y,z)
-            if block ~= "Null" and block then
-                local bx,by,bz = unpack(strcoord:split(","))
-                local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
-                bx,by,bz = a.X,a.Y,a.Z
-                if not hitname[bx..','..by..','..bz] and not rayinfo.BlackList[bx..','..by..','..bz] then
-                    table.insert(hittargets,bx..','..by..','..bz)
-                    hitname[bx..','..by..','..bz] = true
+        if not rayinfo.IgnoreBlocks then
+            local collided,block,blockposition = collisonH.AABBvsTerrain(Vector3.new(x,y,z),Vector3.new(.1,.1,.1))
+           -- local block,strcoord = Data.GetBlock(x,y,z)
+            if collided and block and block ~= "Null"  then
+                if not hitname[blockposition] and not rayinfo.BlackList[blockposition] then
+                    table.insert(hittargets,blockposition)
+                    hitname[blockposition] = true
                     if rayinfo.BreakOnFirstHit then
                         return hittargets
                     end
@@ -67,8 +64,7 @@ function ray.Cast(Origin: Vector3, Direction: Vector3,rayinfo)
                 for i,v in chunk.Entities do
                     if hitname[i] or rayinfo.BlackList[i] then continue end 
                     if collisonH.AABBvsPoint(currentposition,v.Position,Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X)) then
-                        i = 'eE~|:'..i
-                        table.insert(hittargets,i)
+                        table.insert(hittargets,{i,"Entity"})
                         hitname[i] = true
                         if rayinfo.BreakOnFirstHit then
                             return hittargets
