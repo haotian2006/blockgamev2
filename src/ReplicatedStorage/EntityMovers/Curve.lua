@@ -5,7 +5,7 @@ function Curve.new(entity,Direaction,TimeToTake,CustomName,NoInit)
     local self = setmetatable({},Curve)
     self.entity = entity
     self.Name = CustomName or "Curve"
-    self.compleated = Instance.new("BindableEvent")
+    self.completed = Instance.new("BindableEvent")
     self.Direaction = Direaction or error("Direaction Not Given")
     self.TimeToTake = TimeToTake or 1
     if not NoInit then
@@ -47,7 +47,7 @@ function Curve:Init()
         self.entity.NotSaved.NoFall = nil
         self.entity.NotSaved["Curve"] = nil
     end
-    self.compleated:Fire( "Done" )
+    self.completed:Fire( "Done" )
     return "Done"
 end
 function Curve:Stop()
@@ -55,7 +55,7 @@ function Curve:Stop()
 end
 function Curve:Destroy()
     self.Stopped = true
-    self.compleated:Destroy()
+    self.completed:Destroy()
     setmetatable(self,nil)
 end
 return Curve

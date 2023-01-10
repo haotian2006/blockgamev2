@@ -4,7 +4,7 @@ local runservice = game:GetService("RunService")
 function MoveTo.new(entity,x,y,z,NoInit)
     local self = setmetatable({},MoveTo)
     self.entity = entity
-    self.compleated = Instance.new("BindableEvent")
+    self.completed = Instance.new("BindableEvent")
     self.Goal = Vector3.new(x,y,z)
     if not NoInit then
         task.spawn(MoveTo.Init,self)
@@ -44,7 +44,7 @@ function MoveTo:Init()
         self.entity.Velocity.Move = nil
         self.entity.NotSaved["Moving"] = nil
     end
-    self.compleated:Fire(((goal-self.Position).Magnitude <= 0.5) and "Done" or "Stopped")
+    self.completed:Fire(((goal-self.Position).Magnitude <= 0.5) and "Done" or "Stopped")
     return ((goal-self.Position).Magnitude <= 0.5) and "Done" or "Stopped"
 end
 function MoveTo:Stop()
@@ -52,7 +52,7 @@ function MoveTo:Stop()
 end
 function MoveTo:Destroy()
     self.Stoped = true
-    self.compleated:Destroy()
+    self.completed:Destroy()
     setmetatable(self,nil)
 end
 return MoveTo
