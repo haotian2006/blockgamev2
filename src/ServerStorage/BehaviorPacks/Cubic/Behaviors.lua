@@ -54,25 +54,4 @@ return {
         end,
         bhtype = "Turning",
     },
-    ['behavior.Fall'] = {
-        func = function(entity,data)
-            local cx,cz = entity:GetQf().GetChunkfromReal(entity.Position.X,entity.Position.Y,entity.Position.Z,true)
-            if not entity:GetData().GetChunk(cx,cz) then return end 
-            entity.Data.FallTicks = entity.Data.FallTicks or 0
-            local max = entity.FallRate or 150
-            local fallrate =(((0.99^entity.Data.FallTicks)-1)*max)/1.4
-        
-            if entity.Data.Grounded  or entity.NotSaved.Jumping or entity.NotSaved.NoFall   then -- or not entity.CanFall
-                entity.Velocity.Fall = Vector3.new(0,0,0) 
-                entity.Data.IsFalling = false
-                entity.Data.FallTicks = 0
-            elseif not entity.Data.Grounded  then
-                entity.Data.FallTicks += 1
-                entity.Velocity.Fall = Vector3.new(0,fallrate,0) 
-            end
-        end,
-        bhtype = "Falling",
-        CNRIC = true,
-
-    }
 }
