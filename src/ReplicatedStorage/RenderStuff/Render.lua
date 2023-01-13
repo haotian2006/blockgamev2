@@ -96,69 +96,92 @@ function self.GetBlocks(amount)
     end
     return new,amount - #new
 end
-function self.render(cx,cz)
-    -- print(  bd.GetChunk(cx+1,cz) and true, bd.GetChunk(cx-1,cz) and true, 
-    -- bd.GetChunk(cx,cz+1) and true, bd.GetChunk(cx,cz-1) and true)
+function self.GetBlockTable(cx,cz)
     if bd.GetChunk(cx,cz) and not game.Workspace.Chunks:FindFirstChild(cx..','..cz) and  bd.GetChunk(cx+1,cz) and bd.GetChunk(cx-1,cz) and 
-         bd.GetChunk(cx,cz+1) and bd.GetChunk(cx,cz-1) then
-            local t = {
-                bd.GetChunk(cx,cz).Blocks,
-                bd.GetChunk(cx+1,cz):GetEdge("x"),
-                bd.GetChunk(cx-1,cz):GetEdge("x-1"),
-                bd.GetChunk(cx,cz+1):GetEdge("z"),
-                bd.GetChunk(cx,cz-1):GetEdge("z-1"),
-            }
-           -- local culling = culling.HideBlocks(cx,cz,t,bd.GetChunk(cx,cz).Blocks)
-            local culling = multihandler.HideBlocks(cx,cz,t,4)
-            local meshed = greedymesh.meshtable(culling)
-            local ammountofblocks = 0
-            for i,v in meshed do
-				if v then
-					ammountofblocks +=1
-				end
-			end	
-            local folder = Instance.new("Model")
-			local blocks,stillneed = {},ammountofblocks--self.GetBlocks(ammountofblocks)
-            local rest = stillneed > 0 and multihandler.CreatePart(stillneed,stillneed < 20 and 1 or 20) or {}
-           -- print(stillneed,#blocks)
-            for i,v in rest do
-                table.insert(blocks,v)
-            end
-            local index = 0
-			for i,v in meshed do
-                index +=1
-                if index%2000 == 0 then task.wait() end
-				local p = blocks[1]
-				p.Parent = folder
-				table.remove(blocks,1)
-                p.Material = Enum.Material.SmoothPlastic
-                local name = v.data.Type
-                -- if name == 'Cubic:Grass' then
-                --     p.Color = Color3.new(0.172549, 0.721568, 0.062745)
-                -- elseif name == 'Cubic:Dirt'  then
-                --     p.Color = Color3.new(0.580392, 0.2, 0.047058)
-                -- elseif name == 'Cubic:Stone' then
-                --     p.Color = Color3.new(0.305882, 0.305882, 0.305882)
-                -- elseif name == 'Cubic:Bedrock' then
-                --     p.Color = Color3.new(0, 0, 0)
-                -- end
-                for i,v in  self.GetTextures(name,v.data.AirBlocks) do
-                    v.Parent = p
-                end
-               -- p.Transparency = 1
-                  -- p.Size = Vector3.new(3,3,3) 
-                -- p.Position = qf.cv3type("vector3",qf.cbt("chgrid","real",cx,cz,qf.cv3type("tuple",i)))
-				
-				p.Anchored = true
-                p.Position = Vector3.new(v.real.X+cx*csize,v.real.Y,v.real.Z+cz*csize)*gridS
-				p.Size = Vector3.new(v.l*gridS,v.h*gridS,v.w*gridS)
-			end
-			folder.Parent = workspace.Chunks
-			folder.Name = cx..','..cz
-
-    else
-        return nil
+    bd.GetChunk(cx,cz+1) and bd.GetChunk(cx,cz-1) then
+       local t = {
+           bd.GetChunk(cx,cz).Blocks,
+           bd.GetChunk(cx+1,cz):GetEdge("x"),
+           bd.GetChunk(cx-1,cz):GetEdge("x-1"),
+           bd.GetChunk(cx,cz+1):GetEdge("z"),
+           bd.GetChunk(cx,cz-1):GetEdge("z-1"),
+       }
+      -- local culling = culling.HideBlocks(cx,cz,t,bd.GetChunk(cx,cz).Blocks)
+       local culling = multihandler.HideBlocks(cx,cz,t,4)
+       local meshed = greedymesh.meshtable(culling)
+       return meshed
     end
-    return true
+end
+function self.UpdateChunk(cx,cz)
+    local meshed = self.GetBlockTable(cx,cz)
+    if not meshed then self.DeLoad(cx,cz) return false end 
+    local ammountofblocks = 0
+    for i,v in meshed do
+        if v then
+            ammountofblocks +=1
+        end
+    end	
+    local folder = Instance.new("Model")
+    local blocks,stillneed = {},ammountofblocks--self.GetBlocks(ammountofblocks)
+    local rest = stillneed > 0 and multihandler.CreatePart(stillneed,stillneed < 20 and 1 or 20) or {}
+    -- print(stillneed,#blocks)
+    for i,v in rest do
+        table.insert(blocks,v)
+    end
+    local index = 0
+    for i,v in meshed do
+        index +=1
+        if index%2000 == 0 then task.wait() end
+        local p = blocks[1]
+        p.Parent = folder
+        table.remove(blocks,1)
+        p.Material = Enum.Material.SmoothPlastic
+        local name = v.data.Type
+        for i,v in  self.GetTextures(name,v.data.AirBlocks) do
+            v.Parent = p
+        end
+        p.Anchored = true
+        p.Position = Vector3.new(v.real.X+cx*csize,v.real.Y,v.real.Z+cz*csize)*gridS
+        p.Size = Vector3.new(v.l*gridS,v.h*gridS,v.w*gridS)
+    end
+    folder.Parent = workspace.Chunks
+    folder.Name = cx..','..cz
+
+return true
+end
+function self.render(cx,cz)
+    local meshed = self.GetBlockTable(cx,cz)
+    if not meshed then return false end 
+    local ammountofblocks = 0
+    for i,v in meshed do
+        if v then
+            ammountofblocks +=1
+        end
+    end	
+    local folder = Instance.new("Model")
+    local blocks,stillneed = {},ammountofblocks--self.GetBlocks(ammountofblocks)
+    local rest = stillneed > 0 and multihandler.CreatePart(stillneed,stillneed < 20 and 1 or 20) or {}
+    -- print(stillneed,#blocks)
+    for i,v in rest do
+        table.insert(blocks,v)
+    end
+    local index = 0
+    for i,v in meshed do
+        index +=1
+        if index%2000 == 0 then task.wait() end
+        local p = blocks[1]
+        p.Parent = folder
+        table.remove(blocks,1)
+        p.Material = Enum.Material.SmoothPlastic
+        local name = v.data.Type
+        for i,v in  self.GetTextures(name,v.data.AirBlocks) do
+            v.Parent = p
+        end
+        p.Anchored = true
+        p.Position = Vector3.new(v.real.X+cx*csize,v.real.Y,v.real.Z+cz*csize)*gridS
+        p.Size = Vector3.new(v.l*gridS,v.h*gridS,v.w*gridS)
+    end
+    folder.Parent = workspace.Chunks
+    folder.Name = cx..','..cz
 end
 return self 

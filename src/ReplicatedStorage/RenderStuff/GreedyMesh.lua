@@ -3,6 +3,7 @@ local gs = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local mulitthread = require(game.ReplicatedStorage.MultiHandler)
 local gridsize = gs.GridSize
+local delayh = require(game.ReplicatedStorage.DelayHandler)
 local function findintable(tab,x,y,z)
    if tab[x] and tab[x][y] and tab[x][y][z]   then
        return tab[x][y][z] 
@@ -26,6 +27,7 @@ end
 local one = false
 greedy.Blocks = {}
 function  greedy.meshtable(tabletodemesh)
+    local df = delayh.new("Greedy")
    local startx,endx,startz,endz,starty,endy
    local D3 = {}
    local checked = {}
@@ -192,6 +194,7 @@ function  greedy.meshtable(tabletodemesh)
            new[v] = nil
        end
    end
+   df:update("A")
    return cc
 end
 return greedy

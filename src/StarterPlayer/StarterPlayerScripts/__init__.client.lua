@@ -241,6 +241,7 @@ task.wait(1)
 local oldchunk =""
     srender(char.PrimaryPart)
 	print("done")
+    print(require(game.ReplicatedStorage.DelayHandler).PrintAverageTime("Greedy"))
 while char and false do
     local currentChunk,c = qf.GetChunkfromReal(qf.cv3type("tuple",char.PrimaryPart.Position)) 
     currentChunk = currentChunk.."x"..c
