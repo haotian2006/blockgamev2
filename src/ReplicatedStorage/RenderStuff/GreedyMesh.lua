@@ -26,6 +26,18 @@ local function decombine(str)
 end
 local one = false
 greedy.Blocks = {}
+function greedy.createblock(sx,ex,sz,ez,sy,ey,data)
+    local l = math.sqrt((sx-ex)^2)
+    local midpointx = (sx+ex )/2
+    l += l ~= -1 and 1 or 0
+    local w = math.sqrt((sz-ez)^2)
+    local midpointz = (sz+ez )/2
+    w += w ~= -1 and 1 or 0
+    local h = math.sqrt((sy-ey)^2)
+    local midpointy = (sy+ey )/2
+    h += h ~= -1 and 1 or 0
+    return {data = data ,startx = sx,endx = ex,startz = sz,endz = ez,starty = sy,endy = ey,h=h,l=l,w=w,real = Vector3.new(midpointx,midpointy,midpointz)},midpointx..','..midpointy..','..midpointz
+end
 function  greedy.meshtable(tabletodemesh)
     local df = delayh.new("Greedy")
    local startx,endx,startz,endz,starty,endy
@@ -75,18 +87,6 @@ function  greedy.meshtable(tabletodemesh)
    local ssx,ssz,ssy = startx,startz,starty
    local new,total = {},0
    local lastx,lastz,lasty 
-   local function createblock(sx,ex,sz,ez,sy,ey,data)
-       local l = math.sqrt((sx-ex)^2)
-       local midpointx = (sx+ex )/2
-       l += l ~= -1 and 1 or 0
-       local w = math.sqrt((sz-ez)^2)
-       local midpointz = (sz+ez )/2
-       w += w ~= -1 and 1 or 0
-       local h = math.sqrt((sy-ey)^2)
-       local midpointy = (sy+ey )/2
-       h += h ~= -1 and 1 or 0
-       return {data = data ,startx = sx,endx = ex,startz = sz,endz = ez,starty = sy,endy = ey,h=h,l=l,w=w,real = Vector3.new(midpointx,midpointy,midpointz)},midpointx..','..midpointy..','..midpointz
-   end
    local function compare(x,y,z,xx,yy,zz)
         local d1 = findintable(D3,x,y,z)
         local d2 = findintable(D3,xx,yy,zz)
@@ -108,7 +108,7 @@ function  greedy.meshtable(tabletodemesh)
                    end
                    addtotabl(checked,true,currentx,currenty,currentz)
                elseif (not findintable(D3,currentx,currenty,currentz)or not compare(lastx,lasty,lastz,currentx,currenty,currentz) )and findintable(D3,startx,starty,startz) and startx and startz and starty and lastx and lastz and lasty then
-                   local data,index = createblock(startx,lastx,startz,lastz,starty, lasty,findintable(D3,lastx,lasty,lastz))
+                   local data,index = greedy.createblock(startx,lastx,startz,lastz,starty, lasty,findintable(D3,lastx,lasty,lastz))
                    new[index] = data
                    if not compare(lastx,lasty,lastz,currentx,currenty,currentz) then
                     startx = currentx
@@ -173,7 +173,7 @@ function  greedy.meshtable(tabletodemesh)
                break
            end
        end
-       return involved,createblock(sx,ex,sz,ez,sy,ey,info.data)
+       return involved,greedy.createblock(sx,ex,sz,ez,sy,ey,info.data)
    end
    local cc ={}
    for key,value in pairs(shallowCopy(new)) do

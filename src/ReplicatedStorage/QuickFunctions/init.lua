@@ -18,6 +18,39 @@ local chunkd = settings.ChunkSize.X
 -- CHGrid : Basicly the the Real coord inside the chunk EX: 17 --> 1
 
 --other
+function qf.GetFolder(x,y)
+    return game.Workspace.Chunks:FindFirstChild(x..','..y)
+end
+function qf.DestroyBlocks(folder,interval)
+    interval = interval or 500
+    if type(folder) == "table" then else
+        folder = folder:GetChildren()
+    end
+    for i,v in folder do
+        if i%interval == 0 then task.wait() end
+        v:Destroy()
+    end
+end
+function qf.CompareTables(t1,t2)
+    if type(t1) == "table" and type(t2) == "table" then
+        local checkedindexs = {}
+        for i,v in t1 do
+            checkedindexs[i] = true
+            if not qf.CompareTables(v,t2[i]) then
+                return false
+            end
+        end
+        for i,v in t2 do
+            if checkedindexs[i] then continue end
+            if not qf.CompareTables(v,t1[i]) then
+                return false
+            end
+        end
+    else 
+        return t1 == t2
+    end
+    return true
+end
 function qf.SortTables(position,tables)
     position = Vector2.new(position.X,position.Z)
     local new = {}
