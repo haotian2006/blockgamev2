@@ -153,7 +153,7 @@ task.spawn(function()
             for i,v in c do
                 local chunk = v[1]
                 local cx,cz = qf.cv2type("tuple",chunk)
-                if render.render(cx,cz) then
+                if render.UpdateChunk(cx,cz) then
                     toload[chunk] = nil
                     --break
                 end
