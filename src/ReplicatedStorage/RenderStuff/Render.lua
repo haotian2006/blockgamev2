@@ -124,7 +124,7 @@ function self.CreateBlock(v)
 end
 function self.UpdateChunk(cx,cz)
     local meshed,chunkobj = self.GetBlockTable(cx,cz)
-    if not meshed or not chunkobj  then self.DeLoad(cx,cz) return false end 
+    if not meshed or not chunkobj  then  return false end 
     local ammountofblocks = 0
     local blockstodel = {}
     local nonchangedblocks = {}
