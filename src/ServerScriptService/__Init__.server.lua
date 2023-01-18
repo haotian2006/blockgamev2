@@ -9,6 +9,7 @@ local data = require(game.ReplicatedStorage.DataHandler)
 local entityahndler = require(game.ReplicatedStorage.EntityHandler)
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
+local qf = require(game.ReplicatedStorage.QuickFunctions)
 game.Players.PlayerAdded:Connect(function(player)
     local entity = entityahndler.Create("Player",{Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 60, 10),ClientControll = tostring(player.UserId)})
     data.AddEntity(entity)
@@ -26,6 +27,13 @@ EntityBridge:Connect(function(plr,P,odata)
      entity.OrientationData = odata
     end
 end)
+local ublock = bridge.CreateBridge("UpdateBlocks")
+bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:string)
+    block = Vector3.new(unpack(block:split(',')))
+    data.RemoveBlock(block.X,block.Y,block.Z)
+    ublock:FireAll({Remove = {block}})
+end)
+
 game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvector)
     local entity = data.LoadedEntities[id]
     --entity:AddVelocity("KnockBack",Vector3.new(lookvector.X,.5,lookvector.Z)*100)

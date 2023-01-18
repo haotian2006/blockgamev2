@@ -7,6 +7,7 @@ local runservice = game:GetService("RunService")
 local multihandler = require(game.ReplicatedStorage.MultiHandler)
 Chunk.__index = Chunk
 --block example: Name|Cubic:Grass
+local function round(x)return math.floor(x+.5)end
 function Chunk.new(cx,cz,data)
     if not cx or not cz then
         warn("Unable to create chunk")
@@ -48,6 +49,12 @@ function Chunk:GetBlock(x,y,z,islocal)--realpos
 end
 function Chunk:GetBlocks()
     return self.Blocks
+end
+function Chunk:RemoveBlock(x,y,z,useGrid)
+    if useGrid then
+        x,y,z =  round(x)%settings.ChunkSize.X,round(y),round(z)%settings.ChunkSize
+    end
+    self.Blocks[x..','..y..','..z] = nil
 end
 function Chunk:InsertBlock(data,x,y,z)
     local cc = qF.Realto1DBlock(x,y,z)

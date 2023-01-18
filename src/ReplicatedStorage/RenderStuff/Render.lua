@@ -97,7 +97,7 @@ function self.GetBlocks(amount)
     return new,amount - #new
 end
 function self.GetBlockTable(cx,cz)
-    if bd.GetChunk(cx,cz) and not game.Workspace.Chunks:FindFirstChild(cx..','..cz) and  bd.GetChunk(cx+1,cz) and bd.GetChunk(cx-1,cz) and 
+    if bd.GetChunk(cx,cz) and  bd.GetChunk(cx+1,cz) and bd.GetChunk(cx-1,cz) and 
     bd.GetChunk(cx,cz+1) and bd.GetChunk(cx,cz-1) then
        local t = {
            bd.GetChunk(cx,cz).Blocks,
@@ -122,7 +122,7 @@ function self.CreateBlock(v)
     p.Anchored = true
     return p
 end
-function self.UpdateChunk(cx,cz)
+function self.UpdateChunk(cx,cz,debug)
     local meshed,chunkobj = self.GetBlockTable(cx,cz)
     if not meshed or not chunkobj  then  return false end 
     local ammountofblocks = 0
@@ -132,6 +132,7 @@ function self.UpdateChunk(cx,cz)
         if not meshed[i] then
             local folder = qf.GetFolder(cx,cz)
             if folder and folder:FindFirstChild(i) then
+                
                 table.insert(blockstodel,folder:FindFirstChild(i))
             end
             chunkobj.RenderedBlocks[i] = nil
@@ -149,10 +150,12 @@ function self.UpdateChunk(cx,cz)
             end
         end
     end	
+    chunkobj.RenderedBlocks = meshed
     task.spawn(qf.DestroyBlocks,blockstodel)
     local folder = qf.GetFolder(cx,cz) or Instance.new("Model")
     local index = 0
     for i,v in meshed do
+        if nonchangedblocks[i] then continue end
         index +=1
         if index%2000 == 0 then task.wait() end
         local p = self.CreateBlock(v)

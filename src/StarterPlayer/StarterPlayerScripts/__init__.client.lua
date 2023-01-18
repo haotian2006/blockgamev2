@@ -188,6 +188,17 @@ local function GetChunks(cx,cz)
     queued[cx..','..cz] = true
     game.ReplicatedStorage.Events.GetChunk:FireServer(cx,cz)
 end
+bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
+    local chtoup = {}
+    for i,v in data.Remove or {} do
+        local chunk = datahandler.RemoveBlock(v.X,v.Y,v.Z)
+        chtoup[chunk:GetNString()]= chunk
+    end
+    for i,v in chtoup do
+        local cx,cz = v:GetNTuple()
+        render.UpdateChunk(cx,cz,true)
+    end
+end)
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
     toload[cx..','..cz] = true
     queued[cx..','..cz] = false

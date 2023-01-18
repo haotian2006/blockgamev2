@@ -115,6 +115,11 @@ function qf.worldCFrameToC0ObjectSpace(motor6DJoint:Motor6D,worldCFrame:CFrame):
 	return goalC0CFrame
 end
 --block/chunk
+function qf.GetChunkAndLocal(x,y,z)
+    local cx,cz = qf.GetChunkfromReal(x,y,z,true)
+    local lx,ly,lz = x%chunkS.X,y,z%chunkS.X
+    return cx,cz,lx,ly,lz
+end
 function qf.GetChunkfromReal(x,y,z,blockinstead)
     if not blockinstead then
         x,y,z = x/gridS,y/gridS,z/gridS

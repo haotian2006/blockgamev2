@@ -1,6 +1,7 @@
 local controls = {pc = {},mode = 'pc',func = {},mtick = {},RenderStepped = {}}
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
+local destroyblockEvent = bridge.CreateBridge("BlockBreak")
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
@@ -84,15 +85,16 @@ function func.Attack()
     if #raystuff >= 1 then
         --print("hit")
         local newpos = {}
-        for i,v in raystuff do
+        for i,v:Vector3 in raystuff do
             if  type(v) ~= "table" then
+                destroyblockEvent:Fire(v)
                 table.insert(newpos,Vector3.new(unpack(v:split(','))))
             elseif type(v) == "table" then
                 debugger.HighLightEntity(v[1],1)
                 game.ReplicatedStorage.Events.KB:FireServer(v[1],Camera.CFrame.LookVector)
             end
         end
-        debugger.HighLightMutiBlocks(newpos)
+       -- debugger.HighLightMutiBlocks(newpos)
        -- debugger.HighLightEntity(raystuff[1],1)
     end
 end
