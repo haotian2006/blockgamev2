@@ -88,7 +88,8 @@ function func.Attack()
         for i,v:Vector3 in raystuff do
             if  type(v) ~= "table" then
                 destroyblockEvent:Fire(v)
-                table.insert(newpos,Vector3.new(unpack(v:split(','))))
+                local a = Vector3.new(unpack(v:split(',')))
+                table.insert(newpos,a)
             elseif type(v) == "table" then
                 debugger.HighLightEntity(v[1],1)
                 game.ReplicatedStorage.Events.KB:FireServer(v[1],Camera.CFrame.LookVector)
@@ -202,6 +203,28 @@ local follow = false
 local oldyy = 180
 local playerinfo = {}
 local second 
+local outline = game.Workspace.Outline
+function controls.Render.OutLine()
+    local lookvector = Camera.CFrame.LookVector
+    local rayinfo = Ray.newInfo()
+    rayinfo.BreakOnFirstHit = true
+    rayinfo.BlackList = {tostring(lp.UserId)}
+    rayinfo.Debug = false
+   -- rayinfo.IgnoreEntities = true
+    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*4,rayinfo)
+    if #raystuff >= 1 then
+        local v= raystuff[1]
+        if  type(v) ~= "table" then
+            local a = Vector3.new(unpack(v:split(',')))
+            outline.Position = a*3
+            outline.SelectionBox.Transparency = 0
+        else
+            outline.SelectionBox.Transparency = 1
+        end
+    else
+        outline.SelectionBox.Transparency = 1
+    end
+end
 function controls.RenderStepped.Camera()
     if not checkempty(data.LocalPlayer) then
         local Current_Entity = data.LocalPlayer.Entity

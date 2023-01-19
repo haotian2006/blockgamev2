@@ -108,12 +108,13 @@ function self.GetBlockTable(cx,cz)
        }
       -- local culling = culling.HideBlocks(cx,cz,t,bd.GetChunk(cx,cz).Blocks)
        local culling = multihandler.HideBlocks(cx,cz,t,4)
-       local meshed = greedymesh.meshtable(culling)
+        local meshed = greedymesh.meshtable(culling)
        return meshed,bd.GetChunk(cx,cz) 
     end
 end
-function self.CreateBlock(v)
-    local p = Instance.new("Part")
+function self.CreateBlock(v,ptouse)
+    local p = ptouse or Instance.new("Part")
+    p:ClearAllChildren()
     p.Material = Enum.Material.SmoothPlastic
     local name = v.data.Type
     for i,v in  self.GetTextures(name,v.data.AirBlocks) do
@@ -151,19 +152,22 @@ function self.UpdateChunk(cx,cz,debug)
         end
     end	
     chunkobj.RenderedBlocks = meshed
-    task.spawn(qf.DestroyBlocks,blockstodel)
     local folder = qf.GetFolder(cx,cz) or Instance.new("Model")
     local index = 0
+    local newb = 0
     for i,v in meshed do
         if nonchangedblocks[i] then continue end
         index +=1
         if index%2000 == 0 then task.wait() end
-        local p = self.CreateBlock(v)
+        local pi,pb = next(blockstodel)
+        if pi then blockstodel[pi] = nil else newb +=1 end 
+        local p = self.CreateBlock(v,pb)
         p.Name = i
         p.Position = Vector3.new(v.real.X+cx*csize,v.real.Y,v.real.Z+cz*csize)*gridS
         p.Size = Vector3.new(v.l*gridS,v.h*gridS,v.w*gridS)
         p.Parent = folder
     end
+    task.spawn(qf.DestroyBlocks,blockstodel)
     folder.Parent = workspace.Chunks
     folder.Name = cx..','..cz
 

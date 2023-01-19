@@ -115,6 +115,25 @@ function qf.worldCFrameToC0ObjectSpace(motor6DJoint:Motor6D,worldCFrame:CFrame):
 	return goalC0CFrame
 end
 --block/chunk
+function qf.CheckIfChunkEdge(lx,ly,lz) 
+    local ox,oz =0,0
+    local isedge = false
+    if lx == 0 then
+        ox = -1
+    elseif lx == chunkS.X-1 then
+        ox = 1
+    end
+    if lz == 0 then
+        oz = -1
+    elseif lz == chunkS.X-1 then
+        oz = 1
+    end
+    if ox ~= 0 or oz ~= 0 then isedge = true end 
+    return isedge,Vector2.new(ox,oz)
+end
+function qf.GridToLocal(coords)
+    return Vector3.new(coords.X%chunkS.X,coords.Y,coords.Z%chunkS.X)
+end
 function qf.GetChunkAndLocal(x,y,z)
     local cx,cz = qf.GetChunkfromReal(x,y,z,true)
     local lx,ly,lz = x%chunkS.X,y,z%chunkS.X

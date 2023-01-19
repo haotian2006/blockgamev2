@@ -88,7 +88,7 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
         end
         if (checkblockinch(1,x,y-1,z))  then
             check +=1
-            sides['y-1'] = true--down
+            sides['y-1'] = true--down 
             addtorstr(4)
         end
         if (not walls["z1"] and checkblockinch(1,x,y,z+1)) or (walls["z1"] and checkblockinch(4,x,y,z+1))  then
@@ -114,7 +114,6 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
         currentblockid = qf.cbt("chgrid","grid",cx,cz,qf.cv3type("tuple",index))
         local cann,newstr = can(currentblockid.X,currentblockid.Y,currentblockid.Z)
         new[index] = (not (cann)and data..newstr) or nil
-        --if i%2000 == 0 then task.wait() end
     end
     return new
 end

@@ -193,6 +193,19 @@ bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
     for i,v in data.Remove or {} do
         local chunk = datahandler.RemoveBlock(v.X,v.Y,v.Z)
         chtoup[chunk:GetNString()]= chunk
+        local cx,cz = chunk:GetNTuple()
+        local v3 = qf.GridToLocal(v)
+        local isedge,edges = qf.CheckIfChunkEdge(v3.X,v3.Y,v3.Z)
+        if isedge then
+            local chx = datahandler.GetChunk(cx+edges.X,cz)
+            local chz = datahandler.GetChunk(cx,cz+edges.Y)
+            if edges.X ~= 0 and chx then
+                chtoup[chx:GetNString()]= chx
+            end
+            if edges.Y ~= 0 and chz then
+                chtoup[chz:GetNString()]= chz
+            end
+        end
     end
     for i,v in chtoup do
         local cx,cz = v:GetNTuple()
@@ -231,7 +244,7 @@ local function srender(p)
         end
 	end
     local cx1,cz1 = qf.GetChunkfromReal(qf.cv3type("tuple",p.Position)) 
-    local s= qf.GetSurroundingChunk(cx1,cz1,7)
+    local s= qf.GetSurroundingChunk(cx1,cz1,3)
     local passed = 0
     for i,v in qf.SortTables(p.Position,s) do
         v = v[1]
