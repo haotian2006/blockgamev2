@@ -144,7 +144,7 @@ EntityBridge:Connect(function(entitys)
     end
 end)
 task.spawn(function()
-    while true do
+    while false do
         for i=0,20 do
             local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
             chr:WaitForChild("HumanoidRootPart")
