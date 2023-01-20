@@ -56,10 +56,11 @@ function Chunk:RemoveBlock(x,y,z,useGrid)
     end
     self.Blocks[x..','..y..','..z] = nil
 end
-function Chunk:InsertBlock(data,x,y,z)
-    local cc = qF.Realto1DBlock(x,y,z)
-    self.Blocks[cc] = data
-    return self.Blocks[cc]
+function Chunk:InsertBlock(x,y,z,bdata,useGrid)
+    if useGrid then
+        x,y,z =  round(x)%settings.ChunkSize.X,round(y),round(z)%settings.ChunkSize
+    end
+    self.Blocks[x..','..y..','..z] = bdata
 end
 function  Chunk:GetEdge(dir)
     local new = {}

@@ -33,7 +33,17 @@ bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:string)
     data.RemoveBlock(block.X,block.Y,block.Z)
     ublock:FireAll({Remove = {block}})
 end)
-
+bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
+    local coords = Vector3.new(unpack(coords1:split(',')))
+    for i,v in data.EntitiesinR(coords.X,coords.Y,coords.Z,1) or {} do
+        local a = CollisionHandler.AABBcheck(v.Position,Vector3.new(coords.X,coords.Y,coords.Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
+        if a then
+            return
+        end
+    end
+    data.InsertBlock(coords.X,coords.Y,coords.Z,'Type|s%Cubic:Dirt')
+    ublock:FireAll({Add = {[coords1] = 'Type|s%Cubic:Dirt'}})
+end)
 game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvector)
     local entity = data.LoadedEntities[id]
     --entity:AddVelocity("KnockBack",Vector3.new(lookvector.X,.5,lookvector.Z)*100)

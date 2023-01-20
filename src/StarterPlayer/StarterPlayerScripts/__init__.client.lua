@@ -144,7 +144,7 @@ EntityBridge:Connect(function(entitys)
     end
 end)
 task.spawn(function()
-    while false do
+    while true do
         for i=0,20 do
             local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
             chr:WaitForChild("HumanoidRootPart")
@@ -190,27 +190,43 @@ local function GetChunks(cx,cz)
 end
 bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
     local chtoup = {}
-    for i,v in data.Remove or {} do
-        local chunk = datahandler.RemoveBlock(v.X,v.Y,v.Z)
-        chtoup[chunk:GetNString()]= chunk
-        local cx,cz = chunk:GetNTuple()
-        local v3 = qf.GridToLocal(v)
-        local isedge,edges = qf.CheckIfChunkEdge(v3.X,v3.Y,v3.Z)
-        if isedge then
-            local chx = datahandler.GetChunk(cx+edges.X,cz)
-            local chz = datahandler.GetChunk(cx,cz+edges.Y)
-            if edges.X ~= 0 and chx then
-                chtoup[chx:GetNString()]= chx
-            end
-            if edges.Y ~= 0 and chz then
-                chtoup[chz:GetNString()]= chz
-            end
+   -- local a = require(game.ReplicatedStorage.DelayHandler).new("test")
+   local function addtoup(x,y,z)
+    local cx,cy,x,y,z = qf.GetChunkAndLocal(x,y,z)
+    local chunk = datahandler.GetChunk(cx,cy)
+    if not chunk then return end 
+    chtoup[chunk:GetNString()]= chunk
+    local cx,cz = chunk:GetNTuple()
+    local v3 = Vector3.new(x,y,z)
+    local isedge,edges = qf.CheckIfChunkEdge(v3.X,v3.Y,v3.Z)
+    if isedge then
+        local chx = datahandler.GetChunk(cx+edges.X,cz)
+        local chz = datahandler.GetChunk(cx,cz+edges.Y)
+        if edges.X ~= 0 and chx then
+            chtoup[chx:GetNString()]= chx
+        end
+        if edges.Y ~= 0 and chz then
+            chtoup[chz:GetNString()]= chz
         end
     end
-    for i,v in chtoup do
-        local cx,cz = v:GetNTuple()
-        render.UpdateChunk(cx,cz,true)
+   end
+    for i,v in data.Remove or {} do
+        local chunk = datahandler.RemoveBlock(v.X,v.Y,v.Z)
+        addtoup(v.X,v.Y,v.Z)
     end
+    for i,v in data.Add or {} do
+        local coords =  Vector3.new(unpack(i:split(',')))
+        datahandler.InsertBlock(coords.X,coords.Y,coords.Z,v)
+        addtoup(coords.X,coords.Y,coords.Z)
+    end
+    for i,v in chtoup do
+        task.spawn(function()
+            local cx,cz = v:GetNTuple() 
+            render.UpdateChunk(cx,cz,true)
+        end)
+    end
+    --a:update("A")
+   -- a:gettime()
 end)
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
     toload[cx..','..cz] = true
@@ -244,7 +260,7 @@ local function srender(p)
         end
 	end
     local cx1,cz1 = qf.GetChunkfromReal(qf.cv3type("tuple",p.Position)) 
-    local s= qf.GetSurroundingChunk(cx1,cz1,3)
+    local s= qf.GetSurroundingChunk(cx1,cz1,7)
     local passed = 0
     for i,v in qf.SortTables(p.Position,s) do
         v = v[1]

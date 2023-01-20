@@ -106,7 +106,7 @@ function self.GetBlockTable(cx,cz)
            bd.GetChunk(cx,cz+1):GetEdge("z"),
            bd.GetChunk(cx,cz-1):GetEdge("z-1"),
        }
-      -- local culling = culling.HideBlocks(cx,cz,t,bd.GetChunk(cx,cz).Blocks)
+       --local culling = culling.HideBlocks(cx,cz,t,bd.GetChunk(cx,cz).Blocks)
        local culling = multihandler.HideBlocks(cx,cz,t,4)--need to fix this
        local meshed = greedymesh.meshtable(culling)
        return meshed,bd.GetChunk(cx,cz) 

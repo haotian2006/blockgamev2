@@ -2,6 +2,7 @@ local controls = {pc = {},mode = 'pc',func = {},mtick = {},RenderStepped = {}}
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local destroyblockEvent = bridge.CreateBridge("BlockBreak")
+local placeBlockEvent = bridge.CreateBridge("BlockPlace")
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
@@ -16,7 +17,8 @@ controls.pc = {
     Right = {'d',"Right"},
     Back = {'s',"Back"},
     Jump = {'space',"Jump"},
-    Attack = {'mousebutton1',"Attack"}
+    Attack = {'mousebutton1',"Attack"},
+    Interact = {'mousebutton2',"Interact"}
 }
 controls.KeysPressed = {}
 controls.Render = {}
@@ -74,6 +76,29 @@ function func.HandleJump()
         GPlayer.Velocity.Jump =Vector3.new(0,touse,0)
     end)
 end
+function func.Interact()
+    local lookvector = Camera.CFrame.LookVector
+    local rayinfo = Ray.newInfo()
+    rayinfo.BreakOnFirstHit = true
+    rayinfo.BlackList = {tostring(lp.UserId)}
+    rayinfo.Debug = false
+   -- rayinfo.IgnoreEntities = true
+    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
+    if #raystuff >= 1 then
+        --print("hit")
+        local newpos = {}
+        for i,v:string|table in raystuff do
+            if  type(v) ~= "table" then
+                local v = v:split(',')
+                v[2] += 1
+                placeBlockEvent:Fire(v[1]..','..v[2]..','..v[3])
+                print("a")
+            elseif type(v) == "table" then
+                
+            end
+        end
+    end
+end
 function func.Attack()
     local lookvector = Camera.CFrame.LookVector
     local rayinfo = Ray.newInfo()
@@ -81,7 +106,7 @@ function func.Attack()
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
    -- rayinfo.IgnoreEntities = true
-    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*4,rayinfo)
+    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
     if #raystuff >= 1 then
         --print("hit")
         local newpos = {}
@@ -211,7 +236,7 @@ function controls.Render.OutLine()
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
    -- rayinfo.IgnoreEntities = true
-    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*4,rayinfo)
+    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
     if #raystuff >= 1 then
         local v= raystuff[1]
         if  type(v) ~= "table" then
