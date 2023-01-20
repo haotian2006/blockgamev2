@@ -17,6 +17,9 @@ function ray.newInfo()
         Debug = false,
     }
 end
+function ray.CalculateNormal(dir)
+    
+end
 function ray.Cast(Origin: Vector3, Direction: Vector3,rayinfo)  
     rayinfo = rayinfo or ray.newInfo()
     local newlist = {}
