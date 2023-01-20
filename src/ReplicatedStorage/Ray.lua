@@ -49,7 +49,7 @@ function ray.Cast(Origin: Vector3, Direction: Vector3,rayinfo)
         end
         local cx,cz = qf.GetChunkfromReal(x,y,z,true)
         if not rayinfo.IgnoreBlocks then
-            local collided,block,blockposition = collisonH.AABBvsTerrain(Vector3.new(x,y,z),Vector3.new(.1,.1,.1))
+            local collided,block,blockposition,sides = collisonH.AABBvsTerrain(Vector3.new(x,y,z),Vector3.new(.1,.1,.1))
            -- local block,strcoord = Data.GetBlock(x,y,z)
             if collided and block and block ~= "Null"  then
                 if not hitname[blockposition] and not rayinfo.BlackList[blockposition] then

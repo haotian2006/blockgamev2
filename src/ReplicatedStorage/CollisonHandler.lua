@@ -142,7 +142,15 @@ function collisions.AABBcheck(b1,b2,s1,s2,isbp)
         b1.Z+s1.Z < b2.Z , 
         b1.Z>b2.Z+s2.Z    
     }
-    return not (table.find(compare,true))                                      
+    local compare2 = {
+        b1.X+s1.X > b2.X,
+        b1.X<b2.X+s2.X ,
+        b1.Y+s1.Y > b2.Y , 
+        b1.Y<b2.Y+s2.Y ,                                       
+        b1.Z+s1.Z > b2.Z , 
+        b1.Z<b2.Z+s2.Z    
+    }
+    return not (table.find(compare,true)),compare2                                      
 end
 local a = workspace.HitboxL
 function  HitboxL(x,y,z)  
@@ -195,8 +203,9 @@ function collisions.AABBvsTerrain(position,hitbox)
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
                     bx,by,bz = a.X,a.Y,a.Z
                    local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
-                   if  collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize) then 
-                    return true,block,qf.combinetostring(bx,by,bz)
+                   local found,sides = collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize)
+                   if found  then 
+                    return true,block,qf.combinetostring(bx,by,bz),sides
                     end  
                 end
             end 
