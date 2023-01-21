@@ -28,6 +28,7 @@ function Curve:Init()
     event = runservice.Heartbeat:Connect(function(deltaTime)
         local velocity = xzdir
         if yammount >= self.Direaction.Y then
+           -- print(yrate,yammount)
             self.entity.NotSaved.NoFall = false
         else
             self.entity.NotSaved.NoFall = true

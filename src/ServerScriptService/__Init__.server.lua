@@ -28,13 +28,12 @@ EntityBridge:Connect(function(plr,P,odata)
     end
 end)
 local ublock = bridge.CreateBridge("UpdateBlocks")
-bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:string)
-    block = Vector3.new(unpack(block:split(',')))
+bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:Vector3)
     data.RemoveBlock(block.X,block.Y,block.Z)
     ublock:FireAll({Remove = {block}})
 end)
 bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
-    local coords = Vector3.new(unpack(coords1:split(',')))
+    local coords = coords1
     for i,v in data.EntitiesinR(coords.X,coords.Y,coords.Z,1) or {} do
         local a = CollisionHandler.AABBcheck(v.Position,Vector3.new(coords.X,coords.Y,coords.Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
         if a then
@@ -42,12 +41,12 @@ bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
         end
     end
     data.InsertBlock(coords.X,coords.Y,coords.Z,'Type|s%Cubic:Dirt')
-    ublock:FireAll({Add = {[coords1] = 'Type|s%Cubic:Dirt'}})
+    ublock:FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = 'Type|s%Cubic:Dirt'}})
 end)
 game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvector)
     local entity = data.LoadedEntities[id]
     --entity:AddVelocity("KnockBack",Vector3.new(lookvector.X,.5,lookvector.Z)*100)
-    local velocity = Vector3.new(lookvector.X*2,1,lookvector.Z*2)
+    local velocity = Vector3.new(lookvector.X*2,.6,lookvector.Z*2)
     if entity.ClientControll then
         local player = (function() for i,v in game.Players:GetPlayers() do if tostring(v.UserId) == entity.ClientControll then return v end end end)()
         if player then

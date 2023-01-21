@@ -136,6 +136,7 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
     for index:string,data in blockstocheck do
         if not data then continue end
         i+=1
+        
         local x,y,z = unpack(index:split(','))
         currentblockid = qf.convertchgridtoreal(cx,cz,x,y,z,true)
         local cann,newstr = can(currentblockid.X,currentblockid.Y,currentblockid.Z)

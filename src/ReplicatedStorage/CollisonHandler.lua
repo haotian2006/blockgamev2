@@ -134,23 +134,20 @@ function collisions.AABBcheck(b1,b2,s1,s2,isbp)
         b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
     end
     b2 = vector3(b2.X-s2.X/2,b2.Y-s2.Y/2,b2.Z-s2.Z/2)
-    local compare = {
-        b1.X+s1.X < b2.X,
-        b1.X>b2.X+s2.X ,
-        b1.Y+s1.Y < b2.Y , 
-        b1.Y>b2.Y+s2.Y ,                                       
-        b1.Z+s1.Z < b2.Z , 
-        b1.Z>b2.Z+s2.Z    
-    }
-    local compare2 = {
-        b1.X+s1.X > b2.X,
-        b1.X<b2.X+s2.X ,
-        b1.Y+s1.Y > b2.Y , 
-        b1.Y<b2.Y+s2.Y ,                                       
-        b1.Z+s1.Z > b2.Z , 
-        b1.Z<b2.Z+s2.Z    
-    }
-    return not (table.find(compare,true)),compare2                                      
+    -- local compare = {
+    --     b1.X+s1.X < b2.X,
+    --     b1.X>b2.X+s2.X ,
+    --     b1.Y+s1.Y < b2.Y , 
+    --     b1.Y>b2.Y+s2.Y ,                                       
+    --     b1.Z+s1.Z < b2.Z , 
+    --     b1.Z>b2.Z+s2.Z    
+    -- }
+    return not (b1.X+s1.X < b2.X or 
+    b1.X>b2.X+s2.X or
+    b1.Y+s1.Y < b2.Y or 
+    b1.Y>b2.Y+s2.Y or                                     
+    b1.Z+s1.Z < b2.Z or 
+    b1.Z>b2.Z+s2.Z    )                             
 end
 local a = workspace.HitboxL
 function  HitboxL(x,y,z)  
@@ -158,7 +155,23 @@ function  HitboxL(x,y,z)
 end
 function b(x,y,z) local a = workspace.IDK a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true end 
 function c(x,y,z) local a = workspace.IDK:Clone() a.Parent = workspace a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true game:GetService("Debris"):AddItem(a,1) end 
+function  collisions.CalculateNormal(p1:Vector3,s1,p2,s2)
+    local d:Vector3 = p1-p2
+    local dx = d:Dot(vector3(1,0,0))
+    if dx > s2.X/2 then dx = s2.X/2 end
+    if dx < s2.X/2 then dx = -s2.X/2 end
 
+    local dy = d:Dot(vector3(0,1,0))
+    if dy > s2.Y/2 then dy = s2.Y/2 end
+    if dy < s2.Y/2 then dy = -s2.Y/2 end
+
+    local dz = d:Dot(vector3(0,0,1))
+    if dz > s2.Z/2 then dz = s2.Z/2 end
+    if dz < s2.Z/2 then dz = -s2.Z/2 end
+    local contactpoint:Vector3 = p2 + dx*vector3(1,0,0)+dy*vector3(0,1,0)+dz*(vector3(0,0,1))
+    local normal = (p1-contactpoint).Unit
+    return vector3(round(normal.X),round(normal.Y),round(normal.Z))
+end
 function collisions.shouldjump(entity,bp,bs)
     local pos = entity.Position
     local hitbox = entity.HitBox
@@ -203,9 +216,9 @@ function collisions.AABBvsTerrain(position,hitbox)
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
                     bx,by,bz = a.X,a.Y,a.Z
                    local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
-                   local found,sides = collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize)
+                   local found = collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize)
                    if found  then 
-                    return true,block,qf.combinetostring(bx,by,bz),sides
+                    return true,block,qf.combinetostring(bx,by,bz)
                     end  
                 end
             end 
@@ -408,7 +421,7 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
         if Entry.Z > Entry.Y then
             normal.X = 0
             normal.Y = 0
-            normal.Z = -math.sign(velocity.X)
+            normal.Z = -math.sign(velocity.Z)
         else
             normal.X = 0
             normal.Y = -math.sign(velocity.Y)

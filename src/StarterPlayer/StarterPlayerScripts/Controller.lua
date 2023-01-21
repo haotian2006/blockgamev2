@@ -81,20 +81,25 @@ function func.Interact()
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
-    rayinfo.Debug = false
+    rayinfo.GetNormal = true
    -- rayinfo.IgnoreEntities = true
     local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
-    if #raystuff >= 1 then
+    if #raystuff.Objects >= 1 then
         --print("hit")
         local newpos = {}
-        for i,v:string|table in raystuff do
-            if  type(v) ~= "table" then
-                local v = v:split(',')
-                v[2] += 1
-                placeBlockEvent:Fire(v[1]..','..v[2]..','..v[3])
-                print("a")
-            elseif type(v) == "table" then
-                
+        for i,v:string|table in raystuff.Objects do
+            --print(v.Normal)
+            if  v.Type == "Block" then
+                local coords = v.BlockPosition+v.Normal
+                for i,v in data.EntitiesinR(coords.X,coords.Y,coords.Z,1) or {} do
+                    local a = CollisionHandler.AABBcheck(v.Position,Vector3.new(coords.X,coords.Y,coords.Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
+                    if a then
+                        return
+                    end
+                end
+                placeBlockEvent:Fire(coords)
+            elseif v.Type == "Entity"  then
+            
             end
         end
     end
@@ -107,17 +112,15 @@ function func.Attack()
     rayinfo.Debug = false
    -- rayinfo.IgnoreEntities = true
     local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
-    if #raystuff >= 1 then
+    if #raystuff.Objects >= 1 then
         --print("hit")
         local newpos = {}
-        for i,v:Vector3 in raystuff do
-            if  type(v) ~= "table" then
-                destroyblockEvent:Fire(v)
-                local a = Vector3.new(unpack(v:split(',')))
-                table.insert(newpos,a)
-            elseif type(v) == "table" then
-                debugger.HighLightEntity(v[1],1)
-                game.ReplicatedStorage.Events.KB:FireServer(v[1],Camera.CFrame.LookVector)
+        for i,v in raystuff.Objects do
+            if  v.Type == "Block" then
+                destroyblockEvent:Fire(v.BlockPosition)
+            elseif v.Type == "Entity"  then
+                debugger.HighLightEntity(v.EntityId,1)
+                game.ReplicatedStorage.Events.KB:FireServer(v.EntityId,Camera.CFrame.LookVector)
             end
         end
        -- debugger.HighLightMutiBlocks(newpos)
@@ -237,10 +240,11 @@ function controls.Render.OutLine()
     rayinfo.Debug = false
    -- rayinfo.IgnoreEntities = true
     local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
-    if #raystuff >= 1 then
-        local v= raystuff[1]
-        if  type(v) ~= "table" then
-            local a = Vector3.new(unpack(v:split(',')))
+    if #raystuff.Objects >= 1 then
+        local v = raystuff.Objects[1]
+           -- print(v.Normal,lookvector)
+            if  v.Type == "Block" then
+                local a = v.BlockPosition
             outline.Position = a*3
             outline.SelectionBox.Transparency = 0
         else
