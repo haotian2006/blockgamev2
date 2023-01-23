@@ -91,8 +91,8 @@ function func.Interact()
             --print(v.Normal)
             if  v.Type == "Block" then
                 local coords = v.BlockPosition+v.Normal
-                for i,v in data.EntitiesinR(coords.X,coords.Y,coords.Z,1) or {} do
-                    local a = CollisionHandler.AABBcheck(v.Position,Vector3.new(coords.X,coords.Y,coords.Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
+                for i,v in data.EntitiesinR(coords.X,coords.Y,coords.Z,1.5) or {} do
+                    local a = CollisionHandler.AABBcheck(v.Position+v:GetVelocity()*task.wait(),Vector3.new(coords.X,coords.Y,coords.Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
                     if a then
                         return
                     end
@@ -238,6 +238,7 @@ function controls.Render.OutLine()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
+    --rayinfo.RaySize = Vector3.new(.01,.01,.01)
    -- rayinfo.IgnoreEntities = true
     local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
     if #raystuff.Objects >= 1 then

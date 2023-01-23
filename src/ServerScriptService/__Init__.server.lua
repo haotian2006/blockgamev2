@@ -17,7 +17,7 @@ game.Players.PlayerAdded:Connect(function(player)
         task.wait()
     end
 end)
-local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 60, 10)})
+local entity = entityahndler.Create("Npc",{Name = "TotalKitKatBar",Id = "Npc1",Position = Vector3.new(-7.2, 60, 10)})
 data.AddEntity(entity)
 local domoverbridge = bridge.CreateBridge("DoMover")
 EntityBridge:Connect(function(plr,P,odata)
@@ -35,13 +35,15 @@ end)
 bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
     local coords = coords1
     for i,v in data.EntitiesinR(coords.X,coords.Y,coords.Z,1) or {} do
-        local a = CollisionHandler.AABBcheck(v.Position,Vector3.new(coords.X,coords.Y,coords.Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
+        local a = CollisionHandler.AABBcheck(v.Position+v:GetVelocity()*task.wait(),Vector3.new(coords.X,coords.Y,coords.Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
         if a then
             return
         end
     end
-    data.InsertBlock(coords.X,coords.Y,coords.Z,'Type|s%Cubic:Dirt')
-    ublock:FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = 'Type|s%Cubic:Dirt'}})
+    if not data.GetBlock(coords.X,coords.Y,coords.Z) then 
+        data.InsertBlock(coords.X,coords.Y,coords.Z,'Type|s%Cubic:Dirt')
+        ublock:FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = 'Type|s%Cubic:Dirt'}})
+    end
 end)
 game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvector)
     local entity = data.LoadedEntities[id]

@@ -162,7 +162,10 @@ function entity:TurnTo(Position)
     data.Neck = CFrame.new()
     data.MainWeld = data.MainWeld or CFrame.new()
     Position = Vector3.new(Position.X,self.Position.Y,Position.Z)
-    data.MainWeld = CFrame.new()*CFrame.new(self.Position,Position).Rotation
+    local new = CFrame.new()*CFrame.new(self.Position,Position).Rotation
+    local rx,ry,rz = new:ToOrientation()
+    if rx ~= rx or ry~=ry or rz~= rz then return end
+    data.MainWeld = new
 end
 function entity:LookAt(Position)
     self:TurnTo(Position)

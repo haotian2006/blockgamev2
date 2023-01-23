@@ -3,28 +3,51 @@ local self = {}
 local f,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local f,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 function self.GridIsInChunk(cx,cz,x,y,z)
-    local chunkS = settings.ChunkSize
-    local dx,dz = math.sign(cx),math.sign(cz)
-    dx = dx == 0 and 1 or dx dz = dz == 0 and 1 or dz
-    local sx,ex = 0,chunkS.X-1 if dx == -1 then sx = -1 ex = -chunkS.X cx+=1 end
-    local sz,ez = 0,chunkS.X-1 if dz == -1 then sz = -1 ez = -chunkS.X cz+=1 end
-    sx,ex = sx+cx*chunkS.X,ex+cx*chunkS.X
-    sz,ez = sz+cz*chunkS.X,ez+cz*chunkS.X
-    local flagx,flagz 
-    if dx == -1 then
-        flagx = sx>=x and ex<= x
-    else
-        flagx = ex >= x and sx <= x
-    end
-    if dz == -1 then
-        flagz = sz>=z and ez<= z
-    else
-        flagz = ez >= z and sz <= z
-    end
+    local ccx,ccz = tonumber(math.floor((x+.5)/settings.ChunkSize.X)),tonumber(math.floor((z+.5)/settings.ChunkSize.X))
+    return tonumber(cx) == ccx and tonumber(cz) == ccz
+    -- local chunkS = settings.ChunkSize
+    -- local dx,dz = math.sign(cx),math.sign(cz)
+    -- dx = dx == 0 and 1 or dx dz = dz == 0 and 1 or dz
+    -- local sx,ex = 0,chunkS.X-1 if dx == -1 then sx = -1 ex = -chunkS.X cx+=1 end
+    -- local sz,ez = 0,chunkS.X-1 if dz == -1 then sz = -1 ez = -chunkS.X cz+=1 end
+    -- sx,ex = sx+cx*chunkS.X,ex+cx*chunkS.X
+    -- sz,ez = sz+cz*chunkS.X,ez+cz*chunkS.X
+    -- local flagx,flagz 
+    -- if dx == -1 then
+    --     flagx = sx>=x and ex<= x
+    -- else
+    --     flagx = ex >= x and sx <= x
+    -- end
+    -- if dz == -1 then
+    --     flagz = sz>=z and ez<= z
+    -- else
+    --     flagz = ez >= z and sz <= z
+    -- end
 
-    return flagx and flagz
+    -- return flagx and flagz
+end
+local function IsAnBorder(lx,ly,lz,chsiz)
+    local walls,ammount = {},0
+    if lx+1 >= chsiz.X then
+        walls["x1"] = true
+        ammount+=1
+    end
+    if lx-1 <= -1 then
+        walls["x-1"] = true
+        ammount+=1
+    end
+    if lz+1 >= chsiz.X  then
+        walls["z1"] = true
+        ammount+=1
+    end
+    if lz-1 <= -1 then
+        walls["z-1"] = true
+        ammount+=1
+    end
+    return walls,ammount
 end
 function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 = +x 3 = -x 4 = +z 5 = -z
+    -- local delay = require(game.ReplicatedStorage.DelayHandler).new("a")
     if type(chunks) == "string" then
         chunks = game.HttpService:JSONDecode(chunks)
     end
@@ -44,49 +67,27 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
         qf.ADDSETTINGS(libs)
         settings = settings or libs.GameSettings
     end
-    local siz = settings.GridSize
-    local acas = 0
+    local chsiz:Vector2 = settings.ChunkSize
     local alreadychecked = {{},{},{},{},{}}
+    local once = false
     local function checkblockinch(wt,x,y,z)
-        if wt ==1 and not self.GridIsInChunk(cx,cz,x,y,z)  then
-            return false
+       -- if not once then once = true print(x,y,z) end 
+        -- if wt ==1 and not self.GridIsInChunk(cx,cz,x,y,z)  then
+        --     return false
+        -- end
+        local combined = x..','..y..','..z
+        if alreadychecked[wt][combined] then
+            return alreadychecked[wt][combined]
         end
-        do
-          --  return false
-        end
-        if alreadychecked[wt][x..','..y..','..z] then
-            return alreadychecked[wt][x..','..y..','..z]
-        end
-        acas+=1 
-        local nn = x%settings.ChunkSize.X..','..y..','..z%settings.ChunkSize.X
-
+        --local nn = x%settings.ChunkSize.X..','..y..','..z%settings.ChunkSize.X
+        local nn = combined
         local a = chunks[wt][nn]
-        alreadychecked[wt][x..','..y..','..z] = a
+        alreadychecked[wt][combined] = a
         return a
-    end
-    local function IsAnBorder(x,y,z)
-        local walls,ammount = {},0
-        if not self.GridIsInChunk(cx,cz,x+1,y,z)then
-            walls["x1"] = true
-            ammount+=1
-        end
-        if not self.GridIsInChunk(cx,cz,x-1,y,z)then
-            walls["x-1"] = true
-            ammount+=1
-        end
-        if not self.GridIsInChunk(cx,cz,x,y,z+1)then
-            walls["z1"] = true
-            ammount+=1
-        end
-        if not self.GridIsInChunk(cx,cz,x,y,z-1)then
-            walls["z-1"] = true
-            ammount+=1
-        end
-        return walls,ammount
     end
     --EX: 'Name|s%Cubic:dirt/Orientation|t%0,0,0/Position|0,0,0'
     local function checksurroundingblocks(x,y,z)
-        local walls,ammount = IsAnBorder(x,y,z)
+        local walls,ammount = IsAnBorder(x,y,z,chsiz)
         local check = 0
         local sides = {}
         --/AirBlocks|t%
@@ -96,12 +97,12 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
             str..=w
             a..=w
         end
-        if (not walls["x1"] and checkblockinch(1,x+1,y,z)) or (walls["x1"] and checkblockinch(2,x+1,y,z))  then
+        if (not walls["x1"] and checkblockinch(1,x+1,y,z)) or (walls["x1"] and checkblockinch(2,0,y,z))  then
             check +=1
             sides['x1'] = true--right
             addtorstr(1)
         end 
-        if (not walls["x-1"] and checkblockinch(1,x-1,y,z)) or (walls["x-1"] and checkblockinch(3,x-1,y,z))  then
+        if (not walls["x-1"] and checkblockinch(1,x-1,y,z)) or (walls["x-1"] and checkblockinch(3,7,y,z))  then
             check +=1
             sides['x-1'] = true--left
             addtorstr(2)
@@ -116,21 +117,17 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
             sides['y-1'] = true--down 
             addtorstr(4)
         end
-        if (not walls["z1"] and checkblockinch(1,x,y,z+1)) or (walls["z1"] and checkblockinch(4,x,y,z+1))  then
+        if (not walls["z1"] and checkblockinch(1,x,y,z+1)) or (walls["z1"] and checkblockinch(4,x,y,0))  then
             check +=1
             sides['z1'] = true--back
             addtorstr(5)
         end
-        if (not walls["z-1"] and checkblockinch(1,x,y,z-1)) or (walls["z-1"] and checkblockinch(5,x,y,z-1))  then
+        if (not walls["z-1"] and checkblockinch(1,x,y,z-1)) or (walls["z-1"] and checkblockinch(5,x,y,7))  then
             check +=1
             sides['z-1'] = true--front
             addtorstr(6)
-        end
+         end
         return check == 6,'/AirBlocks|t%'..a..','..str
-    end
-    local function can(x,y,z)
-        local a,b = checksurroundingblocks(x,y,z)
-        return  a,b
     end
     local i = 0
     for index:string,data in blockstocheck do
@@ -138,10 +135,12 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
         i+=1
         
         local x,y,z = unpack(index:split(','))
-        currentblockid = qf.convertchgridtoreal(cx,cz,x,y,z,true)
-        local cann,newstr = can(currentblockid.X,currentblockid.Y,currentblockid.Z)
+        -- currentblockid = qf.convertchgridtoreal(cx,cz,x,y,z,true)
+        local cann,newstr = checksurroundingblocks(x,y,z)
         new[index] = (not (cann)and data..newstr) or nil
     end
+    -- delay:update("1")
+    -- print(delay:gettime())
     return new
 end
 return self 

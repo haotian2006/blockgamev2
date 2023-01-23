@@ -21,7 +21,7 @@ return {
             local interval = data.interval or 3
             local chance = math.random(1,interval)
 		    if chance ~= 1 then return end
-            if not entity:BehaviorCanRun("behavior.GoToPlayer",data,true,true) then return end 
+            --if not entity:BehaviorCanRun("behavior.GoToPlayer",data,true,true) then return end 
             local range = data.MaxRange or 10
             local pos = entity.Position
             entity.NotSaved["behaviors"]["behavior.GoToPlayer"] = true
@@ -33,7 +33,28 @@ return {
             end
             entity.NotSaved["behaviors"]["behavior.GoToPlayer"] = false
         end,
-        bhtype = {"Movement","Turning"},
+        bhtype = {"Movement"},
+    },
+    ['behavior.AttackPlayer'] = {
+        func = function(entity,data)
+            local interval = data.interval or 3
+            local chance = math.random(1,interval)
+		    if chance ~= 1 then return end
+            if not entity:BehaviorCanRun("behavior.AttackPlayer",data,true,true) then return end 
+            local range = data.MaxRange or 3
+            local pos = entity.Position
+            entity.NotSaved["behaviors"]["behavior.AttackPlayer"] = true
+            for i,v in entity:GetData().EntitiesinR(pos.X,pos.Y,pos.Z,range) do
+                if v.Type == "Player" then
+                    local dir = (v.Position-entity.Position).Unit
+                    local velocity = Vector3.new(dir.X*2,.6,dir.Z*2)
+                    require(game.ReplicatedStorage.BridgeNet).CreateBridge("DoMover"):FireTo(game.Players:GetPlayerByUserId(tonumber(i)),i,"Curve",velocity,.2)
+                    break
+                end
+            end
+            entity.NotSaved["behaviors"]["behavior.AttackPlayer"] = false
+        end,
+        bhtype = {""},
     },
     ['behavior.LookAtPlayer'] = {
         func = function(entity,data)

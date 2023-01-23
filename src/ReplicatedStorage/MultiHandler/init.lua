@@ -11,6 +11,8 @@ local libarystosend = {
 	game.ReplicatedStorage.compressor, 
 
 }
+local libarydata = {}
+for i,v in libarystosend do libarydata[v.Name] = require(v) end 
 local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",300,libarystosend)
 local LargeWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"LargeHandler",10,libarystosend)
 -- local DWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"DHandler",100,{
@@ -91,18 +93,19 @@ function self.HideBlocks(cx,cz,chunks,times)
 	local newdata = {}
 	local thread = coroutine.running()
 	local ammountdone = 0 
-	local sterilise = game:GetService("HttpService"):JSONEncode(chunks)
+	--local sterilise = game:GetService("HttpService"):JSONEncode(chunks)
 	for i,v in ipairs(self.divide(chunks[1],times)) do
 		task.spawn(function()
-			if i%5 ==0 then 
-				task.wait()
-			   end
+			local hideblocks = require(game.ReplicatedStorage.RenderStuff.Culling)
+			task.desynchronize()
 		--	local cdata = self.LargeSend("HideBlocks",{3},2,cx,cz,v,false)
-			local cdata = self.DoSmt("HideBlocks",cx,cz,sterilise,v)
+			local cdata = hideblocks.HideBlocks(cx,cz,chunks,v,libarydata)
+			--local cdata = self.DoSmt("HideBlocks",cx,cz,sterilise,v)
 			--local cdata = self.DDoSmt("HideBlocks",cx,cz,true,true)
 			for e,c in cdata do
 				newdata[tostring(e)] = c
 			end
+			task.synchronize()
 			ammountdone +=1
 			if ammountdone == times then
 				coroutine.resume(thread)

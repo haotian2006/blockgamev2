@@ -16,6 +16,7 @@ function ray.newInfo()
         BlackList = {},
         GetNormal = false,
         Debug = false,
+        RaySize = Vector3.new(.1,.1,.1)
     }
 end
 function ray.newData()
@@ -58,16 +59,17 @@ function ray.Cast(Origin: Vector3, Direction: Vector3,rayinfo)
         end
         local cx,cz = qf.GetChunkfromReal(x,y,z,true)
         if not rayinfo.IgnoreBlocks then
-            local collided,block,blockposition = collisonH.AABBvsTerrain(Vector3.new(x,y,z),Vector3.new(.02,.02,.02))
+            local collided,block,blockposition = collisonH.AABBvsTerrain(Vector3.new(x,y,z),rayinfo.RaySize)
            -- local block,strcoord = Data.GetBlock(x,y,z)
             if collided and block and block ~= "Null"  then
                 if not hitname[blockposition] and not rayinfo.BlackList[blockposition] then
                     local _,normal = nil
-                    if rayinfo.GetNormal then
-                         _,normal = collisonH.SweaptAABB(Vector3.new(x,y,z)-Direction.Unit*2,Vector3.new(unpack(blockposition:split(','))),Vector3.new(.02,.02,.02),Vector3.new(1,1,1),unit.Unit*2.2,1)
-                    end
-                    table.insert(raydata.Objects,{Type = "Block",BlockPosition = Vector3.new(unpack(blockposition:split(','))),Block = block,Normal = rayinfo.GetNormal and Vector3.new(normal.X,normal.Y,normal.Z),PointOfInt = Vector3.new(x,y,z)})
                     hitname[blockposition] = true
+                    if rayinfo.GetNormal then
+                         _,normal = collisonH.SweaptAABB(Vector3.new(x,y,z)-Direction.Unit*2,Vector3.new(unpack(blockposition:split(','))),Vector3.new(.01,.01,.01),Vector3.new(1,1,1),unit.Unit*5.2,1)
+                         if type(normal) == "table" and normal.X then elseif rayinfo.BreakOnFirstHit then return raydata else continue end 
+                    end
+                    table.insert(raydata.Objects,{Type = "Block",BlockPosition = Vector3.new(unpack(blockposition:split(','))),Block = block,Normal = rayinfo.GetNormal and Vector3.new(normal.X,normal.Y,normal.Z) or Vector3.one,PointOfInt = Vector3.new(x,y,z)})
                     if rayinfo.BreakOnFirstHit then
                         return raydata
                     end

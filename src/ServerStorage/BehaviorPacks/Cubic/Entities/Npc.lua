@@ -19,13 +19,18 @@ local entity = {
         --     interval = 120,  
         -- },
         ['behavior.LookAtPlayer'] ={
-            priority = 10,
+            priority = 20,
             MaxRange = 10,
         },
         -- ['behavior.GoToPlayer'] = {
-        --     MaxRange = 10,
+        --     MaxRange = 20,
         --     priority = 2,
-        --     interval = 120,
+        --     interval = 1,
+        -- },
+        -- ['behavior.AttackPlayer'] = {
+        --     MaxRange = 3,
+        --     priority = 2,
+        --     --interval = 120,
         -- },
     },
     component_groups = {

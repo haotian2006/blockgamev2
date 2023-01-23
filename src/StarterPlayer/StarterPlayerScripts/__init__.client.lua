@@ -30,6 +30,33 @@ local function createEye(offset,hitbox)
     weld.C0 = offset and CFrame.new(hitbox.Position + Vector3.new(0,offset/2,0)*settings.GridSize) or CFrame.new(hitbox.Position)
     return eye
 end
+local function changetext(nameLabel,STUDS_OFFSET_Y)
+    nameLabel.TextScaled = true
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    
+    local nameDisplayBillboard = nameLabel.Parent
+    
+    local textScaleSize = Vector2.new(.5, 1)
+        local amountOfCharacter = string.len(nameLabel.Text)
+        local _, numberOfLines = string.gsub(nameLabel.Text, "\n", "\n")
+    
+        if amountOfCharacter == 0 then
+            numberOfLines = 0
+        else
+            -- Adding the minimum of one line		
+            numberOfLines += 1
+        end
+    
+        nameDisplayBillboard.Size = UDim2.new(
+            amountOfCharacter * textScaleSize.X,
+            0,
+            numberOfLines * textScaleSize.Y,
+            0
+        )
+    
+        -- Putting on studs offset:
+        nameDisplayBillboard.StudsOffset = Vector3.new(0, STUDS_OFFSET_Y , 0)
+    end
 local function CreateModel(Data,ParentModel)
     local model = resource.GetEntityModelFromData(Data)
     if model then
@@ -101,6 +128,7 @@ EntityBridge:Connect(function(entitys)
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
             datahandler.LoadedEntities[i]:UpdateEntity(v)
             tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.1),{CFrame = CFrame.new(v.Position*3)}):Play()
+            changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)
             updateorientation(e,v or {},true)
         elseif not e then
             --datahandler.LoadedEntities[i] = v
@@ -122,6 +150,10 @@ EntityBridge:Connect(function(entitys)
             hitbox.Name = "HitBox"
             hitbox.CFrame = CFrame.new(v.Position*3)
             model.Name = i
+            local nametag = game.ReplicatedStorage.Assets.Nametag:Clone()
+            nametag.Parent = hitbox
+            nametag.Text.Text = v.Name or v.Id
+            changetext(nametag.Text,hitbox.Size.Y/2+1.5)
             updateorientation(model,v["OrientationData"] or {})
             if i == tostring(game.Players.LocalPlayer.UserId) then
                 -- datahandler.GLocalPlayer.Position = v.Position
@@ -188,8 +220,20 @@ local function GetChunks(cx,cz)
     queued[cx..','..cz] = true
     game.ReplicatedStorage.Events.GetChunk:FireServer(cx,cz)
 end
+local chtoup = {}
+task.spawn(function()
+    while task.wait(.09) do
+        for i,v in chtoup do
+            chtoup[i] = nil
+            task.spawn(function()
+                local cx,cz = v:GetNTuple() 
+                render.UpdateChunk(cx,cz,true)
+                
+            end)
+        end
+    end
+end)
 bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
-    local chtoup = {}
    -- local a = require(game.ReplicatedStorage.DelayHandler).new("test")
    local function addtoup(x,y,z)
     local cx,cy,x,y,z = qf.GetChunkAndLocal(x,y,z)
@@ -219,12 +263,13 @@ bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
         datahandler.InsertBlock(coords.X,coords.Y,coords.Z,v)
         addtoup(coords.X,coords.Y,coords.Z)
     end
-    for i,v in chtoup do
-        task.spawn(function()
-            local cx,cz = v:GetNTuple() 
-            render.UpdateChunk(cx,cz,true)
-        end)
-    end
+    -- for i,v in chtoup do
+    --     task.spawn(function()
+    --         local cx,cz = v:GetNTuple() 
+    --         render.UpdateChunk(cx,cz,true)
+            
+    --     end)
+    -- end
     --a:update("A")
    -- a:gettime()
 end)
@@ -282,7 +327,7 @@ local oldchunk =""
     srender(char.PrimaryPart)
 	print("done")
     print(require(game.ReplicatedStorage.DelayHandler).PrintAverageTime("Greedy"))
-while char and false do
+while char and true do
     local currentChunk,c = qf.GetChunkfromReal(qf.cv3type("tuple",char.PrimaryPart.Position)) 
     currentChunk = currentChunk.."x"..c
     --shouldprint(currentChunk ~= oldchunk)
