@@ -19,7 +19,8 @@ controls.pc = {
     Jump = {'space',"Jump"},
     Attack = {'mousebutton1',"Attack"},
     Interact = {'mousebutton2',"Interact"},
-    Crouch = {"leftshift","Crouch"}
+    Crouch = {"leftshift","Crouch"},
+    HitBoxs = {'f3','HitBoxs'}
 }
 controls.KeysPressed = {}
 controls.Render = {}
@@ -47,6 +48,14 @@ local function checkempty(tab)
     return not (tab and next(tab) ~= nil)
 end
 local ExtraJump = 0
+function func.HitBoxs()
+    data.HitBoxEnabled = not data.HitBoxEnabled 
+    for i,v in game.Workspace.Entities:GetDescendants() do
+        if v:IsA("SelectionBox") then
+            v.Visible = not not data.HitBoxEnabled
+        end
+    end
+end
 function func.HandleJump()
     if  GPlayer.Jumping or data.LocalPlayer["CanNotJump"] then return end
     local e 

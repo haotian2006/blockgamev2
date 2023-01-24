@@ -29,9 +29,9 @@ function Curve:Init()
         local velocity = xzdir
         if yammount >= self.Direaction.Y then
            -- print(yrate,yammount)
-            self.entity.NotSaved.NoFall = false
+          --  self.entity.NotSaved.NoFall = false
         else
-            self.entity.NotSaved.NoFall = true
+           -- self.entity.NotSaved.NoFall = true
             velocity = Vector3.new(xzdir.X,yrate,xzdir.Z)
             yammount += yrate*deltaTime 
         end

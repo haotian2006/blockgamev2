@@ -7,6 +7,7 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
+local movers = require(game.ReplicatedStorage.EntityMovers)
 local function interpolate(startVector3, finishVector3, alpha)
     local function currentState(start, finish, alpha)
         return start + (finish - start)*alpha
@@ -192,8 +193,12 @@ function entity:LookAt(Position)
     -- local x,y,z = CFrame.new(self.Position,Position):ToEulerAnglesXYZ()
     -- data.Neck = CFrame.Angles(0,y,0)
 end
+function entity:KnockBack(force,time)
+    self.NotSaved.Tick = 0
+    movers.Curve.new(self,force,time)
+end
 function entity:MoveTo(x,y,z)
-    local new = require(game.ReplicatedStorage.EntityMovers.MoveTo).new(self,x,y,z,true)
+    local new = require(game.ReplicatedStorage.EntityMovers).MoveTo.new(self,x,y,z,true)
     new:Init()
     -- local goal = Vector3.new(x,y,z)
     -- local currentnumber = self.NotSaved["Moving"] and self.NotSaved["Moving"]+1  or 0

@@ -18,7 +18,7 @@ local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 resource:Init()
 local runservicer = game:GetService("RunService")
-local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent) sb.Visible = true sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
+local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent) sb.Visible = datahandler.HitBoxEnabled sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
 local function createEye(offset,hitbox)
     local eye = Instance.new("Part",hitbox.Parent)
     eye.Size = Vector3.new(hitbox.Size.X,0,hitbox.Size.Z)

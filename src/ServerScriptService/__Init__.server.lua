@@ -74,7 +74,8 @@ game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvecto
         end
     else
         --entity:AddBodyVelocity("Kb",Vector3.new(lookvector.X*2,1,lookvector.Z*2))
-        require(game.ReplicatedStorage.EntityMovers.Curve).new(entity,velocity,.2)
+        entity:KnockBack(velocity,.2)
+        --require(game.ReplicatedStorage.EntityMovers.Curve).new(entity,velocity,.2)
     end
 
 end)
