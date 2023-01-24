@@ -244,11 +244,11 @@ function entity:Gravity(dt)
     local cx,cz = entity:GetQf().GetChunkfromReal(entity.Position.X,entity.Position.Y,entity.Position.Z,true)
     if not entity:GetData().GetChunk(cx,cz) or not entity["DoGravity"]  then return end 
     entity.Data.FallTicks = entity.Data.FallTicks or 0
-    local max = entity.FallRate or 150
-    local fallrate =(((0.99^entity.Data.FallTicks)-1)*max)/1.4
+    local max = entity.FallRate or 120
+    local fallrate =(((0.99^entity.Data.FallTicks)-1)*max)/2
     entity.NotSaved.Tick = entity.NotSaved.Tick or 0 
     entity.NotSaved.Tick += dt
-    if entity.Data.Grounded  or entity.NotSaved.Jumping or entity.NotSaved.NoFall   then -- or not entity.CanFall
+    if entity.Data.Grounded  or entity.NotSaved.NoFall   then -- or not entity.CanFall
         entity.Velocity.Fall = Vector3.new(0,0,0) 
         entity.Data.IsFalling = false
         entity.Data.FallTicks = 0
@@ -264,7 +264,7 @@ function entity:Jump()
     if  self.NotSaved.Jumping or self["CanNotJump"] then return end
     local e 
     local jumpedamount =0 
-    local jumpheight = self.JumpHeight or 0 --1.25
+    local jumpheight = (self.JumpHeight+.25 or 0) --1.25
     local muti = 4.5
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
         local jump = jumpheight*muti
