@@ -12,7 +12,7 @@ local lacunarity = 0
 local persistence = 2
 local seed = 1234567
 
-local max_height = 60
+local max_height = 6--60
 local noiseScale2 = 60/2
 
 local maxwormlength = 400
@@ -78,6 +78,9 @@ function generation.Color(cx,cz,gtable):table
 end
 function generation.CreateWorms(cx,cz) -- cx and cy is the chunk it is being generated in
 	--note that all math.random functions will be changed so it will be procedural generated instead
+	do 
+		return {}
+	end
 	local ammountofcaves =  generation.proceduralNum(cx,cz,seed,6)
 	local worms = {}
 	if ammountofcaves == 2 then

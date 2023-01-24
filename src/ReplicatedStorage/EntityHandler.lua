@@ -44,18 +44,34 @@ function entity.new(data)
 end
 function entity:UpdateEntity(newdata)
     for i,v in self do
+        if i == "Entity" or i == "Tweens" then continue end 
         self[i] = newdata[i] 
     end
     for i,v in newdata do
         self[i] = v 
     end
 end
-entity.KeepSame = {"Position","NotSaved","Velocity"}
+entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching"}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
         self[i] = v 
     end
+end
+function entity:UpdateModelPosition()
+    local ParentModel = self.Entity
+    if not ParentModel then return end 
+    local model = ParentModel:FindFirstChild("EntityModel")
+    ParentModel.PrimaryPart.Size = Vector3.new(self.HitBox.X,self.HitBox.Y,self.HitBox.X)*3
+    local MiddleOffset = ParentModel.PrimaryPart.Size.Y-(ParentModel.PrimaryPart.Size.Y/2+model.PrimaryPart.Size.Y/2)
+    local pos =ParentModel.PrimaryPart.Position 
+    model.PrimaryPart.CFrame = CFrame.new(pos.X,pos.Y-MiddleOffset,pos.Z)
+    local weld = ParentModel.PrimaryPart:FindFirstChild("EntityModelWeld")
+    weld.C0 = CFrame.new(0,-MiddleOffset,0)
+    local eyeweld = ParentModel:FindFirstChild("Eye"):FindFirstChild("EyeWeld")
+    local offset = self.EyeLevel
+    if not eyeweld then return end 
+    eyeweld.C0 = offset and CFrame.new( Vector3.new(0,offset/2,0)*3) or CFrame.new()
 end
 function entity:GetVelocity():Vector3
     local x,y,z = 0,0,0
@@ -244,7 +260,7 @@ function entity:Gravity(dt)
     local cx,cz = entity:GetQf().GetChunkfromReal(entity.Position.X,entity.Position.Y,entity.Position.Z,true)
     if not entity:GetData().GetChunk(cx,cz) or not entity["DoGravity"]  then return end 
     entity.Data.FallTicks = entity.Data.FallTicks or 0
-    local max = entity.FallRate or 120
+    local max = entity.FallRate or 150
     local fallrate =(((0.99^entity.Data.FallTicks)-1)*max)/2
     entity.NotSaved.Tick = entity.NotSaved.Tick or 0 
     entity.NotSaved.Tick += dt
@@ -264,7 +280,7 @@ function entity:Jump()
     if  self.NotSaved.Jumping or self["CanNotJump"] then return end
     local e 
     local jumpedamount =0 
-    local jumpheight = (self.JumpHeight+.25 or 0) --1.25
+    local jumpheight = (self.JumpHeight+.5 or 0) --1.25
     local muti = 4.5
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
         local jump = jumpheight*muti
@@ -279,6 +295,7 @@ function entity:Jump()
          jumpedamount += jumpheight*(deltaTime)*muti
          jump = jumpheight*muti
          self.NotSaved.Jumping = true
+         self.NotSaved.Tick = 0
          else
             self.NotSaved.Jumping = false
              jump = 0

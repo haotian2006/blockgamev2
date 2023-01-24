@@ -11,17 +11,30 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 game.Players.PlayerAdded:Connect(function(player)
-    local entity = entityahndler.Create("Player",{Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 60, 10),ClientControll = tostring(player.UserId)})
+    local entity = entityahndler.Create("Player",{Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 6.6, 10),ClientControll = tostring(player.UserId)})
     data.AddEntity(entity)
     while true do
         task.wait()
     end
 end)
-local entity = entityahndler.Create("Npc",{Name = "TotalKitKatBar",Id = "Npc1",Position = Vector3.new(-7.2, 60, 10)})
+local entity = entityahndler.Create("Npc",{Name = "TotalKitKatBar",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)})
 data.AddEntity(entity)
 local domoverbridge = bridge.CreateBridge("DoMover")
-EntityBridge:Connect(function(plr,P,odata)
+EntityBridge:Connect(function(plr,P,odata,other)
     local entity = data.LoadedEntities[tostring(plr.UserId)]
+    if entity and other.Crouching ~= nil and other.Crouching ~= entity.Crouching  then
+        entity.Crouching  = other.Crouching
+        if not entity.Crouching then
+            --entity.Position -= Vector3.new(0,.3,0)
+            entity.HitBox = Vector2.new(entity.HitBox.X,entity.HitBox.Y+.3)
+            entity.EyeLevel += .3
+        else
+            entity.HitBox = Vector2.new(entity.HitBox.X,entity.HitBox.Y-.3)
+          --  entity.Position += Vector3.new(0,.3,0)
+            entity.EyeLevel -= .3
+        end
+    end
+  --  print(data.LoadedEntities[tostring(plr.UserId)].HitBox)
     if entity then 
      entity.Position = P
      entity.OrientationData = odata
@@ -29,8 +42,13 @@ EntityBridge:Connect(function(plr,P,odata)
 end)
 local ublock = bridge.CreateBridge("UpdateBlocks")
 bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:Vector3)
+    local blocktr = qf.DecompressBlockData(data.GetBlock(block.X,block.Y,block.Z),"Type")
+    if blocktr == "Cubic:Bedrock" then return end 
     data.RemoveBlock(block.X,block.Y,block.Z)
     ublock:FireAll({Remove = {block}})
+end)
+bridge.CreateBridge("CrouchEvent"):Connect(function(plr)
+    
 end)
 bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
     local coords = coords1

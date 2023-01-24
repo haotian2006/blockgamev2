@@ -18,7 +18,7 @@ local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 resource:Init()
 local runservicer = game:GetService("RunService")
-local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent) sb.Visible = false sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
+local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent) sb.Visible = true sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
 local function createEye(offset,hitbox)
     local eye = Instance.new("Part",hitbox.Parent)
     eye.Size = Vector3.new(hitbox.Size.X,0,hitbox.Size.Z)
@@ -27,7 +27,8 @@ local function createEye(offset,hitbox)
     local weld = Instance.new("Motor6D",eye)
     weld.Part0 = hitbox
     weld.Part1 = eye
-    weld.C0 = offset and CFrame.new(hitbox.Position + Vector3.new(0,offset/2,0)*settings.GridSize) or CFrame.new(hitbox.Position)
+    weld.Name = "EyeWeld"
+    weld.C0 = offset and CFrame.new(Vector3.new(0,offset/2,0)*settings.GridSize) or CFrame.new()
     return eye
 end
 local function changetext(nameLabel,STUDS_OFFSET_Y)
@@ -57,6 +58,7 @@ local function changetext(nameLabel,STUDS_OFFSET_Y)
         -- Putting on studs offset:
         nameDisplayBillboard.StudsOffset = Vector3.new(0, STUDS_OFFSET_Y , 0)
     end
+
 local function CreateModel(Data,ParentModel)
     local model = resource.GetEntityModelFromData(Data)
     if model then
@@ -67,10 +69,6 @@ local function CreateModel(Data,ParentModel)
         weld.Name = "EntityModelWeld"
         weld.Part0 = ParentModel.PrimaryPart
         weld.Part1 = model.PrimaryPart
-        local MiddleOffset = ParentModel.PrimaryPart.Size.Y-(ParentModel.PrimaryPart.Size.Y/2+model.PrimaryPart.Size.Y/2)
-        local pos =ParentModel.PrimaryPart.Position 
-        model.PrimaryPart.CFrame = CFrame.new(pos.X,pos.Y-MiddleOffset,pos.Z)
-        weld.C0 = CFrame.new(0,-MiddleOffset,0)
         return model
     end
 end
@@ -112,6 +110,7 @@ EntityBridge:Connect(function(entitys)
     end
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i)
+        local oldentity = datahandler.LoadedEntities[i]
         -- if datahandler.LoadedEntities[i] then
         --     local last = datahandler.LoadedEntities[i]
         --     if v.Chunk ~= datahandler.LoadedEntities[i].Chunk then
@@ -126,9 +125,20 @@ EntityBridge:Connect(function(entitys)
         --     end
         -- end
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
+            local oldhitbox = oldentity.HitBox
             datahandler.LoadedEntities[i]:UpdateEntity(v)
-            tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.1),{CFrame = CFrame.new(v.Position*3)}):Play()
-            changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)
+            if oldentity and v.HitBox ~= oldhitbox then
+                if oldentity.Tweens and oldentity.Tweens["Pos"] then
+                    oldentity.Tweens["Pos"]:Cancel()
+                end
+                e.PrimaryPart.Size = Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X)*3
+                e.PrimaryPart.CFrame = CFrame.new(v.Position*3)
+                oldentity:UpdateModelPosition()
+            else
+                oldentity.Tweens = oldentity.Tweens or {}
+                oldentity.Tweens["Pos"] = tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.1),{CFrame = CFrame.new(v.Position*3)})
+                oldentity.Tweens["Pos"]:Play()
+            end
             updateorientation(e,v or {},true)
         elseif not e then
             --datahandler.LoadedEntities[i] = v
@@ -143,6 +153,7 @@ EntityBridge:Connect(function(entitys)
             local eyebox = createAselectionBox(eye,Color3.new(1, 0, 0))
             eyebox.Parent = hitbox
             CreateModel(v,model)
+            entity:UpdateModelPosition()
             createAselectionBox(hitbox)
             hitbox.CanCollide = false
             hitbox.Anchored = true
@@ -153,7 +164,7 @@ EntityBridge:Connect(function(entitys)
             local nametag = game.ReplicatedStorage.Assets.Nametag:Clone()
             nametag.Parent = hitbox
             nametag.Text.Text = v.Name or v.Id
-            changetext(nametag.Text,hitbox.Size.Y/2+1.5)
+            e = model
             updateorientation(model,v["OrientationData"] or {})
             if i == tostring(game.Players.LocalPlayer.UserId) then
                 -- datahandler.GLocalPlayer.Position = v.Position
@@ -161,10 +172,36 @@ EntityBridge:Connect(function(entitys)
                 -- datahandler.GLocalPlayer.Grounded = v.Grounded
                 workspace.CurrentCamera.CameraSubject = eye
                 task.spawn(function()
-                    while task.wait(.5) and datahandler.LoadedEntities[i] do
-                        game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
-                        game.Players.LocalPlayer.Character:PivotTo(CFrame.new(datahandler.LoadedEntities[i].Position*3-Vector3.new(0,30,0)))
+                    local oldchunk =""
+                    local done = false
+                    task.spawn(function()
+                        srender(hitbox)
+                        done = true
+                    end)
+                    print(hitbox and model and model.Parent == workspace.Entities and true)
+                while hitbox and model and model.Parent == workspace.Entities and true do
+                    local currentChunk,c = qf.GetChunkfromReal(qf.cv3type("tuple",hitbox.Position)) 
+                    currentChunk = currentChunk.."x"..c
+                    task.spawn(function()
+                        if currentChunk ~= oldchunk and done then
+                            oldchunk = currentChunk
+                            srender(hitbox)
+                        end
+                    end)
+                    for i=0,20 do
+                        local c =  qf.SortTables(hitbox.Position,toload)
+                        game.Players.LocalPlayer.PlayerGui.Debugging.Storage.Text = "ToLoad: "..#c
+                        for i,v in c do
+                            local chunk = v[1]
+                            local cx,cz = qf.cv2type("tuple",chunk)
+                            if render.UpdateChunk(cx,cz) then
+                                toload[chunk] = nil
+                                --break
+                            end
+                        end
                     end
+                    runservicer.Heartbeat:Wait()
+                end
                 end)
             end
         end
@@ -173,27 +210,31 @@ EntityBridge:Connect(function(entitys)
             combinevelocity(datahandler.LoadedEntities[i],v)
             datahandler.LocalPlayer = datahandler.LoadedEntities[i]
         end
-    end
-end)
-task.spawn(function()
-    while true do
-        for i=0,20 do
-            local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
-            chr:WaitForChild("HumanoidRootPart")
-            local c =  qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,toload)
-            game.Players.LocalPlayer.PlayerGui.Debugging.Storage.Text = "ToLoad: "..#c
-            for i,v in c do
-                local chunk = v[1]
-                local cx,cz = qf.cv2type("tuple",chunk)
-                if render.UpdateChunk(cx,cz) then
-                    toload[chunk] = nil
-                    --break
-                end
-            end
+        if e then 
+            changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)
+
         end
-        runservicer.Heartbeat:Wait()
     end
 end)
+-- task.spawn(function()
+--     while true do
+--         for i=0,20 do
+--             local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+--             chr:WaitForChild("HumanoidRootPart")
+--             local c =  qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,toload)
+--             game.Players.LocalPlayer.PlayerGui.Debugging.Storage.Text = "ToLoad: "..#c
+--             for i,v in c do
+--                 local chunk = v[1]
+--                 local cx,cz = qf.cv2type("tuple",chunk)
+--                 if render.UpdateChunk(cx,cz) then
+--                     toload[chunk] = nil
+--                     --break
+--                 end
+--             end
+--         end
+--         runservicer.Heartbeat:Wait()
+--     end
+-- end)
 -- local todecode = {}
 -- task.spawn(function()
 --     while true do
@@ -216,7 +257,7 @@ end)
 --         end
 --     end
 -- end)
-local function GetChunks(cx,cz)
+function GetChunks(cx,cz)
     queued[cx..','..cz] = true
     game.ReplicatedStorage.Events.GetChunk:FireServer(cx,cz)
 end
@@ -290,7 +331,7 @@ end)
 local function GetCleanedChunk(cx,cz)
     return mulithandler.HideBlocks(cx,cz)
 end
-local function srender(p)
+function srender(p)
     for v,i in datahandler.LoadedChunks  do
 		local splited = v:split(",")
 		local vector = Vector2.new(splited[1],splited[2])*settings.ChunkSize.X*settings.GridSize
@@ -321,21 +362,3 @@ local function srender(p)
         end
     end
 end
-local char = game.Workspace:WaitForChild(game.Players.LocalPlayer.Name,math.huge)
-task.wait(1)
-local oldchunk =""
-    srender(char.PrimaryPart)
-	print("done")
-    print(require(game.ReplicatedStorage.DelayHandler).PrintAverageTime("Greedy"))
-while char and true do
-    local currentChunk,c = qf.GetChunkfromReal(qf.cv3type("tuple",char.PrimaryPart.Position)) 
-    currentChunk = currentChunk.."x"..c
-    --shouldprint(currentChunk ~= oldchunk)
-    if currentChunk ~= oldchunk and true then
-        oldchunk = currentChunk
-    --	newload(char.PrimaryPart)
-        srender(char.PrimaryPart)
-    end
-	task.wait(0.1)
-end
-

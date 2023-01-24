@@ -18,7 +18,8 @@ controls.pc = {
     Back = {'s',"Back"},
     Jump = {'space',"Jump"},
     Attack = {'mousebutton1',"Attack"},
-    Interact = {'mousebutton2',"Interact"}
+    Interact = {'mousebutton2',"Interact"},
+    Crouch = {"leftshift","Crouch"}
 }
 controls.KeysPressed = {}
 controls.Render = {}
@@ -75,6 +76,21 @@ function func.HandleJump()
         local touse = jump--fps.Value>62 and (jump/deltaTime)/60 or jump
         GPlayer.Velocity.Jump =Vector3.new(0,touse,0)
     end)
+end
+local CrouchEvent = bridge.CreateBridge("CrouchEvent")
+function func.Crouch()
+    if data.LocalPlayer.Crouching then
+        data.LocalPlayer.Crouching = false
+        data.LocalPlayer.Position += Vector3.new(0,.3/2,0)
+        data.LocalPlayer.HitBox = Vector2.new( data.LocalPlayer.HitBox.X, data.LocalPlayer.HitBox.Y+.3)
+        data.LocalPlayer.EyeLevel +=.3
+    else
+        data.LocalPlayer.Crouching = true
+        data.LocalPlayer.Position += Vector3.new(0,-.3/2,0)
+        data.LocalPlayer.HitBox = Vector2.new( data.LocalPlayer.HitBox.X, data.LocalPlayer.HitBox.Y-.3)
+        data.LocalPlayer.EyeLevel -=.3
+    end
+    data.LocalPlayer:UpdateModelPosition()
 end
 function func.Interact()
     local lookvector = Camera.CFrame.LookVector
@@ -188,7 +204,7 @@ function Render.Update(dt)
     local eneck = plrmodel:FindFirstChild("Neck",true)
     local eMainWeld = plrmodel:FindFirstChild("MainWeld",true)
     self.Entity.PrimaryPart.CFrame = CFrame.new(self.Position*3)
-    EntityBridge:Fire(self.Position,{Neck = neck.C0.Rotation*eneck.C0.Rotation:Inverse(),MainWeld = MainWeld.C0.Rotation*eMainWeld.C0.Rotation:Inverse()})
+    EntityBridge:Fire(self.Position,{Neck = neck.C0.Rotation*eneck.C0.Rotation:Inverse(),MainWeld = MainWeld.C0.Rotation*eMainWeld.C0.Rotation:Inverse()},{Crouching = self.Crouching})
     self:ClearVelocity()
 end
 function Render.Move(dt)
