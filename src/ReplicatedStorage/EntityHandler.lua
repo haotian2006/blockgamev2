@@ -139,6 +139,13 @@ function entity:UpdatePosition(dt)
         local p2 = interpolate(self.Position,self.Position+velocity,dt) 
         velocity = (p2-self.Position)
         local newp = CollisionHandler.entityvsterrain(self,velocity)
+        local dir = newp - self.Position
+        if velocity.Y <= 0 and self.Crouching then
+            if math.round((self.Position+velocity).X*10)/10 == math.round(newp.X*10)/10 then
+                local target = Vector3.new(newp.X,0,)
+            elseif  math.round((self.Position+velocity).X.Z*10)/10 == math.round(newp.Z*10)/10  
+            end
+        end
         self.Position = newp--interpolate(self.Position,newp,dt) 
     end
     self.Data.Grounded = CollisionHandler.IsGrounded(self)
