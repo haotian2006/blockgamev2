@@ -334,7 +334,12 @@ function controls.RenderStepped.Camera()
         if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then
             --print("fps")
            -- Player.PlayerGui.Arms.vp.Visible = true
-            second.Parent = nil
+            --second.Parent = nil
+            for i,v in second:GetChildren() do
+                if v:IsA("BasePart") then
+                    v.LocalTransparencyModifier = 1 
+                end
+            end
             if playerinfo[1] == nil then
                for i,v in ipairs(Current_Entity:GetDescendants())do
                 local success = pcall(function()  v["Transparency"] = v["Transparency"] end)
@@ -353,7 +358,12 @@ function controls.RenderStepped.Camera()
         elseif Current_Entity then
             --print("not fps")
             --Player.PlayerGui.Arms.vp.Visible = false
-            second.Parent = Current_Entity:FindFirstChild("Model",true)
+            --second.Parent = Current_Entity:FindFirstChild("Model",true)
+            for i,v in second:GetChildren() do
+                if v:IsA("BasePart") then
+                    v.LocalTransparencyModifier = 0 
+                end
+            end
             for i,v in ipairs(playerinfo)do
                 if  v["Transparency"] then
                     v.Transparency =0

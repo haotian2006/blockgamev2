@@ -63,6 +63,9 @@ local function CreateModel(Data,ParentModel)
     local model = resource.GetEntityModelFromData(Data)
     if model then
         model = model:Clone()
+        local humanoid = model:FindFirstChildWhichIsA("Humanoid") or model:FindFirstChildWhichIsA("AnimationController")  or Instance.new("AnimationController",model)
+        local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator",humanoid)
+        humanoid.Name = "AnimationController"
         model.Parent = ParentModel
         model.Name = "EntityModel"
         local weld = Instance.new("Motor6D",ParentModel.PrimaryPart)
