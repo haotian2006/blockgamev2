@@ -93,6 +93,19 @@ local function combinevelocity(v1,v2)
         v1:AddVelocity(i,v)
     end
 end
+game.ReplicatedStorage.Events.EntityUpdater.OnClientEvent:Connect(function(entityId,newdata,dostuff)
+    if datahandler.LoadedEntities[entityId] then
+        local e = datahandler.LoadedEntities[entityId]
+        for i,v in newdata or {} do
+            e[i] = v 
+        end
+        for i,v in dostuff or {} do
+            if e[i] then
+                e[i](unpack(v))
+            end
+        end
+    end
+end)
 bridge.CreateBridge("DoMover"):Connect(function(entity,Mover,...)
     local mover = game.ReplicatedStorage.EntityMovers:FindFirstChild(Mover)
     if mover and datahandler.LoadedEntities[entity] then

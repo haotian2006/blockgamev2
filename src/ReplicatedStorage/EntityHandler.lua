@@ -329,63 +329,17 @@ end
 function entity:MoveTo(x,y,z)
     local new = require(game.ReplicatedStorage.EntityMovers).MoveTo.new(self,x,y,z,true)
     new:Init()
-    -- local goal = Vector3.new(x,y,z)
-    -- local currentnumber = self.NotSaved["Moving"] and self.NotSaved["Moving"]+1  or 0
-    -- self.NotSaved["Moving"] = currentnumber 
-    -- local pos = self.Position
-    -- self.Velocity = self.Velocity or {}
-    -- self.Velocity.Move  = self.Velocity.Move  or {}
-	-- local timestart = os.clock()
-    -- local speed = (self.Speed or .1) 
-	-- local velocity = (goal-pos).Unit*speed
-	-- velocity = Vector3.new(velocity.X,0,velocity.Z)
-	-- self.Velocity.Move = velocity
-	-- local magnit = (goal-pos).Magnitude
-    -- local timetotake = magnit/speed
-    -- self:TurnTo(Vector3.new(x,y,z))
-    -- repeat
-    --     pos = self.Position
-    --     task.wait()
-    -- until (goal-pos).Magnitude <= 0.5 or self.NotSaved["Moving"] ~= currentnumber or  os.clock()-timestart >= timetotake+7
-    -- if  os.clock()-timestart >= timetotake+7  then
-    --    -- warn(self.Id,"has Yeilded")
-    -- end
-    -- if  self.NotSaved["Moving"] == currentnumber then
-    -- self.Velocity.Move = nil
-    -- self.NotSaved["Moving"] = nil
-    -- end
-    -- return (self.NotSaved["Moving"] == currentnumber ) and "Done" or "Stopped"
 end
 function entity:AddBodyVelocity(name,velocity)
     if velocity.Magnitude == 0 then return end 
     self.BodyVelocity = self.BodyVelocity or {}
     self.BodyVelocity[name] = velocity
-    self.NotSaved["BodyVelocity"] = self.NotSaved["BodyVelocity"] or {}
-    self.NotSaved["BodyVelocity"][name] = 0
+end
+function entity:RemoveBodyVelocity(name)
+    self.BodyVelocity[name] = nil
 end
 function entity:UpdateBodyVelocity(dt)
-    self.NotSaved["BodyVelocity"] = self.NotSaved["BodyVelocity"] or {}
-    local one = dt*60
     for i,v in self.BodyVelocity or {} do
-        if self.NotSaved["BodyVelocity"][i] >=2 then
-            local sx,sy,sz = math.sign(v.X),math.sign(v.Y),math.sign(v.Z)
-            local x,y,z = math.abs(v.X),math.abs(v.Y),math.abs(v.Z)
-           --  if self.Data.Grounded  then
-                -- x,y,z = 0,0,0
-           --  else
-                x -= .01*one
-                y = 0
-                z -= .01*one
-           -- end
-            x,y,z = math.max(x,0)*sx,math.max(y,0)*sy,math.max(z,0)*sz
-            self.BodyVelocity[i] = Vector3.new(x,y,z)
-        else
-            self.NotSaved["BodyVelocity"][i] +=1
-        end
-        if self.BodyVelocity[i] and self.BodyVelocity[i].Magnitude == 0 then
-            self.BodyVelocity[i] = nil
-            self.NotSaved["BodyVelocity"][i] = nil
-        end
         self.Velocity[i] = self.BodyVelocity[i]
     end
 end
