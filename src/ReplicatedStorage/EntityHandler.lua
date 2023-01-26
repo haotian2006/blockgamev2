@@ -172,7 +172,7 @@ function entity:UpdatePosition(dt)
                     end
                     current = realp
                     checkandadd()
-                    if hit then
+                    if hit and last then
                         local lx,lz = last.X,last.Y
                         local a = checkandadd(true,Vector2.new(last.X,current.Y))
                         local b = checkandadd(true,Vector2.new(current.X,last.Y))
@@ -216,7 +216,7 @@ function entity:UpdatePosition(dt)
                     end
                     current = realp
                     checkandadd()
-                    if hit then
+                    if hit and last then
                         newp = Vector3.new(last.X,newp.Y,newp.Z)
                     end
                 end
@@ -251,7 +251,7 @@ function entity:UpdatePosition(dt)
                     end
                     current = realp
                     checkandadd()
-                    if hit then
+                    if hit and last then
                         newp = Vector3.new(newp.X,newp.Y,last.Y)
                     end
                 end
