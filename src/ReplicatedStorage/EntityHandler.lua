@@ -141,18 +141,19 @@ function entity:UpdatePosition(dt)
         velocity = (p2-self.Position)
         local newp = CollisionHandler.entityvsterrain(self,velocity)
         local dir = newp - self.Position
+        local length = 0
         if velocity.Y <= 0 and self.Crouching and self.NotSaved.LastG then
             local o = maths.newPoint(self.Position.X,self.Position.Z)
             local endp = maths.newPoint((self.Position+velocity).X,(self.Position+velocity).Z)
             local realp = maths.newPoint(newp.X,newp.Z)
             local xsidesame,ysidesame = qf.RoundTo(realp.x) == qf.RoundTo(endp.x),qf.RoundTo(realp.y) == qf.RoundTo(endp.y)
             local clonede = self:CloneProperties()
+            o,realp =  o:Vector2(),realp:Vector2()
+            local current = o
+            local hit = false
+            local last 
             if xsidesame and ysidesame then
-                    o,realp =  o:Vector2(),realp:Vector2()
-                    local current = o
-                    local hit = false
-                    local last 
-                    local v1 = (realp-current).Unit/100
+                    local v1 = (realp-current).Unit/10
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     local function checkandadd(noadd,c)
                         c = c or current
@@ -163,9 +164,10 @@ function entity:UpdatePosition(dt)
                         if not a then  hit = true return end 
                         last = current
                         current +=v1
+                        length += 1/10
                     end
                     checkandadd()
-                    while (current-realp).Magnitude >= 0.02 and not hit do
+                    while length <= (o-realp).Magnitude and not hit do
                         checkandadd()
                     end
                     current = realp
@@ -187,12 +189,9 @@ function entity:UpdatePosition(dt)
                 local dc = maths.newLine(realp,maths.newPoint(o.x,realp.y))
                 local midpoint = dc:CalculatePointOfInt(maths.newLine(o,endp))
                 if midpoint then
-                    midpoint,o,realp = midpoint:Vector2() , o:Vector2(),realp:Vector2()
-                    local v1 = (midpoint - o).Unit/100
+                    midpoint = midpoint:Vector2()
+                    local v1 = (midpoint - o).Unit/10
                     v1 = v1 ~= v1 and Vector2.zero or v1
-                    local current = o
-                    local hit = false
-                    local last 
                     local function checkandadd()
                         if hit then return end 
                         clonede.Position = Vector3.new(current.X,clonede.Position.Y,current.Y)
@@ -200,17 +199,19 @@ function entity:UpdatePosition(dt)
                         if not a then  hit = true return end 
                         last = current
                         current +=v1
+                        length +=1/10
                     end
                     checkandadd()
-                    while (current-midpoint).Magnitude >= 0.02 and not hit do
+                    while length <= (midpoint - o).Magnitude and not hit do
                         checkandadd()
                     end
                     current = midpoint
                     checkandadd()
-                    v1 = (realp-current).Unit/100
+                    v1 = (realp-current).Unit/10
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     checkandadd()
-                    while (current-realp).Magnitude >= 0.02 and not hit do
+                    length = 0
+                    while length <= (realp - o).Magnitude and not hit do
                         checkandadd()
                     end
                     current = realp
@@ -223,12 +224,9 @@ function entity:UpdatePosition(dt)
                 local dc = maths.newLine(realp,maths.newPoint(realp.x,o.y))
                 local midpoint = dc:CalculatePointOfInt(maths.newLine(o,endp))
                 if midpoint then
-                    midpoint,o,realp = midpoint:Vector2() , o:Vector2(),realp:Vector2()
-                    local v1 = (midpoint - o).Unit/100
+                    midpoint = midpoint:Vector2()
+                    local v1 = (midpoint - o).Unit/10
                     v1 = v1 ~= v1 and Vector2.zero or v1
-                    local current = o
-                    local hit = false
-                    local last 
                     local function checkandadd()
                         if hit then return end 
                         clonede.Position = Vector3.new(current.X,clonede.Position.Y,current.Y)
@@ -236,17 +234,19 @@ function entity:UpdatePosition(dt)
                         if not a then  hit = true return end 
                         last = current
                         current +=v1
+                        length +=1/10
                     end
                     checkandadd()
-                    while (current-midpoint).Magnitude >= 0.02 and not hit do
+                    while length <= (midpoint - o).Magnitude and not hit do
                         checkandadd()
                     end
                     current = midpoint
                     checkandadd()
-                    v1 = (realp-current).Unit/100
+                    v1 = (realp-current).Unit/10
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     checkandadd()
-                    while (current-realp).Magnitude >= 0.02 and not hit do
+                    length = 0
+                    while length <= (realp - o).Magnitude and not hit do
                         checkandadd()
                     end
                     current = realp
