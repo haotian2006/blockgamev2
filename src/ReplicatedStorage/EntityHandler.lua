@@ -292,6 +292,9 @@ function entity:UpdateChunk()
     end
     self.Chunk = Vector2.new(cx,cz)
 end
+function entity:SetNetworkOwner(id)
+    self.ClientControll = id
+end
 function entity:Update(dt)
     self:UpdateChunk()
     if RunService:IsServer() or (RunService:IsClient() and self.ClientControll and self.ClientControll == tostring(game.Players.LocalPlayer.UserId)) then else return end 
