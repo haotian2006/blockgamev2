@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local genuuid = function()  return https:GenerateGUID(false) end 
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
+local maths = require(game.ReplicatedStorage.QuickFunctions.MathFunctions)
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 local movers = require(game.ReplicatedStorage.EntityMovers)
@@ -140,11 +141,122 @@ function entity:UpdatePosition(dt)
         velocity = (p2-self.Position)
         local newp = CollisionHandler.entityvsterrain(self,velocity)
         local dir = newp - self.Position
-        if velocity.Y <= 0 and self.Crouching then
-            if math.round((self.Position+velocity).X*10)/10 == math.round(newp.X*10)/10 then
-                local target = Vector3.new(newp.X,0,)
-            elseif  math.round((self.Position+velocity).X.Z*10)/10 == math.round(newp.Z*10)/10  
-            end
+        if velocity.Y <= 0 and self.Crouching and self.NotSaved.LastG then
+            local o = maths.newPoint(self.Position.X,self.Position.Z)
+            local endp = maths.newPoint((self.Position+velocity).X,(self.Position+velocity).Z)
+            local realp = maths.newPoint(newp.X,newp.Z)
+            local xsidesame,ysidesame = qf.RoundTo(realp.x) == qf.RoundTo(endp.x),qf.RoundTo(realp.y) == qf.RoundTo(endp.y)
+            local clonede = self:CloneProperties()
+            if xsidesame and ysidesame then
+                    o,realp =  o:Vector2(),realp:Vector2()
+                    local current = o
+                    local hit = false
+                    local last 
+                    local v1 = (realp-current).Unit/100
+                    v1 = v1 ~= v1 and Vector2.zero or v1
+                    local function checkandadd(noadd,c)
+                        c = c or current
+                        if hit and not noadd then return end 
+                        clonede.Position = Vector3.new(c.X,clonede.Position.Y,c.Y)
+                        local a = CollisionHandler.IsGrounded(clonede)
+                        if noadd then return a end 
+                        if not a then  hit = true return end 
+                        last = current
+                        current +=v1
+                    end
+                    checkandadd()
+                    while (current-realp).Magnitude >= 0.02 and not hit do
+                        checkandadd()
+                    end
+                    current = realp
+                    checkandadd()
+                    if hit then
+                        local lx,lz = last.X,last.Y
+                        local a = checkandadd(true,Vector2.new(last.X,current.Y))
+                        local b = checkandadd(true,Vector2.new(current.X,last.Y))
+                        if  a and a == b then
+                            print("None")
+                        elseif a then
+                            lz = current.Y
+                        elseif b then
+                            lx = current.X
+                        end
+                        newp = Vector3.new(lx,newp.Y,lz)
+                    end
+            elseif xsidesame then
+                local dc = maths.newLine(realp,maths.newPoint(o.x,realp.y))
+                local midpoint = dc:CalculatePointOfInt(maths.newLine(o,endp))
+                if midpoint then
+                    midpoint,o,realp = midpoint:Vector2() , o:Vector2(),realp:Vector2()
+                    local v1 = (midpoint - o).Unit/100
+                    v1 = v1 ~= v1 and Vector2.zero or v1
+                    local current = o
+                    local hit = false
+                    local last 
+                    local function checkandadd()
+                        if hit then return end 
+                        clonede.Position = Vector3.new(current.X,clonede.Position.Y,current.Y)
+                        local a = CollisionHandler.IsGrounded(clonede)
+                        if not a then  hit = true return end 
+                        last = current
+                        current +=v1
+                    end
+                    checkandadd()
+                    while (current-midpoint).Magnitude >= 0.02 and not hit do
+                        checkandadd()
+                    end
+                    current = midpoint
+                    checkandadd()
+                    v1 = (realp-current).Unit/100
+                    v1 = v1 ~= v1 and Vector2.zero or v1
+                    checkandadd()
+                    while (current-realp).Magnitude >= 0.02 and not hit do
+                        checkandadd()
+                    end
+                    current = realp
+                    checkandadd()
+                    if hit then
+                        newp = Vector3.new(last.X,newp.Y,newp.Z)
+                    end
+                end
+            elseif ysidesame then
+                local dc = maths.newLine(realp,maths.newPoint(realp.x,o.y))
+                local midpoint = dc:CalculatePointOfInt(maths.newLine(o,endp))
+                if midpoint then
+                    midpoint,o,realp = midpoint:Vector2() , o:Vector2(),realp:Vector2()
+                    local v1 = (midpoint - o).Unit/100
+                    v1 = v1 ~= v1 and Vector2.zero or v1
+                    local current = o
+                    local hit = false
+                    local last 
+                    local function checkandadd()
+                        if hit then return end 
+                        clonede.Position = Vector3.new(current.X,clonede.Position.Y,current.Y)
+                        local a = CollisionHandler.IsGrounded(clonede)
+                        if not a then  hit = true return end 
+                        last = current
+                        current +=v1
+                    end
+                    checkandadd()
+                    while (current-midpoint).Magnitude >= 0.02 and not hit do
+                        checkandadd()
+                    end
+                    current = midpoint
+                    checkandadd()
+                    v1 = (realp-current).Unit/100
+                    v1 = v1 ~= v1 and Vector2.zero or v1
+                    checkandadd()
+                    while (current-realp).Magnitude >= 0.02 and not hit do
+                        checkandadd()
+                    end
+                    current = realp
+                    checkandadd()
+                    if hit then
+                        newp = Vector3.new(newp.X,newp.Y,last.Y)
+                    end
+                end
+            else 
+            end 
         end
         self.Position = newp--interpolate(self.Position,newp,dt) 
     end
@@ -153,6 +265,16 @@ function entity:UpdatePosition(dt)
         self.NotSaved["ExtraJump"] = DateTime.now().UnixTimestampMillis/1000
     end
     self.NotSaved.LastG = self.Data.Grounded
+end
+function entity:CloneProperties(x)
+        local copy = {}
+        for k, v in pairs(x or self) do
+          if type(v) == "table" then
+            v = entity:CloneProperties(v)
+          end
+          copy[k] = v
+        end
+        return copy
 end
 function entity:RemoveFromChunk()
     if self.Chunk and datahandler.GetChunk(self.Chunk.X,self.Chunk.Y) then

@@ -18,6 +18,10 @@ local chunkd = settings.ChunkSize.X
 -- CHGrid : Basicly the the Real coord inside the chunk EX: 17 --> 1
 
 --other
+function qf.RoundTo(x,dig)
+     dig = dig or 1
+     return math.floor((x+0.5)*10^dig)/10^dig
+end
 function qf.Find3rdPointOnTri(B:Vector3,C:Vector3,hyplength):Vector3  
     local inverted = false
     if B.Z == C.Z then

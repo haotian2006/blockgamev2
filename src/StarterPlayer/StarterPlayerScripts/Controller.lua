@@ -47,6 +47,13 @@ end
 local function checkempty(tab)
     return not (tab and next(tab) ~= nil)
 end
+local function getkeyfrominput(input)
+    if input.KeyCode.Name ~= "Unknown" then
+        return input.KeyCode.Name:lower()
+    elseif input.UserInputType.Name ~= "Unknown" then
+        return input.UserInputType.Name:lower()
+    end
+end
 local ExtraJump = 0
 function func.HitBoxs()
     data.HitBoxEnabled = not data.HitBoxEnabled 
@@ -151,30 +158,6 @@ function func.Attack()
        -- debugger.HighLightMutiBlocks(newpos)
        -- debugger.HighLightEntity(raystuff[1],1)
     end
-end
-local function getkeyfrominput(input)
-    if input.KeyCode.Name ~= "Unknown" then
-        return input.KeyCode.Name:lower()
-    elseif input.UserInputType.Name ~= "Unknown" then
-        return input.UserInputType.Name:lower()
-    end
-end
-function GetVelocity(self):Vector3
-    local x,y,z = 0,0,0
-    for i,v in self.Velocity do
-        if typeof(v) == "Vector3" and v == v then
-            x+= v.X 
-            y+= v.Y
-            z+= v.Z
-        end
-    end
-    if x == 0 then
-        x = 0.00000001
-    end
-    if z == 0 then
-        z = 0.00000001
-    end
-    return Vector3.new(x,y,z)
 end
 local last 
 --[[
@@ -374,8 +357,8 @@ function controls.RenderStepped.Camera()
 
 end
 uis.InputBegan:Connect(function(input, gameProcessedEvent)
-    if gameProcessedEvent then return end 
     local key = getkeyfrominput(input)
+    if gameProcessedEvent then return end 
     controls.KeysPressed[key] = key
     if controls[controls.mode] then
         for i,v in controls[controls.mode] do

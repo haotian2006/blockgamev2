@@ -8,7 +8,7 @@ local entity = {
         EyeLevel = 1.5,
         HitBox = Vector2.new(0.6,1.8),
         JumpHeight = 1.25,
-        Speed = 5.612,
+        Speed = 5.612,--5.612,
         CanCollideWithEntities = true,
         DoGravity = true,
     },
