@@ -364,16 +364,17 @@ function entity:UpdateRotationClient()
        local tuse = maths.GetClosestNumber(agl,neck["Neck"])
     
        if math.abs(tuse - agl) >= 5 then
-
+        print(agl)
+           -- tuse = (90-tuse)
        elseif tuse == neck['Neck'][1] then
         tuse = 10    
        else
         tuse = -10
        end
        --print(tuse)
-       local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)*CFrame.fromOrientation(0,math.rad(tuse),0)):ToOrientation()
+       local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)):ToOrientation()
        local bcf = CFrame.fromOrientation(mx,my,mz)
-         cf = CFrame.new(mainjoint.C0.Position)*bcf
+         cf = CFrame.new(mainjoint.C0.Position)*bcf*CFrame.fromOrientation(0,math.rad(tuse),0)
          mainjoint.C0 = cf
     else
         if flagA then bodydir = -bodydir end 
