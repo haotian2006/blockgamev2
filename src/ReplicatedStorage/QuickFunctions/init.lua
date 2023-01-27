@@ -12,10 +12,10 @@ local gridS = settings.GridSize
 local chunkS = settings.ChunkSize
 local blockd = settings.GridSize
 local chunkd = settings.ChunkSize.X
--- Real : Real Position 
+-- Real : Real Position (studs)
 -- Grid : Real/BlockSize
 -- Chunk : Uses Grid
--- CHGrid : Basicly the the Real coord inside the chunk EX: 17 --> 1
+-- CHGrid(LCH) : Basicly the the Real coord inside the chunk EX: 17 --> 1
 
 --other
 function qf.RoundTo(x,dig)

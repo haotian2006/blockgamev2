@@ -40,22 +40,17 @@ local function changetext(nameLabel,STUDS_OFFSET_Y)
     local textScaleSize = Vector2.new(.5, 1)
         local amountOfCharacter = string.len(nameLabel.Text)
         local _, numberOfLines = string.gsub(nameLabel.Text, "\n", "\n")
-    
         if amountOfCharacter == 0 then
             numberOfLines = 0
-        else
-            -- Adding the minimum of one line		
+        else	
             numberOfLines += 1
         end
-    
         nameDisplayBillboard.Size = UDim2.new(
             amountOfCharacter * textScaleSize.X,
             0,
             numberOfLines * textScaleSize.Y,
             0
         )
-    
-        -- Putting on studs offset:
         nameDisplayBillboard.StudsOffset = Vector3.new(0, STUDS_OFFSET_Y , 0)
     end
 
@@ -86,11 +81,6 @@ local function updateorientation(entity,entitydata,tween)
                 tweenservice:Create(c,TweenInfo.new(0.1),{C0 = cfram}):Play()
             end
         end
-    end
-end
-local function combinevelocity(v1,v2)
-    for i,v in v2.Velocity do
-        v1:AddVelocity(i,v)
     end
 end
 game.ReplicatedStorage.Events.EntityUpdater.OnClientEvent:Connect(function(entityId,newdata,dostuff)
@@ -127,19 +117,6 @@ EntityBridge:Connect(function(entitys)
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i)
         local oldentity = datahandler.LoadedEntities[i]
-        -- if datahandler.LoadedEntities[i] then
-        --     local last = datahandler.LoadedEntities[i]
-        --     if v.Chunk ~= datahandler.LoadedEntities[i].Chunk then
-        --         local chunk = datahandler.GetChunk(last.Chunk.X,last.Chunk.Y)
-        --         if chunk then
-        --             chunk.Entities[i] = nil
-        --         end
-        --     end
-        --     local chunk = datahandler.GetChunk(v.Chunk.X,v.Chunk.Y)
-        --     if chunk then
-        --         chunk.Entities[i] = v
-        --     end
-        -- end
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
             local oldhitbox = oldentity.HitBox
             datahandler.LoadedEntities[i]:UpdateEntity(v)
@@ -157,7 +134,6 @@ EntityBridge:Connect(function(entitys)
             end
             updateorientation(e,v or {},true)
         elseif not e then
-            --datahandler.LoadedEntities[i] = v
             local entity = entityhandler.new(v)
             datahandler.AddEntity(i,entity)
             local model = Instance.new("Model",workspace.Entities)
@@ -183,9 +159,6 @@ EntityBridge:Connect(function(entitys)
             e = model
             updateorientation(model,v["OrientationData"] or {})
             if i == tostring(game.Players.LocalPlayer.UserId) then
-                -- datahandler.GLocalPlayer.Position = v.Position
-                -- datahandler.GLocalPlayer.Velocity = {}
-                -- datahandler.GLocalPlayer.Grounded = v.Grounded
                 workspace.CurrentCamera.CameraSubject = eye
                 task.spawn(function()
                     local oldchunk =""
@@ -223,56 +196,19 @@ EntityBridge:Connect(function(entitys)
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
             datahandler.LoadedEntities[i]:UpdateEntityClient(v)
+            local function combinevelocity(v1,v2)
+                for i,v in v2.Velocity do
+                    v1:AddVelocity(i,v)
+                end
+            end
             combinevelocity(datahandler.LoadedEntities[i],v)
             datahandler.LocalPlayer = datahandler.LoadedEntities[i]
         end
         if e then 
             changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)
-
         end
     end
 end)
--- task.spawn(function()
---     while true do
---         for i=0,20 do
---             local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
---             chr:WaitForChild("HumanoidRootPart")
---             local c =  qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,toload)
---             game.Players.LocalPlayer.PlayerGui.Debugging.Storage.Text = "ToLoad: "..#c
---             for i,v in c do
---                 local chunk = v[1]
---                 local cx,cz = qf.cv2type("tuple",chunk)
---                 if render.UpdateChunk(cx,cz) then
---                     toload[chunk] = nil
---                     --break
---                 end
---             end
---         end
---         runservicer.Heartbeat:Wait()
---     end
--- end)
--- local todecode = {}
--- task.spawn(function()
---     while true do
---         runservicer.Heartbeat:Wait()
---         task.wait(1)
---         local chr = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait() chr:WaitForChild("HumanoidRootPart")
---         for i,v in qf.SortTables(game.Players.LocalPlayer.Character.PrimaryPart.Position,todecode) do
---             i = v[1]
---             v = todecode[i]
---             todecode[i] = nil
---             task.spawn(function()
---                 local cx,cz = qf.cv2type("tuple",i)
---                 queued[i] = false
---                 datahandler.CreateChunk({Blocks = mulithandler.DoSmt("DecompressBlockData",v,2)},cx,cz)
---                 toload[i] = true
---             end)
---             if i == 12 then
---                 break
---             end
---         end
---     end
--- end)
 function GetChunks(cx,cz)
     queued[cx..','..cz] = true
     game.ReplicatedStorage.Events.GetChunk:FireServer(cx,cz)
@@ -291,7 +227,6 @@ task.spawn(function()
     end
 end)
 bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
-   -- local a = require(game.ReplicatedStorage.DelayHandler).new("test")
    local function addtoup(x,y,z)
     local cx,cy,x,y,z = qf.GetChunkAndLocal(x,y,z)
     local chunk = datahandler.GetChunk(cx,cy)
@@ -320,15 +255,6 @@ bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
         datahandler.InsertBlock(coords.X,coords.Y,coords.Z,v)
         addtoup(coords.X,coords.Y,coords.Z)
     end
-    -- for i,v in chtoup do
-    --     task.spawn(function()
-    --         local cx,cz = v:GetNTuple() 
-    --         render.UpdateChunk(cx,cz,true)
-            
-    --     end)
-    -- end
-    --a:update("A")
-   -- a:gettime()
 end)
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
     toload[cx..','..cz] = true
@@ -341,12 +267,7 @@ game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data
     p.Material = Enum.Material.Neon
     p.Position = Vector3.new(cx*8*3,180,cz*8*3)
    end
-   -- todecode[cx..','..cz] = data
-   -- datahandler.CreateChunk({Blocks =data},cx,cz)
 end)
-local function GetCleanedChunk(cx,cz)
-    return mulithandler.HideBlocks(cx,cz)
-end
 function srender(p)
     for v,i in datahandler.LoadedChunks  do
 		local splited = v:split(",")

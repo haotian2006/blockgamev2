@@ -10,17 +10,20 @@ end
 local function round(x)
     return math.floor(x+.5)
 end
-function  collisions.IsGrounded(entity)
+function  collisions.IsGrounded(entity,CheckForBlockAboveInstead)
     local position = entity.Position
     local hitbox = entity.HitBox
+    local invert = CheckForBlockAboveInstead and -1 or 1
+    local aa = CheckForBlockAboveInstead and 0 or 1
+    local bb = CheckForBlockAboveInstead and 1 or 0
     local min = vector3(
         position.X-hitbox.X/2,
-        position.Y-(hitbox.Y/2+0.0225),
+        position.Y-(hitbox.Y/2+0.0225*aa),
         position.Z-hitbox.X/2
     )   
     local max = vector3(
         position.X+hitbox.X/2,
-        position.Y-(hitbox.Y/2),
+        position.Y+(hitbox.Y/2+0.0225*bb),
         position.Z+hitbox.X/2 
 )
     local gridsize = .5
@@ -34,12 +37,11 @@ function  collisions.IsGrounded(entity)
                 if block then
                     whitelist[coords] = true
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
-                    --local chg =  qf.cbt("grid","chgrid",round(x),round(y),round(z) )
                     local bx,by,bz = unpack(coords:split(","))
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
                     bx,by,bz = a.X,a.Y,a.Z
                    local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
-                   if  collisions.AABBcheck(vector3(position.X, position.Y-0.04,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then 
+                   if  collisions.AABBcheck(vector3(position.X, position.Y-(0.005*invert),position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then 
                     return true,block
                     end  
                 end
@@ -256,7 +258,6 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                     whitelist[coords] = true
                     
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
-                    --local chg =  qf.cbt("grid","chgrid",round(x),round(y),round(z) )
                     local bx,by,bz = unpack(coords:split(","))
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
                     bx,by,bz = a.X,a.Y,a.Z

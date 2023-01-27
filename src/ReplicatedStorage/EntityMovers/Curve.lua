@@ -23,7 +23,7 @@ function Curve:Init()
     local yammount = 0
     local xzdistance = 0 
     local event 
-    local timestart = DateTime.now().UnixTimestampMillis/1000
+    local start = os.clock()
     local thread = coroutine.running()
     event = runservice.Heartbeat:Connect(function(deltaTime)
         local velocity = xzdir
@@ -44,6 +44,7 @@ function Curve:Init()
         end
     end)
     coroutine.yield(thread)
+   -- print(os.clock()-start,self.TimeToTake)
     if  self.entity.NotSaved["Curve"] == currentnumber then
         self.entity.NotSaved.NoFall = nil
         self.entity.NotSaved["Curve"] = nil

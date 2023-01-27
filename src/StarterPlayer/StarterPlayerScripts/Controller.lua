@@ -20,7 +20,8 @@ controls.pc = {
     Attack = {'mousebutton1',"Attack"},
     Interact = {'mousebutton2',"Interact"},
     Crouch = {"leftshift","Crouch"},
-    HitBoxs = {'f3','HitBoxs'}
+    HitBoxs = {'f3','HitBoxs'},
+    Freecam = {'e',"Freecam"}
 }
 controls.KeysPressed = {}
 controls.Render = {}
@@ -93,7 +94,6 @@ function func.HandleJump()
         GPlayer.Velocity.Jump =Vector3.new(0,touse,0)
     end)
 end
-local CrouchEvent = bridge.CreateBridge("CrouchEvent")
 function func.Crouch()
     if data.LocalPlayer.Crouching then
         data.LocalPlayer.Crouching = false
@@ -129,6 +129,9 @@ function func.Interact()
                         return
                     end
                 end
+                if not data.GetBlock(coords.X,coords.Y,coords.Z) then 
+                    data.InsertBlock(coords.X,coords.Y,coords.Z,'Type|s%Cubic:Dirt')
+                end
                 placeBlockEvent:Fire(coords)
             elseif v.Type == "Entity"  then
             
@@ -142,48 +145,24 @@ function func.Attack()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
-   -- rayinfo.IgnoreEntities = true
     local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
     if #raystuff.Objects >= 1 then
-        --print("hit")
         local newpos = {}
         for i,v in raystuff.Objects do
             if  v.Type == "Block" then
-                destroyblockEvent:Fire(v.BlockPosition)
+                local block = v.BlockPosition
+                local blocktr = qf.DecompressBlockData(data.GetBlock(block.X,block.Y,block.Z),"Type")
+                if blocktr == "Cubic:Bedrock" then return end 
+                data.RemoveBlock(block.X,block.Y,block.Z)
+                destroyblockEvent:Fire(block)
             elseif v.Type == "Entity"  then
                 debugger.HighLightEntity(v.EntityId,1)
                 game.ReplicatedStorage.Events.KB:FireServer(v.EntityId,Camera.CFrame.LookVector)
             end
         end
-       -- debugger.HighLightMutiBlocks(newpos)
-       -- debugger.HighLightEntity(raystuff[1],1)
     end
 end
 local last 
---[[
-function Render.UpdateEntity(dt)
-    if checkempty(data.LocalPlayer) then return end 
-    local self = data.LocalPlayer
-    self.Position = data.GLocalPlayer.Position
-    local velocity = GetVelocity(self)
-    local p2 = interpolate(self.Position,self.Position+velocity,dt) 
-    velocity = (p2-self.Position)
-    local newp = CollisionHandler.entityvsterrain(self,velocity)--self.Position + self:GetVelocity()--
-    local g = CollisionHandler.IsGrounded(self)
-    if last and not g and not GPlayer.Jumping then
-        ExtraJump = DateTime.now().UnixTimestampMillis/1000
-    end
-    data.GLocalPlayer.Grounded = g
-    last = g
-    self.Entity.PrimaryPart.CFrame = CFrame.new(newp*3)
-    data.GLocalPlayer.Position = newp
-    local neck =  self.Entity:FindFirstChild("Neck",true)
-    local MainWeld = self.Entity:FindFirstChild("MainWeld",true)
-    local plrmodel = resource.GetEntityModelFromData(data.LocalPlayer)
-    local eneck = plrmodel:FindFirstChild("Neck",true)
-    local eMainWeld = plrmodel:FindFirstChild("MainWeld",true)
-    EntityBridge:Fire(newp,{Neck = neck.C0.Rotation*eneck.C0.Rotation:Inverse(),MainWeld = MainWeld.C0.Rotation*MainWeld.C0.Rotation:Inverse()})
-end]]
 function Render.Update(dt)
     local self = data.LocalPlayer
     for i,v in data.LoadedEntities do
@@ -196,7 +175,7 @@ function Render.Update(dt)
     local eneck = plrmodel:FindFirstChild("Neck",true)
     local eMainWeld = plrmodel:FindFirstChild("MainWeld",true)
     self.Entity.PrimaryPart.CFrame = CFrame.new(self.Position*3)
-    EntityBridge:Fire(self.Position,{Neck = neck.C0.Rotation*eneck.C0.Rotation:Inverse(),MainWeld = MainWeld.C0.Rotation*eMainWeld.C0.Rotation:Inverse()},{Crouching = self.Crouching})
+    EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),self.Position,{Neck = neck.C0.Rotation*eneck.C0.Rotation:Inverse(),MainWeld = MainWeld.C0.Rotation*eMainWeld.C0.Rotation:Inverse()},{Crouching = self.Crouching})
     self:ClearVelocity()
 end
 function Render.Move(dt)
@@ -210,30 +189,11 @@ function Render.Move(dt)
     local Left = -RightVector*(FD["Left"]and 1 or 0)
     local Right = RightVector*(FD["Right"]and 1 or 0)
     local velocity = foward + Back + Left+ Right
+    data.LocalPlayer.BodyLookingDirection = velocity
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) * (data.LocalPlayer.Speed or 0 )
     data.LocalPlayer.Velocity["Movement"] = velocity
     if FD["Jump"] then data.LocalPlayer:Jump() 
 end 
-   -- game.ReplicatedStorage.Events.SendEntities:FireServer(velocity)
-end
-function mtick.Fall()
-    -- local entity =   data.LocalPlayer
-    -- if  checkempty(entity) or  checkempty(entity) or false  then return end 
-    -- local cx,cz = qf.GetChunkfromReal(GPlayer.Position.X,GPlayer.Position.Y,GPlayer.Position.Z,true)
-    -- if not data.GetChunk(cx,cz) then return end 
-    -- data.GLocalPlayer.FallTicks = data.GLocalPlayer.FallTicks or 0
-    -- local max = entity.FallRate or 150
-    -- local fallrate =(((0.99^data.GLocalPlayer.FallTicks)-1)*max)/1.4
-
-    -- if data.GLocalPlayer.Grounded  or data.GLocalPlayer.Jumping  then -- or not entity.CanFall
-    --     data.GLocalPlayer.Velocity.Fall = Vector3.new(0,0,0) 
-    --     data.GLocalPlayer.IsFalling = false
-    --     data.GLocalPlayer.FallTicks = 0
-    -- elseif not data.GLocalPlayer.Grounded  then
-    --     data.GLocalPlayer.FallTicks += 1
-    --     data.GLocalPlayer.Velocity.Fall = Vector3.new(0,fallrate,0) 
-    -- end
-
 end
 local follow = false
 local oldyy = 180
@@ -272,7 +232,9 @@ function controls.RenderStepped.Camera()
         local Torso = entityw:FindFirstChild("Torso",true)
         local neck =  entityw:FindFirstChild("Neck",true)
         local MainWeld = entityw:FindFirstChild("MainWeld",true)
-        if neck and Torso and MainWeld then
+        if neck and Torso and MainWeld and not FD["Freecam"] then
+            data.LocalPlayer.HeadLookingDirection = camera.CFrame.LookVector
+            if false then
             local upordown = math.sign(camera.CFrame.LookVector.Unit:Dot(Vector3.new(0,1,0)))
             local goalCF = CFrame.lookAt(neck.Part1.Position, neck.Part1.Position+camera.CFrame.LookVector, Torso.CFrame.UpVector)
             local xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
@@ -307,18 +269,14 @@ function controls.RenderStepped.Camera()
                 muti = muti or (upordown == 1 and 50 or 120)
                 xx, yy, zz = qf.worldCFrameToC0ObjectSpace(MainWeld,goalCF*CFrame.fromOrientation(0,muti*(mad and 1 or math.sign(yy)),0)):ToOrientation()
                 game:GetService("TweenService"):Create(MainWeld,TweenInfo.new(0.1),{C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)}):Play()
-                -- MainWeld.C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)
             end
-            xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
-            -- game:GetService("TweenService"):Create(neck,TweenInfo.new(1),{C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)}):Play()
+            xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()  
         neck.C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)--refunction.worldCFrameToC0ObjectSpace(neck,goalCF)
-            oldyy = math.abs(yy)
+            oldyy = math.abs(yy)end
         end
+        data.LocalPlayer:UpdateRotationClient()
         if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then
-            --print("fps")
-           -- Player.PlayerGui.Arms.vp.Visible = true
-            --second.Parent = nil
-            for i,v in second:GetChildren() do
+            for i,v in second and second:GetChildren() or {} do
                 if v:IsA("BasePart") then
                     v.LocalTransparencyModifier = 1 
                 end
@@ -342,7 +300,7 @@ function controls.RenderStepped.Camera()
             --print("not fps")
             --Player.PlayerGui.Arms.vp.Visible = false
             --second.Parent = Current_Entity:FindFirstChild("Model",true)
-            for i,v in second:GetChildren() do
+            for i,v in second and second:GetChildren() or {} do
                 if v:IsA("BasePart") then
                     v.LocalTransparencyModifier = 0 
                 end

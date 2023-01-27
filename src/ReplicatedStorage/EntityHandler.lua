@@ -9,6 +9,7 @@ local maths = require(game.ReplicatedStorage.QuickFunctions.MathFunctions)
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 local movers = require(game.ReplicatedStorage.EntityMovers)
+local ts = game:GetService("TweenService")
 local function interpolate(startVector3, finishVector3, alpha)
     local function currentState(start, finish, alpha)
         return start + (finish - start)*alpha
@@ -316,6 +317,48 @@ function entity:TurnTo(Position)
     if rx ~= rx or ry~=ry or rz~= rz then return end
     data.MainWeld = new
 end
+function entity:UpdateRotationClient()
+    local Model = self.Entity
+    local neck = resourcehandler.GetEntity(self.Type).Necks or {}
+    local orimodel = resourcehandler.GetEntityModelFromData(self)
+    local lastr = self.NotSaved.RotationFollow 
+    if not Model or not next(neck) then return end 
+    local lookAtdir = self.HeadLookingDirection or Vector3.new(0,0,0)
+    local bodydir = self.BodyLookingDirection or Vector3.new(0,0,0)
+    local neckjoints = {}
+    local mainjoint = Model:FindFirstChild("MainWeld",true)
+    local is0 = bodydir.Magnitude == 0
+    if bodydir.Magnitude == 0 then bodydir = mainjoint.C0.LookVector end 
+    if lookAtdir.Magnitude == 0 then bodydir = mainjoint.C0.LookVector end 
+    if not mainjoint then return end
+    local shouldrotateb,yy = false
+    for i,v in neck do
+        local v = Model:FindFirstChild(i,true)
+        if v then
+            neckjoints[v] = orimodel:FindFirstChild(i,true) 
+            if v.Name == "Neck" then
+                v.C0 *= neckjoints[v].C0.Rotation
+                local _,my,_ = maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+Vector3.new(lookAtdir.X,0,lookAtdir.Z))):ToOrientation()
+                yy = math.deg(my) +180--*math.sign(my)
+                if not maths.angle_between(yy,neck[v.Name][1],neck[v.Name][2]) then shouldrotateb = true end 
+             end
+        end
+    end
+    local cf 
+    if shouldrotateb  and neck["Neck"]  then
+       local tuse = maths.GetClosestNumber(yy,neck["Neck"])-180
+         cf = CFrame.new(mainjoint.C0.Position)*CFrame.fromOrientation(0,math.rad(tuse),0)
+    else
+        local xx, yy, zz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)):ToOrientation()
+        cf = CFrame.new(mainjoint.C0.Position)*CFrame.fromOrientation(xx,yy,zz)
+    end
+    mainjoint.C0 = cf
+    --ts:Create(mainjoint,TweenInfo.new(0.05),{C0 = cf}):Play()
+    for v,i in neckjoints do
+        local xx, yy, zz = maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+lookAtdir)):ToOrientation()
+        v.C0 = CFrame.new(v.C0.Position)*CFrame.fromOrientation(xx,yy,zz)
+    end
+end
 function entity:LookAt(Position)
     self:TurnTo(Position)
     --neck turning wip
@@ -355,7 +398,7 @@ function entity:Gravity(dt)
     local fallrate =(((0.99^entity.Data.FallTicks)-1)*max)/2
     entity.NotSaved.Tick = entity.NotSaved.Tick or 0 
     entity.NotSaved.Tick += dt
-    if entity.Data.Grounded  or entity.NotSaved.NoFall   then -- or not entity.CanFall
+    if entity.Data.Grounded  or entity.NotSaved.NoFall or  entity.NotSaved.Jumping  then -- or not entity.CanFall
         entity.Velocity.Fall = Vector3.new(0,0,0) 
         entity.Data.IsFalling = false
         entity.Data.FallTicks = 0
@@ -371,28 +414,39 @@ function entity:Jump()
     if  self.NotSaved.Jumping or self["CanNotJump"] then return end
     local e 
     local jumpedamount =0 
-    local jumpheight = (self.JumpHeight+.5 or 0) --1.25
-    local muti = 4.5
+    local jumpheight = (self.JumpHeight or 0) --1.25
+    local muti = 1
+    local velocity = 0.42
+    local start = os.clock()
+    local tickspast = 0
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
-        local jump = jumpheight*muti
+        tickspast += deltaTime*20
+        local jump = velocity*muti
         local datacondition = DateTime.now().UnixTimestampMillis/1000-(self.NotSaved["ExtraJump"] or 0) <=0.08
         if (self.Data.Grounded or datacondition)  and not self.NotSaved.Jumping then
             if datacondition then  self.NotSaved["ExtraJump"] = 0  end
             if jumpedamount == 0 then
-                jumpedamount += jumpheight*(deltaTime)*muti
+                jumpedamount += velocity*20*(deltaTime)*muti
             end 
            end
-        if jumpedamount > 0 and jumpedamount <=jumpheight  then
-         jumpedamount += jumpheight*(deltaTime)*muti
-         jump = jumpheight*muti
+           
+        if jumpedamount > 0 and jumpedamount <=jumpheight and not CollisionHandler.IsGrounded(self,true) then-- and (not self.Data.Grounded or jumpedamount<=jumpheight/10)
+            if tickspast >= 1 then
+                tickspast = 0
+                velocity -=0.08
+                velocity*=0.98
+            end
+         jumpedamount += velocity*(deltaTime)*20
+         jump = velocity*20
          self.NotSaved.Jumping = true
-         self.NotSaved.Tick = 0
          else
+           -- print(CollisionHandler.IsGrounded(self,true))
             self.NotSaved.Jumping = false
              jump = 0
              jumpedamount = 0
              self.Velocity.Jump = Vector3.new()
              e:Disconnect()
+           --  print(os.clock()-start)
         end
         local touse = jump--fps.Value>62 and (jump/deltaTime)/60 or jump
         self.Velocity.Jump =Vector3.new(0,touse,0)
