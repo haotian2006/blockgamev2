@@ -71,4 +71,10 @@ function maths.GetClosestNumber(num,tab)
     end
     return n
 end
+function maths.ReflectAngleAcrossY(dt)
+    return (360-dt+180)%360
+end
+function maths.NegtiveToPos(dt)
+    return (dt+180)%360
+end
 return maths

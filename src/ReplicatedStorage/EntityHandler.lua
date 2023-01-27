@@ -317,6 +317,14 @@ function entity:TurnTo(Position)
     if rx ~= rx or ry~=ry or rz~= rz then return end
     data.MainWeld = new
 end
+function entity:SetHeadLookDir(dir:Vector3)
+    if dir.Magnitude == 0 then return end 
+    self.HeadLookingDirection = dir
+end
+function entity:SetBodyLookDir(dir:Vector3)
+    if dir.Magnitude == 0 then return end 
+    self.BodyLookingDirection = dir
+end
 function entity:UpdateRotationClient()
     local Model = self.Entity
     local neck = resourcehandler.GetEntity(self.Type).Necks or {}
@@ -330,30 +338,51 @@ function entity:UpdateRotationClient()
     local is0 = bodydir.Magnitude == 0
     if bodydir.Magnitude == 0 then bodydir = mainjoint.C0.LookVector end 
     if lookAtdir.Magnitude == 0 then bodydir = mainjoint.C0.LookVector end 
-    if not mainjoint then return end
+    local mainneck = Model:FindFirstChild("Neck",true)
+    if not mainjoint or not mainneck or not neck["Neck"]  then return end
+    local _, ay,_ = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+Vector3.new(bodydir.X,0,bodydir.Z))):ToOrientation()
+    local _,hy,_ = CFrame.new(mainneck.C0.Position,mainneck.C0.Position +Vector3.new(lookAtdir.X,0,lookAtdir.Z)):ToOrientation()
+    local agl = (maths.NegtiveToPos(math.deg(hy))-maths.NegtiveToPos(math.deg(ay)))+360
+    agl %= 360
     local shouldrotateb,yy = false
     for i,v in neck do
         local v = Model:FindFirstChild(i,true)
         if v then
             neckjoints[v] = orimodel:FindFirstChild(i,true) 
             if v.Name == "Neck" then
-                v.C0 *= neckjoints[v].C0.Rotation
-                local _,my,_ = maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+Vector3.new(lookAtdir.X,0,lookAtdir.Z))):ToOrientation()
-                yy = math.deg(my) +180--*math.sign(my)
-                if not maths.angle_between(yy,neck[v.Name][1],neck[v.Name][2]) then shouldrotateb = true end 
+                -- local _,my,_ = maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+Vector3.new(lookAtdir.X,0,lookAtdir.Z))):ToOrientation()
+                -- yy = math.deg(my) +180--*math.sign(my)
+                -- if not maths.angle_between(yy,neck[v.Name][1],neck[v.Name][2]) then shouldrotateb = true end 
              end
         end
     end
-    local cf 
-    if shouldrotateb  and neck["Neck"]  then
-       local tuse = maths.GetClosestNumber(yy,neck["Neck"])-180
-         cf = CFrame.new(mainjoint.C0.Position)*CFrame.fromOrientation(0,math.rad(tuse),0)
+    if not maths.angle_between(agl,neck["Neck"][1],neck["Neck"][2]) then shouldrotateb = true end 
+    local cf
+    local flagA = maths.angle_between(agl,maths.ReflectAngleAcrossY(neck["Neck"][2]),maths.ReflectAngleAcrossY(neck["Neck"][1]))
+    
+    if shouldrotateb  and neck["Neck"] and not flagA  then
+       local tuse = maths.GetClosestNumber(agl,neck["Neck"])
+    
+       if math.abs(tuse - agl) >= 5 then
+
+       elseif tuse == neck['Neck'][1] then
+        tuse = 10    
+       else
+        tuse = -10
+       end
+       --print(tuse)
+       local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)*CFrame.fromOrientation(0,math.rad(tuse),0)):ToOrientation()
+       local bcf = CFrame.fromOrientation(mx,my,mz)
+         cf = CFrame.new(mainjoint.C0.Position)*bcf
+         mainjoint.C0 = cf
     else
-        local xx, yy, zz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)):ToOrientation()
-        cf = CFrame.new(mainjoint.C0.Position)*CFrame.fromOrientation(xx,yy,zz)
+        if flagA then bodydir = -bodydir end 
+        local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)):ToOrientation()
+         cf = CFrame.new(mainjoint.C0.Position)*CFrame.fromOrientation(mx,my,mz)
+        -- ts:Create(mainjoint,TweenInfo.new(0.01),{C0 = cf}):Play()
+        mainjoint.C0 = cf
     end
-    mainjoint.C0 = cf
-    --ts:Create(mainjoint,TweenInfo.new(0.05),{C0 = cf}):Play()
+   -- mainjoint.C0 = cf
     for v,i in neckjoints do
         local xx, yy, zz = maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+lookAtdir)):ToOrientation()
         v.C0 = CFrame.new(v.C0.Position)*CFrame.fromOrientation(xx,yy,zz)
