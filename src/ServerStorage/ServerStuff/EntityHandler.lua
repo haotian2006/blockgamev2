@@ -89,6 +89,18 @@ function entity:AddComponent(cpname,cpdata)
     end
     return self
 end
+function entity:UpdateDataServer(newdata)
+    if not self.ServerOnly then return end 
+    local ServerOnlyChanges = {Position = true,HeadLookingDirection = true,BodyLookingDirection = true,Crouching = true}
+    for i,v in self.ServerOnly.ClientChanges or {} do
+        ServerOnlyChanges[i] = v
+    end
+    for i,v in newdata do
+        if ServerOnlyChanges[i] then
+            self[i] = v
+        end
+    end
+end
 function entity:ConvertToClient()
     local new = {}
     for i,v in self do

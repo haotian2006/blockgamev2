@@ -9,6 +9,7 @@ local maths = require(game.ReplicatedStorage.QuickFunctions.MathFunctions)
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 local movers = require(game.ReplicatedStorage.EntityMovers)
+local gs = require(game.ReplicatedStorage.GameSettings)
 local ts = game:GetService("TweenService")
 local function interpolate(startVector3, finishVector3, alpha)
     local function currentState(start, finish, alpha)
@@ -98,6 +99,10 @@ function entity:GetQf()
 end
 function entity:GetData()
     return datahandler
+end
+function entity:GetEyePosition()
+    local eye = self.EyeLevel/2
+    return self.Position + Vector3.new(0,eye,0)
 end
 function entity:AddVelocity(Name,velocity:Vector3)
     if not self.NotSaved.ClearVelocity or self.NotSaved.NoClear[Name] then
@@ -306,33 +311,23 @@ function entity:Update(dt)
     self:DoBehaviors(dt)
     self:UpdatePosition(dt)
 end
-function entity:TurnTo(Position)
-    self.OrientationData = self.OrientationData or {}
-    local data = self.OrientationData
-    data.Neck = CFrame.new()
-    data.MainWeld = data.MainWeld or CFrame.new()
-    Position = Vector3.new(Position.X,self.Position.Y,Position.Z)
-    local new = CFrame.new()*CFrame.new(self.Position,Position).Rotation
-    local rx,ry,rz = new:ToOrientation()
-    if rx ~= rx or ry~=ry or rz~= rz then return end
-    data.MainWeld = new
-end
 function entity:SetHeadLookDir(dir:Vector3)
     if dir.Magnitude == 0 then return end 
     self.HeadLookingDirection = dir
 end
 function entity:SetBodyLookDir(dir:Vector3)
+    dir = Vector3.new(dir.X,0,dir.Z)
     if dir.Magnitude == 0 then return end 
     self.BodyLookingDirection = dir
 end
-function entity:UpdateRotationClient()
+function entity:UpdateRotationClient(debugmode)
     local Model = self.Entity
     local neck = resourcehandler.GetEntity(self.Type).Necks or {}
     local orimodel = resourcehandler.GetEntityModelFromData(self)
     local lastr = self.NotSaved.RotationFollow 
     if not Model or not next(neck) then return end 
-    local lookAtdir = self.HeadLookingDirection or Vector3.new(0,0,0)
-    local bodydir = self.BodyLookingDirection or Vector3.new(0,0,0)
+    local lookAtdir = (self.HeadLookingDirection or Vector3.new(0,0,0))*gs.GridSize
+    local bodydir = (self.BodyLookingDirection or Vector3.new(0,0,0))*gs.GridSize
     local neckjoints = {}
     local mainjoint = Model:FindFirstChild("MainWeld",true)
     local is0 = bodydir.Magnitude == 0
@@ -349,11 +344,6 @@ function entity:UpdateRotationClient()
         local v = Model:FindFirstChild(i,true)
         if v then
             neckjoints[v] = orimodel:FindFirstChild(i,true) 
-            if v.Name == "Neck" then
-                -- local _,my,_ = maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+Vector3.new(lookAtdir.X,0,lookAtdir.Z))):ToOrientation()
-                -- yy = math.deg(my) +180--*math.sign(my)
-                -- if not maths.angle_between(yy,neck[v.Name][1],neck[v.Name][2]) then shouldrotateb = true end 
-             end
         end
     end
     if not maths.angle_between(agl,neck["Neck"][1],neck["Neck"][2]) then shouldrotateb = true end 
@@ -364,8 +354,8 @@ function entity:UpdateRotationClient()
        local tuse = maths.GetClosestNumber(agl,neck["Neck"])
     
        if math.abs(tuse - agl) >= 5 then
-        print(agl)
-           -- tuse = (90-tuse)
+        local agla = 90-neck['Neck'][1]
+        tuse = agla*-math.sign(agl-180)
        elseif tuse == neck['Neck'][1] then
         tuse = 10    
        else
@@ -384,19 +374,17 @@ function entity:UpdateRotationClient()
         mainjoint.C0 = cf
     end
    -- mainjoint.C0 = cf
+   
     for v,i in neckjoints do
         local xx, yy, zz = maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+lookAtdir)):ToOrientation()
         v.C0 = CFrame.new(v.C0.Position)*CFrame.fromOrientation(xx,yy,zz)
     end
 end
+function entity:TurnTo(Position)
+    self:SetBodyLookDir((Position-self.Position).Unit) 
+end
 function entity:LookAt(Position)
-    self:TurnTo(Position)
-    --neck turning wip
-    -- self.OrientationData = self.OrientationData or {}
-    -- local data = self.OrientationData
-    -- data.Neck = data.Neck or CFrame.new()
-    -- local x,y,z = CFrame.new(self.Position,Position):ToEulerAnglesXYZ()
-    -- data.Neck = CFrame.Angles(0,y,0)
+    self:SetHeadLookDir((Position-self.Position).Unit)
 end
 function entity:KnockBack(force,time)
     self.NotSaved.Tick = 0

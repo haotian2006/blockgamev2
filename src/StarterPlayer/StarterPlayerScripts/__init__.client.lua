@@ -70,19 +70,6 @@ local function CreateModel(Data,ParentModel)
         return model
     end
 end
-local function updateorientation(entity,entitydata,tween)
-    for i,v in entitydata["OrientationData"] or {} do
-        local c = entity:FindFirstChild(i,true)
-        if c then
-            local cfram =CFrame.new(c.C0.Position)*v*resource.GetEntityModelFromData(entitydata):FindFirstChild(i,true).C0.Rotation
-            if not tween then
-                c.C0 = cfram
-            else
-                tweenservice:Create(c,TweenInfo.new(0.1),{C0 = cfram}):Play()
-            end
-        end
-    end
-end
 game.ReplicatedStorage.Events.EntityUpdater.OnClientEvent:Connect(function(entityId,newdata,dostuff)
     if datahandler.LoadedEntities[entityId] then
         local e = datahandler.LoadedEntities[entityId]
@@ -132,7 +119,7 @@ EntityBridge:Connect(function(entitys)
                 oldentity.Tweens["Pos"] = tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.1),{CFrame = CFrame.new(v.Position*3)})
                 oldentity.Tweens["Pos"]:Play()
             end
-            updateorientation(e,v or {},true)
+            oldentity:UpdateRotationClient(true)
         elseif not e then
             local entity = entityhandler.new(v)
             datahandler.AddEntity(i,entity)
@@ -157,7 +144,7 @@ EntityBridge:Connect(function(entitys)
             nametag.Parent = hitbox
             nametag.Text.Text = v.Name or v.Id
             e = model
-            updateorientation(model,v["OrientationData"] or {})
+           -- entity:UpdateRotationClient()
             if i == tostring(game.Players.LocalPlayer.UserId) then
                 workspace.CurrentCamera.CameraSubject = eye
                 task.spawn(function()

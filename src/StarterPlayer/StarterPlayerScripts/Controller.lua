@@ -175,7 +175,7 @@ function Render.Update(dt)
     local eneck = plrmodel:FindFirstChild("Neck",true)
     local eMainWeld = plrmodel:FindFirstChild("MainWeld",true)
     self.Entity.PrimaryPart.CFrame = CFrame.new(self.Position*3)
-    EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),self.Position,{Neck = neck.C0.Rotation*eneck.C0.Rotation:Inverse(),MainWeld = MainWeld.C0.Rotation*eMainWeld.C0.Rotation:Inverse()},{Crouching = self.Crouching})
+    EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),self)
     self:ClearVelocity()
 end
 function Render.Move(dt)
@@ -234,45 +234,6 @@ function controls.RenderStepped.Camera()
         local MainWeld = entityw:FindFirstChild("MainWeld",true)
         if neck and Torso and MainWeld and not FD["Freecam"] then
             data.LocalPlayer.HeadLookingDirection = camera.CFrame.LookVector
-            if false then
-            local upordown = math.sign(camera.CFrame.LookVector.Unit:Dot(Vector3.new(0,1,0)))
-            local goalCF = CFrame.lookAt(neck.Part1.Position, neck.Part1.Position+camera.CFrame.LookVector, Torso.CFrame.UpVector)
-            local xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
-            if math.abs(math.deg(yy)) <= 125 and upordown ==-1 then
-            follow = true
-            end
-            if math.abs(math.deg(yy)) >= 55 and upordown == 1 then
-                follow = true
-            end
-            if (oldyy < math.abs(yy) and upordown == -1 )or  (oldyy > math.abs(yy) and upordown == 1 ) then
-                follow = false
-            end
-
-            if (FD["Foward"]) and not (FD["Back"]) or not (FD["Foward"]) and (FD["Back"])  and not (FD["Left"]) and not (FD["Right"]) then
-                muti = 0
-            end
-            if ((FD["Foward"]) and (FD["Left"]) ) or  (FD["Left"]) and not (FD["Back"]) and not (FD["Right"]) then
-                muti = 120
-            end
-            if ((FD["Foward"]) and (FD["Right"])) or (FD["Right"]) and not (FD["Left"]) and  not (FD["Back"])  then
-                muti = -120
-            end
-            if not (FD["Foward"]) and not (FD["Left"]) and  (FD["Back"]) and (FD["Right"]) then
-                muti = 120
-            end
-            if not (FD["Foward"]) and  (FD["Left"]) and   (FD["Back"])   then
-                muti = -120
-            end
-            if follow ==true or muti then
-                local pos =  MainWeld.C0.Position
-                local mad = muti
-                muti = muti or (upordown == 1 and 50 or 120)
-                xx, yy, zz = qf.worldCFrameToC0ObjectSpace(MainWeld,goalCF*CFrame.fromOrientation(0,muti*(mad and 1 or math.sign(yy)),0)):ToOrientation()
-                game:GetService("TweenService"):Create(MainWeld,TweenInfo.new(0.1),{C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)}):Play()
-            end
-            xx, yy, zz = qf.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()  
-        neck.C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)--refunction.worldCFrameToC0ObjectSpace(neck,goalCF)
-            oldyy = math.abs(yy)end
         end
         data.LocalPlayer:UpdateRotationClient()
         if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then

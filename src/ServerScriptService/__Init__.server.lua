@@ -17,11 +17,11 @@ end)
 local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)})
 data.AddEntity(entity)
 local domoverbridge = bridge.CreateBridge("DoMover")
-EntityBridge:Connect(function(plr,id,P,odata,other)
+EntityBridge:Connect(function(plr,id,newdata)
     local entity = data.LoadedEntities[id]
     if entity.ClientControll ~= tostring(plr.UserId) then return end 
-    if entity and other.Crouching ~= nil and other.Crouching ~= entity.Crouching  then
-        entity.Crouching  = other.Crouching
+    if entity and newdata.Crouching ~= nil and newdata.Crouching ~= entity.Crouching  then
+        entity.Crouching  = newdata.Crouching
         if not entity.Crouching then
             --entity.Position -= Vector3.new(0,.3,0)
             entity.HitBox = Vector2.new(entity.HitBox.X,entity.HitBox.Y+.3)
@@ -34,8 +34,7 @@ EntityBridge:Connect(function(plr,id,P,odata,other)
     end
   --  print(data.LoadedEntities[tostring(plr.UserId)].HitBox)
     if entity then 
-     entity.Position = P
-     entity.OrientationData = odata
+        entity:UpdateDataServer(newdata)
     end
 end)
 local ublock = bridge.CreateBridge("UpdateBlocks")
