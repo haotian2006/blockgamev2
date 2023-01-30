@@ -74,7 +74,10 @@ end
 function maths.ReflectAngleAcrossY(dt)
     return (360-dt+180)%360
 end
-function maths.NegtiveToPos(dt)
+function maths.NegativeToPos(dt)
     return (dt+180)%360
+end
+function maths.PosToNegative(dt)
+    return (dt-180)
 end
 return maths

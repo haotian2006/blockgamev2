@@ -311,33 +311,38 @@ function entity:Update(dt)
     self:DoBehaviors(dt)
     self:UpdatePosition(dt)
 end
-function entity:SetHeadLookDir(dir:Vector3)
-    if dir.Magnitude == 0 then return end 
-    self.HeadLookingDirection = dir
+function entity:SetBodyRotationFromDir(dir)
+    self.bodydir = dir
 end
-function entity:SetBodyLookDir(dir:Vector3)
-    dir = Vector3.new(dir.X,0,dir.Z)
-    if dir.Magnitude == 0 then return end 
-    self.BodyLookingDirection = dir
+function entity:SetHeadRotationFromDir(dir)
+    self.headdir =  dir
 end
+local lp = Instance.new("Part")
+lp.Size = Vector3.one
+lp.Anchored = true
+lp.Name = "AJAJAJAJA"
 function entity:UpdateRotationClient(debugmode)
     local Model = self.Entity
     local neck = resourcehandler.GetEntity(self.Type).Necks or {}
     local orimodel = resourcehandler.GetEntityModelFromData(self)
     local lastr = self.NotSaved.RotationFollow 
-    if not Model or not next(neck) then return end 
-    local lookAtdir = (self.HeadLookingDirection or Vector3.new(0,0,0))*gs.GridSize
-    local bodydir = (self.BodyLookingDirection or Vector3.new(0,0,0))*gs.GridSize
-    local neckjoints = {}
+    if not Model or not next(neck) then return end
     local mainjoint = Model:FindFirstChild("MainWeld",true)
-    local is0 = bodydir.Magnitude == 0
-    if bodydir.Magnitude == 0 then bodydir = mainjoint.C0.LookVector end 
-    if lookAtdir.Magnitude == 0 then bodydir = mainjoint.C0.LookVector end 
     local mainneck = Model:FindFirstChild("Neck",true)
+    local neckjoints = {}
     if not mainjoint or not mainneck or not neck["Neck"]  then return end
+    self.BodyLookingPoint = self.bodydir and self.Position + self.bodydir or self.BodyLookingPoint 
+    self.HeadLookingPoint = self.headdir and self.Position + self.headdir or self.HeadLookingPoint 
+    local lap = (self.HeadLookingPoint or self.Position+mainjoint.C0.LookVector)*gs.GridSize
+    local bdp = (self.BodyLookingPoint or self.Position+mainjoint.C0.LookVector)*gs.GridSize
+    local bodydir = (bdp-self.Position*gs.GridSize).Unit
+    bodydir = Vector3.new(bodydir.X,0,bodydir.Z)*2
+    bodydir = (bodydir == bodydir and bodydir.Magnitude ~= 0) and bodydir or mainjoint.C0.LookVector
+    local lookAtdir = (lap -Model.Eye.Position).Unit
+    lp.Position = mainjoint.Part0.Position+bodydir*4
     local _, ay,_ = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+Vector3.new(bodydir.X,0,bodydir.Z))):ToOrientation()
-    local _,hy,_ = CFrame.new(mainneck.C0.Position,mainneck.C0.Position +Vector3.new(lookAtdir.X,0,lookAtdir.Z)):ToOrientation()
-    local agl = (maths.NegtiveToPos(math.deg(hy))-maths.NegtiveToPos(math.deg(ay)))+360
+    local hx,hy,hz = CFrame.new(mainneck.C0.Position,mainneck.C0.Position +Vector3.new(lookAtdir.X,0,lookAtdir.Z)):ToOrientation()
+    local agl = (maths.NegativeToPos(math.deg(hy))-maths.NegativeToPos(math.deg(ay)))+360
     agl %= 360
     local shouldrotateb,yy = false
     for i,v in neck do
@@ -346,17 +351,18 @@ function entity:UpdateRotationClient(debugmode)
             neckjoints[v] = orimodel:FindFirstChild(i,true) 
         end
     end
-    if not maths.angle_between(agl,neck["Neck"][1],neck["Neck"][2]) then shouldrotateb = true end 
+    local mainneckangles = type(neck["Neck"][1]) == "table" and neck["Neck"][1] or neck["Neck"]
+    if not maths.angle_between(agl,mainneckangles[1],mainneckangles[2]) then shouldrotateb = true end 
     local cf
-    local flagA = maths.angle_between(agl,maths.ReflectAngleAcrossY(neck["Neck"][2]),maths.ReflectAngleAcrossY(neck["Neck"][1]))
+    local flagA = maths.angle_between(agl,maths.ReflectAngleAcrossY(mainneckangles[2]),maths.ReflectAngleAcrossY(mainneckangles[1]))
     
-    if shouldrotateb  and neck["Neck"] and not flagA  then
-       local tuse = maths.GetClosestNumber(agl,neck["Neck"])
-    
-       if math.abs(tuse - agl) >= 5 then
-        local agla = 90-neck['Neck'][1]
+    if shouldrotateb  and neck["Neck"] and not flagA   then
+       local tuse = maths.GetClosestNumber(agl,mainneckangles)
+      -- print(math.abs(tuse - agl))
+       if math.abs(tuse - agl) > 2 then
+        local agla = 90-mainneckangles[1]
         tuse = agla*-math.sign(agl-180)
-       elseif tuse == neck['Neck'][1] then
+       elseif tuse ==mainneckangles[1] then
         tuse = 10    
        else
         tuse = -10
@@ -371,20 +377,38 @@ function entity:UpdateRotationClient(debugmode)
         local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)):ToOrientation()
          cf = CFrame.new(mainjoint.C0.Position)*CFrame.fromOrientation(mx,my,mz)
         -- ts:Create(mainjoint,TweenInfo.new(0.01),{C0 = cf}):Play()
+       -- print(qf.RoundTo(bodydir.X,2),0,qf.RoundTo(bodydir.Z,2))
         mainjoint.C0 = cf
     end
    -- mainjoint.C0 = cf
-   
+   local upordown = math.sign(lookAtdir.Unit:Dot(Vector3.new(0,1,0)))
     for v,i in neckjoints do
+        local maxleftright = type(neck[v.Name][1]) == "table" and neck[v.Name][1] or neck[v.Name]
+        local maxupdown = type(neck[v.Name][1]) == "table" and neck[v.Name][2] 
         local xx, yy, zz = maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+lookAtdir)):ToOrientation()
+        local agly = (maths.NegativeToPos(math.deg(yy))+180)+360
+        agly %= 360
+        -- print((math.deg(xx)+90)*upordown)
+        local aglx = (maths.NegativeToPos((math.deg(xx)+90)*upordown)+360)
+        aglx = maths.ReflectAngleAcrossY(aglx%360)
+        if v.Name == "Neck"  then
+         print(aglx,math.deg(xx))
+         end
+        if maxupdown and not maths.angle_between(aglx,maxupdown[1],maxupdown[2]) then
+            --print(maths.deg(xx),(maths.PosToNegative(aglx)*upordown-90)*-1)
+            xx = math.rad((maths.PosToNegative(maths.GetClosestNumber(aglx,maxupdown))*upordown-90)*-1)
+        end
+        if maxleftright and not maths.angle_between(agly,maxleftright[1],maxleftright[2]) and  v.Name ~= "Neck" then
+            yy = math.rad(maths.GetClosestNumber(agly,maxleftright))
+        end
         v.C0 = CFrame.new(v.C0.Position)*CFrame.fromOrientation(xx,yy,zz)
     end
 end
 function entity:TurnTo(Position)
-    self:SetBodyLookDir((Position-self.Position).Unit) 
+    self.BodyLookingPoint = Position
 end
 function entity:LookAt(Position)
-    self:SetHeadLookDir((Position-self.Position).Unit)
+    self.HeadLookingPoint = Position
 end
 function entity:KnockBack(force,time)
     self.NotSaved.Tick = 0

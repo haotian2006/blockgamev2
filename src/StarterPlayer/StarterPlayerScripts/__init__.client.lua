@@ -119,7 +119,7 @@ EntityBridge:Connect(function(entitys)
                 oldentity.Tweens["Pos"] = tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.1),{CFrame = CFrame.new(v.Position*3)})
                 oldentity.Tweens["Pos"]:Play()
             end
-            oldentity:UpdateRotationClient(true)
+           -- oldentity:UpdateRotationClient(true)
         elseif not e then
             local entity = entityhandler.new(v)
             datahandler.AddEntity(i,entity)

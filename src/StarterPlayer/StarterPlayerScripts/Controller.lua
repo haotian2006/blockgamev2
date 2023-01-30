@@ -189,7 +189,7 @@ function Render.Move(dt)
     local Left = -RightVector*(FD["Left"]and 1 or 0)
     local Right = RightVector*(FD["Right"]and 1 or 0)
     local velocity = foward + Back + Left+ Right
-    data.LocalPlayer.BodyLookingDirection = velocity
+    data.LocalPlayer.bodydir = velocity
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) * (data.LocalPlayer.Speed or 0 )
     data.LocalPlayer.Velocity["Movement"] = velocity
     if FD["Jump"] then data.LocalPlayer:Jump() 
@@ -208,7 +208,7 @@ function controls.Render.OutLine()
     rayinfo.Debug = false
     --rayinfo.RaySize = Vector3.new(.01,.01,.01)
    -- rayinfo.IgnoreEntities = true
-    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
+     local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
     if #raystuff.Objects >= 1 then
         local v = raystuff.Objects[1]
            -- print(v.Normal,lookvector)
@@ -233,7 +233,7 @@ function controls.RenderStepped.Camera()
         local neck =  entityw:FindFirstChild("Neck",true)
         local MainWeld = entityw:FindFirstChild("MainWeld",true)
         if neck and Torso and MainWeld and not FD["Freecam"] then
-            data.LocalPlayer.HeadLookingDirection = camera.CFrame.LookVector
+            data.LocalPlayer:SetHeadRotationFromDir(camera.CFrame.LookVector*10)
         end
         data.LocalPlayer:UpdateRotationClient()
         if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then

@@ -91,7 +91,7 @@ function entity:AddComponent(cpname,cpdata)
 end
 function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
-    local ServerOnlyChanges = {Position = true,HeadLookingDirection = true,BodyLookingDirection = true,Crouching = true}
+    local ServerOnlyChanges = {Position = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true}
     for i,v in self.ServerOnly.ClientChanges or {} do
         ServerOnlyChanges[i] = v
     end
