@@ -341,7 +341,7 @@ function entity:UpdateRotationClient(debugmode)
     local lookAtdir = (lap -Model.Eye.Position).Unit
     lp.Position = mainjoint.Part0.Position+bodydir*4
     local _, ay,_ = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+Vector3.new(bodydir.X,0,bodydir.Z))):ToOrientation()
-    local hx,hy,hz = CFrame.new(mainneck.C0.Position,mainneck.C0.Position +Vector3.new(lookAtdir.X,0,lookAtdir.Z)):ToOrientation()
+    local hx,hy,hz = (CFrame.new(mainneck.C0.Position,mainneck.C0.Position +Vector3.new(lookAtdir.X,0,lookAtdir.Z))):ToOrientation()
     local agl = (maths.NegativeToPos(math.deg(hy))-maths.NegativeToPos(math.deg(ay)))+360
     agl %= 360
     local shouldrotateb,yy = false
@@ -385,23 +385,25 @@ function entity:UpdateRotationClient(debugmode)
     for v,i in neckjoints do
         local maxleftright = type(neck[v.Name][1]) == "table" and neck[v.Name][1] or neck[v.Name]
         local maxupdown = type(neck[v.Name][1]) == "table" and neck[v.Name][2] 
-        local xx, yy, zz = maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+lookAtdir)):ToOrientation()
+        local xx, yy, zz = (maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+lookAtdir))*i.C0.Rotation:Inverse()):ToOrientation()
+        --local xx, yy, zz = (maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+lookAtdir))):ToOrientation()
         local agly = (maths.NegativeToPos(math.deg(yy))+180)+360
         agly %= 360
         -- print((math.deg(xx)+90)*upordown)
-        local aglx = (maths.NegativeToPos((math.deg(xx)+90)*upordown)+360)
-        aglx = maths.ReflectAngleAcrossY(aglx%360)
+        local aglx = (maths.NegativeToPos(math.deg(xx))+180)+360
+        aglx %= 360
         if v.Name == "Neck"  then
-         print(aglx,math.deg(xx))
+          --  print(i.C0:ToOrientation())
+        -- print(aglx,math.deg(xx))
          end
         if maxupdown and not maths.angle_between(aglx,maxupdown[1],maxupdown[2]) then
             --print(maths.deg(xx),(maths.PosToNegative(aglx)*upordown-90)*-1)
-            xx = math.rad((maths.PosToNegative(maths.GetClosestNumber(aglx,maxupdown))*upordown-90)*-1)
+            xx =   math.rad(maths.GetClosestNumber(aglx,maxupdown)) 
         end
         if maxleftright and not maths.angle_between(agly,maxleftright[1],maxleftright[2]) and  v.Name ~= "Neck" then
             yy = math.rad(maths.GetClosestNumber(agly,maxleftright))
         end
-        v.C0 = CFrame.new(v.C0.Position)*CFrame.fromOrientation(xx,yy,zz)
+        v.C0 = CFrame.new(v.C0.Position)*CFrame.fromOrientation(xx,yy,zz)*i.C0.Rotation:Inverse()
     end
 end
 function entity:TurnTo(Position)
