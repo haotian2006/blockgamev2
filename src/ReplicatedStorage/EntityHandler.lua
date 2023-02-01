@@ -406,10 +406,21 @@ function entity:UpdateRotationClient(debugmode)
         v.C0 = CFrame.new(v.C0.Position)*CFrame.fromOrientation(xx,yy,zz)*i.C0.Rotation:Inverse()
     end
 end
-function entity:TurnTo(Position)
+function entity:TurnTo(Position,timetotake)
+    timetotake = timetotake or 0
+    local current = self.BodyLookingPoint 
+    if not current then 
     self.BodyLookingPoint = Position
+    else
+        local body = Vector2.new(self.Position.X,self.Position.Z)
+        local t1,t3 = Vector2.new(current.X,current.Z),Vector2.new(Position.X,Position.Z)
+        t1 = body + (t1-body).Unit*(t3-body).Magnitude
+        
+        local midpoint = (t1-t3)/2
+    end
 end
-function entity:LookAt(Position)
+function entity:LookAt(Position,timetotake)
+    timetotake = timetotake or 0
     self.HeadLookingPoint = Position
 end
 function entity:KnockBack(force,time)
