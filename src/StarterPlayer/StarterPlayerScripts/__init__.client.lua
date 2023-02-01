@@ -9,6 +9,7 @@ local mulithandler = require(game.ReplicatedStorage.MultiHandler)
 local toload = {}
 local currentlyloading = {}
 local queued = {}
+local anihandler = require(script.Parent.AnimationController)
 local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
@@ -55,8 +56,9 @@ local function changetext(nameLabel,STUDS_OFFSET_Y)
     end
 
 local function CreateModel(Data,ParentModel)
-    local model = resource.GetEntityModelFromData(Data)
+    local model = resource.GetEntityModelDataFromData(Data)
     if model then
+        model = model.Model
         model = model:Clone()
         local humanoid = model:FindFirstChildWhichIsA("Humanoid") or model:FindFirstChildWhichIsA("AnimationController")  or Instance.new("AnimationController",model)
         local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator",humanoid)

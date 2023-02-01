@@ -48,13 +48,13 @@ end
 function self.GetEntity(Name)
     return self["Entities"] and self["Entities"][Name] or nil 
 end
-function self.GetEntityModelFromData(Data)
+function self.GetEntityModelDataFromData(Data)
     local Type,model,ModelId,TextureId = Data.Type,Data.Model,Data.ModelId or 0,Data.TextureId or 0
     if model and self.Models.Entities[model] then
         return self.Models.Entities[model]
     else
         local entity = self.GetEntity(Type)
-        return entity.Model
+        return entity
     end
 end
 return self

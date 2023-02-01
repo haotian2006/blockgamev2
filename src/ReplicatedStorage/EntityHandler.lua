@@ -317,16 +317,17 @@ end
 function entity:SetHeadRotationFromDir(dir)
     self.headdir =  dir
 end
-local lp = Instance.new("Part",workspace)
+local lp = Instance.new("Part")
 lp.Size = Vector3.one
 lp.Anchored = true
 lp.Name = "AJAJAJAJA"
 function entity:UpdateRotationClient(debugmode)
     local Model = self.Entity
     local neck = resourcehandler.GetEntity(self.Type).Necks or {}
-    local orimodel = resourcehandler.GetEntityModelFromData(self)
+    local orimodel = resourcehandler.GetEntityModelDataFromData(self)
     local lastr = self.NotSaved.RotationFollow 
-    if not Model or not next(neck) then return end
+    if not Model or not next(neck) or not orimodel then return end
+    orimodel = orimodel.Model
     local mainjoint = Model:FindFirstChild("MainWeld",true)
     local mainneck = Model:FindFirstChild("Neck",true)
     local neckjoints = {}

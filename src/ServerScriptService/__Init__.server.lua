@@ -5,6 +5,7 @@ require(game.ServerStorage.BehaviorHandler):Init()
 for i,v in game.ServerStorage.ServerStuff:GetChildren() do
     require(v)
 end
+local AnimationBridge = bridge.CreateBridge("AnimationHandler")
 local data = require(game.ReplicatedStorage.DataHandler)
 local entityahndler = require(game.ReplicatedStorage.EntityHandler)
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
