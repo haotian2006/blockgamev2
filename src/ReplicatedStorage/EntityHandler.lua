@@ -317,7 +317,7 @@ end
 function entity:SetHeadRotationFromDir(dir)
     self.headdir =  dir
 end
-local lp = Instance.new("Part")
+local lp = Instance.new("Part",workspace)
 lp.Size = Vector3.one
 lp.Anchored = true
 lp.Name = "AJAJAJAJA"
@@ -339,7 +339,9 @@ function entity:UpdateRotationClient(debugmode)
     bodydir = Vector3.new(bodydir.X,0,bodydir.Z)*2
     bodydir = (bodydir == bodydir and bodydir.Magnitude ~= 0) and bodydir or mainjoint.C0.LookVector
     local lookAtdir = (lap -Model.Eye.Position).Unit
-    lp.Position = mainjoint.Part0.Position+bodydir*4
+    if self.Name == "Npc1" then
+        lp.Position = mainjoint.Part0.Position+bodydir*4
+    end
     local _, ay,_ = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+Vector3.new(bodydir.X,0,bodydir.Z))):ToOrientation()
     local hx,hy,hz = (CFrame.new(mainneck.C0.Position,mainneck.C0.Position +Vector3.new(lookAtdir.X,0,lookAtdir.Z))):ToOrientation()
     local agl = (maths.NegativeToPos(math.deg(hy))-maths.NegativeToPos(math.deg(ay)))+360
@@ -407,32 +409,41 @@ function entity:UpdateRotationClient(debugmode)
     end
 end
 function entity:TurnTo(Position,timetotake)
-    local current = self.BodyLookingPoint 
+    local current = self.bodydir
     timetotake = timetotake or 0
-    if not current then 
+    if not current or true then 
     self.BodyLookingPoint = Position
+    task.wait(.1)
+    self.BodyLookingPoint = nil
     else
+        --lp.Position = current*3
+        current = self.Position + current
         local body = Vector2.new(self.Position.X,self.Position.Z)
         local t1,t3 = Vector2.new(current.X,current.Z),Vector2.new(Position.X,Position.Z)
         local rad = (t3-body).Magnitude
+       -- print(t1,body)
         t1 = body + (t1-body).Unit*rad
-        local t1angle = math.deg(math.atan2(t1.Y-body.Y, t1.X-body.X))
-        local t3angle = math.deg(math.atan2(t3.Y-body.Y, t3.X-body.X))
+       -- if t1 ~= t1 then t1 = Vector2.zero  end 
+        local t1angle = -(math.deg(math.atan2(t1.Y-body.Y, t1.X-body.X))-90)
+        local t3angle = -(math.deg(math.atan2(t3.Y-body.Y, t3.X-body.X))-90)
         local distance = math.abs(maths.AngleDifference(t1angle,t3angle))
         local speed = distance/timetotake
         local ctime = 0
         local currentdist = 0
         local hb
         local thread =coroutine.running()
-        hb = RunService.Heartbeat:Connect(function(deltaTime)
-            ctime += deltaTime
-            currentdist += speed
-            local y = maths.lerp_angle(t1,t3,ctime)
-            local newp = maths.GetXYfromangle(y,distance,body)
-            self.BodyLookingPoint = Vector3.new(newp.X,self.BodyLookingPoint.Y,self.BodyLookingPoint.Z)
-            if currentdist >= distance or ctime >= timetotake then coroutine.resume(thread) hb:Disconnect() end
-        end)
-        coroutine.yield()
+        local newp = maths.GetXYfromangle(t3angle,rad,body)
+        self.bodydir = (Vector3.new(newp.X,current.Y,newp.Y)-self.Position).Unit
+       -- print(Vector3.new(newp.X,current.Y,newp.Z),"aaa")
+        -- hb = RunService.Heartbeat:Connect(function(deltaTime)
+        --     ctime += deltaTime
+        --     currentdist += speed
+        --     local y = maths.lerp_angle(t1angle,t3angle,math.clamp(ctime,0,.9))
+        --     local newp = maths.GetXYfromangle(y,distance,body)
+        --     self.BodyLookingPoint = Vector3.new(newp.X,self.BodyLookingPoint.Y,self.BodyLookingPoint.Z)
+        --     if currentdist >= distance or ctime >= timetotake then coroutine.resume(thread) hb:Disconnect() end
+        -- end)
+        -- coroutine.yield()
     end
 end
 function entity:LookAt(Position,timetotake)
