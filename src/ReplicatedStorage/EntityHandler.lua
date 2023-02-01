@@ -407,16 +407,32 @@ function entity:UpdateRotationClient(debugmode)
     end
 end
 function entity:TurnTo(Position,timetotake)
-    timetotake = timetotake or 0
     local current = self.BodyLookingPoint 
+    timetotake = timetotake or 0
     if not current then 
     self.BodyLookingPoint = Position
     else
         local body = Vector2.new(self.Position.X,self.Position.Z)
         local t1,t3 = Vector2.new(current.X,current.Z),Vector2.new(Position.X,Position.Z)
-        t1 = body + (t1-body).Unit*(t3-body).Magnitude
-        
-        local midpoint = (t1-t3)/2
+        local rad = (t3-body).Magnitude
+        t1 = body + (t1-body).Unit*rad
+        local t1angle = math.deg(math.atan2(t1.Y-body.Y, t1.X-body.X))
+        local t3angle = math.deg(math.atan2(t3.Y-body.Y, t3.X-body.X))
+        local distance = math.abs(maths.AngleDifference(t1angle,t3angle))
+        local speed = distance/timetotake
+        local ctime = 0
+        local currentdist = 0
+        local hb
+        local thread =coroutine.running()
+        hb = RunService.Heartbeat:Connect(function(deltaTime)
+            ctime += deltaTime
+            currentdist += speed
+            local y = maths.lerp_angle(t1,t3,ctime)
+            local newp = maths.GetXYfromangle(y,distance,body)
+            self.BodyLookingPoint = Vector3.new(newp.X,self.BodyLookingPoint.Y,self.BodyLookingPoint.Z)
+            if currentdist >= distance or ctime >= timetotake then coroutine.resume(thread) hb:Disconnect() end
+        end)
+        coroutine.yield()
     end
 end
 function entity:LookAt(Position,timetotake)

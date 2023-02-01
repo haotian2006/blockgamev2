@@ -71,6 +71,26 @@ function maths.GetClosestNumber(num,tab)
     end
     return n
 end
+function maths.lerp(start,goal,dt)
+    return start + (goal - start) *dt
+end
+function maths.lerp_angle(a, b, t)
+    local gcframe = CFrame.Angles(0,math.rad(a),0)
+    local scframe = CFrame.Angles(0,math.rad(b),0)
+	local c = scframe:Lerp(gcframe,t)
+	local _,y,_ = c:ToEulerAnglesXYZ()
+    return math.deg(y)
+end
+function maths.GetXYfromangle(angle,radius,center)
+    local x = radius * math.sin(math.pi * 2 * angle / 360)
+    local y = radius * math.cos(math.pi * 2 * angle / 360)
+    x,y =math.round(x * 100) / 100,   math.round(y * 100) / 100 
+    return center + Vector2.new(x,y)
+end
+function maths.AngleDifference(angle1,angle2 )
+    local diff = ( angle2 - angle1 + 180 ) % 360 - 180
+    return diff < -180 and diff + 360 or diff
+end
 function maths.ReflectAngleAcrossY(dt)
     return (360-dt+180)%360
 end
