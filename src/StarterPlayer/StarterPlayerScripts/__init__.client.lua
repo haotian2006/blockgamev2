@@ -147,6 +147,7 @@ EntityBridge:Connect(function(entitys)
             nametag.Text.Text = v.Name or v.Id
             e = model
            -- entity:UpdateRotationClient()
+           oldentity = entity
             if i == tostring(game.Players.LocalPlayer.UserId) then
                 workspace.CurrentCamera.CameraSubject = eye
                 task.spawn(function()
@@ -195,6 +196,9 @@ EntityBridge:Connect(function(entitys)
         end
         if e then 
             changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)
+        end
+        if oldentity then
+            anihandler.UpdateEntity(oldentity)
         end
     end
 end)

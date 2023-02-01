@@ -39,6 +39,9 @@ end
 local function round2(x)
     return math.round(x)
 end
+function self.GetEntityFromPlayer(player:Player)
+    return self.LoadedEntities[tostring(player.UserId)]
+end
 function self.RemoveEntity(uuid)
     self.AmmountOfEntities -= 1
     self.LoadedEntities[uuid] = nil

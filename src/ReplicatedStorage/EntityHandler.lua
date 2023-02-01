@@ -44,6 +44,7 @@ function entity.new(data)
     self.NotSaved = {}
     self.NotSaved["behaviors"] =  {}
     self.NotSaved.NoClear = {}
+    self.PlayingAnimations = {Swing = false,Normal = false}
     return self
 end
 function entity:UpdateEntity(newdata)

@@ -17,8 +17,11 @@ game.Players.PlayerAdded:Connect(function(player)
 end)
 local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)})
 data.AddEntity(entity)
-game.ReplicatedStorage.Events.ServerFPS.OnServerEvent:Connect(function(player)
+game.ReplicatedStorage.Events.ServerFPS.OnServerEvent:Connect(function(player,a)
     entity:TurnTo(data.LoadedEntities[tostring(player.UserId)].Position)
+    local pe = data.GetEntityFromPlayer(player)
+    pe.PlayingAnimations.Swing = a
+   -- pe.PlayingAnimations.Normal = not pe.PlayingAnimations.Normal 
 end)
 local domoverbridge = bridge.CreateBridge("DoMover")
 EntityBridge:Connect(function(plr,id,newdata)

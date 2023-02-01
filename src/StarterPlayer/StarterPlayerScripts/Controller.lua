@@ -34,6 +34,7 @@ local mtick = controls.mtick
 local runservice = game:GetService("RunService")
 local uis = game:GetService("UserInputService")
 local FD = controls.Functionsdown 
+local CameraCFrame = camera.CFrame
 local function interpolate(startVector3, finishVector3, alpha)
     local function currentState(start, finish, alpha)
         return start + (finish - start)*alpha
@@ -109,13 +110,13 @@ function func.Crouch()
     data.LocalPlayer:UpdateModelPosition()
 end
 function func.Interact()
-    local lookvector = Camera.CFrame.LookVector
+    local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.GetNormal = true
    -- rayinfo.IgnoreEntities = true
-    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
+    local raystuff = Ray.Cast(CameraCFrame.Position/3,lookvector*5,rayinfo)
     if #raystuff.Objects >= 1 then
         --print("hit")
         local newpos = {}
@@ -140,12 +141,12 @@ function func.Interact()
     end
 end
 function func.Attack()
-    local lookvector = Camera.CFrame.LookVector
+    local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
-    local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
+    local raystuff = Ray.Cast(CameraCFrame.Position/3,lookvector*5,rayinfo)
     if #raystuff.Objects >= 1 then
         local newpos = {}
         for i,v in raystuff.Objects do
@@ -157,7 +158,7 @@ function func.Attack()
                 destroyblockEvent:Fire(block)
             elseif v.Type == "Entity"  then
                 debugger.HighLightEntity(v.EntityId,1)
-                game.ReplicatedStorage.Events.KB:FireServer(v.EntityId,Camera.CFrame.LookVector)
+                game.ReplicatedStorage.Events.KB:FireServer(v.EntityId,CameraCFrame.LookVector)
             end
         end
     end
@@ -177,8 +178,8 @@ function Render.Update(dt)
 end
 function Render.Move(dt)
     if checkempty(data.LocalPlayer) then return end 
-    local LookVector = Camera.CFrame.LookVector
-    local RightVector = Camera.CFrame.RightVector
+    local LookVector = CameraCFrame.LookVector
+    local RightVector = CameraCFrame.RightVector
     LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit -- Vector3.new(1,0,0)--
     RightVector = Vector3.new(RightVector.X,0,RightVector.Z).Unit --Vector3.new(0,0,1)--
     local foward = LookVector*(FD["Foward"]and 1 or 0)
@@ -188,6 +189,11 @@ function Render.Move(dt)
     local velocity = foward + Back + Left+ Right
     data.LocalPlayer.bodydir = velocity
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) * (data.LocalPlayer.Speed or 0 )
+    if velocity.Magnitude == 0 then
+        game.ReplicatedStorage.Events.ServerFPS:FireServer(false)
+    else
+        game.ReplicatedStorage.Events.ServerFPS:FireServer(true)
+    end
     data.LocalPlayer.Velocity["Movement"] = velocity
     if FD["Jump"] then data.LocalPlayer:Jump() 
 end 
@@ -198,14 +204,14 @@ local playerinfo = {}
 local second 
 local outline = game.Workspace.Outline
 function controls.Render.OutLine()
-    local lookvector = Camera.CFrame.LookVector
+    local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
     --rayinfo.RaySize = Vector3.new(.01,.01,.01)
    -- rayinfo.IgnoreEntities = true
-     local raystuff = Ray.Cast(Camera.CFrame.Position/3,lookvector*5,rayinfo)
+     local raystuff = Ray.Cast(CameraCFrame.Position/3,lookvector*5,rayinfo)
     if #raystuff.Objects >= 1 then
         local v = raystuff.Objects[1]
            -- print(v.Normal,lookvector)
@@ -221,6 +227,9 @@ function controls.Render.OutLine()
     end
 end
 function controls.RenderStepped.Camera()
+    if not FD["Freecam"] then
+        CameraCFrame = camera.CFrame
+    end
     if not checkempty(data.LocalPlayer) then
         local Current_Entity = data.LocalPlayer.Entity
         second = second or Current_Entity:FindFirstChild("SecondLayer",true)
@@ -229,8 +238,8 @@ function controls.RenderStepped.Camera()
         local Torso = entityw:FindFirstChild("Torso",true)
         local neck =  entityw:FindFirstChild("Neck",true)
         local MainWeld = entityw:FindFirstChild("MainWeld",true)
-        if neck and Torso and MainWeld and not FD["Freecam"] then
-            data.LocalPlayer:SetHeadRotationFromDir(camera.CFrame.LookVector*10)
+        if neck and Torso and MainWeld then
+            data.LocalPlayer:SetHeadRotationFromDir(CameraCFrame.LookVector*10)
         end
         data.LocalPlayer:UpdateRotationClient()
         if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then

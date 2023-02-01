@@ -3,14 +3,13 @@ local Data = require(game.ReplicatedStorage.DataHandler)
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 local AnimationBridge = bridge.CreateBridge("AnimationHandler")
 local module = {}
-module.PlayingAnimations = {}
 function module.StopAnimations(entity)
-    if module.PlayingAnimations[entity.Id] then
+    if entity.ClientAnim then
         local entityani = entity.PlayingAnimations or {}
-        for i,v in module.PlayingAnimations[entity.Id] do
+        for i,v in entity.ClientAnim do
             if not entityani[i] then
                 v:Stop()
-                module.PlayingAnimations[entity.Id][i] = nil
+                entity.ClientAnim[i] = nil
             end
         end
     end
@@ -22,9 +21,10 @@ function module.UpdateEntity(entity)
     if not AniPaths or not AniPaths.Animations or not animator then return end 
     AniPaths = AniPaths.Animations
     for i,v in entity.PlayingAnimations or {} do
-        if not module.PlayingAnimations[entity.Id][i] and AniPaths[i] then
-            module.PlayingAnimations[entity.Id][i] = animator:LoadAnimation(AniPaths[i])
-            module.PlayingAnimations[entity.Id][i]:Play()
+        entity.ClientAnim = entity.ClientAnim or {}
+        if not entity.ClientAnim[i] and AniPaths[i] and v  then
+            entity.ClientAnim[i] = animator:LoadAnimation(AniPaths[i])
+            entity.ClientAnim[i]:Play()
         end
     end
 end
