@@ -190,9 +190,9 @@ function Render.Move(dt)
     data.LocalPlayer.bodydir = velocity
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) * (data.LocalPlayer.Speed or 0 )
     if velocity.Magnitude == 0 then
-        game.ReplicatedStorage.Events.ServerFPS:FireServer(false)
+      --  game.ReplicatedStorage.Events.ServerFPS:FireServer(false)
     else
-        game.ReplicatedStorage.Events.ServerFPS:FireServer(true)
+       -- game.ReplicatedStorage.Events.ServerFPS:FireServer(true)
     end
     data.LocalPlayer.Velocity["Movement"] = velocity
     if FD["Jump"] then data.LocalPlayer:Jump() 

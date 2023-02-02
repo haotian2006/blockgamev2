@@ -56,7 +56,7 @@ function entity:UpdateEntity(newdata)
         self[i] = v 
     end
 end
-entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching"}
+entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations"}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
@@ -416,6 +416,7 @@ function entity:TurnTo(Position,timetotake)
     if not current or true then 
     self.BodyLookingPoint = Position
     task.wait(.1)
+    if self.BodyLookingPoint ~= Position then return end 
     self.BodyLookingPoint = nil
     else
         --lp.Position = current*3
