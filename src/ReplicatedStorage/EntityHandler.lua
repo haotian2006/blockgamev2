@@ -299,8 +299,8 @@ function entity:UpdateChunk()
     end
     self.Chunk = Vector2.new(cx,cz)
 end
-function entity:SetNetworkOwner(id)
-    self.ClientControll = id
+function entity:SetNetworkOwner(player)
+    self.ClientControll = player and tostring(player.UserId)
 end
 function entity:Update(dt)
     self:UpdateChunk()
@@ -460,6 +460,24 @@ end
 function entity:MoveTo(x,y,z)
     local new = require(game.ReplicatedStorage.EntityMovers).MoveTo.new(self,x,y,z,true)
     new:Init()
+end
+function entity:IsClientControl()
+    if self.ClientControll then
+        for i,v in game.Players:GetPlayers() do
+            if v.UserId == tonumber(self.ClientControll) then
+                return v
+            end
+        end
+    end
+end
+function entity:SetPosition(position)
+    
+end
+function entity:PlayAnimation(Name,PlayOnce)
+    
+end
+function entity:StopAnimation(Name)
+    
 end
 function entity:AddBodyVelocity(name,velocity)
     if velocity.Magnitude == 0 then return end 
