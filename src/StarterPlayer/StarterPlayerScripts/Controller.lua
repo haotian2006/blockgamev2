@@ -10,6 +10,7 @@ local data = require(game.ReplicatedStorage.DataHandler)
 local Ray = require(game.ReplicatedStorage.Ray)
 local camera = game.Workspace.CurrentCamera
 local debugger = require(game.ReplicatedStorage.Debugger)
+local anihandler = require(game.ReplicatedStorage.AnimationController)
 local lp = game.Players.LocalPlayer
 controls.pc = {
     Foward = {'w',"Foward"},-- Name = {key,function}
@@ -101,11 +102,15 @@ function func.Crouch()
         data.LocalPlayer.Position += Vector3.new(0,.3/2,0)
         data.LocalPlayer.HitBox = Vector2.new( data.LocalPlayer.HitBox.X, data.LocalPlayer.HitBox.Y+.3)
         data.LocalPlayer.EyeLevel +=.3
+        data.LocalPlayer:StopAnimation("Crouch")
+        data.LocalPlayer.Speed = 5.612
     else
         data.LocalPlayer.Crouching = true
         data.LocalPlayer.Position += Vector3.new(0,-.3/2,0)
         data.LocalPlayer.HitBox = Vector2.new( data.LocalPlayer.HitBox.X, data.LocalPlayer.HitBox.Y-.3)
         data.LocalPlayer.EyeLevel -=.3
+        data.LocalPlayer.Speed = 1.31
+        data.LocalPlayer:PlayAnimation("Crouch")
     end
     data.LocalPlayer:UpdateModelPosition()
 end
@@ -162,6 +167,7 @@ function func.Attack()
             end
         end
     end
+    data.LocalPlayer:PlayAnimation("Attack",true)
 end
 local last 
 function Render.Update(dt)
@@ -175,6 +181,7 @@ function Render.Update(dt)
     self.Entity.PrimaryPart.CFrame = CFrame.new(self.Position*3)
     EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),self)
     self:ClearVelocity()
+    anihandler.UpdateEntity(self)
 end
 function Render.Move(dt)
     if checkempty(data.LocalPlayer) then return end 
@@ -190,9 +197,9 @@ function Render.Move(dt)
     data.LocalPlayer.bodydir = velocity
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) * (data.LocalPlayer.Speed or 0 )
     if velocity.Magnitude == 0 then
-      --  game.ReplicatedStorage.Events.ServerFPS:FireServer(false)
+        data.LocalPlayer:StopAnimation("Walk")
     else
-       -- game.ReplicatedStorage.Events.ServerFPS:FireServer(true)
+        data.LocalPlayer:PlayAnimation("Walk")
     end
     data.LocalPlayer.Velocity["Movement"] = velocity
     if FD["Jump"] then data.LocalPlayer:Jump() 

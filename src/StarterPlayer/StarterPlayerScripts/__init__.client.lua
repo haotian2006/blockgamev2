@@ -9,7 +9,7 @@ local mulithandler = require(game.ReplicatedStorage.MultiHandler)
 local toload = {}
 local currentlyloading = {}
 local queued = {}
-local anihandler = require(script.Parent.AnimationController)
+local anihandler = require(game.ReplicatedStorage.AnimationController)
 local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
@@ -72,6 +72,24 @@ local function CreateModel(Data,ParentModel)
         return model
     end
 end
+
+bridge.CreateBridge("ChangeEntityProperty"):Connect(function(entitid,property,value)
+    if datahandler.LoadedEntities[entitid] then
+        if type(property) == "table" then
+            local tab = datahandler.LoadedEntities[entitid]
+            for i,v in ipairs(property) do
+                if i == #property then
+                    tab[v] = 5
+                else
+                    tab[v] = tab[v] or {}
+                    tab = tab[v] 
+                end
+            end
+        else
+            datahandler.LoadedEntities[entitid][property] = value
+        end
+    end
+end)
 game.ReplicatedStorage.Events.EntityUpdater.OnClientEvent:Connect(function(entityId,newdata,dostuff)
     if datahandler.LoadedEntities[entityId] then
         local e = datahandler.LoadedEntities[entityId]

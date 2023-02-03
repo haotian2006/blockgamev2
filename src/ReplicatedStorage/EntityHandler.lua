@@ -10,6 +10,10 @@ local datahandler = require(game.ReplicatedStorage.DataHandler)
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 local movers = require(game.ReplicatedStorage.EntityMovers)
 local gs = require(game.ReplicatedStorage.GameSettings)
+local bridge = require(game.ReplicatedStorage.BridgeNet)
+local anihandler = require(game.ReplicatedStorage.AnimationController)
+local changeproperty = bridge.CreateBridge("ChangeEntityProperty")
+local playani = bridge.CreateBridge("PlayAnimation")
 local ts = game:GetService("TweenService")
 local function interpolate(startVector3, finishVector3, alpha)
     local function currentState(start, finish, alpha)
@@ -42,21 +46,22 @@ function entity.new(data)
     self.Velocity = self.Velocity or {}
     self.Data = data.Data or {}
     self.NotSaved = {}
+    self.PlayingAnimations = data.PlayingAnimations or {}
+    self.PlayingAnimationOnce = data.PlayingAnimationOnce or {}
     self.NotSaved["behaviors"] =  {}
     self.NotSaved.NoClear = {}
-    self.PlayingAnimations = {Swing = false,Normal = false}
     return self
 end
 function entity:UpdateEntity(newdata)
     for i,v in self do
-        if i == "Entity" or i == "Tweens" then continue end 
+        if i == "Entity" or i == "Tweens" or i == "ClientAnim" or i == "LoadedAnis" then continue end 
         self[i] = newdata[i] 
     end
     for i,v in newdata do
         self[i] = v 
     end
 end
-entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations"}
+entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","PlayingAnimationOnce","Speed"}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
@@ -465,19 +470,51 @@ function entity:IsClientControl()
     if self.ClientControll then
         for i,v in game.Players:GetPlayers() do
             if v.UserId == tonumber(self.ClientControll) then
-                return v
+                return v,RunService:IsClient()
             end
         end
     end
 end
 function entity:SetPosition(position)
-    
+    local plr,client = self:IsClientControl()
+    if plr and not client then
+        changeproperty:Fire(plr,self.Id,"Position",position)
+    elseif client and plr == game.Players.LocalPlayer then
+        self.Position = position
+    else
+        self.Position = position
+    end
 end
 function entity:PlayAnimation(Name,PlayOnce)
-    
+    local plr,client = self:IsClientControl()
+    if PlayOnce then 
+        if not client then
+            playani:FireAll(self.Id,Name)
+        elseif client and plr == game.Players.LocalPlayer then
+            playani:Fire(self.Id,Name)
+            anihandler.PlayAnimationOnce(self,Name)
+        else
+            anihandler.PlayAnimationOnce(self,Name)
+        end
+    else
+        if plr and not client then
+            changeproperty:Fire(plr,self.Id,{"PlayingAnimations",Name},true)
+        elseif client and plr == game.Players.LocalPlayer then
+            self.PlayingAnimations[Name] = true
+        else
+            self.PlayingAnimations[Name] = true
+        end
+    end
 end
 function entity:StopAnimation(Name)
-    
+    local plr,client = self:IsClientControl()
+    if plr and not client then
+        changeproperty:Fire(plr,self.Id,{"PlayingAnimations",Name},false)
+    elseif client and plr == game.Players.LocalPlayer then
+        self.PlayingAnimations[Name] = false
+    else
+        self.PlayingAnimations[Name] = false
+    end
 end
 function entity:AddBodyVelocity(name,velocity)
     if velocity.Magnitude == 0 then return end 
