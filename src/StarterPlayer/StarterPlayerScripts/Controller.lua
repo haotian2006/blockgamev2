@@ -142,6 +142,18 @@ function func.HandleJump()
     end)
 end
 function func.Crouch()
+    if not data.LocalPlayer.Crouching then
+        data.LocalPlayer.Crouching = true
+        data.LocalPlayer.Position += Vector3.new(0,-.3/2,0)
+        data.LocalPlayer.HitBox = Vector2.new( data.LocalPlayer.HitBox.X, data.LocalPlayer.HitBox.Y-.3)
+        data.LocalPlayer.EyeLevel -=.3
+        data.LocalPlayer.Speed = 1.31
+        data.LocalPlayer:PlayAnimation("Crouch")
+    end
+    data.LocalPlayer:UpdateModelPosition()
+    repeat
+        task.wait()
+    until not FD["Crouch"]
     if data.LocalPlayer.Crouching then
         data.LocalPlayer.Crouching = false
         data.LocalPlayer.Position += Vector3.new(0,.3/2,0)
@@ -149,13 +161,6 @@ function func.Crouch()
         data.LocalPlayer.EyeLevel +=.3
         data.LocalPlayer:StopAnimation("Crouch")
         data.LocalPlayer.Speed = 5.612
-    else
-        data.LocalPlayer.Crouching = true
-        data.LocalPlayer.Position += Vector3.new(0,-.3/2,0)
-        data.LocalPlayer.HitBox = Vector2.new( data.LocalPlayer.HitBox.X, data.LocalPlayer.HitBox.Y-.3)
-        data.LocalPlayer.EyeLevel -=.3
-        data.LocalPlayer.Speed = 1.31
-        data.LocalPlayer:PlayAnimation("Crouch")
     end
     data.LocalPlayer:UpdateModelPosition()
 end
@@ -350,6 +355,8 @@ local function doinput(input,gameProcessedEvent)
         for i,v in controls[controls.mode] do
             local function second()
                 if v[2] then
+                    controls.Functionsdown[v[2]] = controls.Functionsdown[v[2]] or {}
+                    controls.Functionsdown[v[2]][key] = true
                     if type(v[2]) == "string" then
                         if controls.func[v[2]] then
                             task.spawn(controls.func[v[2]],key,input)
@@ -357,8 +364,6 @@ local function doinput(input,gameProcessedEvent)
                     else
                         task.spawn(v[2],key,input)
                     end
-                    controls.Functionsdown[v[2]] = controls.Functionsdown[v[2]] or {}
-                    controls.Functionsdown[v[2]][key] = true
                 end
             end
             if v[1] == key then
