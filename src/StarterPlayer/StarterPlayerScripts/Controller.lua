@@ -11,7 +11,10 @@ local Ray = require(game.ReplicatedStorage.Ray)
 local camera = game.Workspace.CurrentCamera
 local debugger = require(game.ReplicatedStorage.Debugger)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
+local hotbarhandler = require(game.ReplicatedStorage.Managers.HotBarManager)
+hotbarhandler:Init()
 local lp = game.Players.LocalPlayer
+local localentity = data.GetLocalPlayer
 controls.pc = {
     Foward = {'w',"Foward"},-- Name = {key,function}
     Left = {{'a',"c"},"Left"},
@@ -21,8 +24,19 @@ controls.pc = {
     Attack = {'mousebutton1',"Attack"},
     Interact = {'mousebutton2',"Interact"},
     Crouch = {"leftshift","Crouch"},
-    HitBoxs = {'f3','HitBoxs'},
-    Freecam = {'e',"Freecam"}
+    HitBoxs = {'r','HitBoxs'},
+    Freecam = {'e',"Freecam"},
+    Slot1 = {'one',"HotBarUpdate"},
+    Slot2 = {'two',"HotBarUpdate"},
+    Slot3 = {'three',"HotBarUpdate"},
+    Slot4 = {'four',"HotBarUpdate"},
+    Slot5 = {'five',"HotBarUpdate"},
+    Slot6 = {'six',"HotBarUpdate"},
+    Slot7 = {'seven',"HotBarUpdate"},
+    Slot8 = {'eight',"HotBarUpdate"},
+    Slot9 = {'nine',"HotBarUpdate"},
+    MouseWheel = {"mousewheel","HotBarUpdate"},
+    F5 = {"q","F5"}
 }
 controls.KeysPressed = {}
 controls.Render = {}
@@ -58,6 +72,37 @@ local function getkeyfrominput(input)
     end
 end
 local ExtraJump = 0
+local F5 = false
+function func.F5()
+    F5 = not F5
+end
+function func.HotBarUpdate(key,data)
+    local slot = localentity().CurrentSlot or 1
+    if data.UserInputType == Enum.UserInputType.MouseWheel then
+        local upordown = data.Position.Z > 0 and "up" or "down"
+        if upordown == "up" then
+            slot +=1 
+            if slot >= 10 then
+                slot = 1
+            end
+        else
+            slot -=1 
+            if slot <= 0 then
+                slot = 9
+            end
+        end
+    else
+        for i,v in controls[controls.mode] do
+            if string.find(i,"Slot") then else continue end 
+            if v == key or (type(v) == "table" and table.find(v,key)) then
+                slot = string.split(i,"Slot")[2]
+                break
+            end
+        end
+    end
+    localentity().CurrentSlot = tonumber(slot)
+    hotbarhandler.UpdateSelect(tonumber(slot))
+end
 function func.HitBoxs()
     data.HitBoxEnabled = not data.HitBoxEnabled 
     for i,v in game.Workspace.Entities:GetDescendants() do
@@ -121,7 +166,7 @@ function func.Interact()
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.GetNormal = true
    -- rayinfo.IgnoreEntities = true
-    local raystuff = Ray.Cast(CameraCFrame.Position/3,lookvector*5,rayinfo)
+    local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*5,rayinfo)
     if #raystuff.Objects >= 1 then
         --print("hit")
         local newpos = {}
@@ -138,6 +183,7 @@ function func.Interact()
                 if not data.GetBlock(coords.X,coords.Y,coords.Z) then 
                     data.InsertBlock(coords.X,coords.Y,coords.Z,'Type|s%Cubic:Dirt')
                 end
+                localentity():PlayAnimation("Place",true)
                 placeBlockEvent:Fire(coords)
             elseif v.Type == "Entity"  then
             
@@ -151,7 +197,7 @@ function func.Attack()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
-    local raystuff = Ray.Cast(CameraCFrame.Position/3,lookvector*5,rayinfo)
+    local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*5,rayinfo)
     if #raystuff.Objects >= 1 then
         local newpos = {}
         for i,v in raystuff.Objects do
@@ -196,11 +242,6 @@ function Render.Move(dt)
     local velocity = foward + Back + Left+ Right
     data.LocalPlayer.bodydir = velocity
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) * (data.LocalPlayer.Speed or 0 )
-    if velocity.Magnitude == 0 then
-        data.LocalPlayer:StopAnimation("Walk")
-    else
-        data.LocalPlayer:PlayAnimation("Walk")
-    end
     data.LocalPlayer.Velocity["Movement"] = velocity
     if FD["Jump"] then data.LocalPlayer:Jump() 
 end 
@@ -211,6 +252,7 @@ local playerinfo = {}
 local second 
 local outline = game.Workspace.Outline
 function controls.Render.OutLine()
+    if next(localentity()) == nil then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -218,7 +260,7 @@ function controls.Render.OutLine()
     rayinfo.Debug = false
     --rayinfo.RaySize = Vector3.new(.01,.01,.01)
    -- rayinfo.IgnoreEntities = true
-     local raystuff = Ray.Cast(CameraCFrame.Position/3,lookvector*5,rayinfo)
+     local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*5,rayinfo)
     if #raystuff.Objects >= 1 then
         local v = raystuff.Objects[1]
            -- print(v.Normal,lookvector)
@@ -234,8 +276,20 @@ function controls.Render.OutLine()
     end
 end
 function controls.RenderStepped.Camera()
+    lp.PlayerGui:WaitForChild("Hud")
     if not FD["Freecam"] then
         CameraCFrame = camera.CFrame
+        uis.MouseBehavior = Enum.MouseBehavior.LockCenter
+    end
+    uis.MouseIconEnabled = false
+    if not F5 then
+        lp.PlayerGui:WaitForChild("Hud").Cursor.Visible = true
+        lp.CameraMaxZoomDistance = 0.5
+        lp.CameraMinZoomDistance = 0.5
+    else
+        lp.PlayerGui:WaitForChild("Hud").Cursor.Visible = false
+        lp.CameraMaxZoomDistance = 6
+        lp.CameraMinZoomDistance = 6
     end
     if not checkempty(data.LocalPlayer) then
         local Current_Entity = data.LocalPlayer.Entity
@@ -288,7 +342,7 @@ function controls.RenderStepped.Camera()
     end
 
 end
-uis.InputBegan:Connect(function(input, gameProcessedEvent)
+local function doinput(input,gameProcessedEvent)
     local key = getkeyfrominput(input)
     if gameProcessedEvent then return end 
     controls.KeysPressed[key] = key
@@ -298,10 +352,10 @@ uis.InputBegan:Connect(function(input, gameProcessedEvent)
                 if v[2] then
                     if type(v[2]) == "string" then
                         if controls.func[v[2]] then
-                            task.spawn(controls.func[v[2]],key)
+                            task.spawn(controls.func[v[2]],key,input)
                         end
                     else
-                        task.spawn(v[2],key)
+                        task.spawn(v[2],key,input)
                     end
                     controls.Functionsdown[v[2]] = controls.Functionsdown[v[2]] or {}
                     controls.Functionsdown[v[2]][key] = true
@@ -316,7 +370,15 @@ uis.InputBegan:Connect(function(input, gameProcessedEvent)
             end 
         end
     end
+end
+uis.InputBegan:Connect(doinput)
+uis.InputChanged:Connect(function(i,g)
+    local key = getkeyfrominput(i)
+    if key == "mousewheel" then
+        doinput(i,g)
+    end
 end)
+
 uis.InputEnded:Connect(function(input, gameProcessedEvent)
     if gameProcessedEvent then return end 
     local key = getkeyfrominput(input)

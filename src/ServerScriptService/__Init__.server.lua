@@ -12,10 +12,10 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 game.Players.PlayerAdded:Connect(function(player)
-    local entity = entityahndler.Create("Player",{Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 6.6, 10),ClientControll = tostring(player.UserId)})
+    local entity = entityahndler.Create("Player",{inventory = {AddTo = true,[1] = {"Dirt",64},[5] = {"Dirt",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 6.6, 10),ClientControll = tostring(player.UserId)})
     data.AddEntity(entity)
 end)
-local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)}) data.AddEntity(entity)
+--local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)}) data.AddEntity(entity)
 game.ReplicatedStorage.Events.ServerFPS.OnServerEvent:Connect(function(player,a)
     entity:TurnTo(data.LoadedEntities[tostring(player.UserId)].Position)
     local pe = data.GetEntityFromPlayer(player)
@@ -95,7 +95,7 @@ game:GetService("RunService").Heartbeat:Connect(function( deltaTime)
     for i,player in game.Players:GetPlayers() do
         if player.Character and player.Character.PrimaryPart then
             local Pb = data.LoadedEntities[tostring(player.UserId)].Position
-            local a = data.EntitiesinR(Pb.X,Pb.Y,Pb.Z,100,true)
+            local a = data.EntitiesinR(Pb.X,Pb.Y,Pb.Z,100,player)
             EntityBridge:FireTo(player,a)
         end
     end

@@ -48,6 +48,7 @@ return {
                 if v.Type == "Player" then
                     local dir = (v.Position-entity.Position).Unit
                     local velocity = Vector3.new(dir.X*2,.6,dir.Z*2)
+                    entity:PlayAnimation("Attack",true)
                     require(game.ReplicatedStorage.BridgeNet).CreateBridge("DoMover"):FireTo(game.Players:GetPlayerByUserId(tonumber(i)),i,"Curve",velocity,.2)
                     break
                 end

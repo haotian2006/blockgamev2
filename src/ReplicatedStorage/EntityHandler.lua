@@ -32,6 +32,7 @@ entity.SpecialNames = {
     Velocity = true,
     NotSaved = true,
     behaviors = true,
+    CurrentSlot = true,
 }
 entity.NotClearedNames = {
     --Move = true
@@ -52,6 +53,34 @@ function entity.new(data)
     self.NotSaved.NoClear = {}
     return self
 end
+function entity:UpdateChunk()
+    local cx,cz = qf.GetChunkfromReal(self.Position.X,self.Position.Y,self.Position.Z,true)
+    local chunk = datahandler.GetChunk(cx,cz)
+    if self.Chunk and self.Chunk ~= Vector2.new(cx,cz) then
+        self:RemoveFromChunk()
+    end
+    if chunk then
+        chunk.Entities[self.Id] = self
+    end
+    self.Chunk = Vector2.new(cx,cz)
+end
+function entity:UpdateIdleAni()
+    local entitydata = resourcehandler.GetEntityModelDataFromData(self)
+    if not entitydata or not entitydata.Animations or not entitydata.Animations["Idle"] then return end 
+    local holdingitem = self:GetItemFromSlot(self.CurrentSlot or 1)
+    holdingitem = type(holdingitem) == "table" and holdingitem[1] or ""
+    if entitydata.Animations["HoldingItemIdle"] then
+        if holdingitem == "" then
+            self:PlayAnimation("Idle")
+            self:StopAnimation("HoldingItemIdle")
+        else
+            self:PlayAnimation("HoldingItemIdle")
+            self:StopAnimation("Idle")
+        end
+    else
+        self:PlayAnimation("Idle")
+    end
+end
 function entity:UpdateEntity(newdata)
     for i,v in self do
         if i == "Entity" or i == "Tweens" or i == "ClientAnim" or i == "LoadedAnis" then continue end 
@@ -61,7 +90,10 @@ function entity:UpdateEntity(newdata)
         self[i] = v 
     end
 end
-entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","PlayingAnimationOnce","Speed"}
+function entity:UpdateHandSlot(slot)
+    self.CurrentSlot = slot 
+end
+entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","PlayingAnimationOnce","Speed","CurrentSlot"}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
@@ -83,75 +115,16 @@ function entity:UpdateModelPosition()
     if not eyeweld then return end 
     eyeweld.C0 = offset and CFrame.new( Vector3.new(0,offset/2,0)*3) or CFrame.new()
 end
-function entity:GetVelocity():Vector3
-    local x,y,z = 0,0,0
-    for i,v in self.Velocity do
-        if typeof(v) == "Vector3" and v == v then
-            x+= v.X
-            y+= v.Y
-            z+= v.Z
-        end
-    end
-    if x == 0 then
-        x = -0.00000001
-    end
-    if z == 0 then
-        z = -0.00000001
-    end
-    return Vector3.new(x,y,z)
-end
-function entity:GetQf()
-    return qf
-end
-function entity:GetData()
-    return datahandler
-end
-function entity:GetEyePosition()
-    local eye = self.EyeLevel/2
-    return self.Position + Vector3.new(0,eye,0)
-end
-function entity:AddVelocity(Name,velocity:Vector3)
-    if not self.NotSaved.ClearVelocity or self.NotSaved.NoClear[Name] then
-        self.Velocity[Name] = self.Velocity[Name] or Vector3.new()
-        self.Velocity[Name] = velocity
-    else
-        self.NotSaved.Velocity = self.NotSaved.Velocity or {}
-        self.NotSaved.Velocity[Name] =  self.NotSaved.Velocity[Name] or Vector3.new()
-        self.NotSaved.Velocity[Name] = velocity
-    end
-    return self
-end
-
-function entity:AddNoClear(Name)
-    self.NotSaved.NoClear = self.NotSaved.NoClear or {}
-    self.NotSaved.NoClear[Name] = true
-end
-function entity:RemoveNoClear(Name)
-    self.NotSaved.NoClear = self.NotSaved.NoClear or {}
-    self.NotSaved.NoClear[Name] = nil
-end
-function entity:DoBehaviors(dt)
-    --wip
-end
-function entity:ClearVelocity()
-    for i,v in self.Velocity do
-        if not entity.NotClearedNames[i] and not self.NotSaved.NoClear[i] then
-            self.Velocity[i] = nil
-        end
-    end
-    self.NotSaved.ClearVelocity = false
-    for i,v in self.NotSaved.Velocity or {} do
-        self.Velocity[i] = v
-        self.NotSaved.Velocity[i] = nil
-    end
-end
 function entity:UpdatePosition(dt)
     local velocity = self:GetVelocity()
     self.NotSaved.ClearVelocity = true
     if not self.ClientControll or  ( RunService:IsClient() and self.ClientControll and self.ClientControll == tostring(game.Players.LocalPlayer.UserId) ) then 
+        self:UpdateIdleAni()
         local p2 = interpolate(self.Position,self.Position+velocity,dt) 
+        local e = velocity
         velocity = (p2-self.Position)
         local newp = CollisionHandler.entityvsterrain(self,velocity)
+        local velocity2 = (newp-self.Position)
         local dir = newp - self.Position
         local length = 0
         if velocity.Y <= 0 and self.Crouching and self.NotSaved.LastG then
@@ -270,6 +243,17 @@ function entity:UpdatePosition(dt)
             else 
             end 
         end
+        if RunService:IsServer() then
+         --   print(velocity.Magnitude,velocity2.Magnitude)
+        end
+        if qf.EditVector3(( newp - self.Position),"y",0).Magnitude == 0 then
+            if  self.NotSaved.LastUpdate and (os.clock()- self.NotSaved.LastUpdate)>.2 or RunService:IsClient()  then
+                self:StopAnimation("Walk")
+            end
+        else
+            self:PlayAnimation("Walk")
+            self.NotSaved.LastUpdate = os.clock()
+        end
         self.Position = newp--interpolate(self.Position,newp,dt) 
     end
     self.Data.Grounded = CollisionHandler.IsGrounded(self)
@@ -277,6 +261,75 @@ function entity:UpdatePosition(dt)
         self.NotSaved["ExtraJump"] = DateTime.now().UnixTimestampMillis/1000
     end
     self.NotSaved.LastG = self.Data.Grounded
+
+end
+function entity:GetVelocity():Vector3
+    local x,y,z = 0,0,0
+    for i,v in self.Velocity do
+        if typeof(v) == "Vector3" and v == v then
+            x+= v.X
+            y+= v.Y
+            z+= v.Z
+        end
+    end
+    if x == 0 then
+        x = -0.00000001
+    end
+    if z == 0 then
+        z = -0.00000001
+    end
+    return Vector3.new(x,y,z)
+end
+function entity:GetItemFromSlot(slot)
+    if self.inventory then
+        return self.inventory[slot]
+    end
+    return ""
+end
+function entity:GetQf()
+    return qf
+end
+function entity:GetData()
+    return datahandler
+end
+function entity:GetEyePosition()
+    local eye = self.EyeLevel/2
+    return self.Position + Vector3.new(0,eye,0)
+end
+function entity:AddVelocity(Name,velocity:Vector3)
+    if not self.NotSaved.ClearVelocity or self.NotSaved.NoClear[Name] then
+        self.Velocity[Name] = self.Velocity[Name] or Vector3.new()
+        self.Velocity[Name] = velocity
+    else
+        self.NotSaved.Velocity = self.NotSaved.Velocity or {}
+        self.NotSaved.Velocity[Name] =  self.NotSaved.Velocity[Name] or Vector3.new()
+        self.NotSaved.Velocity[Name] = velocity
+    end
+    return self
+end
+
+function entity:AddNoClear(Name)
+    self.NotSaved.NoClear = self.NotSaved.NoClear or {}
+    self.NotSaved.NoClear[Name] = true
+end
+function entity:RemoveNoClear(Name)
+    self.NotSaved.NoClear = self.NotSaved.NoClear or {}
+    self.NotSaved.NoClear[Name] = nil
+end
+function entity:DoBehaviors(dt)
+    --wip
+end
+function entity:ClearVelocity()
+    for i,v in self.Velocity do
+        if not entity.NotClearedNames[i] and not self.NotSaved.NoClear[i] then
+            self.Velocity[i] = nil
+        end
+    end
+    self.NotSaved.ClearVelocity = false
+    for i,v in self.NotSaved.Velocity or {} do
+        self.Velocity[i] = v
+        self.NotSaved.Velocity[i] = nil
+    end
 end
 function entity:CloneProperties(x)
         local copy = {}
@@ -293,29 +346,8 @@ function entity:RemoveFromChunk()
         datahandler.GetChunk(self.Chunk.X,self.Chunk.Y).Entities[self.Id] = nil
     end
 end
-function entity:UpdateChunk()
-    local cx,cz = qf.GetChunkfromReal(self.Position.X,self.Position.Y,self.Position.Z,true)
-    local chunk = datahandler.GetChunk(cx,cz)
-    if self.Chunk and self.Chunk ~= Vector2.new(cx,cz) then
-        self:RemoveFromChunk()
-    end
-    if chunk then
-        chunk.Entities[self.Id] = self
-    end
-    self.Chunk = Vector2.new(cx,cz)
-end
 function entity:SetNetworkOwner(player)
     self.ClientControll = player and tostring(player.UserId)
-end
-function entity:Update(dt)
-    self:UpdateChunk()
-    if RunService:IsServer() or (RunService:IsClient() and self.ClientControll and self.ClientControll == tostring(game.Players.LocalPlayer.UserId)) then else return end 
-    self:UpdateBodyVelocity(dt)
-    self:Gravity(dt)
-    self.NotSaved = self.NotSaved or {}
-    self.NotSaved.DeltaTime = dt
-    self:DoBehaviors(dt)
-    self:UpdatePosition(dt)
 end
 function entity:SetBodyRotationFromDir(dir)
     self.bodydir = dir
@@ -474,6 +506,7 @@ function entity:IsClientControl()
             end
         end
     end
+    return nil,RunService:IsClient()
 end
 function entity:SetPosition(position)
     local plr,client = self:IsClientControl()
@@ -536,17 +569,12 @@ function entity:Gravity(dt)
     entity.Data.FallTicks = entity.Data.FallTicks or 0
     local max = entity.FallRate or 150
     local fallrate =(((0.99^entity.Data.FallTicks)-1)*max)/2
-    entity.NotSaved.Tick = entity.NotSaved.Tick or 0 
-    entity.NotSaved.Tick += dt
     if entity.Data.Grounded  or entity.NotSaved.NoFall or  entity.NotSaved.Jumping  then -- or not entity.CanFall
         entity.Velocity.Fall = Vector3.new(0,0,0) 
         entity.Data.IsFalling = false
         entity.Data.FallTicks = 0
     elseif not entity.Data.Grounded  then
-      --  if entity.NotSaved.Tick + dt >= 1/20 then
             entity.Data.FallTicks += dt*20
-            entity.NotSaved.Tick = 0 
-       -- end
         entity.Velocity.Fall = Vector3.new(0,fallrate,0) 
     end
 end
@@ -591,6 +619,16 @@ function entity:Jump()
         local touse = jump--fps.Value>62 and (jump/deltaTime)/60 or jump
         self.Velocity.Jump =Vector3.new(0,touse,0)
     end)
+end
+function entity:Update(dt)
+    self:UpdateChunk()
+    if RunService:IsServer() or (RunService:IsClient() and self.ClientControll and self.ClientControll == tostring(game.Players.LocalPlayer.UserId)) then else return end 
+    self:UpdateBodyVelocity(dt)
+    self:Gravity(dt)
+    self.NotSaved = self.NotSaved or {}
+    self.NotSaved.DeltaTime = dt
+    self:DoBehaviors(dt)
+    self:UpdatePosition(dt)
 end
 function entity:Kill()
 

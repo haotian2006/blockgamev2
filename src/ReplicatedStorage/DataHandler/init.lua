@@ -46,6 +46,9 @@ function self.RemoveEntity(uuid)
     self.AmmountOfEntities -= 1
     self.LoadedEntities[uuid] = nil
 end
+function self.GetLocalPlayer()
+    return self.LocalPlayer
+end
 function self.EntitiesinR(x,y,z,r,ConvertToClient )
     x,y,z,r = x or 0, y ,z or 0 ,r or 0
     local vector = Vector3.new(x,y or 0,z)
@@ -53,7 +56,7 @@ function self.EntitiesinR(x,y,z,r,ConvertToClient )
     for i,v in self.LoadedEntities do
         if not y then vector = Vector3.new(x,v.Position.Y,z) end 
         if (v.Position - vector).Magnitude <= r then
-            entitys[i] = not ConvertToClient and v or v:ConvertToClient()
+            entitys[i] = not ConvertToClient and v or v:ConvertToClient(ConvertToClient)
         end
     end
     return entitys

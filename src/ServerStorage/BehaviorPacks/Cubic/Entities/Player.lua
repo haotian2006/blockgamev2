@@ -7,6 +7,7 @@ local entity = {
         Name = "Player",
         EyeLevel = 1.5,
         HitBox = Vector2.new(0.6,1.8),
+        inventory = table.create(36,""),
         JumpHeight = 1.25,
         Speed = 5.612,--5.612,
         CanCollideWithEntities = true,

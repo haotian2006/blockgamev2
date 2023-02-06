@@ -3,6 +3,9 @@ local behhandler = require(game.ServerStorage.BehaviorHandler)
 entity.ServerOnly = {
     "ServerOnly","Data","behaviors"
 }
+entity.OwnerOnly = {
+    "inventory" 
+}
 function deepCopy(original)
     local copy = {}
     for k, v in pairs(original) do
@@ -78,6 +81,7 @@ function entity:AddComponent(cpname,cpdata)
     if split[1] == "behavior" then  self.behaviors = self.behaviors or {} self = self.behaviors  end 
     if self[cpname] and type(cpdata) == "table" and cpdata["AddTo"] then
         for i,v in cpdata do
+            if i == "AddTo" then continue end 
             self[cpname][i] = v
         end
     else
@@ -91,7 +95,7 @@ function entity:AddComponent(cpname,cpdata)
 end
 function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
-    local ServerOnlyChanges = {Position = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,PlayingAnimationOnce = true,Speed = true}
+    local ServerOnlyChanges = {Position = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,PlayingAnimationOnce = true,Speed = true,CurrentSlot = true}
     for i,v in self.ServerOnly.ClientChanges or {} do
         ServerOnlyChanges[i] = v
     end
@@ -101,10 +105,11 @@ function entity:UpdateDataServer(newdata)
         end
     end
 end
-function entity:ConvertToClient()
+function entity:ConvertToClient(player)
     local new = {}
+    local HasOwnerShip = player and self.ClientControll == tostring(player.UserId)
     for i,v in self do
-        if type(v) ~="function" and not table.find(entity.ServerOnly,i)  then
+        if type(v) ~="function" and not table.find(entity.ServerOnly,i) and (not table.find(entity.OwnerOnly,i) or  HasOwnerShip)  then
             if type(v) =="table" and not v["ServerOnly"] then
                 new[i] = deepCopy(v)
             else
@@ -112,6 +117,7 @@ function entity:ConvertToClient()
             end
         end
     end
+    new.CurrentHandItem = self:GetItemFromSlot(self.CurrentSlot or 1)
     return new
 end
 function entity:DoBehaviors(dt)

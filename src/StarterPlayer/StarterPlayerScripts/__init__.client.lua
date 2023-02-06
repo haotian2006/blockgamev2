@@ -13,11 +13,13 @@ local anihandler = require(game.ReplicatedStorage.AnimationController)
 local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
+resource:Init()
 local control = require(script.Parent.Controller)
+local inventory = require(game.ReplicatedStorage.Managers.InventoryManager)
+local hotbar = require(game.ReplicatedStorage.Managers.HotBarManager)
 local entityhandler = require(game.ReplicatedStorage.EntityHandler)
 local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
-resource:Init()
 local runservicer = game:GetService("RunService")
 local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent) sb.Visible = datahandler.HitBoxEnabled sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
 local function createEye(offset,hitbox)
@@ -168,6 +170,8 @@ EntityBridge:Connect(function(entitys)
            oldentity = entity
             if i == tostring(game.Players.LocalPlayer.UserId) then
                 workspace.CurrentCamera.CameraSubject = eye
+                datahandler.LocalPlayer = datahandler.LoadedEntities[i]
+                hotbar.UpdateAll()
                 task.spawn(function()
                     local oldchunk =""
                     local done = false
@@ -212,7 +216,8 @@ EntityBridge:Connect(function(entitys)
             combinevelocity(datahandler.LoadedEntities[i],v)
             datahandler.LocalPlayer = datahandler.LoadedEntities[i]
         end
-        if e then 
+        if e then
+            e.PrimaryPart.Nametag.Enabled = not oldentity.Crouching 
             changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)
         end
         if oldentity then

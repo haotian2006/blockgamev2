@@ -10,6 +10,7 @@ anievent:Connect(function(...)
         anievent:FireToAllExcept(plr,entity,name)
     else
         local entity,name = ...
+        if not Data.LoadedEntities[entity]then return end 
         Data.LoadedEntities[entity]:PlayAnimation(name,true)
     end
 end)
@@ -43,7 +44,6 @@ function module.UpdateEntity(entity)
     if not AniPaths or not AniPaths.Animations or not animator then return end 
     AniPaths = AniPaths.Animations
     for i,v in entity.PlayingAnimationOnce or {} do
-        print(i)
         entity.LoadedAnis = entity.LoadedAnis or {}
         if AniPaths[i] then
             entity.LoadedAnis[i] = entity.LoadedAnis [i] or animator:LoadAnimation(AniPaths[i])
