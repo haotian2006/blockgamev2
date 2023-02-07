@@ -378,6 +378,7 @@ function entity:UpdateRotationClient(debugmode)
     bodydir = Vector3.new(bodydir.X,0,bodydir.Z)*2
     bodydir = (bodydir == bodydir and bodydir.Magnitude ~= 0) and bodydir or mainjoint.C0.LookVector
     local lookAtdir = (lap -Model.Eye.Position).Unit
+    lookAtdir = (lookAtdir == lookAtdir and lookAtdir.Magnitude ~= 0) and lookAtdir or mainneck.C0.LookVector
     if self.Name == "Npc1" then
         lp.Position = mainjoint.Part0.Position+bodydir*4
     end
