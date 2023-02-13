@@ -25,6 +25,11 @@ function manager:Init()
     manager.UpdateSelect(1)
     manager.UpdateAll()
 end
+function manager.Visulise(index)
+    local inventory = PEntity().inventory or {}
+    local item = inventory[index]
+    local attachment = nil
+end
 function manager.UpdateOne(index)
     local inventory = PEntity().inventory or {}
     local frame = manager.Uis[index]

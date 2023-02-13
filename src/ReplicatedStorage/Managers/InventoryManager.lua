@@ -7,4 +7,7 @@ local dataHandler = require(game.ReplicatedStorage.DataHandler)
 manager.Uis = {}
 if runservice:IsServer() then return {} end 
 local PEntity = dataHandler.GetLocalPlayer
+function  manager()
+    
+end
 return manager
