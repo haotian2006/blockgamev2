@@ -28,7 +28,11 @@ end
 function manager.Visulise(index)
     local inventory = PEntity().inventory or {}
     local item = inventory[index]
-    local attachment = nil
+    local entity = PEntity().Entity
+    if not entity then return nil end 
+    local attachment = entity:FindFirstChild("RightAttach")
+    if not attachment then return nil end 
+    attachment:ClearAllChildren()
 end
 function manager.UpdateOne(index)
     local inventory = PEntity().inventory or {}
