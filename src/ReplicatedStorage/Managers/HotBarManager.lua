@@ -26,13 +26,9 @@ function manager:Init()
     manager.UpdateAll()
 end
 function manager.Visulise(index)
-    local inventory = PEntity().inventory or {}
-    local item = inventory[index]
-    local entity = PEntity().Entity
-    if not entity then return nil end 
-    local attachment = entity:FindFirstChild("RightAttach")
-    if not attachment then return nil end 
-    attachment:ClearAllChildren()
+    if PEntity() then 
+        PEntity():VisuliseHandItem()
+    end
 end
 function manager.UpdateOne(index)
     local inventory = PEntity().inventory or {}
@@ -55,11 +51,13 @@ function manager.UpdateAll()
     for i = 1,9 do
         manager.UpdateOne(i)
     end
+    manager.UpdateSelect(PEntity().CurrentSlot or 1)
 end
 function manager.UpdateSelect(index)
     for i,v in manager.Uis do
         v.BackgroundColor3 = Color3.fromRGB(52, 52, 52)
     end
+    manager.Visulise(index)
     manager.Uis[index].BackgroundColor3 = Color3.fromRGB(85, 255, 255)
 end
 return manager

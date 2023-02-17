@@ -81,9 +81,10 @@ function entity:UpdateIdleAni()
         self:PlayAnimation("Idle")
     end
 end
+local clientdata = {'Entity','Tweens','ClientAnim','LoadedAnis'}
 function entity:UpdateEntity(newdata)
     for i,v in self do
-        if i == "Entity" or i == "Tweens" or i == "ClientAnim" or i == "LoadedAnis" then continue end 
+        if table.find(clientdata,i) then continue end 
         self[i] = newdata[i] 
     end
     for i,v in newdata do
@@ -98,6 +99,30 @@ function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
         self[i] = v 
+    end
+end
+function entity:VisuliseHandItem()
+    local index = self.CurrentSlot or 1
+    local inventory = self.inventory or {}
+    local Item = inventory[index]
+    local entity = self.Entity
+    if not entity then return nil end 
+    local attachment = entity:FindFirstChild("RightAttach",true)
+    if not attachment or attachment:FindFirstChild(Item[1] or "") then return nil end 
+    if Item[1] and Item ~= '' then
+        attachment:ClearAllChildren()
+        local item = Instance.new("Part")
+        item.Size = Vector3.new(1,1,1)
+        item.Parent = attachment
+        item.Name = Item[1]
+        local weld = item:FindFirstChild("HandleAttach") or Instance.new("Motor6D")
+        weld.Name = "HandleAttach"
+        weld.Part0 = attachment.Parent
+        weld.Part1 = item
+        weld.C0 = attachment.CFrame
+        weld.Parent = item
+    else
+        attachment:ClearAllChildren()
     end
 end
 function entity:UpdateModelPosition()
@@ -359,6 +384,15 @@ local lp = Instance.new("Part")
 lp.Size = Vector3.one
 lp.Anchored = true
 lp.Name = "AJAJAJAJA"
+function entity:SetModelTransparency(value)
+    local model = self.Entity
+    if RunService:IsServer() or not model then return end
+    for i,v in model:GetDescendants() do
+        if v:IsA("BasePart") and v.Name ~= "Middle" then
+            v.Transparency = value
+        end
+    end
+end
 function entity:UpdateRotationClient(debugmode)
     local Model = self.Entity
     local neck = resourcehandler.GetEntity(self.Type).Necks or {}

@@ -21,6 +21,7 @@ local entityhandler = require(game.ReplicatedStorage.EntityHandler)
 local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 local runservicer = game:GetService("RunService")
+
 local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent) sb.Visible = datahandler.HitBoxEnabled sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
 local function createEye(offset,hitbox)
     local eye = Instance.new("Part",hitbox.Parent)
@@ -142,6 +143,7 @@ EntityBridge:Connect(function(entitys)
                 oldentity.Tweens["Pos"]:Play()
             end
             oldentity:UpdateRotationClient(true)
+            oldentity:VisuliseHandItem()
         elseif not e then
             local entity = entityhandler.new(v)
             datahandler.AddEntity(i,entity)

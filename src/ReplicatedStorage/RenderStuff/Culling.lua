@@ -1,30 +1,10 @@
-local LocalizationService = game:GetService("LocalizationService")
+
 local self = {}
 local f,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local f,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 function self.GridIsInChunk(cx,cz,x,y,z)
     local ccx,ccz = tonumber(math.floor((x+.5)/settings.ChunkSize.X)),tonumber(math.floor((z+.5)/settings.ChunkSize.X))
     return tonumber(cx) == ccx and tonumber(cz) == ccz
-    -- local chunkS = settings.ChunkSize
-    -- local dx,dz = math.sign(cx),math.sign(cz)
-    -- dx = dx == 0 and 1 or dx dz = dz == 0 and 1 or dz
-    -- local sx,ex = 0,chunkS.X-1 if dx == -1 then sx = -1 ex = -chunkS.X cx+=1 end
-    -- local sz,ez = 0,chunkS.X-1 if dz == -1 then sz = -1 ez = -chunkS.X cz+=1 end
-    -- sx,ex = sx+cx*chunkS.X,ex+cx*chunkS.X
-    -- sz,ez = sz+cz*chunkS.X,ez+cz*chunkS.X
-    -- local flagx,flagz 
-    -- if dx == -1 then
-    --     flagx = sx>=x and ex<= x
-    -- else
-    --     flagx = ex >= x and sx <= x
-    -- end
-    -- if dz == -1 then
-    --     flagz = sz>=z and ez<= z
-    -- else
-    --     flagz = ez >= z and sz <= z
-    -- end
-
-    -- return flagx and flagz
 end
 local function IsAnBorder(lx,ly,lz,chsiz)
     local walls,ammount = {},0
@@ -71,15 +51,10 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
     local alreadychecked = {{},{},{},{},{}}
     local once = false
     local function checkblockinch(wt,x,y,z)
-       -- if not once then once = true print(x,y,z) end 
-        -- if wt ==1 and not self.GridIsInChunk(cx,cz,x,y,z)  then
-        --     return false
-        -- end
         local combined = x..','..y..','..z
         if alreadychecked[wt][combined] then
             return alreadychecked[wt][combined]
         end
-        --local nn = x%settings.ChunkSize.X..','..y..','..z%settings.ChunkSize.X
         local nn = combined
         local a = chunks[wt][nn]
         alreadychecked[wt][combined] = a

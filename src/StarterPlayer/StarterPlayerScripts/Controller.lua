@@ -309,6 +309,7 @@ function controls.RenderStepped.Camera()
         end
         data.LocalPlayer:UpdateRotationClient()
         if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then
+            data.GetLocalPlayer().VeiwMode = "First"
             for i,v in second and second:GetChildren() or {} do
                 if v:IsA("BasePart") then
                     v.LocalTransparencyModifier = 1 
@@ -330,6 +331,7 @@ function controls.RenderStepped.Camera()
                end
             end
         elseif Current_Entity then
+            data.GetLocalPlayer().VeiwMode = "Third"
             --print("not fps")
             --Player.PlayerGui.Arms.vp.Visible = false
             --second.Parent = Current_Entity:FindFirstChild("Model",true)
