@@ -136,14 +136,6 @@ function collisions.AABBcheck(b1,b2,s1,s2,isbp)
         b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
     end
     b2 = vector3(b2.X-s2.X/2,b2.Y-s2.Y/2,b2.Z-s2.Z/2)
-    -- local compare = {
-    --     b1.X+s1.X < b2.X,
-    --     b1.X>b2.X+s2.X ,
-    --     b1.Y+s1.Y < b2.Y , 
-    --     b1.Y>b2.Y+s2.Y ,                                       
-    --     b1.Z+s1.Z < b2.Z , 
-    --     b1.Z>b2.Z+s2.Z    
-    -- }
     return not (b1.X+s1.X < b2.X or 
     b1.X>b2.X+s2.X or
     b1.Y+s1.Y < b2.Y or 

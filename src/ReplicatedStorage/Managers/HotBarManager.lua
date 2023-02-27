@@ -31,13 +31,14 @@ function manager.Visulise(index)
     end
 end
 function manager.UpdateOne(index)
+    if not PEntity() then return nil end 
     local inventory = PEntity().inventory or {}
     local frame = manager.Uis[index]
     local item = inventory[index]
     local amt = 0
     if type(item) =="table" then
         amt = item[2]
-        frame.Text = item[1]
+        frame.Text = qf.DecompressItemData(item[1],'Type')
     else
         frame.Text = ""
     end
@@ -48,6 +49,7 @@ function manager.UpdateOne(index)
     end
 end
 function manager.UpdateAll()
+    if not PEntity()then return end 
     for i = 1,9 do
         manager.UpdateOne(i)
     end

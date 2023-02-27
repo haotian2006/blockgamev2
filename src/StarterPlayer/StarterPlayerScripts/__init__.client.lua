@@ -61,7 +61,6 @@ local function changetext(nameLabel,STUDS_OFFSET_Y)
 local function CreateModel(Data,ParentModel)
     local model = resource.GetEntityModelDataFromData(Data)
     if model then
-        model = model.Model
         model = model:Clone()
         local humanoid = model:FindFirstChildWhichIsA("Humanoid") or model:FindFirstChildWhichIsA("AnimationController")  or Instance.new("AnimationController",model)
         local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator",humanoid)
@@ -143,7 +142,6 @@ EntityBridge:Connect(function(entitys)
                 oldentity.Tweens["Pos"]:Play()
             end
             oldentity:UpdateRotationClient(true)
-            oldentity:VisuliseHandItem()
         elseif not e then
             local entity = entityhandler.new(v)
             datahandler.AddEntity(i,entity)
@@ -223,6 +221,7 @@ EntityBridge:Connect(function(entitys)
             changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)
         end
         if oldentity then
+            oldentity:VisuliseHandItem()
             anihandler.UpdateEntity(oldentity)
         end
     end

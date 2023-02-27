@@ -45,7 +45,7 @@ function  greedy.meshtable(tabletodemesh)
    local checked = {}
    local old = 0
    local c = 0
-   tabletodemesh = mulitthread.GlobalGet("DecompressBlockData",tabletodemesh,5)
+   tabletodemesh = mulitthread.GlobalGet("DecompressItemData",tabletodemesh,5)
    for i,v in tabletodemesh do
        if not v then continue end
        old+=1

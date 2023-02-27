@@ -104,6 +104,9 @@ function entity:UpdateDataServer(newdata)
             self[i] = v
         end
     end
+    local index = self.CurrentSlot or 1
+    local inventory = self.inventory or {}
+    self.HoldingItem = inventory[index] or {}
 end
 function entity:ConvertToClient(player)
     local new = {}

@@ -53,7 +53,7 @@ function entity.new(data)
     self.NotSaved.NoClear = {}
     return self
 end
-function entity:UpdateChunk()
+function entity:UpdateChunk() -- adds it self to a chunk or remove from one
     local cx,cz = qf.GetChunkfromReal(self.Position.X,self.Position.Y,self.Position.Z,true)
     local chunk = datahandler.GetChunk(cx,cz)
     if self.Chunk and self.Chunk ~= Vector2.new(cx,cz) then
@@ -64,8 +64,8 @@ function entity:UpdateChunk()
     end
     self.Chunk = Vector2.new(cx,cz)
 end
-function entity:UpdateIdleAni()
-    local entitydata = resourcehandler.GetEntityModelDataFromData(self)
+function entity:UpdateIdleAni()-- plays idle ani
+    local entitydata = resourcehandler.GetEntity(self.Type)
     if not entitydata or not entitydata.Animations or not entitydata.Animations["Idle"] then return end 
     local holdingitem = self:GetItemFromSlot(self.CurrentSlot or 1)
     holdingitem = type(holdingitem) == "table" and holdingitem[1] or ""
@@ -81,7 +81,8 @@ function entity:UpdateIdleAni()
         self:PlayAnimation("Idle")
     end
 end
-local clientdata = {'Entity','Tweens','ClientAnim','LoadedAnis'}
+-- properties to keep same when updating entitys from the server (All Entities)
+local clientdata = {'Entity','Tweens','ClientAnim','LoadedAnis','VeiwMode'}
 function entity:UpdateEntity(newdata)
     for i,v in self do
         if table.find(clientdata,i) then continue end 
@@ -94,7 +95,8 @@ end
 function entity:UpdateHandSlot(slot)
     self.CurrentSlot = slot 
 end
-entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","PlayingAnimationOnce","Speed","CurrentSlot"}
+-- properties to keep same when updating entitys from the server (local player)
+entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","PlayingAnimationOnce","Speed","CurrentSlot",'VeiwMode'}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
@@ -102,9 +104,7 @@ function entity:UpdateEntityClient(newdata)
     end
 end
 function entity:VisuliseHandItem()
-    local index = self.CurrentSlot or 1
-    local inventory = self.inventory or {}
-    local Item = inventory[index]
+    local Item = self.HoldingItem or {}
     local entity = self.Entity
     if not entity then return nil end 
     local attachment = entity:FindFirstChild("RightAttach",true)
@@ -112,20 +112,32 @@ function entity:VisuliseHandItem()
     if Item[1] and Item ~= '' then
         attachment:ClearAllChildren()
         local item = Instance.new("Part")
-        item.Size = Vector3.new(1,1,1)
+        item.Size = Vector3.new(1,.1,1)
         item.Parent = attachment
         item.Name = Item[1]
+        item.Material = Enum.Material.SmoothPlastic
+        local surfacegui = Instance.new("SurfaceGui",item)
+        surfacegui.Face = Enum.NormalId.Top
+        local txt = Instance.new('TextLabel',surfacegui)
+        txt.Size = UDim2.new(1,0,1,0)
+        txt.TextScaled = true
+        txt.Text = Item[1]
+        local a = surfacegui:Clone()
+        a.Parent = item
+        a.Face = Enum.NormalId.Bottom
+        a.TextLabel.Rotation = 180
         local weld = item:FindFirstChild("HandleAttach") or Instance.new("Motor6D")
         weld.Name = "HandleAttach"
         weld.Part0 = attachment.Parent
         weld.Part1 = item
-        weld.C0 = attachment.CFrame
+        weld.C0 = attachment.CFrame*CFrame.new(0,0,-0.5)*CFrame.Angles(0,math.rad(-90),0)
         weld.Parent = item
+        if self.VeiwMode == "First" then item.LocalTransparencyModifier = 1 end 
     else
         attachment:ClearAllChildren()
     end
 end
-function entity:UpdateModelPosition()
+function entity:UpdateModelPosition()-- Updates the Eye positions etc 
     local ParentModel = self.Entity
     if not ParentModel then return end 
     local model = ParentModel:FindFirstChild("EntityModel")
@@ -311,7 +323,7 @@ function entity:GetItemFromSlot(slot)
     end
     return ""
 end
-function entity:GetQf()
+function entity:GetQf()-- returns quick functions module 
     return qf
 end
 function entity:GetData()
@@ -389,6 +401,10 @@ function entity:SetModelTransparency(value)
     if RunService:IsServer() or not model then return end
     for i,v in model:GetDescendants() do
         if v:IsA("BasePart") and v.Name ~= "Middle" then
+            v.LocalTransparencyModifier = value
+        elseif v:IsA('GuiObject') then
+            v.Transparency = value 
+        elseif v:IsA("SelectionBox") then
             v.Transparency = value
         end
     end
@@ -399,7 +415,6 @@ function entity:UpdateRotationClient(debugmode)
     local orimodel = resourcehandler.GetEntityModelDataFromData(self)
     local lastr = self.NotSaved.RotationFollow 
     if not Model or not next(neck) or not orimodel then return end
-    orimodel = orimodel.Model
     local mainjoint = Model:FindFirstChild("MainWeld",true)
     local mainneck = Model:FindFirstChild("Neck",true)
     local neckjoints = {}
@@ -434,7 +449,6 @@ function entity:UpdateRotationClient(debugmode)
     
     if shouldrotateb  and neck["Neck"] and not flagA   then
        local tuse = maths.GetClosestNumber(agl,mainneckangles)
-      -- print(math.abs(tuse - agl))
        if math.abs(tuse - agl) > 2 then
         local agla = 90-mainneckangles[1]
         tuse = agla*-math.sign(agl-180)
@@ -443,7 +457,6 @@ function entity:UpdateRotationClient(debugmode)
        else
         tuse = -10
        end
-       --print(tuse)
        local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)):ToOrientation()
        local bcf = CFrame.fromOrientation(mx,my,mz)
          cf = CFrame.new(mainjoint.C0.Position)*bcf*CFrame.fromOrientation(0,math.rad(tuse),0)
@@ -452,28 +465,18 @@ function entity:UpdateRotationClient(debugmode)
         if flagA then bodydir = -bodydir end 
         local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)):ToOrientation()
          cf = CFrame.new(mainjoint.C0.Position)*CFrame.fromOrientation(mx,my,mz)
-        -- ts:Create(mainjoint,TweenInfo.new(0.01),{C0 = cf}):Play()
-       -- print(qf.RoundTo(bodydir.X,2),0,qf.RoundTo(bodydir.Z,2))
         mainjoint.C0 = cf
     end
-   -- mainjoint.C0 = cf
    local upordown = math.sign(lookAtdir.Unit:Dot(Vector3.new(0,1,0)))
     for v,i in neckjoints do
         local maxleftright = type(neck[v.Name][1]) == "table" and neck[v.Name][1] or neck[v.Name]
         local maxupdown = type(neck[v.Name][1]) == "table" and neck[v.Name][2] 
         local xx, yy, zz = (maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+lookAtdir))*i.C0.Rotation:Inverse()):ToOrientation()
-        --local xx, yy, zz = (maths.worldCFrameToC0ObjectSpace(v,CFrame.new(v.C0.Position,v.C0.Position+lookAtdir))):ToOrientation()
         local agly = (maths.NegativeToPos(math.deg(yy))+180)+360
         agly %= 360
-        -- print((math.deg(xx)+90)*upordown)
         local aglx = (maths.NegativeToPos(math.deg(xx))+180)+360
         aglx %= 360
-        if v.Name == "Neck"  then
-          --  print(i.C0:ToOrientation())
-        -- print(aglx,math.deg(xx))
-         end
         if maxupdown and not maths.angle_between(aglx,maxupdown[1],maxupdown[2]) then
-            --print(maths.deg(xx),(maths.PosToNegative(aglx)*upordown-90)*-1)
             xx =   math.rad(maths.GetClosestNumber(aglx,maxupdown)) 
         end
         if maxleftright and not maths.angle_between(agly,maxleftright[1],maxleftright[2]) and  v.Name ~= "Neck" then
@@ -603,7 +606,8 @@ function entity:Gravity(dt)
     if not entity:GetData().GetChunk(cx,cz) or not entity["DoGravity"]  then return end 
     entity.Data.FallTicks = entity.Data.FallTicks or 0
     local max = entity.FallRate or 150
-    local fallrate =(((0.99^entity.Data.FallTicks)-1)*max)/2
+    --local fallrate =(((0.99^entity.Data.FallTicks)-1)*max)/2
+    local fallrate = (392/5)*((98/100)^math.floor(entity.Data.FallTicks) - 1)
     if entity.Data.Grounded  or entity.NotSaved.NoFall or  entity.NotSaved.Jumping  then -- or not entity.CanFall
         entity.Velocity.Fall = Vector3.new(0,0,0) 
         entity.Data.IsFalling = false

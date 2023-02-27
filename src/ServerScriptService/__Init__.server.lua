@@ -11,8 +11,9 @@ local entityahndler = require(game.ReplicatedStorage.EntityHandler)
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
+local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 game.Players.PlayerAdded:Connect(function(player)
-    local entity = entityahndler.Create("Player",{inventory = {AddTo = true,[1] = {"Dirt",64},[5] = {"Dirt",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 6.6, 10),ClientControll = tostring(player.UserId)})
+    local entity = entityahndler.Create("Player",{inventory = {AddTo = true,[1] = {"Type|s%Cubic:Dirt",64},[2] = {"Type|s%Cubic:Grass",64},[3] = {"Type|s%Cubic:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 6.6, 10),ClientControll = tostring(player.UserId)})
     data.AddEntity(entity)
 end)
 local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)}) data.AddEntity(entity)
@@ -45,22 +46,23 @@ EntityBridge:Connect(function(plr,id,newdata)
 end)
 local ublock = bridge.CreateBridge("UpdateBlocks")
 bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:Vector3)
-    local blocktr = qf.DecompressBlockData(data.GetBlock(block.X,block.Y,block.Z),"Type")
+    local blocktr = qf.DecompressItemData(data.GetBlock(block.X,block.Y,block.Z),"Type")
     if blocktr == "Cubic:Bedrock" then return end 
     data.RemoveBlock(block.X,block.Y,block.Z)
     ublock:FireAll({Remove = {block}})
 end)
 bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
     local coords = coords1
-    for i,v in data.EntitiesinR(coords.X,coords.Y,coords.Z,1) or {} do
-        local a = CollisionHandler.AABBcheck(v.Position+v:GetVelocity()*task.wait(),Vector3.new(coords.X,coords.Y,coords.Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
-        if a then
-            return
-        end
+    local plre = data.GetEntityFromPlayer(plr)
+    local item = plre.HoldingItem or {}
+    --print(item)
+    if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z) and item[1] and resourcehandler.IsBlock(item[1]) then 
+        data.InsertBlock(coords.X,coords.Y,coords.Z,item[1])
+        ublock:FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = item[1]}})
     end
     if not data.GetBlock(coords.X,coords.Y,coords.Z) then 
-        data.InsertBlock(coords.X,coords.Y,coords.Z,'Type|s%Cubic:Dirt')
-        ublock:FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = 'Type|s%Cubic:Dirt'}})
+        data.InsertBlock(coords.X,coords.Y,coords.Z,item[1])
+        ublock:FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = item[1]}})
     end
 end)
 game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvector)

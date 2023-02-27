@@ -15,45 +15,55 @@ anievent:Connect(function(...)
     end
 end)
 local module = {}
-function module.StopAnimations(entity)
+function module.StopAllAnimations(entity,ALL)
     if entity.ClientAnim then
         local entityani = entity.PlayingAnimations or {}
         for i,v in entity.ClientAnim do
             if not entityani[i] then
+                if ALL then
+                    module.StopAnimation(entity,i)
+                end
                 v:Stop()
                 entity.ClientAnim[i] = nil
             end
         end
     end
 end
-function module.PlayAnimationOnce(entity,animation)
-    local AniPaths = resourcehandler.GetEntityModelDataFromData(entity)
-    local animator = entity.Entity:FindFirstChild("AnimationController",true):FindFirstChildOfClass("Animator")
-    if not AniPaths or not AniPaths.Animations or not animator then return end 
-    AniPaths = AniPaths.Animations
-    if AniPaths[animation] then
-        entity.LoadedAnis = entity.LoadedAnis or {}
-        entity.LoadedAnis[animation] = entity.LoadedAnis [animation] or animator:LoadAnimation(AniPaths[animation])
-        entity.LoadedAnis[animation]:Play()
+function module.StopAnimation(entity,animation)
+    if entity.LoadedAnis[animation] then
+        entity.LoadedAnis[animation]:Stop()
+        entity.LoadedAnis[animation] = nil
     end
 end
-function module.UpdateEntity(entity)
-    module.StopAnimations(entity)
-    local AniPaths = resourcehandler.GetEntityModelDataFromData(entity)
+function module.LoadAnimation(entity,animation)
+    entity.LoadedAnis = entity.LoadedAnis or {}
+    if entity.LoadedAnis[animation] then  return entity.LoadedAnis[animation] end 
+    local AniPaths = resourcehandler.GetEntity(entity.Type)
     local animator = entity.Entity:FindFirstChild("AnimationController",true):FindFirstChildOfClass("Animator")
     if not AniPaths or not AniPaths.Animations or not animator then return end 
     AniPaths = AniPaths.Animations
-    for i,v in entity.PlayingAnimationOnce or {} do
+    local animationinstance = type(AniPaths[animation]) == "string" and resourcehandler.GetAnimationFromName(AniPaths[animation]) or AniPaths[animation]
+    if animationinstance then
         entity.LoadedAnis = entity.LoadedAnis or {}
-        if AniPaths[i] then
-            entity.LoadedAnis[i] = entity.LoadedAnis [i] or animator:LoadAnimation(AniPaths[i])
-            entity.LoadedAnis[i]:Play()
-        end
+        entity.LoadedAnis[animation] = entity.LoadedAnis [animation] or animator:LoadAnimation(animationinstance)
+        return entity.LoadedAnis[animation]
     end
+end
+function module.PlayAnimationOnce(entity,animation)
+    local ani = module.LoadAnimation(entity,animation)
+    if ani then ani:Play() end
+end
+function module.UpdateEntity(entity)
+    module.StopAllAnimations(entity)
+    local AniPaths = resourcehandler.GetEntity(entity.Type)
+    local animator = entity.Entity:FindFirstChild("AnimationController",true):FindFirstChildOfClass("Animator")
+    if not AniPaths or not AniPaths.Animations or not animator then return end 
+    AniPaths = AniPaths.Animations
     for i,v in entity.PlayingAnimations or {} do
         entity.ClientAnim = entity.ClientAnim or {}
-        if not entity.ClientAnim[i] and AniPaths[i] and v  then
-            entity.ClientAnim[i] = animator:LoadAnimation(AniPaths[i])
+        local animation = module.LoadAnimation(entity,i)
+        if not entity.ClientAnim[i] and animation and v  then
+            entity.ClientAnim[i] = animation
             entity.ClientAnim[i]:Play()
         end
     end

@@ -34,16 +34,16 @@ function stuff.CreatePart(M,Ammount)
 	end
 	return parts
 end
-function stuff.CompressBlockData(M,data)
-    local functions = M.QuickFunctions.CompressBlockData
+function stuff.CompressItemData(M,data)
+    local functions = M.QuickFunctions.CompressItemData
     local newdata = {}
     for i,v in data do
         newdata[tostring(i)] = functions(v)
     end
     return newdata
 end
-function stuff.DecompressBlockData(M,data)
-    local functions = M.QuickFunctions.DecompressBlockData
+function stuff.DecompressItemData(M,data)
+    local functions = M.QuickFunctions.DecompressItemData
     local newdata = {}
     for i,v in data do
 		if typeof(v) == "table" then

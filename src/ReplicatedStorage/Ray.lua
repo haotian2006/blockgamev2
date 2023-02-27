@@ -16,7 +16,8 @@ function ray.newInfo()
         BlackList = {},
         GetNormal = false,
         Debug = false,
-        RaySize = Vector3.new(.1,.1,.1)
+        RaySize = Vector3.new(.1,.1,.1),
+        Increaseby = .1,
     }
 end
 function ray.newData()
@@ -26,16 +27,13 @@ function ray.newData()
         RayInfo = {},
     }
 end
-function ray.CalculateNormal(dir)
-    
-end
 function ray.Cast(Origin: Vector3, Direction: Vector3,rayinfo)  
     rayinfo = rayinfo or ray.newInfo()
     local newlist = {}
     for i,v in rayinfo.BlackList do newlist[v] = true end
     rayinfo.BlackList = newlist
     if typeof(Origin) ~= "Vector3" or typeof(Direction) ~= "Vector3" then error("Wrong Arguments sent") end
-    local increaseby =  .1
+    local increaseby =  rayinfo.Increaseby or .1
     local unit = Direction.Unit*increaseby
     local currentposition = Origin
     local distanceneeded = (Direction).Magnitude

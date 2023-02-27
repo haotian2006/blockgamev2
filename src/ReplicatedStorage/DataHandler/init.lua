@@ -47,7 +47,7 @@ function self.RemoveEntity(uuid)
     self.LoadedEntities[uuid] = nil
 end
 function self.GetLocalPlayer()
-    return self.LocalPlayer
+    return next(self.LocalPlayer) ~= nil and self.LocalPlayer
 end
 function self.EntitiesinR(x,y,z,r,ConvertToClient )
     x,y,z,r = x or 0, y ,z or 0 ,r or 0
@@ -104,6 +104,16 @@ function self.RemoveBlock(x,y,z)
         chunk:RemoveBlock(lx,ly,lz)
     end
     return chunk
+end
+function self.canPlaceBlockAt(X,Y,Z,block)
+    if self.GetBlock(X,Y,Z) then return end
+    for i,v in self.EntitiesinR(X,Y,Z,1.5) or {} do
+        local a = require(game.ReplicatedStorage.CollisonHandler).AABBcheck(v.Position+v:GetVelocity()*task.wait(),Vector3.new(X,Y,Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
+        if a then
+            return false 
+        end
+    end
+    return true
 end
 function self.InsertBlock(x,y,z,block)
     local cx,cz,lx,ly,lz = qf.GetChunkAndLocal(x,y,z)

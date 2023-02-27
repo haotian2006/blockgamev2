@@ -1,5 +1,5 @@
-local controls = {pc = {},mode = 'pc',func = {},mtick = {},RenderStepped = {}}
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
+local ArmsHandler = require(script.Parent.ArmsController)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local destroyblockEvent = bridge.CreateBridge("BlockBreak")
 local placeBlockEvent = bridge.CreateBridge("BlockPlace")
@@ -11,13 +11,15 @@ local Ray = require(game.ReplicatedStorage.Ray)
 local camera = game.Workspace.CurrentCamera
 local debugger = require(game.ReplicatedStorage.Debugger)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
+local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local hotbarhandler = require(game.ReplicatedStorage.Managers.HotBarManager)
 hotbarhandler:Init()
 local lp = game.Players.LocalPlayer
 local localentity = data.GetLocalPlayer
+local controls = {pc = {},mode = 'pc',func = {},mtick = {},RenderStepped = {}}
 controls.pc = {
-    Foward = {'w',"Foward"},-- Name = {key,function}
-    Left = {{'a',"c"},"Left"},
+    Foward = {'w',"Foward"},-- Name = {key:string|table,function or boolname}
+    Left = {'a',"Left"},
     Right = {'d',"Right"},
     Back = {'s',"Back"},
     Jump = {'space',"Jump"},
@@ -80,7 +82,7 @@ function func.HotBarUpdate(key,data)
     local slot = localentity().CurrentSlot or 1
     if data.UserInputType == Enum.UserInputType.MouseWheel then
         local upordown = data.Position.Z > 0 and "up" or "down"
-        if upordown == "up" then
+        if upordown == "down" then
             slot +=1 
             if slot >= 10 then
                 slot = 1
@@ -179,17 +181,14 @@ function func.Interact()
             --print(v.Normal)
             if  v.Type == "Block" then
                 local coords = v.BlockPosition+v.Normal
-                for i,v in data.EntitiesinR(coords.X,coords.Y,coords.Z,1.5) or {} do
-                    local a = CollisionHandler.AABBcheck(v.Position+v:GetVelocity()*task.wait(),Vector3.new(coords.X,coords.Y,coords.Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
-                    if a then
-                        return
-                    end
+                local item = localentity().HoldingItem or {}
+                --print(item)
+                if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z) and item[1] and ResourceHandler.IsBlock(item[1]) then 
+                    data.InsertBlock(coords.X,coords.Y,coords.Z,item[1])
+                    localentity():PlayAnimation("Place",true)
+                    ArmsHandler.PlayAnimation('Attack',true)
+                    placeBlockEvent:Fire(coords)
                 end
-                if not data.GetBlock(coords.X,coords.Y,coords.Z) then 
-                    data.InsertBlock(coords.X,coords.Y,coords.Z,'Type|s%Cubic:Dirt')
-                end
-                localentity():PlayAnimation("Place",true)
-                placeBlockEvent:Fire(coords)
             elseif v.Type == "Entity"  then
             
             end
@@ -197,6 +196,7 @@ function func.Interact()
     end
 end
 function func.Attack()
+    if not localentity() then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -208,7 +208,7 @@ function func.Attack()
         for i,v in raystuff.Objects do
             if  v.Type == "Block" then
                 local block = v.BlockPosition
-                local blocktr = qf.DecompressBlockData(data.GetBlock(block.X,block.Y,block.Z),"Type")
+                local blocktr = qf.DecompressItemData(data.GetBlock(block.X,block.Y,block.Z),"Type")
                 if blocktr == "Cubic:Bedrock" then return end 
                 data.RemoveBlock(block.X,block.Y,block.Z)
                 destroyblockEvent:Fire(block)
@@ -219,6 +219,7 @@ function func.Attack()
         end
     end
     data.LocalPlayer:PlayAnimation("Attack",true)
+    ArmsHandler.PlayAnimation('Attack',true)
 end
 local last 
 function Render.Update(dt)
@@ -251,13 +252,10 @@ function Render.Move(dt)
     if FD["Jump"] then data.LocalPlayer:Jump() 
 end 
 end
-local follow = false
-local oldyy = 180
-local playerinfo = {}
 local second 
 local outline = game.Workspace.Outline
 function controls.Render.OutLine()
-    if next(localentity()) == nil then return end 
+    if not localentity() then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -279,6 +277,11 @@ function controls.Render.OutLine()
     else
         outline.SelectionBox.Transparency = 1
     end
+end
+local initarms = false
+function  controls.RenderStepped.Arm(dt)
+    if not initarms then initarms = ArmsHandler.Init() end
+    ArmsHandler.UpdateArms(dt)
 end
 function controls.RenderStepped.Camera()
     lp.PlayerGui:WaitForChild("Hud")
@@ -310,41 +313,50 @@ function controls.RenderStepped.Camera()
         data.LocalPlayer:UpdateRotationClient()
         if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then
             data.GetLocalPlayer().VeiwMode = "First"
-            for i,v in second and second:GetChildren() or {} do
-                if v:IsA("BasePart") then
-                    v.LocalTransparencyModifier = 1 
-                end
+            if ArmsHandler.GetArmsframe() then
+                ArmsHandler.GetArmsframe().Enabled = true
             end
-            if playerinfo[1] == nil then
-               for i,v in ipairs(Current_Entity:GetDescendants())do
-                local success = pcall(function()  v["Transparency"] = v["Transparency"] end)
-                    if success and v.Transparency == 0 then
-                        table.insert(playerinfo,v)
-                        v.Transparency =1
-                    end
-               end
-            else
-                for i,v in ipairs(playerinfo)do
-                    if  v["Transparency"] then
-                        v.Transparency =1
-                    end
-               end
-            end
+            localentity():SetModelTransparency(1)
+            -- for i,v in second and second:GetChildren() or {} do
+            --     if v:IsA("BasePart") then
+            --         v.LocalTransparencyModifier = 1 
+            --     end
+            -- end
+            -- if playerinfo[1] == nil then
+            --    for i,v in ipairs(Current_Entity:GetDescendants())do
+            --     local success = pcall(function()  v["Transparency"] = v["Transparency"] end)
+            --         if success and v.Transparency == 0 then
+            --             table.insert(playerinfo,v)
+            --             v.Transparency =1
+            --         end
+            --    end
+            -- else
+            --     for i,v in ipairs(playerinfo)do
+            --         if  v["Transparency"] then
+            --             v.Transparency =1
+            --         end
+            --    end
+            -- end
         elseif Current_Entity then
             data.GetLocalPlayer().VeiwMode = "Third"
+            localentity():SetModelTransparency(0)
+            if ArmsHandler.GetArmsframe() then
+                ArmsHandler.GetArmsframe().Enabled = false
+            end
             --print("not fps")
             --Player.PlayerGui.Arms.vp.Visible = false
             --second.Parent = Current_Entity:FindFirstChild("Model",true)
-            for i,v in second and second:GetChildren() or {} do
-                if v:IsA("BasePart") then
-                    v.LocalTransparencyModifier = 0 
-                end
-            end
-            for i,v in ipairs(playerinfo)do
-                if  v["Transparency"] then
-                    v.Transparency =0
-                end
-           end
+
+        --     for i,v in second and second:GetChildren() or {} do
+        --         if v:IsA("BasePart") then
+        --             v.LocalTransparencyModifier = 0 
+        --         end
+        --     end
+        --     for i,v in ipairs(playerinfo)do
+        --         if  v["Transparency"] then
+        --             v.Transparency =0
+        --         end
+        --    end
         end
     end
 

@@ -400,7 +400,7 @@ function qf.ConvertString(str:string)
     end
     return strr
 end
-function qf.CompressBlockData(data:table)
+function qf.CompressItemData(data:table)
     local currentcompressed = ""
     for key,value in data do
         local typea = typeof(value)
@@ -431,7 +431,7 @@ function qf.CompressBlockData(data:table)
     end
     return currentcompressed
 end
-function qf.DecompressBlockData(data:string,specificitems:table|string):table|ValueBase
+function qf.DecompressItemData(data:string,specificitems:table|string):table|ValueBase
     if type(data) ~= "string" then return data end  
     --EX: 'Name|s%Cubic:dirt/Orientation|t%0,0,0/Position|0,0,0'
     --(s) = string, (t) = table, (n) = number ,(v3) = vector3

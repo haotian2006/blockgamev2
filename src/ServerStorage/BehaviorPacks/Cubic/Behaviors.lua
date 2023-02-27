@@ -11,6 +11,7 @@ return {
             local EPosition = entity.Position
             local offsetx,offsetz,offsety = math.random(-xz_dist,xz_dist),math.random(-xz_dist,xz_dist),math.random(-y_dist,y_dist)
             entity.NotSaved["behaviors"]["behavior.Random_Stroll"] = true
+            entity:LookAt(Vector3.new(EPosition.X+offsetx,entity:GetEyePosition().Y,EPosition.Z+offsetz))
             entity:MoveTo(EPosition.X+offsetx,EPosition.Y+offsety,EPosition.Z+offsetz)
             entity.NotSaved["behaviors"]["behavior.Random_Stroll"] = false
         end,

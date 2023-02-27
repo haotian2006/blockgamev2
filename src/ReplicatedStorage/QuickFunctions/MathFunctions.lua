@@ -55,12 +55,24 @@ function maths.worldCFrameToC0ObjectSpace(motor6DJoint:Motor6D,worldCFrame:CFram
 	return goalC0CFrame
 end
 function maths.angle_between(n, a, b) 
-	n = (360 + (n % 360)) % 360;
+    n = (360 + (n % 360)) % 360;
 	a = (3600000 + a) % 360;
 	b = (3600000 + b) % 360;
-    return not (function() if (a < b) then return  a <= n and n <= b end return a <= n or n <= b
-    end)()
+	local flag = false
+	if (a < b) then 
+		flag =  a <= n and n <= b 
+	else
+		flag = a <= n or n <= b
+	end 
+	return not flag
 end
+-- function maths.angle_between(n, a, b) 
+-- 	n = (360 + (n % 360)) % 360;
+-- 	a = (3600000 + a) % 360;
+-- 	b = (3600000 + b) % 360;
+--     return not (function() if (a < b) then return  a <= n and n <= b end return a <= n or n <= b
+--     end)()
+-- end
 function maths.GetClosestNumber(num,tab)
     local n 
     for i,v in tab do
