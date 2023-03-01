@@ -14,6 +14,7 @@ local bridge = require(game.ReplicatedStorage.BridgeNet)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
 local changeproperty = bridge.CreateBridge("ChangeEntityProperty")
 local playani = bridge.CreateBridge("PlayAnimation")
+local isClient = RunService:IsClient()
 local ts = game:GetService("TweenService")
 local function interpolate(startVector3, finishVector3, alpha)
     local function currentState(start, finish, alpha)
@@ -40,7 +41,7 @@ entity.NotClearedNames = {
 function entity.new(data)
     local self = data or {}
     setmetatable(self,entity)
-    self.Id = data.Id or genuuid()
+    self.Id = tostring(data.Id) or genuuid()
     self.Position = data.Position or Vector3.new()
     self.Type = data.Type or warn("Failed To Create Entity | No Entity Type Giving for:",self.Id) 
     if not data.Type then self:Destroy() return end 
@@ -82,7 +83,7 @@ function entity:UpdateIdleAni()-- plays idle ani
     end
 end
 -- properties to keep same when updating entitys from the server (All Entities)
-local clientdata = {'Entity','Tweens','ClientAnim','LoadedAnis','VeiwMode'}
+local clientdata = {'Entity','Tweens','ClientAnim','LoadedAnis','VeiwMode','DidDeath'}
 function entity:UpdateEntity(newdata)
     for i,v in self do
         if table.find(clientdata,i) then continue end 
@@ -104,6 +105,7 @@ function entity:UpdateEntityClient(newdata)
     end
 end
 function entity:VisuliseHandItem()
+    if not isClient then warn("Client Only Function") return end 
     local Item = self.HoldingItem or {}
     local entity = self.Entity
     if not entity then return nil end 
@@ -138,6 +140,7 @@ function entity:VisuliseHandItem()
     end
 end
 function entity:UpdateModelPosition()-- Updates the Eye positions etc 
+    if not isClient then warn("Client Only Function") return end 
     local ParentModel = self.Entity
     if not ParentModel then return end 
     local model = ParentModel:FindFirstChild("EntityModel")
@@ -384,7 +387,7 @@ function entity:RemoveFromChunk()
     end
 end
 function entity:SetNetworkOwner(player)
-    self.ClientControll = player and tostring(player.UserId)
+    self.ClientControll = player and tostring(player.UserId) or nil
 end
 function entity:SetBodyRotationFromDir(dir)
     self.bodydir = dir
@@ -397,6 +400,7 @@ lp.Size = Vector3.one
 lp.Anchored = true
 lp.Name = "AJAJAJAJA"
 function entity:SetModelTransparency(value)
+    if not isClient then warn("Client Only Function") return end 
     local model = self.Entity
     if RunService:IsServer() or not model then return end
     for i,v in model:GetDescendants() do
@@ -410,9 +414,11 @@ function entity:SetModelTransparency(value)
     end
 end
 function entity:UpdateRotationClient(debugmode)
+    if self.Died then return end 
+    if not isClient then warn("Client Only Function") return end 
     local Model = self.Entity
     local neck = resourcehandler.GetEntity(self.Type).Necks or {}
-    local orimodel = resourcehandler.GetEntityModelDataFromData(self)
+    local orimodel = resourcehandler.GetEntityModelFromData(self)
     local lastr = self.NotSaved.RotationFollow 
     if not Model or not next(neck) or not orimodel then return end
     local mainjoint = Model:FindFirstChild("MainWeld",true)
@@ -556,7 +562,12 @@ function entity:SetPosition(position)
         self.Position = position
     end
 end
+function  entity:LoadAnimation(Name)
+    if not isClient then warn("Client Only Method") return end 
+    return anihandler.LoadAnimation(self,Name)
+end
 function entity:PlayAnimation(Name,PlayOnce)
+    if self.Died then return end 
     local plr,client = self:IsClientControl()
     if PlayOnce then 
         if not client then
@@ -660,6 +671,7 @@ function entity:Jump()
     end)
 end
 function entity:Update(dt)
+    if self.Died then self:OnDeath() return end 
     self:UpdateChunk()
     if RunService:IsServer() or (RunService:IsClient() and self.ClientControll and self.ClientControll == tostring(game.Players.LocalPlayer.UserId)) then else return end 
     self:UpdateBodyVelocity(dt)
@@ -669,13 +681,61 @@ function entity:Update(dt)
     self:DoBehaviors(dt)
     self:UpdatePosition(dt)
 end
-function entity:Kill()
-
-    self:Destroy()
+function entity:OnHarmed(dmg)
+    if not isClient then warn("Client Only Method") return end 
+    local model = self.Entity
+    self:OnDeath()
+    if model then   
+        model.Parent = workspace.DamagedEntities
+        local g = workspace.DamagedEntities:FindFirstChildWhichIsA("Highlight") or resourcehandler.GetAsset("DamageHighlight")
+        if g then
+            g.Parent = workspace.DamagedEntities
+            g.Name = 'DamageHighlight'
+            g.Adornee = nil
+            g.Adornee = workspace.DamagedEntities
+        end
+        if not self.Died then 
+            task.wait(.35)
+            model.Parent = workspace.Entities
+        end
+    end
+end
+function entity:OnDeath()
+    if not isClient then return end 
+    self.Died = true
+    local model = self.Entity
+    if not model then return end 
+    if self:IsClientControl() == game.Players.LocalPlayer and not game.Players.LocalPlayer.PlayerGui:FindFirstChild("DeathScreen") then
+        game.ReplicatedStorage.Events.OnDeath:Fire()
+    end
+    if self.DidDeath then return end 
+    self.DidDeath = true
+    model.Parent = workspace.DamagedEntities
+    local g = workspace.DamagedEntities:FindFirstChildWhichIsA("Highlight") or resourcehandler.GetAsset("DamageHighlight")
+    if g then
+        g.Parent = workspace.DamagedEntities g.Name = 'DamageHighlight'
+        g.Adornee = nil g.Adornee = workspace.DamagedEntities end
+    local weld = model:FindFirstChild('MainWeld',true)
+    local entitydata = resourcehandler.GetEntityFromData(self)
+    local deathani = self:LoadAnimation("Death")
+    if weld and not deathani then
+        ts:Create(weld,TweenInfo.new(.5),{C0 = weld.C0*CFrame.new(-model.HitBox.Size.Y/2,-model.HitBox.Size.Y/2,0)*CFrame.Angles(0,0,math.rad(90))}):Play()
+    elseif deathani then
+        deathani:Play()
+        task.wait(deathani.Length * 0.99)
+        deathani:AdjustSpeed(0)
+    end
+    self.PlayingAnimations = {}
+    anihandler.UpdateEntity(self)
 end
 function entity:Destroy()
     datahandler.RemoveEntity(self.Id)
+    if self.Entity then
+        self.Entity:Destroy()
+        self.Entity = nil
+    end
     self:RemoveFromChunk()
+    self.Died = true
     setmetatable(self,nil) self = nil
 end
 return entity

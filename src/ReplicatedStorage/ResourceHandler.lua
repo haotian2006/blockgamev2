@@ -47,19 +47,34 @@ function self.IsBlock(data)
     local type =  qf.DecompressItemData(data,"Type")
     return self.GetBlock(type) and true or false   
 end
+function self.GetAsset(id)
+    return self.Assets and self.Assets[id]
+end
 function self.GetBlock(Name)
     return self["Blocks"] and self["Blocks"][Name] or nil
 end
 function self.GetEntity(Name)
     return self["Entities"] and self["Entities"][Name] or nil 
 end
-function self.GetAnimationFromName(name)
-    return self.Animations[name] or self.AnimationFolder[name] or nil
+function self.GetUI(name)
+    return self.Ui and self.Ui[name]
 end
-function self.GetEntityModelDataFromData(Data)
+function self.GetEntityFromData(Data)
     local Type,model,ModelId,TextureId = Data.Type,Data.Model,Data.ModelId or 0,Data.TextureId or 0
     if model and self.Models.Entities[model] then
         return self.Models.Entities[model]
+    else
+        local entity = self.GetEntity(Type)
+        return entity
+    end
+end
+function self.GetAnimationFromName(name)
+    return self.Animations[name] or self.AnimationFolder[name] or nil
+end
+function self.GetEntityModelFromData(Data)
+    local Type,model,ModelId,TextureId = Data.Type,Data.Model,Data.ModelId or 0,Data.TextureId or 0
+    if model and self.Models.Entities[model] then
+        return self.Models.Entities[model].Model
     else
         local entity = self.GetEntity(Type).Model
         return entity

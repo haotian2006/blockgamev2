@@ -19,7 +19,7 @@ function  self.renderarmitem()
     local aw = entity.Body["Right Arm"]
     local retracted = aw:FindFirstChild("RT") or Instance.new('BoolValue',aw)
     retracted.Name = 'RT'
-    local origaw = resource.GetEntityModelDataFromData(self.Arms).Body["Right Arm"]
+    local origaw = resource.GetEntityModelFromData(self.Arms).Body["Right Arm"]
     if Item[1] and Item ~= '' then
         attachment:ClearAllChildren()
         local item = Instance.new("Part")
@@ -93,7 +93,7 @@ function self.Init()
 end
 function self.UpdateArms(dt)
     local arms = self.GetArms()
-    if not arms then return end 
+    if not arms or not localentity() or localentity().Died then return end 
     self.cam.CFrame = camera.CFrame
     arms.Head.CFrame = camera.CFrame
     anihandler.UpdateEntity(self.Arms)

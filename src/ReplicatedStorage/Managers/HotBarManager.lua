@@ -48,6 +48,9 @@ function manager.UpdateOne(index)
         frame.Amount.Text = amt
     end
 end
+function manager.GetUI()
+    return player.PlayerGui:WaitForChild("Hud").HotBar
+end
 function manager.UpdateAll()
     if not PEntity()then return end 
     for i = 1,9 do

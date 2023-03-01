@@ -1,5 +1,8 @@
 local entity = require(game.ReplicatedStorage.EntityHandler)
 local behhandler = require(game.ServerStorage.BehaviorHandler)
+local bridgeNet = require(game.ReplicatedStorage.BridgeNet)
+local HarmEvent = bridgeNet.CreateBridge('OnEntityHarmed')
+local settings = require(game.ReplicatedStorage.GameSettings)
 entity.ServerOnly = {
     "ServerOnly","Data","behaviors"
 }
@@ -132,5 +135,18 @@ function entity:DoBehaviors(dt)
             end)
         end
     end
+end
+function entity:Damage(amt)
+    HarmEvent:FireAllInRange(settings.gridToreal(self.Position),
+    settings.gridToreal(settings.GetDistFormChunks(settings.MaxEntityRunDistance)),
+    self.Id, 
+    amt
+    )
+    self.Died = true
+    self.PlayingAnimations = {}
+    self:SetNetworkOwner()
+end
+function entity:Kill()
+    self.Died = true
 end
 return {}

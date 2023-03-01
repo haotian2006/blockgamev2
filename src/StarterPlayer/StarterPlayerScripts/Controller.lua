@@ -13,10 +13,11 @@ local debugger = require(game.ReplicatedStorage.Debugger)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local hotbarhandler = require(game.ReplicatedStorage.Managers.HotBarManager)
+local playerdollmanager = require(game.ReplicatedStorage.Managers.PlayerDollHandler)
 hotbarhandler:Init()
 local lp = game.Players.LocalPlayer
 local localentity = data.GetLocalPlayer
-local controls = {pc = {},mode = 'pc',func = {},mtick = {},RenderStepped = {}}
+local controls = {pc = {},mode = 'pc',func = {},RenderStepped = {}}
 controls.pc = {
     Foward = {'w',"Foward"},-- Name = {key:string|table,function or boolname}
     Left = {'a',"Left"},
@@ -47,7 +48,6 @@ local GPlayer = data.GLocalPlayer
 local Camera = game.Workspace.CurrentCamera
 local func = controls.func
 local Render = controls.Render
-local mtick = controls.mtick
 local runservice = game:GetService("RunService")
 local uis = game:GetService("UserInputService")
 local FD = controls.Functionsdown 
@@ -112,8 +112,14 @@ function func.HitBoxs()
             v.Visible = not not data.HitBoxEnabled
         end
     end
+    for i,v in game.Workspace.DamagedEntities:GetDescendants() do
+        if v:IsA("SelectionBox") then
+            v.Visible = not not data.HitBoxEnabled
+        end
+    end
 end
 function func.HandleJump()
+    if not localentity() or localentity().Died then return end 
     if  GPlayer.Jumping or data.LocalPlayer["CanNotJump"] then return end
     local e 
     local jumpedamount =0 
@@ -144,6 +150,7 @@ function func.HandleJump()
     end)
 end
 function func.Crouch()
+    if not localentity() or localentity().Died then return end 
     if not data.LocalPlayer.Crouching then
         data.LocalPlayer.Crouching = true
         data.LocalPlayer.Position += Vector3.new(0,-.3/2,0)
@@ -167,6 +174,7 @@ function func.Crouch()
     data.LocalPlayer:UpdateModelPosition()
 end
 function func.Interact()
+    if not localentity() or localentity().Died then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -196,7 +204,7 @@ function func.Interact()
     end
 end
 function func.Attack()
-    if not localentity() then return end 
+    if not localentity() or localentity().Died then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -227,16 +235,14 @@ function Render.Update(dt)
     for i,v in data.LoadedEntities do
         v:Update(dt)
     end
-    if checkempty(data.LocalPlayer) then return end 
-    local neck =  self.Entity:FindFirstChild("Neck",true)
-    local MainWeld = self.Entity:FindFirstChild("MainWeld",true)
+    if not localentity() then return end 
     self.Entity.PrimaryPart.CFrame = CFrame.new(self.Position*3)
     EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),self)
     self:ClearVelocity()
     anihandler.UpdateEntity(self)
 end
 function Render.Move(dt)
-    if checkempty(data.LocalPlayer) then return end 
+    if not localentity() then return end 
     local LookVector = CameraCFrame.LookVector
     local RightVector = CameraCFrame.RightVector
     LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit -- Vector3.new(1,0,0)--
@@ -255,7 +261,7 @@ end
 local second 
 local outline = game.Workspace.Outline
 function controls.Render.OutLine()
-    if not localentity() then return end 
+    if not localentity() or localentity().Died or not localentity().Entity then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -278,12 +284,18 @@ function controls.Render.OutLine()
         outline.SelectionBox.Transparency = 1
     end
 end
-local initarms = false
-function  controls.RenderStepped.Arm(dt)
-    if not initarms then initarms = ArmsHandler.Init() end
+controls.PlayerDoll = nil 
+function controls.RenderStepped.Update(dt)
+    if  localentity() and not localentity().ClientArms then localentity().ClientArms = ArmsHandler.Init() end
     ArmsHandler.UpdateArms(dt)
+    if not controls.PlayerDoll then
+        controls.PlayerDoll = playerdollmanager.new(lp.PlayerGui:WaitForChild('Hud').PlayerModel,nil,60,10,25)
+    else
+        controls.PlayerDoll:Update()
+    end
 end
 function controls.RenderStepped.Camera()
+    if not localentity() or localentity().Died then uis.MouseIconEnabled = true return end 
     lp.PlayerGui:WaitForChild("Hud")
     if not FD["Freecam"] then
         CameraCFrame = camera.CFrame
@@ -416,14 +428,6 @@ function controls.renderupdate(dt)
         task.spawn(v,dt)
     end
 end
-task.spawn(function()
-    local one = 1/60
-    while task.wait(one) do
-        for i,v in mtick do
-            task.spawn(v)
-        end
-    end
-end)
 runservice.Heartbeat:Connect(controls.renderupdate)
 runservice.RenderStepped:Connect(function(dt)
     for i,v in controls.RenderStepped do

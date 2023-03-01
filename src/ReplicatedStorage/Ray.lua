@@ -18,6 +18,7 @@ function ray.newInfo()
         Debug = false,
         RaySize = Vector3.new(.1,.1,.1),
         Increaseby = .1,
+        IgnoreDead= true,
     }
 end
 function ray.newData()
@@ -78,8 +79,8 @@ function ray.Cast(Origin: Vector3, Direction: Vector3,rayinfo)
             local chunk = Data.GetChunk(cx,cz)
             if chunk then
                 for i,v in chunk.Entities do
-                    if hitname[i] or rayinfo.BlackList[i] then continue end 
-                    if collisonH.AABBvsPoint(currentposition,v.Position,Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X)) then
+                    if hitname[i] or rayinfo.BlackList[i] or ( v.Died and  rayinfo.IgnoreDead)  then continue end 
+                    if collisonH.AABBvsPoint(currentposition,v.Position,Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X))  then
                         table.insert(raydata.Objects,{Type = "Entity",EntityId = i,EntityData = v,PointOfInt = Vector3.new(x,y,z)})
                         hitname[i] = true
                         if rayinfo.BreakOnFirstHit then

@@ -38,7 +38,7 @@ end
 function module.LoadAnimation(entity,animation)
     entity.LoadedAnis = entity.LoadedAnis or {}
     if entity.LoadedAnis[animation] then  return entity.LoadedAnis[animation] end 
-    local AniPaths = resourcehandler.GetEntity(entity.Type)
+    local AniPaths = resourcehandler.GetEntityFromData(entity)
     local animator = entity.Entity:FindFirstChild("AnimationController",true):FindFirstChildOfClass("Animator")
     if not AniPaths or not AniPaths.Animations or not animator then return end 
     AniPaths = AniPaths.Animations
@@ -55,7 +55,7 @@ function module.PlayAnimationOnce(entity,animation)
 end
 function module.UpdateEntity(entity)
     module.StopAllAnimations(entity)
-    local AniPaths = resourcehandler.GetEntity(entity.Type)
+    local AniPaths = resourcehandler.GetEntityFromData(entity)
     local animator = entity.Entity:FindFirstChild("AnimationController",true):FindFirstChildOfClass("Animator")
     if not AniPaths or not AniPaths.Animations or not animator then return end 
     AniPaths = AniPaths.Animations

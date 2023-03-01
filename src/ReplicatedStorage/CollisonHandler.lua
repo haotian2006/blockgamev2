@@ -428,7 +428,7 @@ if RunService:IsClient() then return collisions end
 local Push = 0.3
 function collisions.entityvsentity(entity,entity2)
     local h1,h2 = entity.HitBox,entity2.HitBox
-    if not entity["CanCollideWithEntities"] or not entity2["CanCollideWithEntities"] then return end 
+    if not entity["CanCollideWithEntities"] or not entity2["CanCollideWithEntities"] or entity.Died or entity2.Died then return end 
     if collisions.AABBcheck(entity.Position,entity2.Position,vector3(h1.X,h1.Y,h1.X),vector3(h2.X,h2.Y,h2.X)) then
         local p1,p2 = entity.Position,entity2.Position
         local x,z = p1.X - p2.X,p1.Z - p2.Z

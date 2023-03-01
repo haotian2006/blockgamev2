@@ -1,6 +1,7 @@
 
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
+local lp = game.Players.LocalPlayer
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 --bridge.Start({})
 local GetChunk = bridge.CreateBridge("GetChunk")
@@ -21,7 +22,7 @@ local entityhandler = require(game.ReplicatedStorage.EntityHandler)
 local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 local runservicer = game:GetService("RunService")
-
+local HarmEvent = bridge.CreateBridge('OnEntityHarmed')
 local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent) sb.Visible = datahandler.HitBoxEnabled sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
 local function createEye(offset,hitbox)
     local eye = Instance.new("Part",hitbox.Parent)
@@ -59,12 +60,16 @@ local function changetext(nameLabel,STUDS_OFFSET_Y)
     end
 
 local function CreateModel(Data,ParentModel)
-    local model = resource.GetEntityModelDataFromData(Data)
+    local model = resource.GetEntityModelFromData(Data)
     if model then
         model = model:Clone()
-        local humanoid = model:FindFirstChildWhichIsA("Humanoid") or model:FindFirstChildWhichIsA("AnimationController")  or Instance.new("AnimationController",model)
-        local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator",humanoid)
+        local humanoid = model:FindFirstChildWhichIsA("Humanoid")  or Instance.new("Humanoid",model)
+        local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new('Animator',humanoid)
         humanoid.Name = "AnimationController"
+        humanoid.RigType = Enum.HumanoidRigType.R6
+        humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+        humanoid.RequiresNeck = false
+        humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
         model.Parent = ParentModel
         model.Name = "EntityModel"
         local weld = Instance.new("Motor6D",ParentModel.PrimaryPart)
@@ -111,20 +116,54 @@ bridge.CreateBridge("DoMover"):Connect(function(entity,Mover,...)
         require(mover).new(datahandler.LoadedEntities[entity],...)
     end
 end)
-EntityBridge:Connect(function(entitys)
-    for i,v in game.Workspace.Entities:GetChildren() do
-        if not entitys[v.Name] then
-            v:Destroy()
-            i = v.Name
-            if datahandler.LoadedEntities[i] then
-                local last = datahandler.LoadedEntities[i]
-                local chunk = datahandler.GetChunk(last.Chunk.X,last.Chunk.Y)
-                datahandler.LoadedEntities[i]:Destroy()
-            end
+HarmEvent:Connect(function(id,amt,IsDeath)
+    local entity = datahandler.LoadedEntities[id]
+    if not entity then return end 
+    entity:OnHarmed(amt)
+end)
+local function shoulddel(entitys,v)
+    if not entitys[v.Name] and v:IsA("Model") then
+        v:Destroy()
+        local i = v.Name
+        local last = datahandler.LoadedEntities[i]
+        if last and last.Chunk  then
+            local chunk = datahandler.GetChunk(last.Chunk.X,last.Chunk.Y)
+            datahandler.LoadedEntities[i]:Destroy()
         end
     end
+end
+game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
+    local entity = datahandler.GetEntity(lp.UserId)
+    if entity and entity.Died then
+        local cam = game.Workspace.CurrentCamera
+        cam.CameraType = Enum.CameraType.Scriptable
+        local fov = tweenservice:Create(cam,TweenInfo.new(30,Enum.EasingStyle.Exponential),{FieldOfView = 30})
+        local angle = tweenservice:Create(cam,TweenInfo.new(30,Enum.EasingStyle.Exponential),{CFrame = cam.CFrame*CFrame.Angles(math.rad(-20),math.rad(0),math.rad(50))})
+        fov:Play()
+        angle:Play()
+        local ui = resource.GetUI('DeathScreen')
+        if ui then
+            ui = ui:Clone()
+            ui.Parent = lp.PlayerGui
+            local respawnButton = ui:FindFirstChild("RespawnButton",true)
+            if respawnButton then
+                task.wait(.3)
+                respawnButton.MouseButton1Up:wait()
+            end
+        end
+        fov:Cancel()
+        angle:Cancel()
+        game.ReplicatedStorage.Events.Respawn:FireServer()
+        ui:Destroy()
+        cam.CameraType = Enum.CameraType.Custom
+        cam.FieldOfView = 70
+    end
+end)
+EntityBridge:Connect(function(entitys)
+    for i,v in game.Workspace.Entities:GetChildren() do shoulddel(entitys,v) end
+    for i,v in game.Workspace.DamagedEntities:GetChildren() do shoulddel(entitys,v) end
     for i,v in entitys do
-        local e = game.Workspace.Entities:FindFirstChild(i)
+        local e = game.Workspace.Entities:FindFirstChild(i) or workspace.DamagedEntities:FindFirstChild(i)
         local oldentity = datahandler.LoadedEntities[i]
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
             local oldhitbox = oldentity.HitBox
@@ -146,7 +185,6 @@ EntityBridge:Connect(function(entitys)
             local entity = entityhandler.new(v)
             datahandler.AddEntity(i,entity)
             local model = Instance.new("Model",workspace.Entities)
-            entity.Entity = model
             local hitbox = Instance.new("Part",model)
             model.PrimaryPart = hitbox
             hitbox.Size = (Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X) or Vector3.new(1,1,1))*settings.GridSize 
@@ -154,6 +192,7 @@ EntityBridge:Connect(function(entitys)
             local eyebox = createAselectionBox(eye,Color3.new(1, 0, 0))
             eyebox.Parent = hitbox
             CreateModel(v,model)
+            entity.Entity = model
             entity:UpdateModelPosition()
             createAselectionBox(hitbox)
             hitbox.CanCollide = false
@@ -162,9 +201,11 @@ EntityBridge:Connect(function(entitys)
             hitbox.Name = "HitBox"
             hitbox.CFrame = CFrame.new(v.Position*3)
             model.Name = i
-            local nametag = game.ReplicatedStorage.Assets.Nametag:Clone()
-            nametag.Parent = hitbox
-            nametag.Text.Text = v.Name or v.Id
+            if resource.GetAsset("Nametag") then
+                local nametag = resource.GetAsset("Nametag"):Clone()
+                nametag.Parent = hitbox
+                nametag.Text.Text = v.Name or v.Id
+            end
             e = model
            -- entity:UpdateRotationClient()
            oldentity = entity
@@ -179,8 +220,7 @@ EntityBridge:Connect(function(entitys)
                         srender(hitbox)
                         done = true
                     end)
-                    print(hitbox and model and model.Parent == workspace.Entities and true)
-                while hitbox and model and model.Parent == workspace.Entities and true do
+                while hitbox and model and (model.Parent == workspace.Entities or model.Parent == workspace.DamagedEntities) and true do
                     local currentChunk,c = qf.GetChunkfromReal(qf.cv3type("tuple",hitbox.Position)) 
                     currentChunk = currentChunk.."x"..c
                     task.spawn(function()
@@ -207,6 +247,7 @@ EntityBridge:Connect(function(entitys)
             end
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
+            if not datahandler.LoadedEntities[i] then return end 
             datahandler.LoadedEntities[i]:UpdateEntityClient(v)
             local function combinevelocity(v1,v2)
                 for i,v in v2.Velocity do
@@ -217,8 +258,13 @@ EntityBridge:Connect(function(entitys)
             datahandler.LocalPlayer = datahandler.LoadedEntities[i]
         end
         if e then
-            e.PrimaryPart.Nametag.Enabled = not oldentity.Crouching 
-            changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)
+            if  e.PrimaryPart:FindFirstChild('Nametag') then
+                e.PrimaryPart.Nametag.Enabled = not oldentity.Crouching 
+                if oldentity.Died then 
+                    e.PrimaryPart.Nametag.Enabled = false
+                end 
+                changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)
+            end
         end
         if oldentity then
             oldentity:VisuliseHandItem()

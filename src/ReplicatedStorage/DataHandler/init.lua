@@ -39,15 +39,18 @@ end
 local function round2(x)
     return math.round(x)
 end
+function self.GetEntity(tag)
+    return self.LoadedEntities[tostring(tag)]
+end
 function self.GetEntityFromPlayer(player:Player)
     return self.LoadedEntities[tostring(player.UserId)]
 end
 function self.RemoveEntity(uuid)
     self.AmmountOfEntities -= 1
-    self.LoadedEntities[uuid] = nil
+    self.LoadedEntities[tostring(uuid)] = nil
 end
 function self.GetLocalPlayer()
-    return next(self.LocalPlayer) ~= nil and self.LocalPlayer
+    return next(self.LocalPlayer) ~= nil and self.LocalPlayer.Entity and self.LocalPlayer
 end
 function self.EntitiesinR(x,y,z,r,ConvertToClient )
     x,y,z,r = x or 0, y ,z or 0 ,r or 0
