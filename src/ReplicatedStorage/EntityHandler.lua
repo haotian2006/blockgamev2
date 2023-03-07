@@ -619,7 +619,7 @@ function entity:Gravity(dt)
     entity.Data.FallTicks = entity.Data.FallTicks or 0
     local max = entity.FallRate or 150
     local fallrate =  entity.Data.Gravity and entity.Data.Gravity or 0
-    if math.floor(entity.Data.FallTicks or 0 ) > (entity.Data.LastFallTicks or 0)  then
+    if math.floor(entity.Data.FallTicks or 0 ) > (entity.Data.LastFallTicks or 0) and false  then
         print(fallrate)
         fallrate -= 0.08
         fallrate *= 0.9800000190734863
@@ -633,6 +633,9 @@ function entity:Gravity(dt)
         entity.Data.Gravity = 0
     elseif not entity.Data.Grounded  then
         entity.Data.FallTicks += dt*20
+        fallrate -= 0.08
+        fallrate *= 0.9800000190734863
+        entity.Data.LastFallTicks = math.floor(entity.Data.FallTicks)
         self:SetBodyVelocity("Gravity",Vector3.new(0,fallrate*20,0) )
         entity.Data.Gravity = fallrate
     end
