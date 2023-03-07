@@ -137,14 +137,18 @@ function entity:DoBehaviors(dt)
     end
 end
 function entity:Damage(amt)
+    if not self.Health then return end 
+    self.Health -= amt
+    if self.Health <= 0 then
+        self.Died = true
+        self.PlayingAnimations = {}
+        self:SetNetworkOwner()
+    end
     HarmEvent:FireAllInRange(settings.gridToreal(self.Position),
     settings.gridToreal(settings.GetDistFormChunks(settings.MaxEntityRunDistance)),
     self.Id, 
     amt
     )
-    self.Died = true
-    self.PlayingAnimations = {}
-    self:SetNetworkOwner()
 end
 function entity:Kill()
     self.Died = true

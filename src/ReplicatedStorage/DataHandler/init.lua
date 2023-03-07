@@ -29,7 +29,7 @@ function self.AddEntity(uuid:string,address:table)
 end
 script.DoFunc.OnInvoke = function(func,...)
     if self[func] then
-     self[func](...)
+        return self[func](...)
     end
     return
  end
@@ -50,7 +50,7 @@ function self.RemoveEntity(uuid)
     self.LoadedEntities[tostring(uuid)] = nil
 end
 function self.GetLocalPlayer()
-    return next(self.LocalPlayer) ~= nil and self.LocalPlayer.Entity and self.LocalPlayer
+    return self.LocalPlayer.Entity and next(self.LocalPlayer) ~= nil and self.LocalPlayer
 end
 function self.EntitiesinR(x,y,z,r,ConvertToClient )
     x,y,z,r = x or 0, y ,z or 0 ,r or 0

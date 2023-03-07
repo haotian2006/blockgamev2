@@ -81,9 +81,9 @@ local function CreateModel(Data,ParentModel)
 end
 
 bridge.CreateBridge("ChangeEntityProperty"):Connect(function(entitid,property,value)
-    if datahandler.LoadedEntities[entitid] then
+    if datahandler.GetEntity(entitid) then
         if type(property) == "table" then
-            local tab = datahandler.LoadedEntities[entitid]
+            local tab = datahandler.GetEntity(entitid)
             for i,v in ipairs(property) do
                 if i == #property then
                     tab[v] = 5
@@ -93,13 +93,13 @@ bridge.CreateBridge("ChangeEntityProperty"):Connect(function(entitid,property,va
                 end
             end
         else
-            datahandler.LoadedEntities[entitid][property] = value
+            datahandler.GetEntity(entitid)[property] = value
         end
     end
 end)
 game.ReplicatedStorage.Events.EntityUpdater.OnClientEvent:Connect(function(entityId,newdata,dostuff)
-    if datahandler.LoadedEntities[entityId] then
-        local e = datahandler.LoadedEntities[entityId]
+    if datahandler.GetEntity(entityId) then
+        local e = datahandler.GetEntity(entityId)
         for i,v in newdata or {} do
             e[i] = v 
         end
@@ -112,12 +112,12 @@ game.ReplicatedStorage.Events.EntityUpdater.OnClientEvent:Connect(function(entit
 end)
 bridge.CreateBridge("DoMover"):Connect(function(entity,Mover,...)
     local mover = game.ReplicatedStorage.EntityMovers:FindFirstChild(Mover)
-    if mover and datahandler.LoadedEntities[entity] then
-        require(mover).new(datahandler.LoadedEntities[entity],...)
+    if mover and datahandler.GetEntity(entity) then
+        require(mover).new(datahandler.GetEntity(entity),...)
     end
 end)
 HarmEvent:Connect(function(id,amt,IsDeath)
-    local entity = datahandler.LoadedEntities[id]
+    local entity = datahandler.GetEntity(id)
     if not entity then return end 
     entity:OnHarmed(amt)
 end)
@@ -125,10 +125,10 @@ local function shoulddel(entitys,v)
     if not entitys[v.Name] and v:IsA("Model") then
         v:Destroy()
         local i = v.Name
-        local last = datahandler.LoadedEntities[i]
+        local last = datahandler.GetEntity(i)
         if last and last.Chunk  then
             local chunk = datahandler.GetChunk(last.Chunk.X,last.Chunk.Y)
-            datahandler.LoadedEntities[i]:Destroy()
+            datahandler.GetEntity(i):Destroy()
         end
     end
 end
@@ -154,6 +154,9 @@ game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
         fov:Cancel()
         angle:Cancel()
         game.ReplicatedStorage.Events.Respawn:FireServer()
+        repeat
+            task.wait()
+        until datahandler.GetLocalPlayer() and not datahandler.GetLocalPlayer().Died 
         ui:Destroy()
         cam.CameraType = Enum.CameraType.Custom
         cam.FieldOfView = 70
@@ -164,10 +167,10 @@ EntityBridge:Connect(function(entitys)
     for i,v in game.Workspace.DamagedEntities:GetChildren() do shoulddel(entitys,v) end
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i) or workspace.DamagedEntities:FindFirstChild(i)
-        local oldentity = datahandler.LoadedEntities[i]
+        local oldentity = datahandler.GetEntity(i)
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
             local oldhitbox = oldentity.HitBox
-            datahandler.LoadedEntities[i]:UpdateEntity(v)
+            datahandler.GetEntity(i):UpdateEntity(v)
             if oldentity and v.HitBox ~= oldhitbox then
                 if oldentity.Tweens and oldentity.Tweens["Pos"] then
                     oldentity.Tweens["Pos"]:Cancel()
@@ -211,7 +214,7 @@ EntityBridge:Connect(function(entitys)
            oldentity = entity
             if i == tostring(game.Players.LocalPlayer.UserId) then
                 workspace.CurrentCamera.CameraSubject = eye
-                datahandler.LocalPlayer = datahandler.LoadedEntities[i]
+                datahandler.LocalPlayer = datahandler.GetEntity(i)
                 hotbar.UpdateAll()
                 task.spawn(function()
                     local oldchunk =""
@@ -247,15 +250,15 @@ EntityBridge:Connect(function(entitys)
             end
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
-            if not datahandler.LoadedEntities[i] then return end 
-            datahandler.LoadedEntities[i]:UpdateEntityClient(v)
+            if not datahandler.GetEntity(i) then return end 
+            datahandler.GetEntity(i):UpdateEntityClient(v)
             local function combinevelocity(v1,v2)
                 for i,v in v2.Velocity do
                     v1:AddVelocity(i,v)
                 end
             end
-            combinevelocity(datahandler.LoadedEntities[i],v)
-            datahandler.LocalPlayer = datahandler.LoadedEntities[i]
+            combinevelocity(datahandler.GetEntity(i),v)
+            datahandler.LocalPlayer = datahandler.GetEntity(i)
         end
         if e then
             if  e.PrimaryPart:FindFirstChild('Nametag') then

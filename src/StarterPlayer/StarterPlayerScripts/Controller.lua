@@ -221,7 +221,8 @@ function func.Attack()
                 data.RemoveBlock(block.X,block.Y,block.Z)
                 destroyblockEvent:Fire(block)
             elseif v.Type == "Entity"  then
-                debugger.HighLightEntity(v.EntityId,1)
+                --debugger.HighLightEntity(v.EntityId,1)
+               -- print(CameraCFrame.LookVector)
                 game.ReplicatedStorage.Events.KB:FireServer(v.EntityId,CameraCFrame.LookVector)
             end
         end

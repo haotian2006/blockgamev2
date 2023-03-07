@@ -598,13 +598,14 @@ function entity:StopAnimation(Name)
         self.PlayingAnimations[Name] = false
     end
 end
-function entity:AddBodyVelocity(name,velocity)
+function entity:SetBodyVelocity(name,velocity)
     if velocity.Magnitude == 0 then return end 
     self.BodyVelocity = self.BodyVelocity or {}
     self.BodyVelocity[name] = velocity
 end
-function entity:RemoveBodyVelocity(name)
-    self.BodyVelocity[name] = nil
+function entity:GetBodyVelocity(name)
+    self.BodyVelocity= self.BodyVelocity or {}
+    return self.BodyVelocity[name] 
 end
 function entity:UpdateBodyVelocity(dt)
     for i,v in self.BodyVelocity or {} do
@@ -617,10 +618,36 @@ function entity:Gravity(dt)
     if not entity:GetData().GetChunk(cx,cz) or not entity["DoGravity"]  then return end 
     entity.Data.FallTicks = entity.Data.FallTicks or 0
     local max = entity.FallRate or 150
+    local fallrate =  entity.Data.Gravity and entity.Data.Gravity or 0
+    if math.floor(entity.Data.FallTicks or 0 ) > (entity.Data.LastFallTicks or 0)  then
+        print(fallrate)
+        fallrate -= 0.08
+        fallrate *= 0.9800000190734863
+        entity.Data.LastFallTicks = math.floor(entity.Data.FallTicks)
+    end
+    if entity.Data.Grounded  or entity.NotSaved.NoFall or  entity.NotSaved.Jumping  then -- or not entity.CanFall
+        self:SetBodyVelocity("Gravity",Vector3.new(0,0,0) )
+        entity.Data.IsFalling = false
+        entity.Data.FallTicks = 0
+        entity.Data.LastFallTicks = 0
+        entity.Data.Gravity = 0
+    elseif not entity.Data.Grounded  then
+        entity.Data.FallTicks += dt*20
+        self:SetBodyVelocity("Gravity",Vector3.new(0,fallrate*20,0) )
+        entity.Data.Gravity = fallrate
+    end
+end
+--[[
+function entity:Gravity(dt)
+    local entity = self
+    local cx,cz = entity:GetQf().GetChunkfromReal(entity.Position.X,entity.Position.Y,entity.Position.Z,true)
+    if not entity:GetData().GetChunk(cx,cz) or not entity["DoGravity"]  then return end 
+    entity.Data.FallTicks = entity.Data.FallTicks or 0
+    local max = entity.FallRate or 150
     --local fallrate =(((0.99^entity.Data.FallTicks)-1)*max)/2
     local fallrate = (392/5)*((98/100)^math.floor(entity.Data.FallTicks) - 1)
     if entity.Data.Grounded  or entity.NotSaved.NoFall or  entity.NotSaved.Jumping  then -- or not entity.CanFall
-        entity.Velocity.Fall = Vector3.new(0,0,0) 
+        self:SetBodyVelocity("Falling",Vector3.new(0,0,0) )
         entity.Data.IsFalling = false
         entity.Data.FallTicks = 0
     elseif not entity.Data.Grounded  then
@@ -628,8 +655,10 @@ function entity:Gravity(dt)
         entity.Velocity.Fall = Vector3.new(0,fallrate,0) 
     end
 end
+]]
 function entity:Jump()
-    if  self.NotSaved.Jumping or self["CanNotJump"] then return end
+    if  self.NotSaved.Jumping or self["CanNotJump"]  then return end
+    if not self.Data.Grounded  then return end 
     local e 
     local jumpedamount =0 
     local jumpheight = (self.JumpHeight or 0) --1.25
@@ -637,6 +666,10 @@ function entity:Jump()
     local velocity = 0.42
     local start = os.clock()
     local tickspast = 0
+    self:SetBodyVelocity("Gravity",Vector3.new(0,velocity*20,0) )
+    self.Data.Gravity = velocity
+    self.Data.Grounded = false
+    if true then return end 
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
         tickspast += deltaTime*20
         local jump = velocity*muti
@@ -673,7 +706,7 @@ end
 function entity:Update(dt)
     if self.Died then self:OnDeath() return end 
     self:UpdateChunk()
-    if RunService:IsServer() or (RunService:IsClient() and self.ClientControll and self.ClientControll == tostring(game.Players.LocalPlayer.UserId)) then else return end 
+    if (RunService:IsServer() and not self.ClientControll) or (RunService:IsClient() and self.ClientControll == tostring(game.Players.LocalPlayer.UserId)) then else return end 
     self:UpdateBodyVelocity(dt)
     self:Gravity(dt)
     self.NotSaved = self.NotSaved or {}
@@ -684,7 +717,6 @@ end
 function entity:OnHarmed(dmg)
     if not isClient then warn("Client Only Method") return end 
     local model = self.Entity
-    self:OnDeath()
     if model then   
         model.Parent = workspace.DamagedEntities
         local g = workspace.DamagedEntities:FindFirstChildWhichIsA("Highlight") or resourcehandler.GetAsset("DamageHighlight")
@@ -694,9 +726,16 @@ function entity:OnHarmed(dmg)
             g.Adornee = nil
             g.Adornee = workspace.DamagedEntities
         end
-        if not self.Died then 
-            task.wait(.35)
-            model.Parent = workspace.Entities
+        if not self.Died and self.Health > 0 then 
+            task.delay(.35,function()
+                if not self.Died and self.Health > 0 then 
+                    model.Parent = workspace.Entities
+                else
+                    self:OnDeath()
+                end
+            end)
+        else
+            self:OnDeath()
         end
     end
 end

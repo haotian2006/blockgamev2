@@ -12,6 +12,8 @@ local entity = {
         Speed = 5.612,--5.612,
         CanCollideWithEntities = true,
         DoGravity = true,
+        Health = 20,
+        MaxHealth = 20,
     },
     component_groups = {
 

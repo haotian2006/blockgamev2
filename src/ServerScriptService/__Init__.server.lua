@@ -19,7 +19,7 @@ end)
 game.Players.PlayerRemoving:Connect(function(player)
     data.RemoveEntity(player.UserId)
 end)
-local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)}) data.AddEntity(entity)
+local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)})-- data.AddEntity(entity)
 game.ReplicatedStorage.Events.Respawn.OnServerEvent:Connect(function(player)
     data.RemoveEntity(player.UserId)
     for i,player in game.Players:GetPlayers() do
@@ -30,14 +30,14 @@ game.ReplicatedStorage.Events.Respawn.OnServerEvent:Connect(function(player)
     data.AddEntity(entity)
 end)
 game.ReplicatedStorage.Events.ServerFPS.OnServerEvent:Connect(function(player,a)
-    entity:TurnTo(data.LoadedEntities[tostring(player.UserId)].Position)
+    entity:TurnTo(data.GetEntity(player.UserId).Position)
     local pe = data.GetEntityFromPlayer(player)
     pe.PlayingAnimations.Swing = a
    -- pe.PlayingAnimations.Normal = not pe.PlayingAnimations.Normal 
 end)
 local domoverbridge = bridge.CreateBridge("DoMover")
 EntityBridge:Connect(function(plr,id,newdata)
-    local entity = data.LoadedEntities[id]
+    local entity = data.GetEntity(id)
     if not entity then return end 
     if entity.ClientControll ~= tostring(plr.UserId) then return end 
     if entity and newdata.Crouching ~= nil and newdata.Crouching ~= entity.Crouching  then
@@ -86,9 +86,9 @@ game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvecto
     if not entity or entity.Died then return end 
     --entity:AddVelocity("KnockBack",Vector3.new(lookvector.X,.5,lookvector.Z)*100)
     local velocity = Vector3.new(lookvector.X*2,.6,lookvector.Z*2)
-    entity:Damage(0)
+    entity:Damage(1)
     if entity.ClientControll then
-        local player = (function() for i,v in game.Players:GetPlayers() do if tostring(v.UserId) == entity.ClientControll then return v end end end)()
+        local player = game.Players:GetPlayerByUserId(entity.ClientControll) 
         if player then
             domoverbridge:FireTo(player,id,"Curve",velocity,.2)
         end

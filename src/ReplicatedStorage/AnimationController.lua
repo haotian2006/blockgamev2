@@ -10,8 +10,8 @@ anievent:Connect(function(...)
         anievent:FireToAllExcept(plr,entity,name)
     else
         local entity,name = ...
-        if not Data.LoadedEntities[entity]then return end 
-        Data.LoadedEntities[entity]:PlayAnimation(name,true)
+        if not Data.GetEntity(entity) then return end 
+        Data.GetEntity(entity):PlayAnimation(name,true)
     end
 end)
 local module = {}

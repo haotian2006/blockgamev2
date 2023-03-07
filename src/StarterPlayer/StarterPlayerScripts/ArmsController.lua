@@ -53,12 +53,6 @@ function  self.renderarmitem()
         end
     end
 end
-function self.bobble()
-    
-end
-function self.Stopbobble()
-    
-end
 function  self.PlayAnimation(name,once)
     if not self.Arms then return end 
     if once then
