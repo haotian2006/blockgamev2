@@ -87,7 +87,7 @@ function self.Init()
 end
 function self.UpdateArms(dt)
     local arms = self.GetArms()
-    if not arms or not localentity() or localentity().Died then return end 
+    if not arms or not localentity() or localentity():GetState('Dead') then return end 
     self.cam.CFrame = camera.CFrame
     arms.Head.CFrame = camera.CFrame
     anihandler.UpdateEntity(self.Arms)

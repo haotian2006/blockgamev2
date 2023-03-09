@@ -119,7 +119,7 @@ function func.HitBoxs()
     end
 end
 function func.HandleJump()
-    if not localentity() or localentity().Died then return end 
+    if not localentity() or localentity():GetState('Dead') then return end 
     if  GPlayer.Jumping or data.LocalPlayer["CanNotJump"] then return end
     local e 
     local jumpedamount =0 
@@ -150,7 +150,7 @@ function func.HandleJump()
     end)
 end
 function func.Crouch()
-    if not localentity() or localentity().Died then return end 
+    if not localentity() or localentity():GetState('Dead') then return end 
     if not data.LocalPlayer.Crouching then
         data.LocalPlayer.Crouching = true
         data.LocalPlayer.Position += Vector3.new(0,-.3/2,0)
@@ -174,7 +174,7 @@ function func.Crouch()
     data.LocalPlayer:UpdateModelPosition()
 end
 function func.Interact()
-    if not localentity() or localentity().Died then return end 
+    if not localentity() or localentity():GetState('Dead') then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -204,7 +204,7 @@ function func.Interact()
     end
 end
 function func.Attack()
-    if not localentity() or localentity().Died then return end 
+    if not localentity() or localentity():GetState('Dead') then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -262,7 +262,7 @@ end
 local second 
 local outline = game.Workspace.Outline
 function controls.Render.OutLine()
-    if not localentity() or localentity().Died or not localentity().Entity then return end 
+    if not localentity() or localentity():GetState('Dead') or not localentity().Entity then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -296,7 +296,7 @@ function controls.RenderStepped.Update(dt)
     end
 end
 function controls.RenderStepped.Camera()
-    if not localentity() or localentity().Died then uis.MouseIconEnabled = true return end 
+    if not localentity() or localentity():GetState('Dead') then uis.MouseIconEnabled = true return end 
     lp.PlayerGui:WaitForChild("Hud")
     if not FD["Freecam"] then
         CameraCFrame = camera.CFrame

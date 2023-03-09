@@ -134,7 +134,7 @@ local function shoulddel(entitys,v)
 end
 game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
     local entity = datahandler.GetEntity(lp.UserId)
-    if entity and entity.Died then
+    if entity and entity:GetState('Dead') then
         local cam = game.Workspace.CurrentCamera
         cam.CameraType = Enum.CameraType.Scriptable
         local fov = tweenservice:Create(cam,TweenInfo.new(30,Enum.EasingStyle.Exponential),{FieldOfView = 30})
@@ -156,7 +156,7 @@ game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
         game.ReplicatedStorage.Events.Respawn:FireServer()
         repeat
             task.wait()
-        until datahandler.GetLocalPlayer() and not datahandler.GetLocalPlayer().Died 
+        until datahandler.GetLocalPlayer() and not datahandler.GetLocalPlayer():GetState('Dead') 
         ui:Destroy()
         cam.CameraType = Enum.CameraType.Custom
         cam.FieldOfView = 70
@@ -263,7 +263,7 @@ EntityBridge:Connect(function(entitys)
         if e then
             if  e.PrimaryPart:FindFirstChild('Nametag') then
                 e.PrimaryPart.Nametag.Enabled = not oldentity.Crouching 
-                if oldentity.Died then 
+                if oldentity:GetState('Dead') then 
                     e.PrimaryPart.Nametag.Enabled = false
                 end 
                 changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)

@@ -1,5 +1,4 @@
 local entity = {}
-entity.__index = entity
 local https = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local genuuid = function()  return https:GenerateGUID(false) end 
@@ -12,6 +11,7 @@ local movers = require(game.ReplicatedStorage.EntityMovers)
 local gs = require(game.ReplicatedStorage.GameSettings)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
+local _,behhandler = pcall(require,game.ServerStorage.BehaviorHandler)
 local changeproperty = bridge.CreateBridge("ChangeEntityProperty")
 local playani = bridge.CreateBridge("PlayAnimation")
 local isClient = RunService:IsClient()
@@ -26,6 +26,20 @@ local function interpolate(startVector3, finishVector3, alpha)
         currentState(startVector3.Y, finishVector3.Y, alpha),
         currentState(startVector3.Z, finishVector3.Z, alpha)
     )
+end
+entity.Common = {
+    Health = 20,
+    MaxHealth = 20,
+    CanCollideWithEntities = true,
+    HitBox = Vector2.new(1,1),
+    eyelevel = 0,
+    DoGravity = true,
+}
+entity.__index = function(self,key)
+    if not isClient and self.Type then
+        local data =behhandler.GetEntity(self.Type)
+    end
+    return entity[key]
 end
 entity.SpecialNames = {
     Data = true,
@@ -97,7 +111,7 @@ function entity:UpdateHandSlot(slot)
     self.CurrentSlot = slot 
 end
 -- properties to keep same when updating entitys from the server (local player)
-entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","PlayingAnimationOnce","Speed","CurrentSlot",'VeiwMode'}
+entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","PlayingAnimationOnce","Speed","CurrentSlot",'VeiwMode','CurrentStates'}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
@@ -414,7 +428,7 @@ function entity:SetModelTransparency(value)
     end
 end
 function entity:UpdateRotationClient(debugmode)
-    if self.Died then return end 
+    if self:GetState('Dead') then return end 
     if not isClient then warn("Client Only Function") return end 
     local Model = self.Entity
     local neck = resourcehandler.GetEntity(self.Type).Necks or {}
@@ -567,7 +581,7 @@ function  entity:LoadAnimation(Name)
     return anihandler.LoadAnimation(self,Name)
 end
 function entity:PlayAnimation(Name,PlayOnce)
-    if self.Died then return end 
+    if self:GetState('Dead') then return end 
     local plr,client = self:IsClientControl()
     if PlayOnce then 
         if not client then
@@ -620,7 +634,6 @@ function entity:Gravity(dt)
     local max = entity.FallRate or 150
     local fallrate =  entity.Data.Gravity and entity.Data.Gravity or 0
     if math.floor(entity.Data.FallTicks or 0 ) > (entity.Data.LastFallTicks or 0) and false  then
-        print(fallrate)
         fallrate -= 0.08
         fallrate *= 0.9800000190734863
         entity.Data.LastFallTicks = math.floor(entity.Data.FallTicks)
@@ -633,8 +646,8 @@ function entity:Gravity(dt)
         entity.Data.Gravity = 0
     elseif not entity.Data.Grounded  then
         entity.Data.FallTicks += dt*20
-        fallrate -= 0.08
-        fallrate *= 0.9800000190734863
+        fallrate -= 0.08/3
+       -- fallrate *= 0.9800000190734863
         entity.Data.LastFallTicks = math.floor(entity.Data.FallTicks)
         self:SetBodyVelocity("Gravity",Vector3.new(0,fallrate*20,0) )
         entity.Data.Gravity = fallrate
@@ -707,15 +720,21 @@ function entity:Jump()
     end)
 end
 function entity:Update(dt)
-    if self.Died then self:OnDeath() return end 
+
     self:UpdateChunk()
     if (RunService:IsServer() and not self.ClientControll) or (RunService:IsClient() and self.ClientControll == tostring(game.Players.LocalPlayer.UserId)) then else return end 
     self:UpdateBodyVelocity(dt)
     self:Gravity(dt)
+    if self:GetState('Dead') then
+        local a = self.Velocity["Gravity"]
+        self.Velocity = {}
+        self.Velocity['Gravity'] = a 
+    end
+    self:UpdatePosition(dt)
+    if self:GetState('Dead') then self:OnDeath() return end 
     self.NotSaved = self.NotSaved or {}
     self.NotSaved.DeltaTime = dt
     self:DoBehaviors(dt)
-    self:UpdatePosition(dt)
 end
 function entity:OnHarmed(dmg)
     if not isClient then warn("Client Only Method") return end 
@@ -729,9 +748,9 @@ function entity:OnHarmed(dmg)
             g.Adornee = nil
             g.Adornee = workspace.DamagedEntities
         end
-        if not self.Died and self.Health > 0 then 
+        if not self:GetState('Dead') and self.Health > 0 then 
             task.delay(.35,function()
-                if not self.Died and self.Health > 0 then 
+                if not self:GetState('Dead') and self.Health > 0 then 
                     model.Parent = workspace.Entities
                 else
                     self:OnDeath()
@@ -742,9 +761,22 @@ function entity:OnHarmed(dmg)
         end
     end
 end
+function entity:SetState(state,value)
+    self.CurrentStates = self.CurrentStates or {}
+    self.CurrentStates[state] = value
+end
+function entity:GetState(name)
+    return self.CurrentStates and self.CurrentStates[name]
+end
+function entity:GetStateData(state,target)
+    if target then
+        return self.CurrentStatesInfo[state] and self.CurrentStatesInfo[state][target]
+    end
+    return self.CurrentStatesInfo[state]
+end
 function entity:OnDeath()
     if not isClient then return end 
-    self.Died = true
+    self:SetState('Dead',true) 
     local model = self.Entity
     if not model then return end 
     if self:IsClientControl() == game.Players.LocalPlayer and not game.Players.LocalPlayer.PlayerGui:FindFirstChild("DeathScreen") then
@@ -777,7 +809,7 @@ function entity:Destroy()
         self.Entity = nil
     end
     self:RemoveFromChunk()
-    self.Died = true
+    self:SetState("Dead",true) 
     setmetatable(self,nil) self = nil
 end
 return entity

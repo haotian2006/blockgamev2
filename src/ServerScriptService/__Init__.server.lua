@@ -19,7 +19,7 @@ end)
 game.Players.PlayerRemoving:Connect(function(player)
     data.RemoveEntity(player.UserId)
 end)
-local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)})-- data.AddEntity(entity)
+local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)}) data.AddEntity(entity)
 game.ReplicatedStorage.Events.Respawn.OnServerEvent:Connect(function(player)
     data.RemoveEntity(player.UserId)
     for i,player in game.Players:GetPlayers() do
@@ -59,14 +59,14 @@ EntityBridge:Connect(function(plr,id,newdata)
 end)
 local ublock = bridge.CreateBridge("UpdateBlocks")
 bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:Vector3)
-    if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr).Died then return end 
+    if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end 
     local blocktr = qf.DecompressItemData(data.GetBlock(block.X,block.Y,block.Z),"Type")
     if blocktr == "Cubic:Bedrock" then return end 
     data.RemoveBlock(block.X,block.Y,block.Z)
     ublock:FireAll({Remove = {block}})
 end)
 bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
-    if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr).Died then return end  
+    if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end  
     local coords = coords1
     local plre = data.GetEntityFromPlayer(plr)
     local item = plre.HoldingItem or {}
@@ -81,9 +81,9 @@ bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
     end
 end)
 game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvector)
-    if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr).Died then return end 
+    if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end 
     local entity = data.GetEntity(id)
-    if not entity or entity.Died then return end 
+    if not entity or entity:GetState('Dead') then return end 
     --entity:AddVelocity("KnockBack",Vector3.new(lookvector.X,.5,lookvector.Z)*100)
     local velocity = Vector3.new(lookvector.X*2,.6,lookvector.Z*2)
     entity:Damage(1)

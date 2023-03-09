@@ -20,7 +20,7 @@ function deepCopy(original)
     return copy
 end
 function entity.Create(type,data)
-    local ehand = behhandler.GetEntity(type)
+    local ehand = rawequal()behhandler.GetEntity(type)
     if not ehand then return nil end 
     local self = entity.new({Type = type})
     if not self then return end 
@@ -98,7 +98,7 @@ function entity:AddComponent(cpname,cpdata)
 end
 function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
-    local ServerOnlyChanges = {Position = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,PlayingAnimationOnce = true,Speed = true,CurrentSlot = true,"VeiwMode"}
+    local ServerOnlyChanges = {Position = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,PlayingAnimationOnce = true,Speed = true,CurrentSlot = true,VeiwMode = true,CurrentStates = true}
     for i,v in self.ServerOnly.ClientChanges or {} do
         ServerOnlyChanges[i] = v
     end
@@ -140,7 +140,7 @@ function entity:Damage(amt)
     if not self.Health then return end 
     self.Health -= amt
     if self.Health <= 0 then
-        self.Died = true
+        self:SetState("Dead",true) 
         self.PlayingAnimations = {}
         self:SetNetworkOwner()
     end
@@ -151,6 +151,6 @@ function entity:Damage(amt)
     )
 end
 function entity:Kill()
-    self.Died = true
+    self:SetState("Dead",true) 
 end
 return {}
