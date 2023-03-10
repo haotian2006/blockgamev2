@@ -11,6 +11,9 @@ function self.AddInstanceChildren(Object,AssetObj)
             self.AddInstanceChildren(stuff,Folder[stuff.Name])
         elseif stuff:IsA("ModuleScript") then
             Folder[stuff.Name] = require(stuff)
+            if stuff.Parent.Name == 'Entities' then
+                stuff:Clone().Parent = game.ReplicatedStorage.ResourceHandler
+            end
         else
             Folder[stuff.Name] = stuff
         end

@@ -79,6 +79,7 @@ function func.F5()
     F5 = not F5
 end
 function func.HotBarUpdate(key,data)
+    if not localentity() then return end 
     local slot = localentity().CurrentSlot or 1
     if data.UserInputType == Enum.UserInputType.MouseWheel then
         local upordown = data.Position.Z > 0 and "up" or "down"

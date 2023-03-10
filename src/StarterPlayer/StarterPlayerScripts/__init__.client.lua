@@ -170,6 +170,7 @@ EntityBridge:Connect(function(entitys)
         local oldentity = datahandler.GetEntity(i)
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
             local oldhitbox = oldentity.HitBox
+            v = entityhandler.new(v)
             datahandler.GetEntity(i):UpdateEntity(v)
             if oldentity and v.HitBox ~= oldhitbox then
                 if oldentity.Tweens and oldentity.Tweens["Pos"] then

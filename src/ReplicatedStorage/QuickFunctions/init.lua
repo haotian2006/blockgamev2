@@ -22,6 +22,17 @@ function qf.RoundTo(x,dig)
      dig = dig or 1
      return math.floor((x+0.5)*10^dig)/10^dig
 end
+function qf.deepCopy(original)
+    if type(original) ~= "table" then return original end 
+    local copy = {}
+    for k, v in pairs(original) do
+      if type(v) == "table" then
+        v = qf.deepCopy(v)
+      end
+      copy[k] = v
+    end
+    return copy
+  end
 function qf.Find3rdPointOnTri(B:Vector3,C:Vector3,hyplength):Vector3  
     local inverted = false
     if B.Z == C.Z then

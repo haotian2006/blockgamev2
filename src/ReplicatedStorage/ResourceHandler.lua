@@ -37,11 +37,32 @@ function self.LoadPack(PackName:string)
         -- if Info then Info.Parent = pack end
     end
 end
+for i,v in script:GetChildren() do
+    task.spawn(function()
+        if v:IsA("ModuleScript") then
+            self.EntityBeh = self.EntityBeh or {}
+            self.EntityBeh[v.Name] = require(v)
+        end
+        task.wait(1)
+        v:Destroy()
+    end)
+end
+script.ChildAdded:Connect(function(child)
+    if child:IsA("ModuleScript") then
+        self.EntityBeh = self.EntityBeh or {}
+        self.EntityBeh[child.Name] = require(child)
+    end
+    task.wait(1)
+    child:Destroy()
+end)
 function self:Init()
     for i,v in ResourcePacks:GetChildren()do
         self.LoadPack(v.Name)
     end
    -- print(self)
+end
+function self.GetBehaviors(type)
+    return self.EntityBeh[type]
 end
 function self.IsBlock(data)
     local type =  qf.DecompressItemData(data,"Type")

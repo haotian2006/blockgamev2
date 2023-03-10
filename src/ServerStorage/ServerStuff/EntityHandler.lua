@@ -20,15 +20,15 @@ function deepCopy(original)
     return copy
 end
 function entity.Create(type,data)
-    local ehand = rawequal()behhandler.GetEntity(type)
+    local ehand = behhandler.GetEntity(type)
     if not ehand then return nil end 
     local self = entity.new({Type = type})
     if not self then return end 
-    for cname,cdata in ehand.components or {} do
-        self:AddComponent(cname,cdata)
-    end
+    -- for cname,cdata in ehand.components or {} do
+    --     self:AddComponent(cname,cdata)
+    -- end
     for cname,cdata in data or {} do
-        self:AddComponent(cname,cdata)
+        self:AddComponents(cname,cdata)
     end
     return self
 end
@@ -78,11 +78,26 @@ function entity:BehaviorCanRun(behavior,bhdata,Stop,CanNotBeSelf)
     end
     return ishighest
 end
-function entity:AddComponent(cpname,cpdata)
+function entity:AddComponent(name,index)
+    self.Componets = self.Componets or {}
+    table.insert(self.Componets,index or 1,name)
+end
+function entity:RemoveComponent(name)
+    self.Componets = self.Componets or {}
+    local index = table.find(self.Componets,name)
+    if index then
+        table.remove(self.Componets,index)
+    end
+end
+
+function entity:AddComponents(cpname,cpdata)
     if entity.SpecialNames[cpname]  then warn("The Name: '"..cpname.."' cannot be used as a component name",self) return self end 
     local split = cpname:split(".")
     if split[1] == "behavior" then  self.behaviors = self.behaviors or {} self = self.behaviors  end 
     if self[cpname] and type(cpdata) == "table" and cpdata["AddTo"] then
+        if rawget(self,cpname) == nil then
+            self[cpname] = cpdata
+        end
         for i,v in cpdata do
             if i == "AddTo" then continue end 
             self[cpname][i] = v
@@ -127,14 +142,14 @@ function entity:ConvertToClient(player)
     return new
 end
 function entity:DoBehaviors(dt)
-    for i,v in self.behaviors or {} do
-        local beh = behhandler.GetBehavior(i)
-        if beh and not beh["RunAtStart"] and not ( beh["CNRIC"] and  self.ClientControll) then
-            task.spawn(function()
-                beh.func(self,v)
-            end)
-        end
-    end
+    -- for i,v in self.behaviors or {} do
+    --     local beh = behhandler.GetBehavior(i)
+    --     if beh and not beh["RunAtStart"] and not ( beh["CNRIC"] and  self.ClientControll) then
+    --         task.spawn(function()
+    --             beh.func(self,v)
+    --         end)
+    --     end
+    -- end
 end
 function entity:Damage(amt)
     if not self.Health then return end 

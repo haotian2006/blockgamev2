@@ -11,7 +11,6 @@ local movers = require(game.ReplicatedStorage.EntityMovers)
 local gs = require(game.ReplicatedStorage.GameSettings)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
-local _,behhandler = pcall(require,game.ServerStorage.BehaviorHandler)
 local changeproperty = bridge.CreateBridge("ChangeEntityProperty")
 local playani = bridge.CreateBridge("PlayAnimation")
 local isClient = RunService:IsClient()
@@ -27,19 +26,41 @@ local function interpolate(startVector3, finishVector3, alpha)
         currentState(startVector3.Z, finishVector3.Z, alpha)
     )
 end
-entity.Common = {
-    Health = 20,
-    MaxHealth = 20,
-    CanCollideWithEntities = true,
-    HitBox = Vector2.new(1,1),
-    eyelevel = 0,
-    DoGravity = true,
-}
 entity.__index = function(self,key)
-    if not isClient and self.Type then
-        local data =behhandler.GetEntity(self.Type)
+    local comp = rawget(self,'Componets')
+    local entitybeh = resourcehandler.GetBehaviors(self.Type)
+    if type(comp) == "table" and entitybeh and entitybeh.component_groups  then
+        for i,v in comp do
+            if entitybeh.component_groups[v] and entitybeh.component_groups[v][key] then
+                return entitybeh.component_groups[v][key]
+            end
+        end
+    end
+    if entitybeh and entitybeh.components and entitybeh.components[key] then
+        return entitybeh.components[key]
     end
     return entity[key]
+end
+function entity:GetAllData()
+    local comp = self.Componets
+    local entitybeh = resourcehandler.GetBehaviors(self.Type)
+    local data = qf.deepCopy(self)
+    if entitybeh and entitybeh.components then
+        for key,value in entitybeh.components do
+            data[key] = qf.deepCopy(value)
+        end
+    end
+    if type(comp) == "table" and entitybeh and entitybeh.component_groups  then
+        for i = #comp ,1,-1 do
+            local v = comp[i]
+            if entitybeh.component_groups[v] and entitybeh.component_groups[v] then
+                for key,value in entitybeh.component_groups[v] do
+                    data[key] = qf.deepCopy(value)
+                end
+            end
+        end
+    end
+    return data 
 end
 entity.SpecialNames = {
     Data = true,
@@ -674,7 +695,9 @@ end
 ]]
 function entity:Jump()
     if  self.NotSaved.Jumping or self["CanNotJump"]  then return end
-    if not self.Data.Grounded  then return end 
+    local datacondition = DateTime.now().UnixTimestampMillis/1000-(self.NotSaved["ExtraJump"] or 0) <=0.08
+    if not self.Data.Grounded and not datacondition  then return end 
+    if datacondition then  self.NotSaved["ExtraJump"] = 0  end
     local e 
     local jumpedamount =0 
     local jumpheight = (self.JumpHeight or 0) --1.25
