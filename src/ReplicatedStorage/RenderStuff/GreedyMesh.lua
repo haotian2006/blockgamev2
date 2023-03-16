@@ -3,7 +3,7 @@ local gs = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local mulitthread = require(game.ReplicatedStorage.MultiHandler)
 local gridsize = gs.GridSize
-local delayh = require(game.ReplicatedStorage.DelayHandler)
+local delayh = require(game.ReplicatedStorage.Libarys.DelayHandler)
 local function findintable(tab,x,y,z)
    if tab[x] and tab[x][y] and tab[x][y][z]   then
        return tab[x][y][z] 

@@ -1,3 +1,4 @@
+local TweenService = game:GetService("TweenService")
 local self = {}
 local resource = require(game.ReplicatedStorage.ResourceHandler)
 local data = require(game.ReplicatedStorage.DataHandler)
@@ -7,7 +8,7 @@ local entityhandler = require(game.ReplicatedStorage.EntityHandler)
 local lp = game.Players.LocalPlayer
 local localentity = data.GetLocalPlayer
 local camera = game.Workspace.CurrentCamera
-function  self.renderarmitem()
+function  self.renderarmitem(dt)
     local entity = localentity()
     local armsframe = self.GetArmsframe()
     if not entity or not armsframe  then return end 
@@ -88,10 +89,13 @@ end
 function self.UpdateArms(dt)
     local arms = self.GetArms()
     if not arms or not localentity() or localentity():GetState('Dead') then return end 
+    --TweenService:Create(self.cam,TweenInfo.new(.07),{CFrame = camera.CFrame}):Play()
     self.cam.CFrame = camera.CFrame
-    arms.Head.CFrame = camera.CFrame
+    local newheadpos = arms.Head.CFrame:Lerp(camera.CFrame,.8)
+    local secondheadpos = camera.CFrame- ((camera.CFrame.Position - newheadpos.Position).Unit*.05)
+    arms.Head.CFrame = (newheadpos.Position - camera.CFrame.Position).Magnitude <=.05 and newheadpos or secondheadpos 
     anihandler.UpdateEntity(self.Arms)
-    self.renderarmitem()
+    self.renderarmitem(dt)
 end
 
 function self.GetArmsframe()

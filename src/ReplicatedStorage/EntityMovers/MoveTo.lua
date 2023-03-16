@@ -28,10 +28,13 @@ function MoveTo:Init()
     local event 
     local thread = coroutine.running()
     event = runservice.Heartbeat:Connect(function(deltaTime)
+       -- print(self.entity.NotSaved["Moving"],currentnumber)
+       if not self.entity.Destroyed then
         self.entity:AddVelocity("Move",velocity)
         self.Position = self.entity.Position
-       -- print(self.entity.NotSaved["Moving"],currentnumber)
-        if ((goal-self.Position).Magnitude <= 0.5 or self.entity.NotSaved["Moving"] ~= currentnumber or  os.clock()-timestart >= timetotake+7 or self["Stoped"]) then
+       end
+        if  self.entity.Destroyed or ((goal-self.Position).Magnitude <= 0.5 or self.entity.NotSaved["Moving"] ~= currentnumber or  os.clock()-timestart >= timetotake+7 or self["Stoped"] or self.entity:GetState("Dead"))  then
+            
             event:Disconnect()
             coroutine.resume(thread)
         end
@@ -40,7 +43,7 @@ function MoveTo:Init()
     if  os.clock()-timestart >= timetotake+7  then
        -- warn(self.Id,"has Yeilded")
     end
-    if  self.entity.NotSaved["Moving"] == currentnumber then
+    if  self.entity and self.entity.NotSaved["Moving"] == currentnumber then
         self.entity.Velocity.Move = nil
         self.entity.NotSaved["Moving"] = nil
     end

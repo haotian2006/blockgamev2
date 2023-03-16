@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local self = {}
 local ResourcePacks = game.ReplicatedStorage.ResourcePacks or Instance.new("Folder",game.ReplicatedStorage)
@@ -43,8 +44,10 @@ for i,v in script:GetChildren() do
             self.EntityBeh = self.EntityBeh or {}
             self.EntityBeh[v.Name] = require(v)
         end
+        if RunService:IsClient() then
         task.wait(1)
         v:Destroy()
+        end
     end)
 end
 script.ChildAdded:Connect(function(child)
@@ -52,8 +55,10 @@ script.ChildAdded:Connect(function(child)
         self.EntityBeh = self.EntityBeh or {}
         self.EntityBeh[child.Name] = require(child)
     end
+    if RunService:IsClient() then
     task.wait(1)
     child:Destroy()
+    end
 end)
 function self:Init()
     for i,v in ResourcePacks:GetChildren()do

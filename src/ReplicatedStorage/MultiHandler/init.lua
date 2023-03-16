@@ -8,7 +8,7 @@ local libarystosend = {
 	,not IsClient and game.ServerStorage.GenerationHandler or nil,
 	game.ReplicatedStorage.GameSettings,
 	game.ReplicatedStorage.RenderStuff.Culling,
-	game.ReplicatedStorage.compressor, 
+	game.ReplicatedStorage.Libarys.compressor, 
 
 }
 local libarydata = {}
@@ -24,7 +24,7 @@ local LargeWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.Funct
 
 -- })
 
-local compressor = require(game.ReplicatedStorage.compressor)
+local compressor = require(game.ReplicatedStorage.Libarys.compressor)
 function self.divide(original,times,destroy)
 	local tables = {}
 	for i =1,times do

@@ -251,7 +251,7 @@ EntityBridge:Connect(function(entitys)
             end
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
-            if not datahandler.GetEntity(i) then return end 
+            if not datahandler.GetEntity(i) or datahandler.GetEntity(i).ClientControll ~= tostring(game.Players.LocalPlayer.UserId) then return end 
             datahandler.GetEntity(i):UpdateEntityClient(v)
             local function combinevelocity(v1,v2)
                 for i,v in v2.Velocity do

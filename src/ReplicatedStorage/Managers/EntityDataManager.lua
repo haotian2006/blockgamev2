@@ -1,3 +1,0 @@
-local self = {}
-
-return self

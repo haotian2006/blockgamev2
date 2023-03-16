@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 local genuuid = function()  return https:GenerateGUID(false) end 
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
-local maths = require(game.ReplicatedStorage.QuickFunctions.MathFunctions)
+local maths = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 local movers = require(game.ReplicatedStorage.EntityMovers)
@@ -14,6 +14,7 @@ local anihandler = require(game.ReplicatedStorage.AnimationController)
 local changeproperty = bridge.CreateBridge("ChangeEntityProperty")
 local playani = bridge.CreateBridge("PlayAnimation")
 local isClient = RunService:IsClient()
+local EntityAttribute = require(game.ReplicatedStorage.Libarys.EntityAttribute)
 local ts = game:GetService("TweenService")
 local function interpolate(startVector3, finishVector3, alpha)
     local function currentState(start, finish, alpha)
@@ -27,27 +28,45 @@ local function interpolate(startVector3, finishVector3, alpha)
     )
 end
 entity.__index = function(self,key)
+    local data,path = entity.IndexFromComponets(self,key)
+    if data then
+        return data,path
+    end
+    return entity[key]
+end
+function entity:IndexFromComponets(key,ignore)
     local comp = rawget(self,'Componets')
     local entitybeh = resourcehandler.GetBehaviors(self.Type)
     if type(comp) == "table" and entitybeh and entitybeh.component_groups  then
         for i,v in comp do
+            if table.find(ignore or {},v) then continue end 
             if entitybeh.component_groups[v] and entitybeh.component_groups[v][key] then
-                return entitybeh.component_groups[v][key]
+                return entitybeh.component_groups[v][key],v
             end
         end
     end
     if entitybeh and entitybeh.components and entitybeh.components[key] then
-        return entitybeh.components[key]
+        return entitybeh.components[key],true
     end
-    return entity[key]
 end
-function entity:GetAllData()
+function entity:GetAllData(SPECIAL)
     local comp = self.Componets
     local entitybeh = resourcehandler.GetBehaviors(self.Type)
-    local data = qf.deepCopy(self)
+    local data = {}
+    if SPECIAL then
+        for key:string,value in qf.deepCopy(self) do
+            if (key:split('.'))[1] == SPECIAL or not SPECIAL then
+                data[key] = qf.deepCopy(self[key])
+            end
+        end
+    else
+        data = qf.deepCopy(self)
+    end
     if entitybeh and entitybeh.components then
-        for key,value in entitybeh.components do
-            data[key] = qf.deepCopy(value)
+        for key:string,value in entitybeh.components do
+            if (key:split('.'))[1] == SPECIAL or not SPECIAL then
+                data[key] = qf.deepCopy(self[key])
+            end
         end
     end
     if type(comp) == "table" and entitybeh and entitybeh.component_groups  then
@@ -55,7 +74,9 @@ function entity:GetAllData()
             local v = comp[i]
             if entitybeh.component_groups[v] and entitybeh.component_groups[v] then
                 for key,value in entitybeh.component_groups[v] do
-                    data[key] = qf.deepCopy(value)
+                    if (key:split('.'))[1] == SPECIAL or not SPECIAL then
+                        data[key] = qf.deepCopy(self[key])
+                    end
                 end
             end
         end
@@ -120,12 +141,23 @@ end
 -- properties to keep same when updating entitys from the server (All Entities)
 local clientdata = {'Entity','Tweens','ClientAnim','LoadedAnis','VeiwMode','DidDeath'}
 function entity:UpdateEntity(newdata)
+    local checked = {}
     for i,v in self do
+        checked[i] = true
         if table.find(clientdata,i) then continue end 
-        self[i] = newdata[i] 
+        if type(newdata[i]) == "table" and newdata[i].Type == 'EntityAttribute' then
+            self[i](newdata[i].Data)
+        else
+            self[i] = newdata[i] 
+        end
     end
     for i,v in newdata do
-        self[i] = v 
+        if checked[i] then continue end 
+        if type(v) == "table" and v.Type == 'EntityAttribute' then
+            self[i] = EntityAttribute.create(v)
+        else
+            self[i] = v 
+        end
     end
 end
 function entity:UpdateHandSlot(slot)
@@ -634,7 +666,6 @@ function entity:StopAnimation(Name)
     end
 end
 function entity:SetBodyVelocity(name,velocity)
-    if velocity.Magnitude == 0 then return end 
     self.BodyVelocity = self.BodyVelocity or {}
     self.BodyVelocity[name] = velocity
 end
@@ -660,13 +691,15 @@ function entity:Gravity(dt)
         entity.Data.LastFallTicks = math.floor(entity.Data.FallTicks)
     end
     if entity.Data.Grounded  or entity.NotSaved.NoFall or  entity.NotSaved.Jumping  then -- or not entity.CanFall
-        self:SetBodyVelocity("Gravity",Vector3.new(0,0,0) )
+        self:SetBodyVelocity("Gravity",Vector3.zero )
         entity.Data.IsFalling = false
         entity.Data.FallTicks = 0
         entity.Data.LastFallTicks = 0
         entity.Data.Gravity = 0
     elseif not entity.Data.Grounded  then
-        entity.Data.FallTicks += dt*20
+        if math.sign(fallrate) == -1 then 
+            entity.Data.FallTicks += dt*20
+        end
         fallrate -= 0.08/3
        -- fallrate *= 0.9800000190734863
         entity.Data.LastFallTicks = math.floor(entity.Data.FallTicks)
@@ -745,13 +778,13 @@ end
 function entity:Update(dt)
 
     self:UpdateChunk()
-    if (RunService:IsServer() and not self.ClientControll) or (RunService:IsClient() and self.ClientControll == tostring(game.Players.LocalPlayer.UserId)) then else return end 
     self:UpdateBodyVelocity(dt)
+    if (RunService:IsServer() and not self.ClientControll) or (RunService:IsClient() and self.ClientControll == tostring(game.Players.LocalPlayer.UserId)) then else return end 
     self:Gravity(dt)
     if self:GetState('Dead') then
-        local a = self.Velocity["Gravity"]
-        self.Velocity = {}
-        self.Velocity['Gravity'] = a 
+        -- local a = self.Velocity["Gravity"]
+        -- self.Velocity = {}
+        -- self.Velocity['Gravity'] = a 
     end
     self:UpdatePosition(dt)
     if self:GetState('Dead') then self:OnDeath() return end 
@@ -833,6 +866,7 @@ function entity:Destroy()
     end
     self:RemoveFromChunk()
     self:SetState("Dead",true) 
+    self.Destroyed = true
     setmetatable(self,nil) self = nil
 end
 return entity

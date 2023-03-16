@@ -3,8 +3,9 @@ local behhandler = require(game.ServerStorage.BehaviorHandler)
 local bridgeNet = require(game.ReplicatedStorage.BridgeNet)
 local HarmEvent = bridgeNet.CreateBridge('OnEntityHarmed')
 local settings = require(game.ReplicatedStorage.GameSettings)
+local EAC = require(game.ServerStorage.EntityAttributesCreator)
 entity.ServerOnly = {
-    "ServerOnly","Data","behaviors"
+    "ServerOnly","Data"
 }
 entity.OwnerOnly = {
     "inventory" 
@@ -24,17 +25,17 @@ function entity.Create(type,data)
     if not ehand then return nil end 
     local self = entity.new({Type = type})
     if not self then return end 
-    -- for cname,cdata in ehand.components or {} do
-    --     self:AddComponent(cname,cdata)
-    -- end
+     for cname,cdata in ehand.components or {} do
+         self:AddComponents(cname,cdata,true)
+    end
     for cname,cdata in data or {} do
         self:AddComponents(cname,cdata)
     end
     return self
 end
 function entity:GetBehaviorData(beh)
-    if self["behaviors"] then
-        return self["behaviors"][beh]
+    if self then
+        return self[beh]
     end
 end
 function entity:CheckIfBehaviorIsSame(b1,b2)
@@ -61,7 +62,7 @@ function entity:BehaviorCanRun(behavior,bhdata,Stop,CanNotBeSelf)
                 ishighest = false
                 break
             end 
-            if (self.behaviors[bh1]["priority"] or 10) > priority then
+            if (self[bh1]["priority"] or 10) > priority then
                 if Stop then
                     islower[bh1] = true
                 end
@@ -78,22 +79,56 @@ function entity:BehaviorCanRun(behavior,bhdata,Stop,CanNotBeSelf)
     end
     return ishighest
 end
-function entity:AddComponent(name,index)
-    self.Componets = self.Componets or {}
-    table.insert(self.Componets,index or 1,name)
+function entity:GetComponentGroupData(name)
+    local ehand = behhandler.GetEntity(self.Type)
+    if name == true then return ehand.components end 
+    if not ehand.component_groups or not ehand.component_groups[name] then return end 
+    return ehand.component_groups[name]
 end
-function entity:RemoveComponent(name)
+function entity:CompareComponents(c1,c2)
+    local i1,i2 = table.find(self.Componets,c1),table.find(self.Componets,c2)
+    if not i2 then return c1 elseif not i1 then return c2 end 
+    if not i1 or i1 > i2 then return c2 elseif not i2 or i1 < i2 then return c1 end 
+end
+function entity:AddComponentGroup(name,index)
+    self.Componets = self.Componets or {}
+    local cgdata = self:GetComponentGroupData(name)
+    if cgdata then
+        table.insert(self.Componets,index or 1,name)   
+        for i,v in cgdata do
+            if not EAC.Find(i) or self:CompareComponents(name,self[i]:GetComponent()) == name then continue end 
+            local value,beh = self[i]
+            self:UpdateComponets(i,v,name)
+        end
+    end
+end
+function entity:RemoveComponentGroup(name)
     self.Componets = self.Componets or {}
     local index = table.find(self.Componets,name)
     if index then
+        for i,v in self:GetComponentGroupData(name) or {} do
+            if EAC.Find(i) then
+                local data,comp = self:IndexFromComponets(i,{name})
+                if data == nil then
+                    self[i] = nil
+                    continue
+                end
+                self:UpdateComponets(i,data,comp)
+            end
+        end
         table.remove(self.Componets,index)
     end
 end
 
-function entity:AddComponents(cpname,cpdata)
+function entity:AddComponents(cpname,cpdata,IsFromcomp)
     if entity.SpecialNames[cpname]  then warn("The Name: '"..cpname.."' cannot be used as a component name",self) return self end 
-    local split = cpname:split(".")
-    if split[1] == "behavior" then  self.behaviors = self.behaviors or {} self = self.behaviors  end 
+    if IsFromcomp then
+        local EACd = EAC.Find(cpname)
+        if EACd then
+            self[cpname] = EACd.new(cpdata,IsFromcomp)
+        end
+        return 
+    end
     if self[cpname] and type(cpdata) == "table" and cpdata["AddTo"] then
         if rawget(self,cpname) == nil then
             self[cpname] = cpdata
@@ -105,11 +140,14 @@ function entity:AddComponents(cpname,cpdata)
     else
         self[cpname] = cpdata
     end
-    if split[1] == "behavior" then
-        local bhdata = behhandler.GetBehavior(cpname)
-        if bhdata and bhdata["RunAtStart"] then task.spawn(bhdata.func,self,cpdata) end 
-    end
     return self
+end
+function entity:UpdateComponets(cpname,cpdata,IsFromcomp)
+    if rawget(self,cpname) == nil then return self:AddComponents(cpname,cpdata,IsFromcomp) end 
+    local EACd = EAC.Find(cpname)
+    if EACd then
+        self[cpname] = EACd.update(self[cpname],cpdata,IsFromcomp)
+    end
 end
 function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
@@ -142,14 +180,18 @@ function entity:ConvertToClient(player)
     return new
 end
 function entity:DoBehaviors(dt)
-    -- for i,v in self.behaviors or {} do
-    --     local beh = behhandler.GetBehavior(i)
-    --     if beh and not beh["RunAtStart"] and not ( beh["CNRIC"] and  self.ClientControll) then
-    --         task.spawn(function()
-    --             beh.func(self,v)
-    --         end)
-    --     end
-    -- end
+    for i,v in self:GetAllData('behavior') or {} do
+        local beh = behhandler.GetBehavior(i)
+        if beh and not ( beh["CNRIC"] and  self.ClientControll) then
+            task.spawn(function()
+                beh.func(self,v)
+            end)
+        end
+    end
+end
+function entity:SetBehaviorValue(name,value)
+    self.NotSaved["behaviors"] = self.NotSaved["behaviors"] or {}
+    self.NotSaved["behaviors"][name] = value
 end
 function entity:Damage(amt)
     if not self.Health then return end 

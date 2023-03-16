@@ -9,7 +9,7 @@ local resource = require(game.ReplicatedStorage.ResourceHandler)
 local data = require(game.ReplicatedStorage.DataHandler)
 local Ray = require(game.ReplicatedStorage.Ray)
 local camera = game.Workspace.CurrentCamera
-local debugger = require(game.ReplicatedStorage.Debugger)
+local debugger = require(game.ReplicatedStorage.Libarys.Debugger)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local hotbarhandler = require(game.ReplicatedStorage.Managers.HotBarManager)
@@ -41,9 +41,11 @@ controls.pc = {
     MouseWheel = {"mousewheel","HotBarUpdate"},
     F5 = {"q","F5"}
 }
+controls.Data = {}
 controls.KeysPressed = {}
 controls.Render = {}
 controls.Functionsdown = {}
+local CData = controls.Data
 local GPlayer = data.GLocalPlayer
 local Camera = game.Workspace.CurrentCamera
 local func = controls.func
@@ -74,9 +76,8 @@ local function getkeyfrominput(input)
     end
 end
 local ExtraJump = 0
-local F5 = false
 function func.F5()
-    F5 = not F5
+    CData.F5  = not CData.F5 
 end
 function func.HotBarUpdate(key,data)
     if not localentity() then return end 
@@ -182,7 +183,7 @@ function func.Interact()
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.GetNormal = true
    -- rayinfo.IgnoreEntities = true
-    local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*5,rayinfo)
+    local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*4.5,rayinfo)
     if #raystuff.Objects >= 1 then
         --print("hit")
         local newpos = {}
@@ -211,7 +212,7 @@ function func.Attack()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
-    local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*5,rayinfo)
+    local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*4.5,rayinfo)
     if #raystuff.Objects >= 1 then
         local newpos = {}
         for i,v in raystuff.Objects do
@@ -231,7 +232,6 @@ function func.Attack()
     data.LocalPlayer:PlayAnimation("Attack",true)
     ArmsHandler.PlayAnimation('Attack',true)
 end
-local last 
 function Render.Update(dt)
     local self = data.LocalPlayer
     for i,v in data.LoadedEntities do
@@ -244,7 +244,7 @@ function Render.Update(dt)
     anihandler.UpdateEntity(self)
 end
 function Render.Move(dt)
-    if not localentity() then return end 
+    if not localentity() or localentity():GetState('Dead') or not localentity().Entity then return end 
     local LookVector = CameraCFrame.LookVector
     local RightVector = CameraCFrame.RightVector
     LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit -- Vector3.new(1,0,0)--
@@ -271,7 +271,7 @@ function controls.Render.OutLine()
     rayinfo.Debug = false
     --rayinfo.RaySize = Vector3.new(.01,.01,.01)
    -- rayinfo.IgnoreEntities = true
-     local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*5,rayinfo)
+     local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*4.5,rayinfo)
     if #raystuff.Objects >= 1 then
         local v = raystuff.Objects[1]
            -- print(v.Normal,lookvector)
@@ -288,6 +288,7 @@ function controls.Render.OutLine()
 end
 controls.PlayerDoll = nil 
 function controls.RenderStepped.Update(dt)
+    if not localentity() or localentity():GetState('Dead') or not localentity().Entity then table.clear(controls.Functionsdown) table.clear(controls.KeysPressed)  table.clear(controls.Data) end 
     if  localentity() and not localentity().ClientArms then localentity().ClientArms = ArmsHandler.Init() end
     ArmsHandler.UpdateArms(dt)
     if not controls.PlayerDoll then
@@ -304,7 +305,7 @@ function controls.RenderStepped.Camera()
         uis.MouseBehavior = Enum.MouseBehavior.LockCenter
     end
     uis.MouseIconEnabled = false
-    if not F5 then
+    if not CData.F5  then
         lp.PlayerGui:WaitForChild("Hud").Cursor.Visible = true
         lp.CameraMaxZoomDistance = 0.5
         lp.CameraMinZoomDistance = 0.5
@@ -376,6 +377,7 @@ function controls.RenderStepped.Camera()
 
 end
 local function doinput(input,gameProcessedEvent)
+    if not localentity() or localentity():GetState('Dead') then return end 
     local key = getkeyfrominput(input)
     if gameProcessedEvent then return end 
     controls.KeysPressed[key] = key

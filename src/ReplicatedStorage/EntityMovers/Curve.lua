@@ -19,34 +19,39 @@ function Curve:Init()
     self.entity.NotSaved["Curve"] = currentnumber 
     local xzrate = Vector3.new(self.Direaction.X,0,self.Direaction.Z).Magnitude/self.TimeToTake
     local xzdir= Vector3.new(self.Direaction.X,0,self.Direaction.Z).Unit*xzrate
-    local yrate = self.Direaction.Y/(self.TimeToTake/2)
+    local yrate = self.Direaction.Y/2
     local yammount = 0
     local xzdistance = 0 
     local event 
     local start = os.clock()
     local thread = coroutine.running()
-    
+    self.entity:SetBodyVelocity("Gravity",Vector3.new(0,yrate*20,0) )
+    self.entity.Data.Gravity = yrate
+    self.entity.Data.Grounded = false
     event = runservice.Heartbeat:Connect(function(deltaTime)
         local velocity = xzdir
         if yammount >= self.Direaction.Y then
            -- print(yrate,yammount)
           --  self.entity.NotSaved.NoFall = false
         else
-            self.entity.Data.Gravity =0 
-            velocity = Vector3.new(xzdir.X,yrate,xzdir.Z)
-            yammount += yrate*deltaTime 
+            -- self.entity:SetBodyVelocity("Gravity",Vector3.zero)
+            -- self.entity.Data.Gravity =0 
+            -- velocity = Vector3.new(xzdir.X,yrate,xzdir.Z)
+            -- yammount += yrate*deltaTime 
         end
-        xzdistance += xzrate*deltaTime
-        self.entity:AddVelocity("Curve",velocity)
-        self.Position = self.entity.Position
-        if ( self.entity.NotSaved["Curve"] ~= currentnumber or  xzdistance >= Vector3.new(self.Direaction.X,0,self.Direaction.Z).Magnitude or self["Stopped"]) then
+        if not self.entity.Destroyed then
+            xzdistance += xzrate*deltaTime
+            self.entity:AddVelocity("Curve",velocity)
+            self.Position = self.entity.Position
+        end
+        if ( self.entity.NotSaved["Curve"] ~= currentnumber or  xzdistance >= Vector3.new(self.Direaction.X,0,self.Direaction.Z).Magnitude or self["Stopped"]) or self.entity.Destroyed then
             event:Disconnect()
             coroutine.resume(thread)
         end
     end)
     coroutine.yield(thread)
    -- print(os.clock()-start,self.TimeToTake)
-    if  self.entity.NotSaved["Curve"] == currentnumber then
+    if  self.entity and self.entity.NotSaved["Curve"] == currentnumber then
         self.entity.NotSaved.NoFall = nil
         self.entity.NotSaved["Curve"] = nil
     end

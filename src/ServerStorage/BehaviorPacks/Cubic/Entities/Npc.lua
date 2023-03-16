@@ -14,6 +14,8 @@ local entity = {
         DoGravity = true,
         Health = 20,
         MaxHealth = 20,
+        inventory = 36,
+        ok = "deafult",
         ['behavior.Random_Stroll'] ={
             priority = 1,
             maxXZ = 6,
@@ -24,17 +26,19 @@ local entity = {
             priority = 20,
             MaxRange = 10,
         },
-         ['behavior.GoToPlayer'] = {MaxRange = 20,priority = 2,interval = 1,},
-         ['behavior.AttackPlayer'] = {MaxRange = 3,priority = 2,},
+        --  ['behavior.GoToPlayer'] = {MaxRange = 20,priority = 2,interval = 1,},
+        --  ['behavior.AttackPlayer'] = {MaxRange = 3,priority = 2,},
     },
     component_groups = {
         A = {
-            ok = 2,
-            Speed = 3
+            ok = 'A',
+            Speed = 3,
+            inventory = 10,
         },
         B = {
-            bok = 3,
-            Speed = 1
+            ok = 'B',
+            Speed = 1,
+            inventory = 12,
         }
     },
     events ={

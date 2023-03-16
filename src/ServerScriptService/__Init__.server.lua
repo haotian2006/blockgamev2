@@ -2,6 +2,7 @@ local bridge = require(game.ReplicatedStorage.BridgeNet)
 --bridge.Start({})
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
+resourcehandler:Init()
 require(game.ServerStorage.BehaviorHandler):Init()
 for i,v in game.ServerStorage.ServerStuff:GetChildren() do
     require(v)
@@ -71,11 +72,7 @@ bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
     local plre = data.GetEntityFromPlayer(plr)
     local item = plre.HoldingItem or {}
     --print(item)
-    if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z) and item[1] and resourcehandler.IsBlock(item[1]) then 
-        data.InsertBlock(coords.X,coords.Y,coords.Z,item[1])
-        ublock:FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = item[1]}})
-    end
-    if not data.GetBlock(coords.X,coords.Y,coords.Z) then 
+    if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z) and item[1] and resourcehandler.IsBlock(item[1]) and not data.GetBlock(coords.X,coords.Y,coords.Z) then 
         data.InsertBlock(coords.X,coords.Y,coords.Z,item[1])
         ublock:FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = item[1]}})
     end
