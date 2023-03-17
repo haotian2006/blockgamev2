@@ -105,7 +105,6 @@ function entity.new(data)
     self.Data = data.Data or {}
     self.NotSaved = {}
     self.PlayingAnimations = data.PlayingAnimations or {}
-    self.PlayingAnimationOnce = data.PlayingAnimationOnce or {}
     self.NotSaved["behaviors"] =  {}
     self.NotSaved.NoClear = {}
     return self
@@ -164,7 +163,7 @@ function entity:UpdateHandSlot(slot)
     self.CurrentSlot = slot 
 end
 -- properties to keep same when updating entitys from the server (local player)
-entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","PlayingAnimationOnce","Speed","CurrentSlot",'VeiwMode','CurrentStates'}
+entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'VeiwMode','CurrentStates'}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 

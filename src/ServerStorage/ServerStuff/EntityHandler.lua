@@ -151,7 +151,7 @@ function entity:UpdateComponets(cpname,cpdata,IsFromcomp)
 end
 function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
-    local ServerOnlyChanges = {Position = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,PlayingAnimationOnce = true,Speed = true,CurrentSlot = true,VeiwMode = true,CurrentStates = true}
+    local ServerOnlyChanges = {Position = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,VeiwMode = true,CurrentStates = true}
     for i,v in self.ServerOnly.ClientChanges or {} do
         ServerOnlyChanges[i] = v
     end
