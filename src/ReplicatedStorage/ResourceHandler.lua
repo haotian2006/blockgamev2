@@ -10,6 +10,10 @@ function self.AddInstanceChildren(Object,AssetObj)
         if stuff:IsA("Folder") then
             Folder[stuff.Name] = Folder[stuff.Name] or {}
             self.AddInstanceChildren(stuff,Folder[stuff.Name])
+        elseif stuff:IsA("ModuleScript")  and stuff.Parent:IsA('ModuleScript') then
+            for i,data in require(stuff)do
+                Folder[stuff.Parent.Name][i] = data
+            end
         elseif stuff:IsA("ModuleScript") then
             Folder[stuff.Name] = require(stuff)
         else
@@ -29,6 +33,7 @@ function self.LoadPack(PackName:string)
                 for i,data in require(v)do
                     self[v.Name][i] = data
                 end
+                self.AddInstanceChildren(v, self[v.Name])
             end
         end
         -- local Info
@@ -38,36 +43,11 @@ function self.LoadPack(PackName:string)
         -- if Info then Info.Parent = pack end
     end
 end
-for i,v in script:GetChildren() do
-    task.spawn(function()
-        if v:IsA("ModuleScript") then
-            self.EntityBeh = self.EntityBeh or {}
-            self.EntityBeh[v.Name] = require(v)
-        end
-        if RunService:IsClient() then
-        task.wait(1)
-        v:Destroy()
-        end
-    end)
-end
-script.ChildAdded:Connect(function(child)
-    if child:IsA("ModuleScript") then
-        self.EntityBeh = self.EntityBeh or {}
-        self.EntityBeh[child.Name] = require(child)
-    end
-    if RunService:IsClient() then
-    task.wait(1)
-    child:Destroy()
-    end
-end)
 function self:Init()
     for i,v in ResourcePacks:GetChildren()do
         self.LoadPack(v.Name)
     end
    -- print(self)
-end
-function self.GetBehaviors(type)
-    return self.EntityBeh[type]
 end
 function self.IsBlock(data)
     local type =  qf.DecompressItemData(data,"Type")

@@ -1,5 +1,8 @@
 
 local qf = require(game.ReplicatedStorage.QuickFunctions)
+local resource = require(game.ReplicatedStorage.ResourceHandler)
+resource:Init()
+require(game.ReplicatedStorage.BehaviorHandler):Init()
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local lp = game.Players.LocalPlayer
 local EntityBridge = bridge.CreateBridge("EntityBridge")
@@ -13,8 +16,6 @@ local queued = {}
 local anihandler = require(game.ReplicatedStorage.AnimationController)
 local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
-local resource = require(game.ReplicatedStorage.ResourceHandler)
-resource:Init()
 local control = require(script.Parent.Controller)
 local inventory = require(game.ReplicatedStorage.Managers.InventoryManager)
 local hotbar = require(game.ReplicatedStorage.Managers.HotBarManager)
@@ -35,6 +36,16 @@ local function createEye(offset,hitbox)
     weld.Name = "EyeWeld"
     weld.C0 = offset and CFrame.new(Vector3.new(0,offset/2,0)*settings.GridSize) or CFrame.new()
     return eye
+end
+do
+    local player = workspace:FindFirstChild('PlayerFolder') or Instance.new("Folder",workspace)
+    player.Name = 'PlayerFolder'
+    for i,v in game.Players:GetPlayers() do
+        task.spawn(function()
+            local char = v.Character or v.CharacterAdded:Wait()
+            char.Parent = player
+        end)
+    end
 end
 local function changetext(nameLabel,STUDS_OFFSET_Y)
     nameLabel.TextScaled = true

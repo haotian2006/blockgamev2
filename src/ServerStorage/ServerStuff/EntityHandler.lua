@@ -1,5 +1,5 @@
 local entity = require(game.ReplicatedStorage.EntityHandler)
-local behhandler = require(game.ServerStorage.BehaviorHandler)
+local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local bridgeNet = require(game.ReplicatedStorage.BridgeNet)
 local HarmEvent = bridgeNet.CreateBridge('OnEntityHarmed')
 local settings = require(game.ReplicatedStorage.GameSettings)

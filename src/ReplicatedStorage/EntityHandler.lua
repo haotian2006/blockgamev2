@@ -7,6 +7,7 @@ local qf = require(game.ReplicatedStorage.QuickFunctions)
 local maths = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
+local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local movers = require(game.ReplicatedStorage.EntityMovers)
 local gs = require(game.ReplicatedStorage.GameSettings)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
@@ -36,7 +37,7 @@ entity.__index = function(self,key)
 end
 function entity:IndexFromComponets(key,ignore)
     local comp = rawget(self,'Componets')
-    local entitybeh = resourcehandler.GetBehaviors(self.Type)
+    local entitybeh = behhandler.GetEntity(self.Type)
     if type(comp) == "table" and entitybeh and entitybeh.component_groups  then
         for i,v in comp do
             if table.find(ignore or {},v) then continue end 
@@ -51,7 +52,7 @@ function entity:IndexFromComponets(key,ignore)
 end
 function entity:GetAllData(SPECIAL)
     local comp = self.Componets
-    local entitybeh = resourcehandler.GetBehaviors(self.Type)
+    local entitybeh = behhandler.GetEntity(self.Type)
     local data = {}
     if SPECIAL then
         for key:string,value in qf.deepCopy(self) do
@@ -74,7 +75,7 @@ function entity:GetAllData(SPECIAL)
             local v = comp[i]
             if entitybeh.component_groups[v] and entitybeh.component_groups[v] then
                 for key,value in entitybeh.component_groups[v] do
-                    if (key:split('.'))[1] == SPECIAL or not SPECIAL then
+                    if not SPECIAL or (key:split('.'))[1] == SPECIAL then
                         data[key] = qf.deepCopy(self[key])
                     end
                 end
@@ -689,7 +690,7 @@ function entity:Gravity(dt)
         fallrate *= 0.9800000190734863
         entity.Data.LastFallTicks = math.floor(entity.Data.FallTicks)
     end
-    if entity.Data.Grounded  or entity.NotSaved.NoFall or  entity.NotSaved.Jumping  then -- or not entity.CanFall
+    if entity.Data.Grounded  or entity.NotSaved.NoFall or  entity.NotSaved.Jumping or (CollisionHandler.IsGrounded(self,true) and fallrate >0)  then -- or not entity.CanFall
         self:SetBodyVelocity("Gravity",Vector3.zero )
         entity.Data.IsFalling = false
         entity.Data.FallTicks = 0
