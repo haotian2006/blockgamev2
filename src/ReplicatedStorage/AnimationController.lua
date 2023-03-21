@@ -56,6 +56,7 @@ end
 function module.UpdateEntity(entity)
     module.StopAllAnimations(entity)
     local AniPaths = resourcehandler.GetEntityFromData(entity)
+    if not entity.Entity:FindFirstChild("AnimationController",true) then return end 
     local animator = entity.Entity:FindFirstChild("AnimationController",true):FindFirstChildOfClass("Animator")
     if not AniPaths or not AniPaths.Animations or not animator then return end 
     AniPaths = AniPaths.Animations

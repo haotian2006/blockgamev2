@@ -69,6 +69,7 @@ bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:Vector3)
 end)
 bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end  
+    
     local coords = coords1
     local plre = data.GetEntityFromPlayer(plr)
     local item = plre.HoldingItem or {}
@@ -79,18 +80,20 @@ bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
     end
 end)
 game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvector)
+    local plre = data.GetEntityFromPlayer(plr)
+    plre:DropItem('Cubic:Dirt',1)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end 
     local entity = data.GetEntity(id)
     if not entity or entity:GetState('Dead') then return end 
     --entity:AddVelocity("KnockBack",Vector3.new(lookvector.X,.5,lookvector.Z)*100)
-    local velocity = Vector3.new(lookvector.X*2,.6,lookvector.Z*2)
+    local velocity = Vector3.new(lookvector.X*5,.6,lookvector.Z*5)
     entity:Damage(1)
     if entity.ClientControll then
         local player = game.Players:GetPlayerByUserId(entity.ClientControll) 
-        if player then
+        if player and not entity.God then
             domoverbridge:FireTo(player,id,"Curve",velocity,.2)
         end
-    else
+    elseif not entity.God then
         --entity:AddBodyVelocity("Kb",Vector3.new(lookvector.X*2,1,lookvector.Z*2))
         entity:KnockBack(velocity,.2)
         --require(game.ReplicatedStorage.EntityMovers.Curve).new(entity,velocity,.2)

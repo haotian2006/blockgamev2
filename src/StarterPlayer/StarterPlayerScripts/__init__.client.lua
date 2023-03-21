@@ -275,7 +275,7 @@ EntityBridge:Connect(function(entitys)
         if e then
             if  e.PrimaryPart:FindFirstChild('Nametag') then
                 e.PrimaryPart.Nametag.Enabled = not oldentity.Crouching 
-                if oldentity:GetState('Dead') then 
+                if oldentity:GetState('Dead') or oldentity.DisableNameTag then 
                     e.PrimaryPart.Nametag.Enabled = false
                 end 
                 changetext(e.PrimaryPart.Nametag.Text,e.PrimaryPart.Size.Y/2+1.5)

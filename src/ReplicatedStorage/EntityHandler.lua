@@ -98,7 +98,7 @@ entity.NotClearedNames = {
 function entity.new(data)
     local self = data or {}
     setmetatable(self,entity)
-    self.Id = tostring(data.Id) or genuuid()
+    self.Id = data.Id and tostring(data.Id) or genuuid()
     self.Position = data.Position or Vector3.new()
     self.Type = data.Type or warn("Failed To Create Entity | No Entity Type Giving for:",self.Id) 
     if not data.Type then self:Destroy() return end 
@@ -211,12 +211,14 @@ function entity:UpdateModelPosition()-- Updates the Eye positions etc
     local ParentModel = self.Entity
     if not ParentModel then return end 
     local model = ParentModel:FindFirstChild("EntityModel")
+    if  model then 
     ParentModel.PrimaryPart.Size = Vector3.new(self.HitBox.X,self.HitBox.Y,self.HitBox.X)*3
     local MiddleOffset = ParentModel.PrimaryPart.Size.Y-(ParentModel.PrimaryPart.Size.Y/2+model.PrimaryPart.Size.Y/2)
     local pos =ParentModel.PrimaryPart.Position 
     model.PrimaryPart.CFrame = CFrame.new(pos.X,pos.Y-MiddleOffset,pos.Z)
     local weld = ParentModel.PrimaryPart:FindFirstChild("EntityModelWeld")
     weld.C0 = CFrame.new(0,-MiddleOffset,0)
+    end
     local eyeweld = ParentModel:FindFirstChild("Eye"):FindFirstChild("EyeWeld")
     local offset = self.EyeLevel
     if not eyeweld then return end 
@@ -484,6 +486,7 @@ function entity:UpdateRotationClient(debugmode)
     if self:GetState('Dead') then return end 
     if not isClient then warn("Client Only Function") return end 
     local Model = self.Entity
+    if not resourcehandler.GetEntity(self.Type) then return end 
     local neck = resourcehandler.GetEntity(self.Type).Necks or {}
     local orimodel = resourcehandler.GetEntityModelFromData(self)
     local lastr = self.NotSaved.RotationFollow 
@@ -603,7 +606,7 @@ function entity:LookAt(Position,timetotake)
 end
 function entity:KnockBack(force,time)
     self.NotSaved.Tick = 0
-    movers.Curve.new(self,force,time)
+    movers.Curve.new(self,force,time,nil,nil,false)
 end
 function entity:MoveTo(x,y,z)
     local new = require(game.ReplicatedStorage.EntityMovers).MoveTo.new(self,x,y,z,true)

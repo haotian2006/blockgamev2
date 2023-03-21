@@ -10,10 +10,6 @@ function self.AddInstanceChildren(Object,AssetObj)
         if stuff:IsA("Folder") then
             Folder[stuff.Name] = Folder[stuff.Name] or {}
             self.AddInstanceChildren(stuff,Folder[stuff.Name])
-        elseif stuff:IsA("ModuleScript")  and stuff.Parent:IsA('ModuleScript') then
-            for i,data in require(stuff)do
-                Folder[stuff.Parent.Name][i] = data
-            end
         elseif stuff:IsA("ModuleScript") then
             Folder[stuff.Name] = require(stuff)
         else
@@ -82,7 +78,7 @@ function self.GetEntityModelFromData(Data)
     if model and self.Models.Entities[model] then
         return self.Models.Entities[model].Model
     else
-        local entity = self.GetEntity(Type).Model
+        local entity = self.GetEntity(Type) and self.GetEntity(Type).Model
         return entity
     end
 end

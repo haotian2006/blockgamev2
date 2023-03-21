@@ -7,7 +7,7 @@ local dataHandler = require(game.ReplicatedStorage.DataHandler)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local inventorybrige = bridge.CreateBridge('Inventory')
 manager.Uis = {}
-function manager.AddItem(inventory,Item,count)
+function manager.AddItem(entity,Item,count)
     
 end
 if runservice:IsClient() then   

@@ -16,12 +16,12 @@ local entity = {
         MaxHealth = 20,
         inventory = 36,
         ok = "deafult",
-        ['behavior.Random_Stroll'] ={
-            priority = 1,
-            maxXZ = 6,
-            maxy = 0,
-            interval = 120,  
-        },
+        -- ['behavior.Random_Stroll'] ={
+        --     priority = 1,
+        --     maxXZ = 6,
+        --     maxy = 0,
+        --     interval = 120,  
+        -- },
         ['behavior.LookAtPlayer'] ={
             priority = 20,
             MaxRange = 10,

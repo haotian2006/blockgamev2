@@ -149,9 +149,15 @@ function entity:UpdateComponets(cpname,cpdata,IsFromcomp)
         self[cpname] = EACd.update(self[cpname],cpdata,IsFromcomp)
     end
 end
+function entity:DropItem(name,count)
+    local dir = self.headdir.Unit
+    local item = entity.Create('Cubic:Item',{Position = self:GetEyePosition(),Item = name,Count = count })
+    self:GetData().AddEntity(item)
+    item:KnockBack(Vector3.new(dir.X*3,dir.Y/1.2,dir.Z*3)+Vector3.new(0,.2,0),.2)
+end
 function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
-    local ServerOnlyChanges = {Position = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,VeiwMode = true,CurrentStates = true}
+    local ServerOnlyChanges = {Position = true,headdir = true,bodydir = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,VeiwMode = true,CurrentStates = true}
     for i,v in self.ServerOnly.ClientChanges or {} do
         ServerOnlyChanges[i] = v
     end
@@ -194,7 +200,7 @@ function entity:SetBehaviorValue(name,value)
     self.NotSaved["behaviors"][name] = value
 end
 function entity:Damage(amt)
-    if not self.Health then return end 
+    if not self.Health or entity.God then return end 
     self.Health -= amt
     if self.Health <= 0 then
         self:SetState("Dead",true) 
