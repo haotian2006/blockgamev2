@@ -14,6 +14,21 @@ return{
     {
         type = 'Block',
         Block = 'Cubic:Dirt'
-    })
+    }),
+    ['Cubic:Grass'] = cit(
+    {
+        type = 'Block',
+        Block = 'Cubic:Grass'
+    }),
+    ['Cubic:Stone'] = cit(
+    {
+        type = 'Block',
+        Block = 'Cubic:Stone'
+    }),
+    ['Cubic:Bedrock'] = cit(
+    {
+        type = 'Block',
+        Block = 'Cubic:Bedrock'
+    }),
     
 }

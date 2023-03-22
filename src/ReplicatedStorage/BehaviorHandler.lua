@@ -61,7 +61,9 @@ function self.GetItemData(name)
     if not self.Items then return end
     return self.Items[name]
 end
-local ItemType = {}
+local ItemType = {
+    maxCount = 64
+}
 function ItemType.__index(s,x)
     local y = self.GetItemType(rawget(s,'type'))
     if y and y[x] then

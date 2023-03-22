@@ -1,12 +1,15 @@
 local EntityAttribute = {}
 EntityAttribute.__index = function(self,key)
-    return self.Data[key] or EntityAttribute[key]
+    return self.Data[key] or EntityAttribute[key] or self.CustomMethods[key]
+end
+EntityAttribute.__newindex = function(self,key,value)
+    self.Data[key] = value
 end
 EntityAttribute.__call = function(self,data)
     self.Data = data
 end
-function EntityAttribute.new(name,data)
-    return setmetatable({Data = data or {},Name = name,Type = "EntityAttribute"},EntityAttribute)
+function EntityAttribute.new(name,data,M)
+    return setmetatable({Data = type(data) == 'table' and data or {},Name = name,Type = "EntityAttribute",CustomMethods = type(M) == "table" and M or {}},EntityAttribute)
 end
 function EntityAttribute.create(data)
     return setmetatable(data,EntityAttribute)

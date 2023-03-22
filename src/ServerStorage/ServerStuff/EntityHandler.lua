@@ -146,7 +146,11 @@ function entity:UpdateComponets(cpname,cpdata,IsFromcomp)
     if rawget(self,cpname) == nil then return self:AddComponents(cpname,cpdata,IsFromcomp) end 
     local EACd = EAC.Find(cpname)
     if EACd then
-        self[cpname] = EACd.update(self[cpname],cpdata,IsFromcomp)
+        if EACd.update then
+            self[cpname] = EACd.update(self[cpname],cpdata,IsFromcomp)
+        else
+            self[cpname] = EACd.new(self[cpname],cpdata,IsFromcomp)
+        end
     end
 end
 function entity:DropItem(name,count)
