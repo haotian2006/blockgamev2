@@ -22,16 +22,17 @@ self.Attributes.inventory = {
     end,
     Methods = { 
         add = function(self,Item,count)
+            local count = count
             local iteminfo = behhandler.GetItem(Item)
             if not iteminfo then return end 
             local max = iteminfo.maxCount
             local spliited = qf.DecompressItemData(Item,'Type') 
-            for i,v in self do
+            for i,v in ipairs(self.Data) do
                 if count <= 0 then break end 
                 if type(v) == "table" then
                     local spliited = qf.DecompressItemData(v[1],'Type') 
                     if spliited == Item then
-                        if  v[2] >= max then
+                        if  v[2] < max then
                             local add = (max-v[2])
                             if count < add then
                                 add = count
@@ -41,9 +42,11 @@ self.Attributes.inventory = {
                         end
                     end
                 else
-                    local add = (max-v[2])
-                    if count < add then
+                    local add = 0
+                    if count <= max then
                         add = count
+                    else
+                        add = max 
                     end
                     self[i] = {qf.CompressItemData({Type = Item}),add}
                     count -= add

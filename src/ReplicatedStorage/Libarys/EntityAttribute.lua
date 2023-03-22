@@ -9,7 +9,7 @@ EntityAttribute.__call = function(self,data)
     self.Data = data
 end
 function EntityAttribute.new(name,data,M)
-    return setmetatable({Data = type(data) == 'table' and data or {},Name = name,Type = "EntityAttribute",CustomMethods = type(M) == "table" and M or {}},EntityAttribute)
+    return setmetatable({Data = type(data) == 'table' and data or {},Component = true,Name = name,Type = "EntityAttribute",CustomMethods = type(M) == "table" and M or {}},EntityAttribute)
 end
 function EntityAttribute.create(data)
     return setmetatable(data,EntityAttribute)
