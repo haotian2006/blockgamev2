@@ -77,6 +77,9 @@ self.Attributes.inventory = {
         end,
         getEmpty = function(self)
             return table.find(self.Data,'')
+        end,
+        canFit = function(self,Item,Id)
+            return self.find(Item,Id,true) or self.getEmpty(self) 
         end
     },
     update = function(olddata,newinfo,comp)
