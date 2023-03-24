@@ -12,8 +12,9 @@ local camera = game.Workspace.CurrentCamera
 local debugger = require(game.ReplicatedStorage.Libarys.Debugger)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
-local hotbarhandler = require(game.ReplicatedStorage.Managers.HotBarManager)
-local playerdollmanager = require(game.ReplicatedStorage.Managers.PlayerDollHandler)
+local managers = require(game.ReplicatedStorage.Managers)
+local hotbarhandler = managers.HotBarManager
+local playerdollmanager = managers.PlayerDollHandler
 hotbarhandler:Init()
 local lp = game.Players.LocalPlayer
 local localentity = data.GetLocalPlayer
@@ -105,6 +106,7 @@ function func.HotBarUpdate(key,data)
         end
     end
     localentity().CurrentSlot = tonumber(slot)
+    print("a")
     hotbarhandler.UpdateSelect(tonumber(slot))
 end
 function func.HitBoxs()

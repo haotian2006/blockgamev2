@@ -34,7 +34,7 @@ function manager.UpdateOne(index)
     if not PEntity() then return nil end 
     local inventory = PEntity().inventory or {}
     local frame = manager.Uis[index]
-    local item = inventory[index]
+    local item = inventory.Data[index]
     local amt = 0
     if type(item) =="table" then
         amt = item[2]

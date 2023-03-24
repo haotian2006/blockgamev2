@@ -3,6 +3,7 @@ local qf = require(game.ReplicatedStorage.QuickFunctions)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
 resource:Init()
 require(game.ReplicatedStorage.BehaviorHandler):Init()
+local managers = require(game.ReplicatedStorage.Managers):Init()
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local lp = game.Players.LocalPlayer
 local EntityBridge = bridge.CreateBridge("EntityBridge")
@@ -17,8 +18,8 @@ local anihandler = require(game.ReplicatedStorage.AnimationController)
 local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local control = require(script.Parent.Controller)
-local inventory = require(game.ReplicatedStorage.Managers.InventoryManager)
-local hotbar = require(game.ReplicatedStorage.Managers.HotBarManager)
+local inventory = managers.InventoryManager
+local hotbar = managers.HotBarManager
 local entityhandler = require(game.ReplicatedStorage.EntityHandler)
 local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")

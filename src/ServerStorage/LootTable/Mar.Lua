@@ -1,3 +1,0 @@
-local Loot ={
-}
-return Loot

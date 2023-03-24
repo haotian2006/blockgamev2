@@ -26,33 +26,38 @@ self.Attributes.inventory = {
             local iteminfo = behhandler.GetItem(Item)
             if not iteminfo then return end 
             local max = iteminfo.maxCount
-            local spliited = qf.DecompressItemData(Item,'Type') 
-            for i,v in ipairs(self.Data) do
-                if count <= 0 then break end 
-                if type(v) == "table" then
-                    local spliited = qf.DecompressItemData(v[1],'Type') 
-                    if spliited == Item then
+            --local spliited = qf.DecompressItemData(Item,'Type') 
+            while count > 0 do
+                local i = self:find(Item,nil,true) or self:getEmpty()
+                if i then
+                    local v = self[i]
+                    local add = 0
+                    if type(v) == "table"  then
                         if  v[2] < max then
-                            local add = (max-v[2])
+                            add = (max-v[2])
                             if count < add then
                                 add = count
                             end
                             self[i][2] += add
-                            count -= add
                         end
-                    end
-                else
-                    local add = 0
-                    if count <= max then
-                        add = count
                     else
-                        add = max 
+                        if count <= max then
+                            add = count
+                        else
+                            add = max 
+                        end
+                        self[i] = {qf.CompressItemData({Type = Item}),add}
                     end
-                    self[i] = {qf.CompressItemData({Type = Item}),add}
                     count -= add
+                else
+                    break
                 end
             end
             return count
+        end,
+        set = function(self,index,Itemdata,count)
+            index = index or 1
+            self[index] = {Itemdata,count}
         end,
         find = function(self,Item,Id,CannotBeFull)
             for i,v in self do
@@ -68,7 +73,7 @@ self.Attributes.inventory = {
             end
         end,
         __iter = function(self)
-            return _ipairs,self:GetData(),0
+            return _ipairs,self.Data,0
         end,
         getEmpty = function(self)
             return table.find(self.Data,'')

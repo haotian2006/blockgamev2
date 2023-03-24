@@ -3,7 +3,7 @@ local bridge = require(game.ReplicatedStorage.BridgeNet)
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 resourcehandler:Init()
 require(game.ReplicatedStorage.BehaviorHandler):Init()
-require(game.ReplicatedStorage.Managers.InventoryManager)
+require(game.ReplicatedStorage.Managers):Init()
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 for i,v in game.ServerStorage.ServerStuff:GetChildren() do
     require(v)
