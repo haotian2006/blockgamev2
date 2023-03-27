@@ -305,29 +305,6 @@ function controls.RenderStepped.Update(dt)
     end
 end
 function controls.RenderStepped.Camera()
-    if not localentity() or localentity():GetState('Dead') or localentity().Ingui  then 
-        uis.MouseIconEnabled = true 
-        --lp.CameraMaxZoomDistance = 2
-        --lp.CameraMinZoomDistance = 2
-        uis.MouseBehavior  = Enum.MouseBehavior.Default
-        return
-    else     
-        uis.MouseIconEnabled = false
-    end 
-    lp.PlayerGui:WaitForChild("Hud")
-    if not FD["Freecam"] then
-        CameraCFrame = camera.CFrame
-        uis.MouseBehavior = Enum.MouseBehavior.LockCenter
-    end
-    if not CData.F5  then
-        lp.PlayerGui:WaitForChild("Hud").Cursor.Visible = true
-        lp.CameraMaxZoomDistance = 0.5
-        lp.CameraMinZoomDistance = 0.5
-    else
-        lp.PlayerGui:WaitForChild("Hud").Cursor.Visible = false
-        lp.CameraMaxZoomDistance = 6
-        lp.CameraMinZoomDistance = 6
-    end
     if not checkempty(data.LocalPlayer) then
         local Current_Entity = data.LocalPlayer.Entity
         second = second or Current_Entity:FindFirstChild("SecondLayer",true)
@@ -387,6 +364,29 @@ function controls.RenderStepped.Camera()
         --         end
         --    end
         end
+    end
+    if not localentity() or localentity():GetState('Dead') or localentity().Ingui  then 
+        uis.MouseIconEnabled = true 
+        --lp.CameraMaxZoomDistance = 2
+        --lp.CameraMinZoomDistance = 2
+        uis.MouseBehavior  = Enum.MouseBehavior.Default
+        return
+    else     
+        uis.MouseIconEnabled = false
+    end 
+    lp.PlayerGui:WaitForChild("Hud")
+    if not FD["Freecam"] then
+        CameraCFrame = camera.CFrame
+        uis.MouseBehavior = Enum.MouseBehavior.LockCenter
+    end
+    if not CData.F5  then
+        lp.PlayerGui:WaitForChild("Hud").Cursor.Visible = true
+        lp.CameraMaxZoomDistance = 0.5
+        lp.CameraMinZoomDistance = 0.5
+    else
+        lp.PlayerGui:WaitForChild("Hud").Cursor.Visible = false
+        lp.CameraMaxZoomDistance = 6
+        lp.CameraMinZoomDistance = 6
     end
 
 end
