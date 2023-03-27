@@ -13,7 +13,7 @@ function module.new(frame,modeltouse,FieldOfView,distance,ori)
     return self 
 end
 function module:Update()
-    local model = self.ToUse or game.Workspace:FindFirstChild(game.Players.LocalPlayer.UserId,true) 
+    local model = self.ToUse or game.Workspace:FindFirstChild(tostring(game.Players.LocalPlayer.UserId),true) 
     if not model then
         return 
     end
@@ -29,6 +29,9 @@ function module:Update()
 	if weld then
 		self.Camera.CFrame = CFrame.new(Vector3.new(0,0,0)+weld.C0.LookVector*self.distance,Vector3.new(0,0,0))
 	end
+end
+function module:Destroy()
+    setmetatable(self,nil)
 end
 function module:MakeHeadLookAt(dir)
     

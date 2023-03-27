@@ -42,9 +42,9 @@ local entity = {
         }
     },
     events ={
-        OnDeath = {
-            
-        }
+        OnDeath = function(self)
+            local entity = require(game.ReplicatedStorage.EntityHandler).Create("Npc",{Name = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)}) self:GetData().AddEntity(entity)
+        end
     },
     functions = {
 

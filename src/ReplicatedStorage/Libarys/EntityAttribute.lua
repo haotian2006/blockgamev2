@@ -1,4 +1,5 @@
 local EntityAttribute = {}
+local qf = require(game.ReplicatedStorage.QuickFunctions)
 EntityAttribute.__index = function(self,key)
     return self.Data[key] or getmetatable(self)[key]
 end
@@ -8,6 +9,7 @@ end
 EntityAttribute.__call = function(self,data)
     self.Data = data
 end
+EntityAttribute['EntityAttributes'] = true
 function EntityAttribute.new(name,data,M)
     local k = {}
     if M then
@@ -29,8 +31,18 @@ end
 function EntityAttribute:SetComponent(c)
     self.Component = c
 end
+function EntityAttribute:Clone()
+    return setmetatable(qf.deepCopy(self),EntityAttribute)
+end
 function EntityAttribute:GetName()
     return self.Name
+end
+function EntityAttribute:GetReallen()
+    local i = 0
+    for i,v in self.Data do
+        i+=1
+    end
+    return i 
 end
 function EntityAttribute:len()
     return #self.Data

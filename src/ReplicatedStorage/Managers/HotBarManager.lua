@@ -9,7 +9,7 @@ if runservice:IsServer() then return {} end
 local PEntity = dataHandler.GetLocalPlayer
 function manager:Init()
     local hotbargui = player.PlayerGui:WaitForChild("Hud").HotBar
-    local hotbartemp = resourcehandler.Ui.HotBarTemp
+    local hotbartemp = resourcehandler.GetUI('HotbarTemp')
     for i,v in manager.Uis do
         v:Destroy()
     end
@@ -42,7 +42,7 @@ function manager.UpdateOne(index)
     else
         frame.Text = ""
     end
-    if amt == 0 then
+    if amt == 0 or amt == 1 then
         frame.Amount.Text = ""
     else
         frame.Amount.Text = amt
@@ -52,7 +52,7 @@ function manager.GetUI()
     return player.PlayerGui:WaitForChild("Hud").HotBar
 end
 function manager.UpdateAll()
-    if not PEntity()then return end 
+    if not PEntity() or not PEntity().inventory then return end 
     for i = 1,9 do
         manager.UpdateOne(i)
     end

@@ -58,6 +58,11 @@ end
 function self.GetEntity(Name)
     return self["Entities"] and self["Entities"][Name] or nil 
 end
+function self.GetUiContainer(name)
+    if self.Containers then
+        return self.Containers[name]
+    end
+end
 function self.GetUI(name)
     return self.Ui and self.Ui[name]
 end

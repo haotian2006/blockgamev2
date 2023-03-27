@@ -161,7 +161,7 @@ function entity:DropItem(name,count)
 end
 function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
-    local ServerOnlyChanges = {Position = true,headdir = true,bodydir = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,VeiwMode = true,CurrentStates = true}
+    local ServerOnlyChanges = {Position = true,headdir = true,bodydir = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,VeiwMode = true,CurrentStates = true,Ingui = true}
     for i,v in self.ServerOnly.ClientChanges or {} do
         ServerOnlyChanges[i] = v
     end
@@ -203,6 +203,12 @@ function entity:SetBehaviorValue(name,value)
     self.NotSaved["behaviors"] = self.NotSaved["behaviors"] or {}
     self.NotSaved["behaviors"][name] = value
 end
+function entity:GetEvent(name)
+    local events = behhandler.GetEntity(self.Type)
+    if events and events.events then
+        return events.events[name]
+    end
+end
 function entity:Damage(amt)
     if not self.Health or entity.God then return end 
     self.Health -= amt
@@ -210,6 +216,9 @@ function entity:Damage(amt)
         self:SetState("Dead",true) 
         self.PlayingAnimations = {}
         self:SetNetworkOwner()
+        if type(self:GetEvent('OnDeath') or true ) =='function' then
+            self:GetEvent('OnDeath')(self)
+        end
     end
     HarmEvent:FireAllInRange(settings.gridToreal(self.Position),
     settings.gridToreal(settings.GetDistFormChunks(settings.MaxEntityRunDistance)),

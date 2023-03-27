@@ -18,6 +18,17 @@ local chunkd = settings.ChunkSize.X
 -- CHGrid(LCH) : Basicly the the Real coord inside the chunk EX: 17 --> 1
 
 --other
+function qf.FindFirstChild(self,...)
+    local k = self
+    for i,v in {...} do
+        local a = k:FindFirstChild(v)
+        if a then 
+            k = a
+        else return nil
+        end
+    end
+    return k 
+end
 function qf.RoundTo(x,dig)
      dig = dig or 1
      return math.floor((x+0.5)*10^dig)/10^dig

@@ -18,7 +18,6 @@ local anihandler = require(game.ReplicatedStorage.AnimationController)
 local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local control = require(script.Parent.Controller)
-local inventory = managers.InventoryManager
 local hotbar = managers.HotBarManager
 local entityhandler = require(game.ReplicatedStorage.EntityHandler)
 local Players = game:GetService("Players")
@@ -264,6 +263,7 @@ EntityBridge:Connect(function(entitys)
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
             if not datahandler.GetEntity(i) or datahandler.GetEntity(i).ClientControll ~= tostring(game.Players.LocalPlayer.UserId) then return end 
+            hotbar.UpdateAll()
             datahandler.GetEntity(i):UpdateEntityClient(v)
             local function combinevelocity(v1,v2)
                 for i,v in v2.Velocity do

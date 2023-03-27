@@ -138,7 +138,7 @@ function entity:UpdateIdleAni()-- plays idle ani
         self:PlayAnimation("Idle")
     end
 end
--- properties to keep same when updating entitys from the server (All Entities)
+-- properties to keep same when updating entitys from the server (All Entities except lp)
 local clientdata = {'Entity','Tweens','ClientAnim','LoadedAnis','VeiwMode','DidDeath'}
 function entity:UpdateEntity(newdata)
     local checked = {}
@@ -164,11 +164,19 @@ function entity:UpdateHandSlot(slot)
     self.CurrentSlot = slot 
 end
 -- properties to keep same when updating entitys from the server (local player)
-entity.KeepSame = {"Position","NotSaved","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'VeiwMode','CurrentStates'}
+entity.KeepSame = {"Position","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'VeiwMode','CurrentStates','Ingui'}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
-        self[i] = v 
+        if type(v) == "table" and v.Type == 'EntityAttribute' then
+            if self[i] and self[i].EntityAttributes then
+                self[i](v.Data)
+            else
+                self[i] = EntityAttribute.create(v)
+            end
+        else
+            self[i] = v
+        end
     end
 end
 function entity:VisuliseHandItem()
@@ -241,7 +249,7 @@ function entity:UpdatePosition(dt)
             local endp = maths.newPoint((self.Position+velocity).X,(self.Position+velocity).Z)
             local realp = maths.newPoint(newp.X,newp.Z)
             local xsidesame,ysidesame = qf.RoundTo(realp.x) == qf.RoundTo(endp.x),qf.RoundTo(realp.y) == qf.RoundTo(endp.y)
-            local clonede = self:CloneProperties()
+            local clonede = {HitBox = self.HitBox}--self:CloneProperties()
             o,realp =  o:Vector2(),realp:Vector2()
             local current = o
             local hit = false
@@ -252,7 +260,7 @@ function entity:UpdatePosition(dt)
                     local function checkandadd(noadd,c)
                         c = c or current
                         if hit and not noadd then return end 
-                        clonede.Position = Vector3.new(c.X,clonede.Position.Y,c.Y)
+                        clonede.Position = Vector3.new(c.X,self.Position.Y,c.Y)
                         local a = CollisionHandler.IsGrounded(clonede)
                         if noadd then return a end 
                         if not a then  hit = true return end 
@@ -271,7 +279,7 @@ function entity:UpdatePosition(dt)
                         local a = checkandadd(true,Vector2.new(last.X,current.Y))
                         local b = checkandadd(true,Vector2.new(current.X,last.Y))
                         if  a and a == b then
-                            print("None")
+                            --print("None")
                         elseif a then
                             lz = current.Y
                         elseif b then
@@ -288,7 +296,7 @@ function entity:UpdatePosition(dt)
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     local function checkandadd()
                         if hit then return end 
-                        clonede.Position = Vector3.new(current.X,clonede.Position.Y,current.Y)
+                        clonede.Position = Vector3.new(current.X,self.Position.Y,current.Y)
                         local a = CollisionHandler.IsGrounded(clonede)
                         if not a then  hit = true return end 
                         last = current
@@ -323,7 +331,7 @@ function entity:UpdatePosition(dt)
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     local function checkandadd()
                         if hit then return end 
-                        clonede.Position = Vector3.new(current.X,clonede.Position.Y,current.Y)
+                        clonede.Position = Vector3.new(current.X,self.Position.Y,current.Y)
                         local a = CollisionHandler.IsGrounded(clonede)
                         if not a then  hit = true return end 
                         last = current

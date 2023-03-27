@@ -15,6 +15,8 @@ local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local managers = require(game.ReplicatedStorage.Managers)
 local hotbarhandler = managers.HotBarManager
 local playerdollmanager = managers.PlayerDollHandler
+local InventoryManager = managers.InventoryManager:Init()
+local UIContainerManager = managers.UIContainerManager
 hotbarhandler:Init()
 local lp = game.Players.LocalPlayer
 local localentity = data.GetLocalPlayer
@@ -29,7 +31,7 @@ controls.pc = {
     Interact = {'mousebutton2',"Interact"},
     Crouch = {"leftshift","Crouch"},
     HitBoxs = {'r','HitBoxs'},
-    Freecam = {'e',"Freecam"},
+    Freecam = {'t',"Freecam"},
     Slot1 = {'one',"HotBarUpdate"},
     Slot2 = {'two',"HotBarUpdate"},
     Slot3 = {'three',"HotBarUpdate"},
@@ -40,6 +42,7 @@ controls.pc = {
     Slot8 = {'eight',"HotBarUpdate"},
     Slot9 = {'nine',"HotBarUpdate"},
     MouseWheel = {"mousewheel","HotBarUpdate"},
+    Inventory = {'e','Inventory'},
     F5 = {"q","F5"}
 }
 controls.Data = {}
@@ -80,6 +83,9 @@ local ExtraJump = 0
 function func.F5()
     CData.F5  = not CData.F5 
 end
+function func.Inventory()
+    InventoryManager.Enable(not InventoryManager.Frame.Enabled)
+end
 function func.HotBarUpdate(key,data)
     if not localentity() then return end 
     local slot = localentity().CurrentSlot or 1
@@ -106,7 +112,6 @@ function func.HotBarUpdate(key,data)
         end
     end
     localentity().CurrentSlot = tonumber(slot)
-    print("a")
     hotbarhandler.UpdateSelect(tonumber(slot))
 end
 function func.HitBoxs()
@@ -123,7 +128,7 @@ function func.HitBoxs()
     end
 end
 function func.HandleJump()
-    if not localentity() or localentity():GetState('Dead') then return end 
+    if not localentity() or localentity():GetState('Dead') or localentity().Ingui then return end 
     if  GPlayer.Jumping or data.LocalPlayer["CanNotJump"] then return end
     local e 
     local jumpedamount =0 
@@ -154,7 +159,7 @@ function func.HandleJump()
     end)
 end
 function func.Crouch()
-    if not localentity() or localentity():GetState('Dead') then return end 
+    if not localentity() or localentity():GetState('Dead') or localentity().Ingui then return end 
     if not data.LocalPlayer.Crouching then
         data.LocalPlayer.Crouching = true
         data.LocalPlayer.Position += Vector3.new(0,-.3/2,0)
@@ -178,7 +183,7 @@ function func.Crouch()
     data.LocalPlayer:UpdateModelPosition()
 end
 function func.Interact()
-    if not localentity() or localentity():GetState('Dead') then return end 
+    if not localentity() or localentity():GetState('Dead') or localentity().Ingui then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -208,7 +213,7 @@ function func.Interact()
     end
 end
 function func.Attack()
-    if not localentity() or localentity():GetState('Dead') then return end 
+    if not localentity() or localentity():GetState('Dead') or localentity().Ingui then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -246,7 +251,7 @@ function Render.Update(dt)
     anihandler.UpdateEntity(self)
 end
 function Render.Move(dt)
-    if not localentity() or localentity():GetState('Dead') or not localentity().Entity then return end 
+    if not localentity() or localentity():GetState('Dead') or not localentity().Entity or localentity().Ingui then return end 
     local LookVector = CameraCFrame.LookVector
     local RightVector = CameraCFrame.RightVector
     LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit -- Vector3.new(1,0,0)--
@@ -300,13 +305,20 @@ function controls.RenderStepped.Update(dt)
     end
 end
 function controls.RenderStepped.Camera()
-    if not localentity() or localentity():GetState('Dead') then uis.MouseIconEnabled = true return end 
+    if not localentity() or localentity():GetState('Dead') or localentity().Ingui  then 
+        uis.MouseIconEnabled = true 
+        --lp.CameraMaxZoomDistance = 2
+        --lp.CameraMinZoomDistance = 2
+        uis.MouseBehavior  = Enum.MouseBehavior.Default
+        return
+    else     
+        uis.MouseIconEnabled = false
+    end 
     lp.PlayerGui:WaitForChild("Hud")
     if not FD["Freecam"] then
         CameraCFrame = camera.CFrame
         uis.MouseBehavior = Enum.MouseBehavior.LockCenter
     end
-    uis.MouseIconEnabled = false
     if not CData.F5  then
         lp.PlayerGui:WaitForChild("Hud").Cursor.Visible = true
         lp.CameraMaxZoomDistance = 0.5
