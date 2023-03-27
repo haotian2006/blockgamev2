@@ -42,6 +42,7 @@ function manager.UpdateOne(index)
     if not PEntity() or not PEntity().inventory then return nil end 
     local inventory = PEntity().inventory or {}
     local frame = manager.iframes[index]
+    if not frame then return end
     local item = inventory[index]
     local amt = 0
     local inframe = frame:FindFirstChild('IconTemp') or GetIconTemp() and GetIconTemp():clone()

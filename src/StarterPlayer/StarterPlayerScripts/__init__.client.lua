@@ -161,6 +161,8 @@ game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
                 task.wait(.3)
                 respawnButton.MouseButton1Up:wait()
             end
+        else
+            task.wait(2)
         end
         fov:Cancel()
         angle:Cancel()
@@ -168,7 +170,9 @@ game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
         repeat
             task.wait()
         until datahandler.GetLocalPlayer() and not datahandler.GetLocalPlayer():GetState('Dead') 
+        if ui then
         ui:Destroy()
+        end
         cam.CameraType = Enum.CameraType.Custom
         cam.FieldOfView = 70
     end

@@ -305,6 +305,12 @@ function controls.RenderStepped.Update(dt)
     end
 end
 function controls.RenderStepped.Camera()
+    if not localentity() or localentity():GetState('Dead')  then  
+        uis.MouseIconEnabled = true 
+        --lp.CameraMaxZoomDistance = 2
+        --lp.CameraMinZoomDistance = 2
+        uis.MouseBehavior  = Enum.MouseBehavior.Default
+        return end 
     if not checkempty(data.LocalPlayer) then
         local Current_Entity = data.LocalPlayer.Entity
         second = second or Current_Entity:FindFirstChild("SecondLayer",true)

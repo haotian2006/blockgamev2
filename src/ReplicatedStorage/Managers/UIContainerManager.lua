@@ -1,5 +1,4 @@
 local c = {}
-local manager = {}
 local player = game.Players.LocalPlayer
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
@@ -37,17 +36,21 @@ c.GetUI = function(name)
         local a =resourcehandler.GetUiContainer(name):Clone()
         a.Parent = player.PlayerGui
         a.IgnoreGuiInset = true
+        a.Enabled = false
         c.Uis[name] = a
     end
     return c.Uis[name]
 end
 if runservice:IsClient() then  
 c.ResetUis = function()
+    for i,v in c.Uis do
+
     
+        c.disableUis(i)
+    end
 end
 c.HoverFrame = nil
-c.GetUI('HoldingFrame')
-function manager.HandlerClick(x,y)
+function c.HandlerClick(x,y)
     local notsaved = PEntity().NotSaved
     local ui = player.PlayerGui:GetGuiObjectsAtPosition(x,y)
     local clickui = nil
@@ -67,7 +70,7 @@ end
 UserInput.InputBegan:Connect(function(key)
     if not PEntity() or not PEntity().Ingui then return end 
     if key.UserInputType == Enum.UserInputType.MouseButton1 then
-        manager.HandlerClick(mouse.X,mouse.Y)
+        c.HandlerClick(mouse.X,mouse.Y)
     end
 end)
 runservice.Heartbeat:Connect(function(deltaTime)
@@ -77,9 +80,14 @@ runservice.Heartbeat:Connect(function(deltaTime)
         c.HoverFrame = nil
     end)
 end 
+    if not PEntity() or PEntity():GetState('Dead') then
+        c.ResetUis()
+        return
+    end
     if PEntity() and PEntity().Ingui and c.HoverFrame then
         if c.Uis['HoldingFrame'] and c.Uis['HoldingFrame']['Holding'] then
         c.Uis['HoldingFrame'].Holding.Position = UDim2.new(0,mouse.X-2,0,mouse.Y+36)
+        c.Uis['HoldingFrame'].Enabled = true
         local holding = c.Uis['HoldingFrame'].Holding
         local inframe = holding:FindFirstChild('IconTemp') or resourcehandler.GetUI('IconTemp') and resourcehandler.GetUI('IconTemp'):clone()
         if  inframe then
@@ -118,6 +126,7 @@ end
 end)
 c.enableUis = function(name)
     if c.GetUI(name) then
+        c.GetUI('HoldingFrame')
         PEntity().Ingui = true
         c.GetUI(name).Enabled = true
         c.Uis['HoldingFrame'].Parent = script
@@ -127,7 +136,9 @@ c.enableUis = function(name)
 end
 c.disableUis = function(name)
     if c.Uis[name] then
+        if PEntity() then
         PEntity().Ingui = false
+        end
         c.Uis[name].Enabled= false
     end
 end
