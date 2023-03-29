@@ -18,16 +18,29 @@ UpdateHolding:Connect(function(player,index,amt)
     local pinv = plr.inventory
     if plr and pinv then
         if plr.NotSaved.HoldingItem then
-           local item,left = pinv:setAt(index,plr.NotSaved.HoldingItem[1],plr.NotSaved.HoldingItem[2])
-           if left == 0 then
+            local name,amount = plr.NotSaved.HoldingItem[1],plr.NotSaved.HoldingItem[2]
+            if amt and name ~= plr.inventory[index][1] and plr.inventory[index] ~= '' then return end 
+            if not amt then amt = amount end 
+            local item,left = pinv:setAt(index,name,amt <=amount and amt or amount)
+            if amt <=amount and item == name and amount-amt ~= 0 then
+                left  = amount-amt
+            end
+            if left == 0 then
             plr.NotSaved.HoldingItem = nil
-           else
-           plr.NotSaved.HoldingItem = {item,left}
+            else
+              plr.NotSaved.HoldingItem = {item,left}
            
            end
         elseif pinv[index] ~= '' then
-            plr.NotSaved.HoldingItem = {pinv[index][1],pinv[index][2]}
-            pinv[index]= ''
+            local name,amount = pinv[index][1],pinv[index][2]
+            if amt and amount > 1 then
+                amount = math.round(amount/2)
+                pinv[index][2] -= amount
+            else
+                pinv[index]= ''
+            end
+            plr.NotSaved.HoldingItem = {name,amount}
+
         end
     end
 end)
@@ -50,11 +63,13 @@ c.ResetUis = function()
     end
 end
 c.HoverFrame = nil
-function c.HandlerClick(x,y)
+function c.HandlerClick(x,y,isright)
     local notsaved = PEntity().NotSaved
+    local inv = PEntity().inventory
     local ui = player.PlayerGui:GetGuiObjectsAtPosition(x,y)
     local clickui = nil
     local index = nil
+    local amt = nil
     for i,v:string in ui do
         local s = v.Name:split('.')
         if s[1] == 'Container' and s[2] == 'Inventory' then
@@ -63,14 +78,19 @@ function c.HandlerClick(x,y)
             break
         end
     end
+    if isright then
+        amt = 1
+    end
     if clickui and index then
-        UpdateHolding:Fire(index)
+        UpdateHolding:Fire(index,amt)
     end
 end
 UserInput.InputBegan:Connect(function(key)
-    if not PEntity() or not PEntity().Ingui then return end 
+    if not PEntity() or not PEntity().Ingui or not PEntity().inventory then return end 
     if key.UserInputType == Enum.UserInputType.MouseButton1 then
         c.HandlerClick(mouse.X,mouse.Y)
+    elseif key.UserInputType == Enum.UserInputType.MouseButton2 then
+        c.HandlerClick(mouse.X,mouse.Y,true)
     end
 end)
 runservice.Heartbeat:Connect(function(deltaTime)

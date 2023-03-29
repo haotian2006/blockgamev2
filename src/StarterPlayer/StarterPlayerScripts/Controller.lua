@@ -213,7 +213,7 @@ function func.Interact()
     end
 end
 function func.Attack()
-    if not localentity() or localentity():GetState('Dead') or localentity().Ingui then return end 
+    if not localentity() or localentity():GetState('Dead') or localentity().Ingui then    return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
     rayinfo.BreakOnFirstHit = true
@@ -307,10 +307,9 @@ end
 function controls.RenderStepped.Camera()
     if not localentity() or localentity():GetState('Dead')  then  
         uis.MouseIconEnabled = true 
-        --lp.CameraMaxZoomDistance = 2
-        --lp.CameraMinZoomDistance = 2
         uis.MouseBehavior  = Enum.MouseBehavior.Default
-        return end 
+        return 
+    end 
     if not checkempty(data.LocalPlayer) then
         local Current_Entity = data.LocalPlayer.Entity
         second = second or Current_Entity:FindFirstChild("SecondLayer",true)
@@ -329,52 +328,16 @@ function controls.RenderStepped.Camera()
                 ArmsHandler.GetArmsframe().Enabled = true
             end
             localentity():SetModelTransparency(1)
-            -- for i,v in second and second:GetChildren() or {} do
-            --     if v:IsA("BasePart") then
-            --         v.LocalTransparencyModifier = 1 
-            --     end
-            -- end
-            -- if playerinfo[1] == nil then
-            --    for i,v in ipairs(Current_Entity:GetDescendants())do
-            --     local success = pcall(function()  v["Transparency"] = v["Transparency"] end)
-            --         if success and v.Transparency == 0 then
-            --             table.insert(playerinfo,v)
-            --             v.Transparency =1
-            --         end
-            --    end
-            -- else
-            --     for i,v in ipairs(playerinfo)do
-            --         if  v["Transparency"] then
-            --             v.Transparency =1
-            --         end
-            --    end
-            -- end
         elseif Current_Entity then
             data.GetLocalPlayer().VeiwMode = "Third"
             localentity():SetModelTransparency(0)
             if ArmsHandler.GetArmsframe() then
                 ArmsHandler.GetArmsframe().Enabled = false
             end
-            --print("not fps")
-            --Player.PlayerGui.Arms.vp.Visible = false
-            --second.Parent = Current_Entity:FindFirstChild("Model",true)
-
-        --     for i,v in second and second:GetChildren() or {} do
-        --         if v:IsA("BasePart") then
-        --             v.LocalTransparencyModifier = 0 
-        --         end
-        --     end
-        --     for i,v in ipairs(playerinfo)do
-        --         if  v["Transparency"] then
-        --             v.Transparency =0
-        --         end
-        --    end
         end
     end
-    if not localentity() or localentity():GetState('Dead') or localentity().Ingui  then 
+    if  localentity().Ingui  then 
         uis.MouseIconEnabled = true 
-        --lp.CameraMaxZoomDistance = 2
-        --lp.CameraMinZoomDistance = 2
         uis.MouseBehavior  = Enum.MouseBehavior.Default
         return
     else     

@@ -79,7 +79,7 @@ end
 function maths.lerp(start,goal,dt)
     return start + (goal - start) *dt
 end
-function maths.lerp_angle(a, b, t)
+function maths.lerp_angle(a, b, t)--needs fixing
     local gcframe = CFrame.Angles(0,math.rad(a),0)
     local scframe = CFrame.Angles(0,math.rad(b),0)
 	local c = scframe:Lerp(gcframe,t)
