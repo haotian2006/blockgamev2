@@ -145,7 +145,7 @@ local function shoulddel(entitys,v)
 end
 game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
     local entity = datahandler.GetEntity(lp.UserId)
-    if entity and entity:GetState('Dead') then
+    if entity then
         local cam = game.Workspace.CurrentCamera
         cam.CameraType = Enum.CameraType.Scriptable
         local fov = tweenservice:Create(cam,TweenInfo.new(30,Enum.EasingStyle.Exponential),{FieldOfView = 30})

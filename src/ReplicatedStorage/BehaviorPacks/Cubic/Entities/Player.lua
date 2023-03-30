@@ -15,10 +15,9 @@ local entity = {
         Health = 20,
         MaxHealth = 20,
         StateInfo = {
-            Sprinting = 1.3,
-            Walking = 1,
-            Sneaking = 0.3,
-            Stopping = 0,
+            Sprinting = {Speed = '*1.3'},
+            Walking = {Speed = '*1'},
+            Sneaking = {Speed = '*0.3'},
         }
     },
     component_groups = {

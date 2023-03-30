@@ -161,7 +161,7 @@ function entity:DropItem(name,count)
 end
 function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
-    local ServerOnlyChanges = {Position = true,headdir = true,bodydir = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,VeiwMode = true,CurrentStates = true,Ingui = true}
+    local ServerOnlyChanges = {Position = true,headdir = true,bodydir = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,VeiwMode = true,CurrentStates = true,Ingui = true,CurrentStates = true}
     for i,v in self.ServerOnly.ClientChanges or {} do
         ServerOnlyChanges[i] = v
     end

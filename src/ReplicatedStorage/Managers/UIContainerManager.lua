@@ -17,8 +17,9 @@ UpdateHolding:Connect(function(player,index,amt)
     local plr = dataHandler.GetEntityFromPlayer(player)
     local pinv = plr.inventory
     if plr and pinv then
-        if plr.NotSaved.HoldingItem then
-            local name,amount = plr.NotSaved.HoldingItem[1],plr.NotSaved.HoldingItem[2]
+        plr.Container = plr.Container or {}
+        if plr.Container.HoldingItem then
+            local name,amount = plr.Container.HoldingItem[1],plr.Container.HoldingItem[2]
             if amt and name ~= plr.inventory[index][1] and plr.inventory[index] ~= '' then return end 
             if not amt then amt = amount end 
             local item,left = pinv:setAt(index,name,amt <=amount and amt or amount)
@@ -26,9 +27,9 @@ UpdateHolding:Connect(function(player,index,amt)
                 left  = amount-amt
             end
             if left == 0 then
-            plr.NotSaved.HoldingItem = nil
+            plr.Container.HoldingItem = nil
             else
-              plr.NotSaved.HoldingItem = {item,left}
+              plr.Container.HoldingItem = {item,left}
            
            end
         elseif pinv[index] ~= '' then
@@ -39,7 +40,7 @@ UpdateHolding:Connect(function(player,index,amt)
             else
                 pinv[index]= ''
             end
-            plr.NotSaved.HoldingItem = {name,amount}
+            plr.Container.HoldingItem = {name,amount}
 
         end
     end
@@ -113,7 +114,8 @@ end
         if  inframe then
             inframe.Parent = holding
             local amt = 0
-            local item = PEntity().NotSaved.HoldingItem 
+            PEntity().Container = PEntity().Container or {}
+            local item = PEntity().Container.HoldingItem 
             if type(item) =="table" then
                 amt = item[2]
                 inframe.name.Text = qf.DecompressItemData(item[1],'Type')

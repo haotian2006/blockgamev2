@@ -167,6 +167,7 @@ function func.Crouch()
         data.LocalPlayer.EyeLevel -=.3
         data.LocalPlayer.Speed = 1.31
         data.LocalPlayer:PlayAnimation("Crouch")
+        localentity():SetState('Crouch',true)
     end
     data.LocalPlayer:UpdateModelPosition()
     repeat
@@ -179,6 +180,7 @@ function func.Crouch()
         data.LocalPlayer.EyeLevel +=.3
         data.LocalPlayer:StopAnimation("Crouch")
         data.LocalPlayer.Speed = 5.612
+        localentity():SetState('Crouch',false)
     end
     data.LocalPlayer:UpdateModelPosition()
 end
@@ -262,8 +264,13 @@ function Render.Move(dt)
     local Right = RightVector*(FD["Right"]and 1 or 0)
     local velocity = foward + Back + Left+ Right
     data.LocalPlayer.bodydir = velocity
-    velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit) * (data.LocalPlayer.Speed or 0 )
-    data.LocalPlayer.Velocity["Movement"] = velocity
+    velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit)
+    if velocity:FuzzyEq(Vector3.zero,0.01) then
+        localentity():SetState('Stopping',true)
+    else
+        localentity():SetState('Stopping',false)
+    end
+    data.LocalPlayer.Velocity["Movement"] = velocity* (data.LocalPlayer.Speed or 0 )
     if FD["Jump"] then data.LocalPlayer:Jump() 
 end 
 end
@@ -360,9 +367,8 @@ function controls.RenderStepped.Camera()
 
 end
 local function doinput(input,gameProcessedEvent)
-    if not localentity() or localentity():GetState('Dead') then return end 
+    if not localentity() or localentity():GetState('Dead')  then return end 
     local key = getkeyfrominput(input)
-    if gameProcessedEvent then return end 
     controls.KeysPressed[key] = key
     if controls[controls.mode] then
         for i,v in controls[controls.mode] do

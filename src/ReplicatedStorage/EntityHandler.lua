@@ -164,7 +164,7 @@ function entity:UpdateHandSlot(slot)
     self.CurrentSlot = slot 
 end
 -- properties to keep same when updating entitys from the server (local player)
-entity.KeepSame = {"Position","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'VeiwMode','CurrentStates','Ingui'}
+entity.KeepSame = {"Position","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'VeiwMode','CurrentStates','Ingui','CurrentStates'}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
@@ -234,6 +234,11 @@ function entity:UpdateModelPosition()-- Updates the Eye positions etc
 end
 function entity:UpdatePosition(dt)
     local velocity = self:GetVelocity()
+    if velocity:FuzzyEq(Vector3.zero,0.01) then
+        self:SetState('Moving',false)
+    else
+        self:SetState('Moving',true)
+    end
     self.NotSaved.ClearVelocity = true
     if not self.ClientControll or  ( RunService:IsClient() and self.ClientControll and self.ClientControll == tostring(game.Players.LocalPlayer.UserId) ) then 
         self:UpdateIdleAni()
@@ -255,38 +260,38 @@ function entity:UpdatePosition(dt)
             local hit = false
             local last 
             if xsidesame and ysidesame then
-                    local v1 = (realp-current).Unit/10
-                    v1 = v1 ~= v1 and Vector2.zero or v1
-                    local function checkandadd(noadd,c)
-                        c = c or current
-                        if hit and not noadd then return end 
-                        clonede.Position = Vector3.new(c.X,self.Position.Y,c.Y)
-                        local a = CollisionHandler.IsGrounded(clonede)
-                        if noadd then return a end 
-                        if not a then  hit = true return end 
-                        last = current
-                        current +=v1
-                        length += 1/10
-                    end
+                local v1 = (realp-current).Unit/10
+                v1 = v1 ~= v1 and Vector2.zero or v1
+                local function checkandadd(noadd,c)
+                    c = c or current
+                    if hit and not noadd then return end 
+                    clonede.Position = Vector3.new(c.X,self.Position.Y,c.Y)
+                    local a = CollisionHandler.IsGrounded(clonede)
+                    if noadd then return a end 
+                    if not a then  hit = true return end 
+                    last = current
+                    current +=v1
+                    length += 1/10
+                end
+                checkandadd()
+                while length <= (o-realp).Magnitude and not hit do
                     checkandadd()
-                    while length <= (o-realp).Magnitude and not hit do
-                        checkandadd()
+                end
+                current = realp
+                checkandadd()
+                if hit and last then
+                    local lx,lz = last.X,last.Y
+                    local a = checkandadd(true,Vector2.new(last.X,current.Y))
+                    local b = checkandadd(true,Vector2.new(current.X,last.Y))
+                    if  a and a == b then
+                        --print("None")
+                    elseif a then
+                        lz = current.Y
+                    elseif b then
+                        lx = current.X
                     end
-                    current = realp
-                    checkandadd()
-                    if hit and last then
-                        local lx,lz = last.X,last.Y
-                        local a = checkandadd(true,Vector2.new(last.X,current.Y))
-                        local b = checkandadd(true,Vector2.new(current.X,last.Y))
-                        if  a and a == b then
-                            --print("None")
-                        elseif a then
-                            lz = current.Y
-                        elseif b then
-                            lx = current.X
-                        end
-                        newp = Vector3.new(lx,newp.Y,lz)
-                    end
+                    newp = Vector3.new(lx,newp.Y,lz)
+                end
             elseif xsidesame then
                 local dc = maths.newLine(realp,maths.newPoint(o.x,realp.y))
                 local midpoint = dc:CalculatePointOfInt(maths.newLine(o,endp))
