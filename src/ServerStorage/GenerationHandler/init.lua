@@ -110,7 +110,7 @@ function generation.CreateWorms(cx,cz) -- cx and cy is the chunk it is being gen
 							for z1 = 1, Resolution*2 do
 								local worldSpace = Vector3.new(-x1+x,-y1+y,-z1+z)
 								if Vector3.new(x1-Resolution,y1-Resolution,z1-Resolution).Magnitude <= Resolution-.1 then
-									wormdata[qf.combinetostring(worldSpace.X,worldSpace.Y,worldSpace.Z)] = false
+									wormdata[worldSpace.X..','..worldSpace.Y..','..worldSpace.Z] = false --'air'
 								end
 							end
 						end

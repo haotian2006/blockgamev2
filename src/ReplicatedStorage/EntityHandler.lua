@@ -414,6 +414,16 @@ end
 function entity:GetData()
     return datahandler
 end
+function entity:GetPropertyWithMulti(name)
+    local muti = self[name] or 0
+    for i,v in self.StateInfo or {} do
+        muti *= v[name] or 1
+    end
+    return muti
+end
+function entity:GPWM(name)
+    return self:GetPropertyWithMulti(name)
+end
 function entity:GetEyePosition()
     local eye = self.EyeLevel/2
     return self.Position + Vector3.new(0,eye,0)

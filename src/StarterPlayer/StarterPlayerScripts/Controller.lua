@@ -45,6 +45,13 @@ controls.pc = {
     Inventory = {'e','Inventory'},
     F5 = {"q","F5"}
 }
+local function getkeyfrominput(input)
+    if input.KeyCode.Name ~= "Unknown" then
+        return input.KeyCode.Name:lower()
+    elseif input.UserInputType.Name ~= "Unknown" then
+        return input.UserInputType.Name:lower()
+    end
+end
 controls.Data = {}
 controls.KeysPressed = {}
 controls.Render = {}
@@ -71,13 +78,6 @@ local function interpolate(startVector3, finishVector3, alpha)
 end
 local function checkempty(tab)
     return not (tab and next(tab) ~= nil)
-end
-local function getkeyfrominput(input)
-    if input.KeyCode.Name ~= "Unknown" then
-        return input.KeyCode.Name:lower()
-    elseif input.UserInputType.Name ~= "Unknown" then
-        return input.UserInputType.Name:lower()
-    end
 end
 local ExtraJump = 0
 function func.F5()

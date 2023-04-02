@@ -88,3 +88,4 @@ function self.GetEntityModelFromData(Data)
     end
 end
 return self
+
