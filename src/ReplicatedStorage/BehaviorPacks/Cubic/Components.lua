@@ -1,4 +1,11 @@
 local Components = {}
+Components.BlockComp = {
+    CanFloat = true,
+    Gravity = nil,
+    Hardness = 1, 
+    CanCollide = true,
+    BlastResistance = 0,
+}
 Components.Inputs = {
     HoldTime = 0,
     AlsoHold = {},

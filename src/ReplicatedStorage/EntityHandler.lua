@@ -234,11 +234,6 @@ function entity:UpdateModelPosition()-- Updates the Eye positions etc
 end
 function entity:UpdatePosition(dt)
     local velocity = self:GetVelocity()
-    if velocity:FuzzyEq(Vector3.zero,0.01) then
-        self:SetState('Moving',false)
-    else
-        self:SetState('Moving',true)
-    end
     self.NotSaved.ClearVelocity = true
     if not self.ClientControll or  ( RunService:IsClient() and self.ClientControll and self.ClientControll == tostring(game.Players.LocalPlayer.UserId) ) then 
         self:UpdateIdleAni()
@@ -368,13 +363,15 @@ function entity:UpdatePosition(dt)
         if RunService:IsServer() then
          --   print(velocity.Magnitude,velocity2.Magnitude)
         end
-        if qf.EditVector3(( newp - self.Position),"y",0).Magnitude == 0 then
+        if qf.EditVector3(( newp - self.Position),"y",0):FuzzyEq(Vector3.zero,0.01) then
             if  self.NotSaved.LastUpdate and (os.clock()- self.NotSaved.LastUpdate)>.2 or RunService:IsClient()  then
                 self:StopAnimation("Walk")
+                self:SetState('Moving',false)
             end
         else
             self:PlayAnimation("Walk")
             self.NotSaved.LastUpdate = os.clock()
+            self:SetState('Moving',true)
         end
         self.Position = newp--interpolate(self.Position,newp,dt) 
     end
@@ -414,10 +411,28 @@ end
 function entity:GetData()
     return datahandler
 end
+function entity:Crouch(letgo:boolean)
+    local dcby = self.CrouchLower or 0
+    letgo = not letgo
+    self.Crouching = letgo
+    if letgo then dcby *= -1 end 
+    self.Position += Vector3.new(0,-dcby/2,0)
+    self.HitBox = Vector2.new(self.HitBox.X, self.HitBox.Y-dcby)
+    self.EyeLevel -=dcby
+    if letgo then
+        self:PlayAnimation("Crouch")
+        self:SetState('Crouching',true)
+    else
+        self:StopAnimation("Crouch")
+        self:SetState('Crouching',false)
+    end
+end
 function entity:GetPropertyWithMulti(name)
     local muti = self[name] or 0
     for i,v in self.StateInfo or {} do
-        muti *= v[name] or 1
+        if self.CurrentStates[i] then
+            muti *= v[name] or 1
+        end
     end
     return muti
 end

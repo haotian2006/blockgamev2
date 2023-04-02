@@ -161,26 +161,14 @@ end
 function func.Crouch()
     if not localentity() or localentity():GetState('Dead') or localentity().Ingui then return end 
     if not data.LocalPlayer.Crouching then
-        data.LocalPlayer.Crouching = true
-        data.LocalPlayer.Position += Vector3.new(0,-.3/2,0)
-        data.LocalPlayer.HitBox = Vector2.new( data.LocalPlayer.HitBox.X, data.LocalPlayer.HitBox.Y-.3)
-        data.LocalPlayer.EyeLevel -=.3
-        data.LocalPlayer.Speed = 1.31
-        data.LocalPlayer:PlayAnimation("Crouch")
-        localentity():SetState('Crouch',true)
+        localentity():Crouch()
     end
     data.LocalPlayer:UpdateModelPosition()
     repeat
         task.wait()
     until not FD["Crouch"]
     if data.LocalPlayer.Crouching then
-        data.LocalPlayer.Crouching = false
-        data.LocalPlayer.Position += Vector3.new(0,.3/2,0)
-        data.LocalPlayer.HitBox = Vector2.new( data.LocalPlayer.HitBox.X, data.LocalPlayer.HitBox.Y+.3)
-        data.LocalPlayer.EyeLevel +=.3
-        data.LocalPlayer:StopAnimation("Crouch")
-        data.LocalPlayer.Speed = 5.612
-        localentity():SetState('Crouch',false)
+        localentity():Crouch(true)
     end
     data.LocalPlayer:UpdateModelPosition()
 end
@@ -270,7 +258,7 @@ function Render.Move(dt)
     else
         localentity():SetState('Stopping',false)
     end
-    data.LocalPlayer.Velocity["Movement"] = velocity* (data.LocalPlayer.Speed or 0 )
+    data.LocalPlayer.Velocity["Movement"] = velocity* (localentity():GPWM('Speed') or 0 )
     if FD["Jump"] then data.LocalPlayer:Jump() 
 end 
 end

@@ -44,14 +44,15 @@ EntityBridge:Connect(function(plr,id,newdata)
     if entity.ClientControll ~= tostring(plr.UserId) then return end 
     if entity and newdata.Crouching ~= nil and newdata.Crouching ~= entity.Crouching  then
         entity.Crouching  = newdata.Crouching
+        local dcby = entity.CrouchLower or 0
         if not entity.Crouching then
             --entity.Position -= Vector3.new(0,.3,0)
-            entity.HitBox = Vector2.new(entity.HitBox.X,entity.HitBox.Y+.3)
-            entity.EyeLevel += .3
+            entity.HitBox = Vector2.new(entity.HitBox.X,entity.HitBox.Y+dcby)
+            entity.EyeLevel += dcby
         else
-            entity.HitBox = Vector2.new(entity.HitBox.X,entity.HitBox.Y-.3)
+            entity.HitBox = Vector2.new(entity.HitBox.X,entity.HitBox.Y-dcby)
           --  entity.Position += Vector3.new(0,.3,0)
-            entity.EyeLevel -= .3
+            entity.EyeLevel -= dcby
         end
     end
   --  print(data.LoadedEntities[tostring(plr.UserId)].HitBox)

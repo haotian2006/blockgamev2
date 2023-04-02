@@ -14,10 +14,11 @@ local entity = {
         DoGravity = true,
         Health = 20,
         MaxHealth = 20,
+        CrouchLower = 0.3,
         StateInfo = {
             Sprinting = {Speed = 1.3},
             Walking = {Speed = 1},
-            Sneaking = {Speed = 0.3},
+            Crouching = {Speed = 0.3},
         }
     },
     component_groups = {
