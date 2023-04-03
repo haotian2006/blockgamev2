@@ -48,11 +48,11 @@ EntityBridge:Connect(function(plr,id,newdata)
         if not entity.Crouching then
             --entity.Position -= Vector3.new(0,.3,0)
             entity.HitBox = Vector2.new(entity.HitBox.X,entity.HitBox.Y+dcby)
-            entity.EyeLevel += dcby
+            entity.EyeLevel = entity.EyeLevel+dcby
         else
             entity.HitBox = Vector2.new(entity.HitBox.X,entity.HitBox.Y-dcby)
           --  entity.Position += Vector3.new(0,.3,0)
-            entity.EyeLevel -= dcby
+            entity.EyeLevel =  entity.EyeLevel- dcby
         end
     end
   --  print(data.LoadedEntities[tostring(plr.UserId)].HitBox)

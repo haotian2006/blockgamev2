@@ -164,7 +164,7 @@ function entity:UpdateHandSlot(slot)
     self.CurrentSlot = slot 
 end
 -- properties to keep same when updating entitys from the server (local player)
-entity.KeepSame = {"Position","Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'VeiwMode','CurrentStates','Ingui','CurrentStates'}
+entity.KeepSame = {"Position",'NotSaved',"Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'VeiwMode','CurrentStates','Ingui','CurrentStates'}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
@@ -415,10 +415,10 @@ function entity:Crouch(letgo:boolean)
     local dcby = self.CrouchLower or 0
     letgo = not letgo
     self.Crouching = letgo
-    if letgo then dcby *= -1 end 
+    if not letgo then dcby *= -1 end 
     self.Position += Vector3.new(0,-dcby/2,0)
     self.HitBox = Vector2.new(self.HitBox.X, self.HitBox.Y-dcby)
-    self.EyeLevel -=dcby
+    self.EyeLevel = self.EyeLevel - dcby
     if letgo then
         self:PlayAnimation("Crouch")
         self:SetState('Crouching',true)

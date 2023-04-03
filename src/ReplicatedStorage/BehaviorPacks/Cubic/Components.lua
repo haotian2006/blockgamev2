@@ -5,6 +5,7 @@ Components.BlockComp = {
     Hardness = 1, 
     CanCollide = true,
     BlastResistance = 0,
+    CanRotate = false,
 }
 Components.Inputs = {
     HoldTime = 0,
