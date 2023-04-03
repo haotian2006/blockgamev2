@@ -6,6 +6,7 @@ Components.BlockComp = {
     CanCollide = true,
     BlastResistance = 0,
     CanRotate = false,
+    Hitbox = 'Normal',
 }
 Components.Inputs = {
     HoldTime = 0,

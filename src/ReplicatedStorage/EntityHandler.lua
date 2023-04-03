@@ -376,6 +376,7 @@ function entity:UpdatePosition(dt)
         self.Position = newp--interpolate(self.Position,newp,dt) 
     end
     self.Data.Grounded = CollisionHandler.IsGrounded(self)
+    self:SetState("OnGround",self.Data.Grounded)
     if  self.NotSaved["LastG"] and not self.Data.Grounded and not self.NotSaved.Jumping then
         self.NotSaved["ExtraJump"] = DateTime.now().UnixTimestampMillis/1000
     end
