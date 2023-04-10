@@ -107,4 +107,16 @@ function self.GetItem(name)
     if not self.Items then return end
     return self.Items[name]
 end
+function self.GetBlockHb(Name)
+    return self.BlockHitboxes[Name]
+end
+function self.GetBlock(Name)
+    return self.Blocks[Name]
+end
+function self.GetHbFromBlock(Name)
+    local b = self.GetBlock(Name)
+    if b and b.components and b.components.Hitbox then 
+        return type(b.components.Hitbox) == "string" and self.GetBlockHb(b.components.Hitbox) or b.components.Hitbox
+    end
+end
 return self

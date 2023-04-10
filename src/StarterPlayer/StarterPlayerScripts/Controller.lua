@@ -180,6 +180,7 @@ function func.Interact()
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.GetNormal = true
    -- rayinfo.IgnoreEntities = true
+   rayinfo.RaySize = Vector3.new(.025,.025,.025)
     local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*4.5,rayinfo)
     if #raystuff.Objects >= 1 then
         --print("hit")
@@ -209,6 +210,7 @@ function func.Attack()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
+    rayinfo.RaySize = Vector3.new(.025,.025,.025)
     local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*4.5,rayinfo)
     if #raystuff.Objects >= 1 then
         local newpos = {}
@@ -271,7 +273,7 @@ function controls.Render.OutLine()
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
-    --rayinfo.RaySize = Vector3.new(.01,.01,.01)
+    rayinfo.RaySize = Vector3.new(.025,.025,.025)
    -- rayinfo.IgnoreEntities = true
      local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*4.5,rayinfo)
     if #raystuff.Objects >= 1 then
