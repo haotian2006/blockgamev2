@@ -71,6 +71,7 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
     local allnormal = {X =0,Y=0,Z=0}
     local bba
     local a,d= false
+    local bbaaa
     for i =1,3,1 do
     velocity = vector3(
         velocity.X * (1-math.abs(normal.X))*remainingtime,
@@ -79,6 +80,7 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
         )
         local bb
         MinTime,normal,bb,velocity,a,d = collisions.entityvsterrainloop(entity,position,velocity,{},IsRay,oldv)
+        bbaaa = bb or bbaaa
         if a then position = a end 
         if bb and IsRay then
             return nil,nil,bb
@@ -110,6 +112,9 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
         remainingtime = 1.0-MinTime
         if remainingtime <=0 then break end
         
+    end
+    if RunService:IsClient() then
+        --print(bbaaa)
     end
     return  position,allnormal,bba
 end
@@ -186,7 +191,7 @@ function collisions.shouldjump(entity,bp,bs)
     if jumpneeded > bs.Y or jumpneeded<= 0 then
         return nil
     end
-    if .5 >= jumpneeded  then
+    if entity.MinStairHeight or .5 >= jumpneeded  then
        -- print(blockheight)
         return "Small",jumpneeded,blockheight
     elseif 1 >= jumpneeded then
@@ -195,7 +200,7 @@ function collisions.shouldjump(entity,bp,bs)
     return nil
     
 end
-function collisions.AABBvsTerrain(position,hitbox)
+function collisions.AABBvsTerrain(position,hitbox,CanCollideMatters)
     local min = vector3(
         position.X-hitbox.X/2,
         position.Y-hitbox.Y/2, 
@@ -221,8 +226,9 @@ function collisions.AABBvsTerrain(position,hitbox)
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
                     bx,by,bz = a.X,a.Y,a.Z
                    local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
-                   local hbdata = collisions.GenerateHitboxes(block,newpos)
+                   local hbdata,cancollide = collisions.GenerateHitboxes(block,newpos)
                    local loop = 0
+                   if not cancollide and CanCollideMatters then continue end 
                    for i,v in hbdata do
                     local newpos,newsize = v[2],v[1]
                         local found = collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize)
@@ -339,12 +345,14 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                       --  print(typejump, needed,maxheight)
                        -- print(position.Y-hitbox.Y/2)
                         if typejump == "Small" and entity.Data.Grounded and needed >=0.1 then
-                              needed += 0.025
+                              needed += 0.015
                               local m2,n2,z2 = collisions.entityvsterrainloop(entity,vector3(position.X,position.Y,position.Z),vector3(velocity.X,velocity.Y+needed,velocity.Z),{[coords] = true},true)
                               if m2 <1 then
                               else
                                 position += vector3(0,needed,0)
-                              --  print(position.Y-hitbox.Y/2,"JUMP")
+                                if velocity.Y <0 then
+                                    velocity = vector3(velocity.X,0,velocity.Y)
+                                end
                                return m2,n2,z2 ,velocity,position,1
                               end
                            elseif typejump == "Full" and (entity["AutoJump"]or false)   then

@@ -301,7 +301,7 @@ function entity:UpdatePosition(dt)
                         if not a then  hit = true return end 
                         last = current
                         current +=v1
-                        length +=1/10
+                        length +=1/5
                     end
                     checkandadd()
                     while length <= (midpoint - o).Magnitude and not hit do
@@ -331,12 +331,12 @@ function entity:UpdatePosition(dt)
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     local function checkandadd()
                         if hit then return end 
-                        clonede.Position = Vector3.new(current.X,self.Position.Y,current.Y)
+                        clonede.Position = Vector3.new(current.X,self.Position.Y,current.Y)--+Vector3.new(velocity.X,0,velocity.Z).Unit/10
                         local a = CollisionHandler.IsGrounded(clonede)
                         if not a then  hit = true return end 
                         last = current
                         current +=v1
-                        length +=1/10
+                        length +=1/5
                     end
                     checkandadd()
                     while length <= (midpoint - o).Magnitude and not hit do
@@ -375,7 +375,9 @@ function entity:UpdatePosition(dt)
         end
         self.Position = newp--interpolate(self.Position,newp,dt) 
     end
-    self.Data.Grounded = CollisionHandler.IsGrounded(self)
+    local hit,b = CollisionHandler.IsGrounded(self)
+   -- if isClient then print( b) end
+    self.Data.Grounded = hit
     self:SetState("OnGround",self.Data.Grounded)
     if  self.NotSaved["LastG"] and not self.Data.Grounded and not self.NotSaved.Jumping then
         self.NotSaved["ExtraJump"] = DateTime.now().UnixTimestampMillis/1000
