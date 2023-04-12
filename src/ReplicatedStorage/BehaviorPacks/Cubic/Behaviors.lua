@@ -69,7 +69,7 @@ return {
             for i,v in entity:GetData().EntitiesinR(pos.X,pos.Y,pos.Z,range) do
                 if v.Type == "Player" then
                     local eyelevel = v.EyeLevel or 0
-                    local y = v.Position.Y-v.HitBox.Y/2+eyelevel/2
+                    local y = v.Position.Y-v.Hitbox.Y/2+eyelevel/2
                     entity:LookAt(v:GetEyePosition())
                     break
                 end

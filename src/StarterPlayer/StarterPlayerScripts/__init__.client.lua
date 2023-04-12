@@ -184,14 +184,14 @@ EntityBridge:Connect(function(entitys)
         local e = game.Workspace.Entities:FindFirstChild(i) or workspace.DamagedEntities:FindFirstChild(i)
         local oldentity = datahandler.GetEntity(i)
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
-            local oldhitbox = oldentity.HitBox
+            local oldhitbox = oldentity.Hitbox
             v = entityhandler.new(v)
             datahandler.GetEntity(i):UpdateEntity(v)
-            if oldentity and v.HitBox ~= oldhitbox then
+            if oldentity and v.Hitbox ~= oldhitbox then
                 if oldentity.Tweens and oldentity.Tweens["Pos"] then
                     oldentity.Tweens["Pos"]:Cancel()
                 end
-                e.PrimaryPart.Size = Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X)*3
+                e.PrimaryPart.Size = Vector3.new(v.Hitbox.X,v.Hitbox.Y,v.Hitbox.X)*3
                 e.PrimaryPart.CFrame = CFrame.new(v.Position*3)
                 oldentity:UpdateModelPosition()
             else
@@ -206,7 +206,7 @@ EntityBridge:Connect(function(entitys)
             local model = Instance.new("Model",workspace.Entities)
             local hitbox = Instance.new("Part",model)
             model.PrimaryPart = hitbox
-            hitbox.Size = (Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X) or Vector3.new(1,1,1))*settings.GridSize 
+            hitbox.Size = (Vector3.new(v.Hitbox.X,v.Hitbox.Y,v.Hitbox.X) or Vector3.new(1,1,1))*settings.GridSize 
             local eye = createEye(v.EyeLevel,hitbox)
             local eyebox = createAselectionBox(eye,Color3.new(1, 0, 0))
             eyebox.Parent = hitbox
@@ -217,7 +217,7 @@ EntityBridge:Connect(function(entitys)
             hitbox.CanCollide = false
             hitbox.Anchored = true
             hitbox.Transparency = 1
-            hitbox.Name = "HitBox"
+            hitbox.Name = "Hitbox"
             hitbox.CFrame = CFrame.new(v.Position*3)
             model.Name = i
             if resource.GetAsset("Nametag") then

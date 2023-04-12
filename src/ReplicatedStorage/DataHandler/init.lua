@@ -86,9 +86,9 @@ function self.DestroyChunk(cx,cz)
         self.LoadedChunks[cx..','..cz] = nil
     end
 end
-self.HitBox = self.Hitbox or workspace.HitboxL:Clone()
+self.Hitbox = self.Hitbox or workspace.HitboxL:Clone()
 
-local a = self.HitBox
+local a = self.Hitbox
 a.Parent = workspace
 a.BrickColor = BrickColor.new("Curry")
 function  HitboxL(x,y,z)
@@ -111,7 +111,7 @@ end
 function self.canPlaceBlockAt(X,Y,Z,block)
     if self.GetBlock(X,Y,Z) then return end
     for i,v in self.EntitiesinR(X,Y,Z,1.5) or {} do
-        local a = require(game.ReplicatedStorage.CollisonHandler).AABBcheck(v.Position+v:GetVelocity()*task.wait(),Vector3.new(X,Y,Z),Vector3.new(v.HitBox.X,v.HitBox.Y,v.HitBox.X),Vector3.new(1,1,1))
+        local a = require(game.ReplicatedStorage.CollisonHandler).AABBcheck(v.Position+v:GetVelocity()*task.wait(),Vector3.new(X,Y,Z),Vector3.new(v.Hitbox.X,v.Hitbox.Y,v.Hitbox.X),Vector3.new(1,1,1))
         if a then
             return false 
         end

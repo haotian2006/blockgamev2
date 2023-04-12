@@ -14,7 +14,7 @@ local function round(x)
 end
 function  collisions.IsGrounded(entity,CheckForBlockAboveInstead)
     local position = entity.Position
-    local hitbox = entity.HitBox
+    local hitbox = entity.Hitbox
     local invert = CheckForBlockAboveInstead and -1 or 1
     local aa = CheckForBlockAboveInstead and 0 or 1
     local bb = CheckForBlockAboveInstead and 1 or 0
@@ -58,6 +58,210 @@ function  collisions.IsGrounded(entity,CheckForBlockAboveInstead)
         end 
     end 
     return false
+end
+function collisions.GetBroadPhase(b1,s1,velocity)
+    b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
+    local position = vector3(
+        velocity.X >0 and b1.X or b1.X + velocity.X,
+        velocity.Y >0 and b1.Y or b1.Y + velocity.Y,
+        velocity.Z >0 and b1.Z or b1.Z + velocity.Z
+        )
+    local size = vector3(    
+        velocity.X >0 and velocity.X+s1.X or s1.X - velocity.X,
+        velocity.Y >0 and velocity.Y+s1.Y or s1.Y - velocity.Y,
+        velocity.Z >0 and velocity.Z+s1.Z or s1.Z - velocity.Z
+        )
+    return position,size
+end
+function collisions.AABBvsPoint(point:Vector3,b1,s1)
+    local min = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
+    local max = vector3(b1.X+s1.X/2,b1.Y+s1.Y/2,b1.Z+s1.Z/2)
+    return(
+        point.X >= min.X and
+        point.X <= max.X and 
+        point.Y >= min.Y and
+        point.Y <= max.Y and 
+        point.Z >= min.Z and
+        point.Z <= max.Z  
+    )
+end 
+function collisions.AABBcheck(b1,b2,s1,s2,isbp)
+    if  isbp == true then
+    else
+        b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
+    end
+    b2 = vector3(b2.X-s2.X/2,b2.Y-s2.Y/2,b2.Z-s2.Z/2)
+    return not (b1.X+s1.X <= b2.X or 
+    b1.X>b2.X+s2.X or
+    b1.Y+s1.Y < b2.Y or 
+    b1.Y>b2.Y+s2.Y or                                     
+    b1.Z+s1.Z < b2.Z or 
+    b1.Z>b2.Z+s2.Z    )                             
+end
+local a = workspace.HitboxL
+function  HitboxL(x,y,z)  
+    a.Position = Vector3.new(x,y,z)*3 a.Anchored = true   
+end
+function b(x,y,z) local a = workspace.IDK a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true end 
+function c(x,y,z) local a = workspace.IDK:Clone() a.Parent = workspace a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true game:GetService("Debris"):AddItem(a,1) end 
+function  collisions.CalculateNormal(p1:Vector3,s1,p2,s2)
+    local d:Vector3 = p1-p2
+    local dx = d:Dot(vector3(1,0,0))
+    if dx > s2.X/2 then dx = s2.X/2 end
+    if dx < s2.X/2 then dx = -s2.X/2 end
+
+    local dy = d:Dot(vector3(0,1,0))
+    if dy > s2.Y/2 then dy = s2.Y/2 end
+    if dy < s2.Y/2 then dy = -s2.Y/2 end
+
+    local dz = d:Dot(vector3(0,0,1))
+    if dz > s2.Z/2 then dz = s2.Z/2 end
+    if dz < s2.Z/2 then dz = -s2.Z/2 end
+    local contactpoint:Vector3 = p2 + dx*vector3(1,0,0)+dy*vector3(0,1,0)+dz*(vector3(0,0,1))
+    local normal = (p1-contactpoint).Unit
+    return vector3(round(normal.X),round(normal.Y),round(normal.Z))
+end
+function collisions.shouldjump(entity,bp,bs)
+    local pos = entity.Position
+    local hitbox = entity.Hitbox
+    local feetpos = pos.Y - hitbox.y/2 
+    local blockfeet = bp.Y - bs.Y/2
+    local jumpneeded = bs.Y -(feetpos - blockfeet)
+    local blockheight =  bp.Y + bs.Y/2
+    blockheight = vector3(bp.X,blockheight,bp.Z)
+    if jumpneeded > bs.Y or jumpneeded<= 0 then
+        return nil
+    end
+    if entity.MinStairHeight or .5 >= jumpneeded  then
+       -- print(blockheight)
+        return "Small",jumpneeded,blockheight
+    elseif 1 >= jumpneeded then
+        return "Full",jumpneeded,blockheight
+    end
+    return nil
+    
+end
+function collisions.AABBvsTerrain(position,hitbox,CanCollideMatters)
+    local min = vector3(
+        position.X-hitbox.X/2,
+        position.Y-hitbox.Y/2, 
+        position.Z-hitbox.Z/2   
+    )   
+   -- print(position.Z-hitbox.X,min.Z,(velocity.Z <0 and velocity.Z-.25 or 0) )
+    local max = vector3(
+        position.X+hitbox.X/2,
+        position.Y+hitbox.Y/2, 
+        position.Z+hitbox.Z/2   
+    ) 
+    local gridsize =.1
+    local whitelist = {}
+    for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
+        for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
+            for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
+                local block,coords = maindata.GetBlock(x,y,z,true)
+                if whitelist and whitelist[coords] then continue end
+                if block and block ~= "Null" then
+                    whitelist[coords] = true
+                    local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
+                    local bx,by,bz = unpack(coords:split(","))
+                    local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
+                    bx,by,bz = a.X,a.Y,a.Z
+                   local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
+                   local hbdata,cancollide = collisions.GenerateHitboxes(block,newpos)
+                   local loop = 0
+                   if not cancollide and CanCollideMatters then continue end 
+                   for i,v in hbdata do
+                    local newpos,newsize = v[2],v[1]
+                        local found = collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize)
+                        if found  then 
+                        return true,block,qf.combinetostring(bx,by,bz)
+                        end  
+                    end
+                end
+            end 
+        end 
+    end 
+end
+local rotationHitboxs = {
+    ["0,0,0"] = function(size)
+        return size
+    end,
+    ["1,0,0"] = function(size)
+        return vector3(size.X,size.Z,size.Y)  
+    end,
+    ["0,1,0"] = function(size)
+        return vector3(size.Z,size.Y,size.X)
+    end,
+    ["0,0,1"] = function(size)
+        return vector3(size.Y,size.X,size.Z)
+    end,
+    ["0,1,1"] = function(size)
+        return vector3(size.Z,size.X,size.Y)
+    end,
+    ["1,1,0"] = function(size)
+        return vector3(size.Y,size.Z,size.X)
+    end,
+}
+local function makeallrhitboxs()-- making this function feels wrong basicly it creates every possible rotation
+	-- 1,0,0 --> -1,0,0 --> 1,-0,0 --> 1,0,-0 --> -1,-0,0 --> -1,-0,-0 --> 1,-0,-0 
+	for i,v in rotationHitboxs do
+		local values = string.split(i,',')
+		for n =1,3 do
+			local c = table.clone(values)
+			c[n] = -tonumber(c[n])
+			rotationHitboxs[table.concat(c,',')] = v
+		end
+	end
+end
+makeallrhitboxs()
+function collisions.RotateHitBoxs(rotation,hitboxinfo)
+    if not rotation  then return hitboxinfo end 
+    local new = {}
+    for i,v in hitboxinfo do
+        new[i] = rotationHitboxs[rotation](v)
+    end
+    return new
+end
+function collisions.GetBlockHitBox(data)
+    local hitboxinfo = {}
+    local cancollide = true
+    if debris:GetItemData(data) then
+        hitboxinfo = debris:GetItemData(data)
+        cancollide = hitboxinfo.CanCollide
+    else
+        local data = qf.DecompressItemData(data,{"Type","Facing"})
+        local Type,Facing = data.Type,data.Facing
+        Type = Type or nil
+        local bdata = behavior.GetBlock(Type)
+        local hb = behavior.GetHbFromBlock(Type)
+        if hb then
+            if type(hb) == "table" then
+                hitboxinfo = hb
+            else
+                hitboxinfo = {{Size = hb}}
+            end
+        end
+        hitboxinfo['CanCollide'] = bdata.components.CanCollide 
+    end
+    debris:AddItem(data,hitboxinfo,60)
+    return hitboxinfo,cancollide
+end
+function collisions.GenerateHitboxes(data,position)
+    if data == 'Null' then
+        return {{Vector3.one,position}}
+    end
+    local hb = collisions.GetBlockHitBox(data)
+    local t = {}
+    local CanCollide = true
+    for i,v in hb do
+        if i == "CanCollide" then
+            CanCollide = v
+            continue
+        end
+        local size,offset = v.Size or Vector3.one,v.Offset or Vector3.zero
+        t[i] = {size,position + offset}
+    end
+    return t,CanCollide 
 end
 function  collisions.entityvsterrain(entity,velocity,IsRay)
     local oldv = velocity
@@ -118,172 +322,8 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
     end
     return  position,allnormal,bba
 end
-function collisions.GetBroadPhase(b1,s1,velocity)
-    b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
-    local position = vector3(
-        velocity.X >0 and b1.X or b1.X + velocity.X,
-        velocity.Y >0 and b1.Y or b1.Y + velocity.Y,
-        velocity.Z >0 and b1.Z or b1.Z + velocity.Z
-        )
-    local size = vector3(    
-        velocity.X >0 and velocity.X+s1.X or s1.X - velocity.X,
-        velocity.Y >0 and velocity.Y+s1.Y or s1.Y - velocity.Y,
-        velocity.Z >0 and velocity.Z+s1.Z or s1.Z - velocity.Z
-        )
-    return position,size
-end
-function collisions.AABBvsPoint(point:Vector3,b1,s1)
-    local min = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
-    local max = vector3(b1.X+s1.X/2,b1.Y+s1.Y/2,b1.Z+s1.Z/2)
-    return(
-        point.X >= min.X and
-        point.X <= max.X and 
-        point.Y >= min.Y and
-        point.Y <= max.Y and 
-        point.Z >= min.Z and
-        point.Z <= max.Z  
-    )
-end 
-function collisions.AABBcheck(b1,b2,s1,s2,isbp)
-    if  isbp == true then
-    else
-        b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
-    end
-    b2 = vector3(b2.X-s2.X/2,b2.Y-s2.Y/2,b2.Z-s2.Z/2)
-    return not (b1.X+s1.X < b2.X or 
-    b1.X>b2.X+s2.X or
-    b1.Y+s1.Y < b2.Y or 
-    b1.Y>b2.Y+s2.Y or                                     
-    b1.Z+s1.Z < b2.Z or 
-    b1.Z>b2.Z+s2.Z    )                             
-end
-local a = workspace.HitboxL
-function  HitboxL(x,y,z)  
-    a.Position = Vector3.new(x,y,z)*3 a.Anchored = true   
-end
-function b(x,y,z) local a = workspace.IDK a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true end 
-function c(x,y,z) local a = workspace.IDK:Clone() a.Parent = workspace a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true game:GetService("Debris"):AddItem(a,1) end 
-function  collisions.CalculateNormal(p1:Vector3,s1,p2,s2)
-    local d:Vector3 = p1-p2
-    local dx = d:Dot(vector3(1,0,0))
-    if dx > s2.X/2 then dx = s2.X/2 end
-    if dx < s2.X/2 then dx = -s2.X/2 end
-
-    local dy = d:Dot(vector3(0,1,0))
-    if dy > s2.Y/2 then dy = s2.Y/2 end
-    if dy < s2.Y/2 then dy = -s2.Y/2 end
-
-    local dz = d:Dot(vector3(0,0,1))
-    if dz > s2.Z/2 then dz = s2.Z/2 end
-    if dz < s2.Z/2 then dz = -s2.Z/2 end
-    local contactpoint:Vector3 = p2 + dx*vector3(1,0,0)+dy*vector3(0,1,0)+dz*(vector3(0,0,1))
-    local normal = (p1-contactpoint).Unit
-    return vector3(round(normal.X),round(normal.Y),round(normal.Z))
-end
-function collisions.shouldjump(entity,bp,bs)
-    local pos = entity.Position
-    local hitbox = entity.HitBox
-    local feetpos = pos.Y - hitbox.y/2 
-    local blockfeet = bp.Y - bs.Y/2
-    local jumpneeded = bs.Y -(feetpos - blockfeet)
-    local blockheight =  bp.Y + bs.Y/2
-    blockheight = vector3(bp.X,blockheight,bp.Z)
-    if jumpneeded > bs.Y or jumpneeded<= 0 then
-        return nil
-    end
-    if entity.MinStairHeight or .5 >= jumpneeded  then
-       -- print(blockheight)
-        return "Small",jumpneeded,blockheight
-    elseif 1 >= jumpneeded then
-        return "Full",jumpneeded,blockheight
-    end
-    return nil
-    
-end
-function collisions.AABBvsTerrain(position,hitbox,CanCollideMatters)
-    local min = vector3(
-        position.X-hitbox.X/2,
-        position.Y-hitbox.Y/2, 
-        position.Z-hitbox.Z/2   
-    )   
-   -- print(position.Z-hitbox.X,min.Z,(velocity.Z <0 and velocity.Z-.25 or 0) )
-    local max = vector3(
-        position.X+hitbox.X/2,
-        position.Y+hitbox.Y/2, 
-        position.Z+hitbox.Z/2   
-    ) 
-    local gridsize =.1
-    local whitelist = {}
-    for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
-        for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
-            for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
-                local block,coords = maindata.GetBlock(x,y,z,true)
-                if whitelist and whitelist[coords] then continue end
-                if block and block ~= "Null" then
-                    whitelist[coords] = true
-                    local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
-                    local bx,by,bz = unpack(coords:split(","))
-                    local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
-                    bx,by,bz = a.X,a.Y,a.Z
-                   local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
-                   local hbdata,cancollide = collisions.GenerateHitboxes(block,newpos)
-                   local loop = 0
-                   if not cancollide and CanCollideMatters then continue end 
-                   for i,v in hbdata do
-                    local newpos,newsize = v[2],v[1]
-                        local found = collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.Z),newsize)
-                        if found  then 
-                        return true,block,qf.combinetostring(bx,by,bz)
-                        end  
-                    end
-                end
-            end 
-        end 
-    end 
-end
-function collisions.GetBlockHitBox(data)
-    local hitboxinfo = {}
-    local cancollide = true
-    if debris:GetItemData(data) then
-        hitboxinfo = debris:GetItemData(data)
-        cancollide = hitboxinfo.CanCollide
-    else
-        local data = qf.DecompressItemData(data,{"Type","Facing"})
-        local Type,Facing = data.Type,data.Facing
-        Type,Facing = Type or nil, Facing or "Front"
-        local bdata = behavior.GetBlock(Type)
-        local hb = behavior.GetHbFromBlock(Type)
-        if hb then
-            if type(hb) == "table" then
-                hitboxinfo = hb
-            else
-                hitboxinfo = {{Size = hb}}
-            end
-        end
-        hitboxinfo['CanCollide'] = bdata.components.CanCollide 
-    end
-    debris:AddItem(data,hitboxinfo,60)
-    return hitboxinfo,cancollide
-end
-function collisions.GenerateHitboxes(data,position)
-    if data == 'Null' then
-        return {{Vector3.one,position}}
-    end
-    local hb = collisions.GetBlockHitBox(data)
-    local t = {}
-    local CanCollide = true
-    for i,v in hb do
-        if i == "CanCollide" then
-            CanCollide = v
-            continue
-        end
-        local size,offset = v.Size or Vector3.one,v.Offset or Vector3.zero
-        t[i] = {size,position + offset}
-    end
-    return t,CanCollide 
-end
 function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop,old)
-    local hitbox = entity.HitBox
+    local hitbox = entity.Hitbox
     local min = vector3(
         position.X-hitbox.X/2+(velocity.X <0 and velocity.X or 0)   ,
         position.Y-hitbox.Y/2+(velocity.Y <0 and velocity.Y or 0), 
@@ -496,7 +536,7 @@ end
 if RunService:IsClient() then return collisions end
 local Push = 0.3
 function collisions.entityvsentity(entity,entity2)
-    local h1,h2 = entity.HitBox,entity2.HitBox
+    local h1,h2 = entity.Hitbox,entity2.Hitbox
     if not entity["CanCollideWithEntities"] or not entity2["CanCollideWithEntities"] or entity:GetState('Dead') or entity2:GetState('Dead') then return end 
     if collisions.AABBcheck(entity.Position,entity2.Position,vector3(h1.X,h1.Y,h1.X),vector3(h2.X,h2.Y,h2.X)) then
         local p1,p2 = entity.Position,entity2.Position

@@ -164,7 +164,7 @@ function entity:UpdateHandSlot(slot)
     self.CurrentSlot = slot 
 end
 -- properties to keep same when updating entitys from the server (local player)
-entity.KeepSame = {"Position",'NotSaved',"Velocity",'HitBox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'VeiwMode','CurrentStates','Ingui','CurrentStates'}
+entity.KeepSame = {"Position",'NotSaved',"Velocity",'Hitbox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'VeiwMode','CurrentStates','Ingui','CurrentStates'}
 function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if table.find(entity.KeepSame,i) then continue end 
@@ -220,7 +220,7 @@ function entity:UpdateModelPosition()-- Updates the Eye positions etc
     if not ParentModel then return end 
     local model = ParentModel:FindFirstChild("EntityModel")
     if  model then 
-    ParentModel.PrimaryPart.Size = Vector3.new(self.HitBox.X,self.HitBox.Y,self.HitBox.X)*3
+    ParentModel.PrimaryPart.Size = Vector3.new(self.Hitbox.X,self.Hitbox.Y,self.Hitbox.X)*3
     local MiddleOffset = ParentModel.PrimaryPart.Size.Y-(ParentModel.PrimaryPart.Size.Y/2+model.PrimaryPart.Size.Y/2)
     local pos =ParentModel.PrimaryPart.Position 
     model.PrimaryPart.CFrame = CFrame.new(pos.X,pos.Y-MiddleOffset,pos.Z)
@@ -241,6 +241,7 @@ function entity:UpdatePosition(dt)
         local e = velocity
         velocity = (p2-self.Position)
         local newp = CollisionHandler.entityvsterrain(self,velocity)
+        local newp2 = newp
         local velocity2 = (newp-self.Position)
         local dir = newp - self.Position
         local length = 0
@@ -249,13 +250,14 @@ function entity:UpdatePosition(dt)
             local endp = maths.newPoint((self.Position+velocity).X,(self.Position+velocity).Z)
             local realp = maths.newPoint(newp.X,newp.Z)
             local xsidesame,ysidesame = qf.RoundTo(realp.x) == qf.RoundTo(endp.x),qf.RoundTo(realp.y) == qf.RoundTo(endp.y)
-            local clonede = {HitBox = self.HitBox}--self:CloneProperties()
+            local clonede = {Hitbox = self.Hitbox}--self:CloneProperties()
             o,realp =  o:Vector2(),realp:Vector2()
             local current = o
             local hit = false
             local last 
+            local randombool = false
             if xsidesame and ysidesame then
-                local v1 = (realp-current).Unit/10
+                local v1 = (realp-current).Unit/20
                 v1 = v1 ~= v1 and Vector2.zero or v1
                 local function checkandadd(noadd,c)
                     c = c or current
@@ -266,7 +268,7 @@ function entity:UpdatePosition(dt)
                     if not a then  hit = true return end 
                     last = current
                     current +=v1
-                    length += 1/10
+                    length += 1/20
                 end
                 checkandadd()
                 while length <= (o-realp).Magnitude and not hit do
@@ -292,7 +294,7 @@ function entity:UpdatePosition(dt)
                 local midpoint = dc:CalculatePointOfInt(maths.newLine(o,endp))
                 if midpoint then
                     midpoint = midpoint:Vector2()
-                    local v1 = (midpoint - o).Unit/10
+                    local v1 = (midpoint - o).Unit/20
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     local function checkandadd()
                         if hit then return end 
@@ -301,7 +303,7 @@ function entity:UpdatePosition(dt)
                         if not a then  hit = true return end 
                         last = current
                         current +=v1
-                        length +=1/5
+                        length +=1/20
                     end
                     checkandadd()
                     while length <= (midpoint - o).Magnitude and not hit do
@@ -309,7 +311,7 @@ function entity:UpdatePosition(dt)
                     end
                     current = midpoint
                     checkandadd()
-                    v1 = (realp-current).Unit/10
+                    v1 = (realp-current).Unit/20
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     checkandadd()
                     length = 0
@@ -327,7 +329,7 @@ function entity:UpdatePosition(dt)
                 local midpoint = dc:CalculatePointOfInt(maths.newLine(o,endp))
                 if midpoint then
                     midpoint = midpoint:Vector2()
-                    local v1 = (midpoint - o).Unit/10
+                    local v1 = (midpoint - o).Unit/20
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     local function checkandadd()
                         if hit then return end 
@@ -336,7 +338,7 @@ function entity:UpdatePosition(dt)
                         if not a then  hit = true return end 
                         last = current
                         current +=v1
-                        length +=1/5
+                        length +=1/20
                     end
                     checkandadd()
                     while length <= (midpoint - o).Magnitude and not hit do
@@ -344,7 +346,7 @@ function entity:UpdatePosition(dt)
                     end
                     current = midpoint
                     checkandadd()
-                    v1 = (realp-current).Unit/10
+                    v1 = (realp-current).Unit/20
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     checkandadd()
                     length = 0
@@ -358,7 +360,13 @@ function entity:UpdatePosition(dt)
                     end
                 end
             else 
+                randombool = true
             end 
+            if not randombool and not(newp-newp2):FuzzyEq(Vector3.zero,.001) then
+                clonede.Position = self.Position
+                clonede.Hitbox += Vector2.new(.01,0)
+             newp = CollisionHandler.entityvsterrain(clonede,(newp-self.Position))
+            end
         end
         if RunService:IsServer() then
          --   print(velocity.Magnitude,velocity2.Magnitude)
@@ -420,7 +428,7 @@ function entity:Crouch(letgo:boolean)
     self.Crouching = letgo
     if not letgo then dcby *= -1 end 
     self.Position += Vector3.new(0,-dcby/2,0)
-    self.HitBox = Vector2.new(self.HitBox.X, self.HitBox.Y-dcby)
+    self.Hitbox = Vector2.new(self.Hitbox.X, self.Hitbox.Y-dcby)
     self.EyeLevel = self.EyeLevel - dcby
     if letgo then
         self:PlayAnimation("Crouch")
@@ -893,7 +901,7 @@ function entity:OnDeath()
     local entitydata = resourcehandler.GetEntityFromData(self)
     local deathani = self:LoadAnimation("Death")
     if weld and not deathani then
-        ts:Create(weld,TweenInfo.new(.5),{C0 = weld.C0*CFrame.new(-model.HitBox.Size.Y/2,-model.HitBox.Size.Y/2,0)*CFrame.Angles(0,0,math.rad(90))}):Play()
+        ts:Create(weld,TweenInfo.new(.5),{C0 = weld.C0*CFrame.new(-model.Hitbox.Size.Y/2,-model.Hitbox.Size.Y/2,0)*CFrame.Angles(0,0,math.rad(90))}):Play()
     elseif deathani then
         deathani:Play()
         task.wait(deathani.Length * 0.99)
