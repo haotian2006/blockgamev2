@@ -202,7 +202,7 @@ local rotationHitboxs = {
         return vector3(size.Y,size.Z,size.X)
     end,
 }
-local function makeallrhitboxs()-- making this function feels wrong basicly it creates every possible rotation
+local function makeallrhitboxs()-- making this function feels wrong but basicly it creates every possible rotation
 	-- 1,0,0 --> -1,0,0 --> 1,-0,0 --> 1,0,-0 --> -1,-0,0 --> -1,-0,-0 --> 1,-0,-0 
 	for i,v in rotationHitboxs do
 		local values = string.split(i,',')
