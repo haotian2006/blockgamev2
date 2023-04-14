@@ -1,11 +1,11 @@
 local entity = {
-    ['Cubic:Item'] = {
+    ['C:Item'] = {
         ["description"] = {
             is_spawnable = false,
             is_summonable = false,
         }, 
         components ={
-            Name = "Cubic:Item",
+            Name = "C:Item",
             EyeLevel = .1,
             Hitbox = Vector2.new(0.25,0.25),
             DoGravity = true,

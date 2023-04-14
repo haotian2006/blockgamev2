@@ -37,10 +37,11 @@ self.Attributes.inventory = {
     Methods = { 
         add = function(self,Item,count)
             local count = count
-            local iteminfo = behhandler.GetItem(Item)
+            local itemname = qf.DecompressItemData(Item,'T') 
+            local iteminfo = behhandler.GetItem(itemname)
             if not iteminfo then return end 
             local max = iteminfo.maxCount
-            --local spliited = qf.DecompressItemData(Item,'Type') 
+            --local spliited = qf.DecompressItemData(Item,'T') 
             while count > 0 do
                 local i = self:find(Item,nil,true) or self:getEmpty()
                 if i then
@@ -60,7 +61,7 @@ self.Attributes.inventory = {
                         else
                             add = max 
                         end
-                        self[i] = {qf.CompressItemData({Type = Item}),add}
+                        self[i] = {Item,add}
                     end
                     count -= add
                 else
@@ -75,7 +76,7 @@ self.Attributes.inventory = {
         end,
         setAt = function(self,index,Itemdata,count)
             index = index or 1
-            local Item = qf.DecompressItemData(Itemdata,'Type') 
+            local Item = qf.DecompressItemData(Itemdata,'T') 
             local iteminfo = behhandler.GetItem(Item)
             if not iteminfo then return end 
             local max = iteminfo.maxCount
@@ -101,15 +102,18 @@ self.Attributes.inventory = {
                 Itemdata = old
                 count = c
             else
-                self[index] = {qf.CompressItemData({Type = Item}),count}
+                self[index] = {Itemdata,count}
                 count= 0
             end
             return Itemdata,count
         end,
-        find = function(self,Item,Id,CannotBeFull)
+        find = function(self,Item:string,Id,CannotBeFull)
             for i,v in self do
                 if type(v) == "table" then
-                    local spliited = qf.DecompressItemData(v[1],'Type') 
+                    local spliited = v[1]
+                    if not Item:find('T|') then
+                        spliited = qf.DecompressItemData(v[1],'T') 
+                    end
                     if spliited == Item then
                         if CannotBeFull and v[2] >= behhandler.GetItem(Item).maxCount then
                             continue

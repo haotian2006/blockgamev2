@@ -155,7 +155,7 @@ function entity:UpdateComponets(cpname,cpdata,IsFromcomp)
 end
 function entity:DropItem(name,count)
     local dir = self.headdir.Unit
-    local item = entity.Create('Cubic:Item',{Position = self:GetEyePosition(),Item = name,Count = count })
+    local item = entity.Create('C:Item',{Position = self:GetEyePosition(),Item = name,Count = count })
     self:GetData().AddEntity(item)
     item:KnockBack(Vector3.new(dir.X*3,dir.Y/1.2,dir.Z*3)+Vector3.new(0,.2,0),.2)
 end

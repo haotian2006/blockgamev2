@@ -2,7 +2,7 @@ local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local crt = behhandler.CreateComponent
 local Blocks = {
     
-    ['Cubic:Grass'] = {
+    ['C:Grass'] = {
         components = crt({
 
         }
@@ -13,7 +13,27 @@ local Blocks = {
             end
         }
     },
-    ['Cubic:Dirt'] = {
+    ['C:Dirt'] = {
+        components = crt({
+        }
+        ,'BlockComp'),
+        events ={
+            OnTouched = function(self,entity,side)
+                
+            end
+        }
+    },
+    ['C:Stone'] = {
+        components = crt({
+        }
+        ,'BlockComp'),
+        events ={
+            OnTouched = function(self,entity,side)
+                
+            end
+        }
+    },
+    ['C:Stair'] = {
         components = crt({
             Hitbox = "Stair"
         }
@@ -24,7 +44,7 @@ local Blocks = {
             end
         }
     },
-    ['Cubic:Stone'] = {
+    ['C:Slab'] = {
         components = crt({
             Hitbox = "Slab",
         }
@@ -35,7 +55,7 @@ local Blocks = {
             end
         }
     },
-    ['Cubic:Bedrock'] = {
+    ['C:Bedrock'] = {
         components = crt({
 
         }

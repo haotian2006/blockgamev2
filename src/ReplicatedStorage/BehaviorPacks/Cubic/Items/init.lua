@@ -1,5 +1,5 @@
 --[[
-['Cubic:x'] = { --Name
+['C:x'] = { --Name
         components= {
             maxCount = 64, -- max count
 
@@ -10,25 +10,25 @@ local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local crt = behhandler.CreateComponent
 local cit = behhandler.CreateItemType
 return{
-    ['Cubic:Dirt'] = cit(
+    ['C:Dirt'] = cit(
     {
         type = 'Block',
-        Block = 'Cubic:Dirt'
+        Block = 'C:Dirt'
     }),
-    ['Cubic:Grass'] = cit(
+    ['C:Grass'] = cit(
     {
         type = 'Block',
-        Block = 'Cubic:Grass'
+        Block = 'C:Grass'
     }),
-    ['Cubic:Stone'] = cit(
+    ['C:Stone'] = cit(
     {
         type = 'Block',
-        Block = 'Cubic:Stone'
+        Block = 'C:Stone'
     }),
-    ['Cubic:Bedrock'] = cit(
+    ['C:Bedrock'] = cit(
     {
         type = 'Block',
-        Block = 'Cubic:Bedrock'
+        Block = 'C:Bedrock'
     }),
     
 }

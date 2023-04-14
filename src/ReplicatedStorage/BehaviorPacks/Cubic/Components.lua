@@ -7,6 +7,7 @@ Components.BlockComp = {
     BlastResistance = 0,
     CanRotate = false,
     Hitbox = 'Normal',
+    Transparency = true,-- should blocks render behind 
 }
 Components.Inputs = {
     HoldTime = 0,

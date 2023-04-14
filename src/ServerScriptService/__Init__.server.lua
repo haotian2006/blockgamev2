@@ -15,7 +15,7 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 game.Players.PlayerAdded:Connect(function(player)
-    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"Type|s%Cubic:Dirt",64},[6] = {"Type|s%Cubic:Dirt",1},[2] = {"Type|s%Cubic:Grass",64},[3] = {"Type|s%Cubic:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 6.6, 10),ClientControll = tostring(player.UserId)})
+    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%C:Dirt",64},[6] = {"T|s%C:Dirt",1},[2] = {"T|s%C:Grass",64},[3] = {"T|s%C:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 6.6, 10),ClientControll = tostring(player.UserId)})
     data.AddEntity(entity)
 end)
 game.Players.PlayerRemoving:Connect(function(player)
@@ -27,7 +27,7 @@ game.ReplicatedStorage.Events.Respawn.OnServerEvent:Connect(function(player)
     for i,player in game.Players:GetPlayers() do
         UpdateClientEntities(player)
     end
-    local entity = entityahndler.Create("Player",{inventory = {AddTo = true,[1] = {"Type|s%Cubic:Dirt",64},[2] = {"Type|s%Cubic:Grass",64},[3] = {"Type|s%Cubic:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 6.6, 10),ClientControll = tostring(player.UserId)})
+    local entity = entityahndler.Create("Player",{inventory = {AddTo = true,[1] = {"T|s%C:Dirt",64},[2] = {"T|s%C:Grass",64},[3] = {"T|s%C:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 6.6, 10),ClientControll = tostring(player.UserId)})
     task.wait(.2)
     data.AddEntity(entity)
 end)
@@ -63,17 +63,21 @@ end)
 local ublock = bridge.CreateBridge("UpdateBlocks")
 bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:Vector3)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end 
-    local blocktr = qf.DecompressItemData(data.GetBlock(block.X,block.Y,block.Z),"Type")
-    if blocktr == "Cubic:Bedrock" then return end 
+    local blocktr = qf.DecompressItemData(data.GetBlock(block.X,block.Y,block.Z),"T")
+    if blocktr == "C:Bedrock" then return end 
     data.RemoveBlock(block.X,block.Y,block.Z)
     ublock:FireAll({Remove = {block}})
 end)
-bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
+bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1,ori)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end  
     
     local coords = coords1
     local plre = data.GetEntityFromPlayer(plr)
     local item = plre.HoldingItem or {}
+    item = qf.deepCopy(item)
+    if item[1] and ori then
+        item[1] ..= '/O|s%'..ori
+    end
     --print(item)
     if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z) and item[1] and resourcehandler.IsBlock(item[1]) and not data.GetBlock(coords.X,coords.Y,coords.Z) then 
         data.InsertBlock(coords.X,coords.Y,coords.Z,item[1])
@@ -82,7 +86,7 @@ bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1)
 end)
 game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvector)
     local plre = data.GetEntityFromPlayer(plr)
-    --plre:DropItem('Cubic:Dirt',1)
+    --plre:DropItem('C:Dirt',1)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end 
     local entity = data.GetEntity(id)
     if not entity or entity:GetState('Dead') then return end 

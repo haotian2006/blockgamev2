@@ -455,7 +455,7 @@ function qf.CompressItemData(data:table)
 end
 function qf.DecompressItemData(data:string,specificitems:table|string):table|ValueBase
     if type(data) ~= "string" then return data end  
-    --EX: 'Name|s%Cubic:dirt/Orientation|t%0,0,0/Position|0,0,0'
+    --EX: 'Name|s%C:dirt/Orientation|t%0,0,0/Position|0,0,0'
     --types: (s) = string, (t) = table, (n) = number ,(v3) = vector3
     -- (/) is like a comma (|) is the equal key in index = value (%) determines the type of the value default is string
     local is1 = false local spi = nil if type(specificitems) == "string" then spi = {} table.insert(spi,specificitems) is1 = true

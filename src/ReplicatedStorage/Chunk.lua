@@ -6,7 +6,7 @@ local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
 local multihandler = require(game.ReplicatedStorage.MultiHandler)
 Chunk.__index = Chunk
---block example: Name|Cubic:Grass
+--block example: Name|C:Grass
 local function round(x)return math.floor(x+.5)end
 function Chunk.new(cx,cz,data)
     if not cx or not cz then

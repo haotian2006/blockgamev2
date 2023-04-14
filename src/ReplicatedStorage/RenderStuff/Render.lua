@@ -116,7 +116,7 @@ function self.CreateBlock(v,ptouse)
     local p = ptouse or Instance.new("Part")
     p:ClearAllChildren()
     p.Material = Enum.Material.SmoothPlastic
-    local name = v.data.Type
+    local name = v.data.T
     for i,v in  self.GetTextures(name,v.data.AirBlocks) do
         v.Parent = p
     end
@@ -197,7 +197,7 @@ function self.render(cx,cz)
         p.Parent = folder
         table.remove(blocks,1)
         p.Material = Enum.Material.SmoothPlastic
-        local name = v.data.Type
+        local name = v.data.T
         for i,v in  self.GetTextures(name,v.data.AirBlocks) do
             v.Parent = p
         end

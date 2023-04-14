@@ -60,7 +60,7 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
         alreadychecked[wt][combined] = a
         return a
     end
-    --EX: 'Name|s%Cubic:dirt/Orientation|t%0,0,0/Position|0,0,0'
+    --EX: 'Name|s%C:dirt/Orientation|t%0,0,0/Position|0,0,0'
     local function checksurroundingblocks(x,y,z)
         local walls,ammount = IsAnBorder(x,y,z,chsiz)
         local check = 0

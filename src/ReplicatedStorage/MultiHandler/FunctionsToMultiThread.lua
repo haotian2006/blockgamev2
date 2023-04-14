@@ -74,7 +74,7 @@ function stuff.GenerateTerrain(M,data,cx,cz)
 			newdata[x..','..y..','..z] =  isblock or isair or nil
 			isblock = isblock or isair
 		end
-		--v = M.QuickFunctions.cv3type("vector3",i) 'Type|s%Cubic:Dirt'
+		--v = M.QuickFunctions.cv3type("vector3",i) 'T|s%C:Dirt'
 		--if index%500 == 0 then task.wait() end
     end
     return newdata

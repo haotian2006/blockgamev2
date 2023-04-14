@@ -46,7 +46,7 @@ function self:Init()
    -- print(self)
 end
 function self.IsBlock(data)
-    local type =  qf.DecompressItemData(data,"Type")
+    local type =  qf.DecompressItemData(data,"T")
     return self.GetBlock(type) and true or false   
 end
 function self.GetAsset(id)

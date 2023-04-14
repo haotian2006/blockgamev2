@@ -48,7 +48,7 @@ function generation.CreateBedrock(cx,cz,gtable):table
 	for x = 0,st.ChunkSize.X-1 do
 		for z = 0,st.ChunkSize.X-1 do
 			local combine = qf.cv3type("string",x,0,z)
-			gtable[combine] = 'Type|s%Cubic:Bedrock'
+			gtable[combine] = 'T|s%C:Bedrock'
 		end
 	end	
 	return gtable
@@ -59,11 +59,11 @@ function generation.Color(cx,cz,gtable):table
 		local self = gtable[combine]
 		local above = gtable[x..','..(y+1)..','..z]
 		if not above and self then
-			return 'Type|s%Cubic:Grass'
-		elseif (above == 'Type|s%Cubic:Grass' or not gtable[x..','..(y+3)..','..z]  ) and self  then
-			return 'Type|s%Cubic:Dirt'
+			return 'T|s%C:Grass'
+		elseif (above == 'T|s%C:Grass' or not gtable[x..','..(y+3)..','..z]  ) and self  then
+			return 'T|s%C:Dirt'
 		elseif self then
-			return'Type|s%Cubic:Stone'
+			return'T|s%C:Stone'
 		end
 	end
 	for y = st.ChunkSize.Y-1,0,-1 do

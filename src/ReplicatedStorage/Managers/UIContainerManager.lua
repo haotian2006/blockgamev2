@@ -18,7 +18,7 @@ UpdateHolding:Connect(function(player,index,amt)
     local pinv = plr.inventory
     if plr and pinv then
         plr.Container = plr.Container or {}
-        if plr.Container.HoldingItem then
+        if plr.Container.HoldingItem and index then
             local name,amount = plr.Container.HoldingItem[1],plr.Container.HoldingItem[2]
             if amt and name ~= plr.inventory[index][1] and plr.inventory[index] ~= '' then return end 
             if not amt then amt = amount end 
@@ -32,7 +32,7 @@ UpdateHolding:Connect(function(player,index,amt)
               plr.Container.HoldingItem = {item,left}
            
            end
-        elseif pinv[index] ~= '' then
+        elseif pinv[index] ~= '' and index then
             local name,amount = pinv[index][1],pinv[index][2]
             if amt and amount > 1 then
                 amount = math.round(amount/2)
@@ -41,7 +41,9 @@ UpdateHolding:Connect(function(player,index,amt)
                 pinv[index]= ''
             end
             plr.Container.HoldingItem = {name,amount}
-
+        elseif not index and plr.Container.HoldingItem and plr.Container.HoldingItem[1] then
+            pinv:add(plr.Container.HoldingItem[1],plr.Container.HoldingItem[2])
+            plr.Container.HoldingItem = nil
         end
     end
 end)
@@ -118,7 +120,7 @@ end
             local item = PEntity().Container.HoldingItem 
             if type(item) =="table" then
                 amt = item[2]
-                inframe.name.Text = qf.DecompressItemData(item[1],'Type')
+                inframe.name.Text = qf.DecompressItemData(item[1],'T')
             else
                 inframe.name.Text = ""
             end
@@ -143,7 +145,18 @@ end
             c.HoverFrame.Parent = script
          end
     elseif c.HoverFrame and not c.HoverFrame.Parent == script then
+        c.Uis['HoldingFrame'].Enabled = false
         c.HoverFrame.Parent = script
+        if PEntity().Container.HoldingItem then
+            UpdateHolding:Fire(nil)
+        end
+    elseif PEntity() and not PEntity().Ingui then
+        if c.Uis['HoldingFrame'] then
+            c.Uis['HoldingFrame'].Enabled = false
+        end
+        if PEntity().Container and PEntity().Container.HoldingItem then
+            UpdateHolding:Fire(nil)
+        end
     end
 end)
 c.enableUis = function(name)

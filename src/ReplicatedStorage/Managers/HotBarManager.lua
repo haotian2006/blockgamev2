@@ -38,7 +38,7 @@ function manager.UpdateOne(index)
     local amt = 0
     if type(item) =="table" then
         amt = item[2]
-        frame.Text = qf.DecompressItemData(item[1],'Type')
+        frame.Text = qf.DecompressItemData(item[1],'T')
     else
         frame.Text = ""
     end

@@ -214,11 +214,33 @@ local function makeallrhitboxs()-- making this function feels wrong but basicly 
 	end
 end
 makeallrhitboxs()
+function collisions.ConvertToCFrame(str:string)
+    local function convert(x)
+        if x == '0' then
+            x = 0
+        elseif x == '-0' then
+            x = 180
+        elseif x == '1' then
+            x = 90
+        elseif x == '-1' then
+            x = -90
+        else 
+            x = 0
+        end
+        return math.rad(tonumber(x) or 0)
+    end
+    local x,y,z = unpack(str:split(','))
+    return CFrame.fromOrientation(convert(x),convert(y),convert(z))
+
+end
 function collisions.RotateHitBoxs(rotation,hitboxinfo)
     if not rotation  then return hitboxinfo end 
     local new = {}
+    local crotation = collisions.ConvertToCFrame(rotation)
     for i,v in hitboxinfo do
-        new[i] = rotationHitboxs[rotation](v)
+        if i == 'CanCollide' then continue end 
+        new[i] = {Size = rotationHitboxs[rotation](v.Size),Offset = (crotation*CFrame.new(v.Offset or Vector3.zero)).Position}
+
     end
     return new
 end
@@ -229,8 +251,8 @@ function collisions.GetBlockHitBox(data)
         hitboxinfo = debris:GetItemData(data)
         cancollide = hitboxinfo.CanCollide
     else
-        local data = qf.DecompressItemData(data,{"Type","Facing"})
-        local Type,Facing = data.Type,data.Facing
+        local data = qf.DecompressItemData(data,{"T","O"})
+        local Type,Ori = data.T,data.O
         Type = Type or nil
         local bdata = behavior.GetBlock(Type)
         local hb = behavior.GetHbFromBlock(Type)
@@ -241,7 +263,11 @@ function collisions.GetBlockHitBox(data)
                 hitboxinfo = {{Size = hb}}
             end
         end
+        if Ori then
+            hitboxinfo = collisions.RotateHitBoxs(Ori,hitboxinfo)
+        end
         hitboxinfo['CanCollide'] = bdata.components.CanCollide 
+        cancollide = bdata.components.CanCollide 
     end
     debris:AddItem(data,hitboxinfo,60)
     return hitboxinfo,cancollide
@@ -372,7 +398,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                             normal = newnormal1
                             end
                             local a,b,c = collisions.shouldjump(entity,newpos,newsize)
-                            if not needed or c.Y >=maxheight.Y  then
+                            if a and (not needed or c.Y >=maxheight.Y ) then
                                 typejump, needed,maxheight = a,b,c
                             end
                          end
@@ -537,7 +563,7 @@ if RunService:IsClient() then return collisions end
 local Push = 0.3
 function collisions.entityvsentity(entity,entity2)
     local h1,h2 = entity.Hitbox,entity2.Hitbox
-    if not entity["CanCollideWithEntities"] or not entity2["CanCollideWithEntities"] or entity:GetState('Dead') or entity2:GetState('Dead') then return end 
+    if not entity["CanCollideWithEntities"] or not entity2["CanCollideWithEntities"] or entity:GetState('Dead') or entity2:GetState('Dead')  then return end 
     if collisions.AABBcheck(entity.Position,entity2.Position,vector3(h1.X,h1.Y,h1.X),vector3(h2.X,h2.Y,h2.X)) then
         local p1,p2 = entity.Position,entity2.Position
         local x,z = p1.X - p2.X,p1.Z - p2.Z

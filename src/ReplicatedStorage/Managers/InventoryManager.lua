@@ -50,7 +50,7 @@ function manager.UpdateOne(index)
     inframe.Parent = frame
     if type(item) =="table" then
         amt = item[2]
-        inframe.name.Text = qf.DecompressItemData(item[1],'Type')
+        inframe.name.Text = qf.DecompressItemData(item[1],'T')
     else
         inframe.name.Text = ""
     end

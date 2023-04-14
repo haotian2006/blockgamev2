@@ -13,6 +13,8 @@ local debugger = require(game.ReplicatedStorage.Libarys.Debugger)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local managers = require(game.ReplicatedStorage.Managers)
+local math = require(game.ReplicatedStorage.Libarys.MathFunctions)
+
 local hotbarhandler = managers.HotBarManager
 local playerdollmanager = managers.PlayerDollHandler
 local InventoryManager = managers.InventoryManager:Init()
@@ -189,13 +191,53 @@ function func.Interact()
             --print(v.Normal)
             if  v.Type == "Block" then
                 local coords = v.BlockPosition+v.Normal
+                local hitpos = v.PointOfInt
                 local item = localentity().HoldingItem or {}
                 --print(item)
-                if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z) and item[1] and ResourceHandler.IsBlock(item[1]) then 
+                local orientation = nil
+                do
+                    orientation = {0,0,0}
+                    local direaction = camera.CFrame.LookVector
+                    local angle = math.GetAngleDL(direaction) 
+                    local dx = math.abs(direaction.X)
+                    local dz = math.abs(direaction.Z)
+                    if dx < dz then
+                        dx = 0
+                        dz = direaction.Z / dz
+                     else
+                        dz = 0
+                        dx = direaction.X/dx
+                     end
+                    -- print(direaction.X,dx,dz)
+                     if dx == -1 or dx == 1 then
+                        orientation[2] = dx
+                     end
+                     if dz == -1 then
+                        orientation[2] = '-0'
+                     elseif  dz == 1 then
+                        orientation[3] = 0
+                     end
+                     if hitpos.Y >  coords.Y then 
+                        orientation[3] = '-0'
+                    else
+                    end
+                   -- print(angle)
+                    if angle >=-40 and angle <= - 39 then
+                        --orientation[1] = 1
+                    elseif angle >= 39 and angle <=  40 then
+                       -- orientation[1] = -1
+                    end
+                    orientation = (orientation[1]..','..orientation[2]..','..orientation[3])
+                    --print(orientation)
+                    if orientation == '0,0,0' then 
+                        orientation =nil
+                    end
+                end
+                if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z,data) and item[1] and ResourceHandler.IsBlock(item[1]) then 
                     data.InsertBlock(coords.X,coords.Y,coords.Z,item[1])
                     localentity():PlayAnimation("Place",true)
                     ArmsHandler.PlayAnimation('Attack',true)
-                    placeBlockEvent:Fire(coords)
+                    placeBlockEvent:Fire(coords,orientation)
                 end
             elseif v.Type == "Entity"  then
             
@@ -217,8 +259,8 @@ function func.Attack()
         for i,v in raystuff.Objects do
             if  v.Type == "Block" then
                 local block = v.BlockPosition
-                local blocktr = qf.DecompressItemData(data.GetBlock(block.X,block.Y,block.Z),"Type")
-                if blocktr == "Cubic:Bedrock" then return end 
+                local blocktr = qf.DecompressItemData(data.GetBlock(block.X,block.Y,block.Z),"T")
+                if blocktr == "C:Bedrock" then return end 
                 data.RemoveBlock(block.X,block.Y,block.Z)
                 destroyblockEvent:Fire(block)
             elseif v.Type == "Entity"  then

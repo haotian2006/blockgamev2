@@ -108,7 +108,7 @@ function self.RemoveBlock(x,y,z)
     end
     return chunk
 end
-function self.canPlaceBlockAt(X,Y,Z,block)
+function self.canPlaceBlockAt(X,Y,Z,block) 
     if self.GetBlock(X,Y,Z) then return end
     for i,v in self.EntitiesinR(X,Y,Z,1.5) or {} do
         local a = require(game.ReplicatedStorage.CollisonHandler).AABBcheck(v.Position+v:GetVelocity()*task.wait(),Vector3.new(X,Y,Z),Vector3.new(v.Hitbox.X,v.Hitbox.Y,v.Hitbox.X),Vector3.new(1,1,1))

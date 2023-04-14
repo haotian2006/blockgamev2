@@ -105,4 +105,8 @@ end
 function maths.PosToNegative(dt)
     return (dt-180)
 end
+function maths.GetAngleDL(originalRayVector)
+    local new = Vector3.new(1,originalRayVector.Y,1)
+    return math.deg(math.atan(new.Unit:Dot(Vector3.new(1,0,1).Unit)))*(originalRayVector.Y/math.abs(originalRayVector.Y))
+end
 return maths
