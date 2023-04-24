@@ -6,6 +6,12 @@ local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
 local multihandler = require(game.ReplicatedStorage.MultiHandler)
 Chunk.__index = Chunk
+Chunk.__tostring = function(self)
+    return self:GetNString()
+end
+Chunk.__call = function(self)
+    return self:GetNTuple()
+end
 --block example: Name|C:Grass
 local function round(x)return math.floor(x+.5)end
 function Chunk.new(cx,cz,data)
@@ -23,6 +29,7 @@ function Chunk.new(cx,cz,data)
     ch.Chunk = Vector2.new(cx,cz)
     ch.Generating = false
     ch.RenderedBlocks = {}
+    ch.Changed = data and  (data.Changed ~= false and true or false)
     -- if cx == -1 and cz == 1 then
     --     task.spawn(function()
     --         while task.wait(1) do
@@ -33,8 +40,17 @@ function Chunk.new(cx,cz,data)
     return ch
 end
 function Chunk:AddToLoad(stuff)
-    for i,v in stuff do
-        self.ToLoad[i] = v
+    self.Changed = true
+    if  self.Setttings.Generated  then
+        for i,v in stuff do
+            local t = i:split(',')
+            if tonumber(t[2]) <=0 then continue end  
+            self.Blocks[i] = v
+        end
+    else
+        for i,v in stuff do
+            self.ToLoad[i] = v
+        end
     end
 end
 function Chunk:GetBlock(x,y,z,islocal)--realpos
@@ -55,11 +71,13 @@ function Chunk:RemoveBlock(x,y,z,useGrid)
         x,y,z =  round(x)%settings.ChunkSize.X,round(y),round(z)%settings.ChunkSize
     end
     self.Blocks[x..','..y..','..z] = nil
+    self.Changed = true
 end
 function Chunk:InsertBlock(x,y,z,bdata,useGrid)
     if useGrid then
         x,y,z =  round(x)%settings.ChunkSize.X,round(y),round(z)%settings.ChunkSize
     end
+    self.Changed = true
     self.Blocks[x..','..y..','..z] = bdata
 end
 function  Chunk:GetEdge(dir)
@@ -106,10 +124,11 @@ function Chunk:GetNTuple():IntValue|IntValue
     return self.Chunk.X,self.Chunk.Y
 end
 function Chunk:SetData(which,data)
+    self.Changed = true
     self[which] = data
 end
 function Chunk:Destroy()
     setmetatable(self, nil) self = nil
 end
 if runservice:IsClient() then return Chunk end
-return Chunk
+return Chunk 

@@ -52,14 +52,14 @@ end
 function self.GetLocalPlayer()
     return self.LocalPlayer.Entity and next(self.LocalPlayer) ~= nil and self.LocalPlayer
 end
-function self.EntitiesinR(x,y,z,r,ConvertToClient )
+function self.EntitiesinR(x,y,z,r,ConvertToClient,interval )
     x,y,z,r = x or 0, y ,z or 0 ,r or 0
     local vector = Vector3.new(x,y or 0,z)
     local entitys = {}
     for i,v in self.LoadedEntities do
         if not y then vector = Vector3.new(x,v.Position.Y,z) end 
         if (v.Position - vector).Magnitude <= r then
-            entitys[i] = not ConvertToClient and v or v:ConvertToClient(ConvertToClient)
+            entitys[i] = not ConvertToClient and v or v:ConvertToClient(ConvertToClient,interval)
         end
     end
     return entitys
@@ -68,7 +68,7 @@ function self.loadEntitys(chunk)
     for i,v in chunk.Entities do
         self.AddEntity(i,v)
     end
-end
+end 
 function self.GetChunk(cx,cz,create)
     if not self.LoadedChunks[cx..','..cz] and create then
         self.CreateChunk(nil,cx,cz)
@@ -106,7 +106,7 @@ function self.RemoveBlock(x,y,z)
     if chunk then
         chunk:RemoveBlock(lx,ly,lz)
     end
-    return chunk
+    return chunk 
 end
 function self.canPlaceBlockAt(X,Y,Z,block) 
     if self.GetBlock(X,Y,Z) then return end

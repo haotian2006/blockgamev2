@@ -44,19 +44,6 @@ function qf.deepCopy(original)
     end
     return copy
   end
-function qf.Find3rdPointOnTri(B:Vector3,C:Vector3,hyplength):Vector3  
-    local inverted = false
-    if B.Z == C.Z then
-        inverted = true
-        local bx,cx = B.X,C.X
-        B.X,C.X = B.Z,C.Z
-        B.Z, C.Z = bx,cx
-    end
-    local opp = B.Z-C.Z
-    -- a^2+b^2 = c^2
-    local adj = math.sqrt(hyplength^2-opp^2)
-    local a = Vector3.new(C.X,0,C.Z)
-end
 function qf.GetFolder(x,y)
     return game.Workspace.Chunks:FindFirstChild(x..','..y)
 end

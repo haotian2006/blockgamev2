@@ -4,6 +4,7 @@ local qf = require(game.ReplicatedStorage.QuickFunctions)
 local mulitthread = require(game.ReplicatedStorage.MultiHandler)
 local gridsize = gs.GridSize
 local delayh = require(game.ReplicatedStorage.Libarys.DelayHandler)
+local reh = require(game.ReplicatedStorage.ResourceHandler)
 local function findintable(tab,x,y,z)
    if tab[x] and tab[x][y] and tab[x][y][z]   then
        return tab[x][y][z] 
@@ -46,10 +47,11 @@ function  greedy.meshtable(tabletodemesh)
    local old = 0
    local c = 0
    tabletodemesh = mulitthread.GlobalGet("DecompressItemData",tabletodemesh,5)
+   local unabletomeshblocks = {}
    for i,v in tabletodemesh do
        if not v then continue end
        old+=1
-       local x,y,z = qf.cv3type("tuple",i)--unpack(i:split(","))
+       local x,y,z = unpack(i:split(","))
        x,y,z = tonumber(x),tonumber(y),tonumber(z)
        if startx == nil then
            startx = x
@@ -59,9 +61,13 @@ function  greedy.meshtable(tabletodemesh)
            endy = y
            endz = z
        end
-       D3[x] = D3[x] or {}
-       D3[x][y] = D3[x][y] or {}
-       D3[x][y][z] = v
+       if reh.GetBlock(v.T) and reh.GetBlock(v.T).Mesh then
+        unabletomeshblocks[x..','..y..','..z] = v
+       else
+        D3[x] = D3[x] or {}
+        D3[x][y] = D3[x][y] or {}
+        D3[x][y][z] = v
+       end
        if x >=endx then
            endx = x
        end
@@ -91,7 +97,7 @@ function  greedy.meshtable(tabletodemesh)
         local d1 = findintable(D3,x,y,z)
         local d2 = findintable(D3,xx,yy,zz)
         if d1 and d2 then
-            if d1.T ~= d2.T or d1.AirBlocks[1] ~= d2.AirBlocks[1] then
+            if d1.T ~= d2.T or d1.AirBlocks[1] ~= d2.AirBlocks[1] or d1.O ~= d2.O then
                 return false
             end
         end
@@ -154,7 +160,7 @@ function  greedy.meshtable(tabletodemesh)
            local c = new[rx..','..ry..','..rz]
            if c and c.w == w and c.l == l and c.h == h 
            and c.data.T == info.data.T
-           and c.data.AirBlocks[1] == info.data.AirBlocks[1] then
+           and c.data.AirBlocks[1] == info.data.AirBlocks[1]  and c.data.O == info.data.O then
                if currentdir == -1 then
                    sx = c.startx
                    sz = c.startz
@@ -195,6 +201,6 @@ function  greedy.meshtable(tabletodemesh)
        end
    end
    df:update("A")
-   return cc
+   return cc,unabletomeshblocks,unabletomeshblocks
 end
 return greedy

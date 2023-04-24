@@ -35,7 +35,10 @@ local Blocks = {
     },
     ['C:Stair'] = {
         components = crt({
-            Hitbox = "Stair"
+            Hitbox = "Stair",
+            Transparency = true,
+            RotateY = true,
+            RotateZ = true
         }
         ,'BlockComp'),
         events ={
@@ -47,6 +50,9 @@ local Blocks = {
     ['C:Slab'] = {
         components = crt({
             Hitbox = "Slab",
+            Transparency = true,
+            RotateZ = true
+            
         }
         ,'BlockComp'),
         events ={
@@ -58,6 +64,19 @@ local Blocks = {
     ['C:Bedrock'] = {
         components = crt({
 
+        }
+        ,'BlockComp'),
+        events ={
+            OnTouched = function(self,entity,side)
+                
+            end
+        }
+    },
+    DebugPart = {
+        components = crt({
+            RotateY = true,
+            RotateZ = true,
+            RotateX = true
         }
         ,'BlockComp'),
         events ={

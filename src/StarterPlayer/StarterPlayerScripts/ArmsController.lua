@@ -9,6 +9,8 @@ local entityhandler = require(game.ReplicatedStorage.EntityHandler)
 local lp = game.Players.LocalPlayer
 local localentity = data.GetLocalPlayer
 local camera = game.Workspace.CurrentCamera
+local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
+local qf =  require(game.ReplicatedStorage.QuickFunctions)
 function  self.renderarmitem(dt)
     local entity = localentity()
     local armsframe = self.GetArmsframe()
@@ -24,24 +26,82 @@ function  self.renderarmitem(dt)
     local origaw = resource.GetEntityModelFromData(self.Arms).Body["Right Arm"]
     if Item[1] and Item ~= '' then
         attachment:ClearAllChildren()
-        local item = Instance.new("Part")
-        item.Size = Vector3.new(1,.1,1)
-        item.Parent = attachment
-        item.Name = Item[1]
-        item.Material = Enum.Material.SmoothPlastic
-        local surfacegui = Instance.new('Decal',item)
-        surfacegui.Face = Enum.NormalId.Top
-        surfacegui.Texture = "http://www.roblox.com/asset/?id=12571457917"
-        local a = surfacegui:Clone()
-        a.Parent = item
-        a.Face = Enum.NormalId.Bottom
-        local weld = item:FindFirstChild("HandleAttach") or Instance.new("Motor6D")
-        weld.Name = "HandleAttach"
-        weld.Part0 = attachment.Parent
-        weld.Part1 = item
-        weld.C0 = attachment.CFrame*CFrame.new(0,0,-0.5)*CFrame.Angles(0,math.rad(180),0)
-        weld.Parent = item
-        attachment.Parent.LocalTransparencyModifier = 1
+        local function  createPlaceHolder()
+            local item = Instance.new("Part")
+            item.Size = Vector3.new(1,.1,1)
+            item.Parent = attachment
+            item.Name = Item[1]
+            item.Material = Enum.Material.SmoothPlastic
+            local surfacegui = Instance.new('Decal',item)
+            surfacegui.Face = Enum.NormalId.Top
+            surfacegui.Texture = "http://www.roblox.com/asset/?id=12571457917"
+            local a = surfacegui:Clone()
+            a.Parent = item
+            a.Face = Enum.NormalId.Bottom
+            local weld = item:FindFirstChild("HandleAttach") or Instance.new("Motor6D")
+            weld.Name = "HandleAttach"
+            weld.Part0 = attachment.Parent
+            weld.Part1 = item
+            weld.C0 = attachment.CFrame*CFrame.new(0,0,-0.5)*CFrame.Angles(0,math.rad(180),0)
+            weld.Parent = item
+            return item
+        end
+        local function createitem()
+            local sides = {Right = true,Left = true,Top = true,Bottom = true,Back = true,Front =true}
+            local name = qf.DecompressItemData(Item[1],'T')
+            local itemdata = resourcehandler.GetItem(name) 
+            if itemdata  then
+                local stuff = {}
+                local texture = itemdata.Texture
+                local mesh = type(itemdata.Mesh ) == "table" and itemdata.Mesh.Mesh or itemdata.Mesh 
+                if not mesh then return end 
+                mesh = mesh:Clone()
+                if type(itemdata.Mesh ) == "table" then
+                    for i,v in itemdata.Mesh do
+                        if i == "Mesh" then continue end 
+                        mesh[i] = v
+                    end
+                end
+                if texture then
+                    if type(texture) == "table" then
+                        for i,v in texture do
+                                table.insert(stuff,require(game.ReplicatedStorage.RenderStuff.Render).CreateTexture(v,i))
+                        end
+                    elseif type(texture) == "userdata" then
+                        for v in sides do
+                            table.insert(stuff,require(game.ReplicatedStorage.RenderStuff.Render).CreateTexture(texture,v))
+                        end
+                    end
+                end
+                for i,v in stuff do
+                    v.Parent = mesh
+                end
+                mesh.Parent = attachment
+                mesh.Name = Item[1]
+                local handle = mesh:FindFirstChild("Handle",true) or mesh 
+                local weld = mesh:FindFirstChild("HandleAttach",true) or Instance.new("Motor6D")
+                weld.Name = "HandleAttach"
+                weld.Part0 = attachment.Parent
+                weld.Part1 = mesh
+                weld.C0 = attachment.CFrame
+                weld.C1 = handle.CFrame
+                weld.Parent = mesh
+                return mesh,itemdata
+            end
+        end
+        local item,id = createitem() or createPlaceHolder()
+        id = id or {}
+        if not id.RenderHand then
+            attachment.Parent.LocalTransparencyModifier = 1
+        end
+        for i,v in item.Parent:GetDescendants() do
+            if v:IsA("BasePart") then
+                v.Anchored = false 
+                if localentity().ViewMode == "First" then v.LocalTransparencyModifier = 1 end 
+            elseif v:IsA("Decal") or v:IsA("Texture") then
+                if self.ViewMode == "First" then v.Transparency = 1 end 
+            end
+        end
         if not retracted.Value then
             retracted.Value = true
             aw.C0 = origaw.C0*CFrame.new(1,-1.6,-3) *CFrame.Angles(math.rad(90),0,math.rad(20))

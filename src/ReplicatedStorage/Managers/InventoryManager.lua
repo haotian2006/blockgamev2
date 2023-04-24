@@ -19,6 +19,7 @@ manager.Frame = nil
 manager.LastInventory = nil
 manager.Doll = nil
 manager.iframes = {}
+manager.OtherFrames = {}
 function manager.UpdateHotbarF()
     local inv = PEntity().inventory.Data
     local HBFrame = manager.Frame:FindFirstChild('HotBar',true)
@@ -114,10 +115,31 @@ function manager.UpdateFrame()
             manager.LastInventory = PEntity().inventory:Clone()
         end
     end
+    for c,v in  manager.OtherFrames do
+        for id, frame in v do
+            if PEntity().Container and PEntity().Container[c] then
+                local c = PEntity().Container[c] or {}
+                -- if frame.Name == "Container.Crafting.Output" then 
+                --     print(c,c[id],id)
+                -- end
+                Manager.UIContainerManager.UpdateOne(frame,c[id] or "")
+            end
+        end
+    end
 end
 function manager:Init()
     manager.Frame = Manager.UIContainerManager.GetUI('InventoryFrame')
     manager.Frame.Enabled = false
+    for i,v in manager.Frame:GetDescendants()do
+        local i = v.Name
+        local splitted =i:split('.')
+        if splitted[1] == "Container" and splitted[2] and splitted[2]:lower() ~= "inventory" and splitted[3] then
+            splitted[2] = splitted[2]:lower()
+            manager.OtherFrames[splitted[2]] = manager.OtherFrames[splitted[2]] or {}
+            manager.OtherFrames[splitted[2]][(tonumber(splitted[3]) or splitted[3])] = v
+        end
+
+    end
     -- if manager.Frame:FindFirstChild('PlayerDoll',true) then
     --     local doll = Manager.PlayerDollHandler.new(manager)
     --     doll:Update()

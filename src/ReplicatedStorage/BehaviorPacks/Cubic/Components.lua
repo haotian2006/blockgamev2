@@ -7,14 +7,17 @@ Components.BlockComp = {
     BlastResistance = 0,
     CanRotate = false,
     Hitbox = 'Normal',
-    Transparency = true,-- should blocks render behind 
+    Transparency = false,-- should blocks render behind 
+    RotateX = false,
+    RotateY = false,
+    RotateZ = false,
 }
 Components.Inputs = {
     HoldTime = 0,
     AlsoHold = {},
     HasToLetGo = false,
     Trigger = nil
-}
+} 
 Components.PlaceBlock = {
     Block = "self.HoldingItem",
     At = 'Hit.Position',

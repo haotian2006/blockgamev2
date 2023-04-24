@@ -3,12 +3,14 @@ local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local bridgeNet = require(game.ReplicatedStorage.BridgeNet)
 local HarmEvent = bridgeNet.CreateBridge('OnEntityHarmed')
 local settings = require(game.ReplicatedStorage.GameSettings)
+local data = require(game.ReplicatedStorage.DataHandler)
 local EAC = require(game.ServerStorage.EntityAttributesCreator)
+local qf = require(game.ReplicatedStorage.QuickFunctions)
 entity.ServerOnly = {
     "ServerOnly","Data"
 }
 entity.OwnerOnly = {
-    "inventory" 
+    "inventory" ,"Velocity","BodyVelocity"
 }
 function deepCopy(original)
     local copy = {}
@@ -161,38 +163,104 @@ function entity:DropItem(name,count)
 end
 function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
-    local ServerOnlyChanges = {Position = true,headdir = true,bodydir = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,VeiwMode = true,CurrentStates = true,Ingui = true,CurrentStates = true}
-    for i,v in self.ServerOnly.ClientChanges or {} do
-        ServerOnlyChanges[i] = v
-    end
+    local oldingui = self.Ingui
+    local ServerOnlyChanges= self:GetServerChanges()
     for i,v in newdata do
         if ServerOnlyChanges[i] then
             self[i] = v
         end
     end
+    if oldingui and not self.Ingui then
+        require(game.ReplicatedStorage.Managers.UIContainerManager).OnCloseGui(self)
+    end
     local index = self.CurrentSlot or 1
     local inventory = self.inventory or {}
     self.HoldingItem = inventory[index] or {}
 end
-function entity:ConvertToClient(player)
-    local new = {}
-    local HasOwnerShip = player and self.ClientControll == tostring(player.UserId)
+data.OldData = {interval = 0}
+function finddiffrences(t1,t2,c)
+    c = c or {}
+    if type(t1) == "table" and type(t2) == "table" then
+        local checkedindexs = {}
+        for i,v in t1 do
+            checkedindexs[i] = true
+            if not qf.CompareTables(v,t2[i]) then
+                table.insert(c,i)
+            end
+        end
+        for i,v in t2 do
+            if checkedindexs[i] then continue end
+            if not qf.CompareTables(v,t1[i]) then
+                table.insert(c,i)
+            end
+        end
+    else 
+        return not t1 == t2
+    end
+    return #c ~= 0 and c 
+end
+function entity:ConvertToClient(player,inteval)
+    local new = {Container = {}}
+    local found =  not table.find(data.loadedentitysforplayer[tostring(player.UserId)] or {},self.Id)
+    if data.OldData.interval ~= inteval or  found or tostring(player.UserId) == self.Id  then
+    local HasOwnerShip = player and self.ClientControl == tostring(player.UserId)
+    local old = not found and rawget(self,'old') or {}
+    local d = finddiffrences(old,self) or {}
+    --if self.Id == "Npc1" then print(table.concat(data.loadedentitysforplayer[tostring(player.UserId)] or {},'/')) end 
     for i,v in self do
-        if type(v) ~="function" and not table.find(entity.ServerOnly,i) and (not table.find(entity.OwnerOnly,i) or  HasOwnerShip)  then
+        if i == "Container" then continue end 
+        if type(v) ~="function" and not table.find(entity.ServerOnly,i) and (not table.find(entity.OwnerOnly,i) or  HasOwnerShip) and table.find(d,i)  then
             if type(v) =="table" and not v["ServerOnly"] then
-                new[i] = deepCopy(v)
+                if v.Type == "EntityAttribute" then
+                    new[i] = v:Sterilize()
+                else
+                    new[i] = deepCopy(v)
+                end
             else
                 new[i] = v
             end
         end
     end
+    if HasOwnerShip then 
+        for i,v in self.Container or {} do
+            if type(v) ~="function" and not table.find(entity.ServerOnly,i) and (not table.find(entity.OwnerOnly,i) or  HasOwnerShip)  then
+                if type(v) =="table" and not v["ServerOnly"] then
+                    if v.Type == "EntityAttribute" then
+                        new.Container[i] = v:Sterilize()
+                    else
+                        new.Container[i] = deepCopy(v)
+                    end
+                else
+                    new.Container[i] = v
+                end
+            end
+        end
+    end
     new.CurrentHandItem = self:GetItemFromSlot(self.CurrentSlot or 1)
+    if data.OldData.interval ~= inteval then
+        data.OldData = {inteval = inteval}
+        new.old = nil
+        data.OldData[self.Id] = new
+        self.old = nil
+        self.old = qf.deepCopy(self)
+        if not HasOwnerShip then 
+            new.NotSaved = nil
+            new["Container"] = nil
+            new["CurrentHandItem"] = nil
+        end
+    end
+    else
+        new = data.OldData[self.Id] 
+    end 
+    if self.Type == "C:Item" then
+      --  print(new)
+    end
     return new
 end
 function entity:DoBehaviors(dt)
     for i,v in self:GetAllData('behavior') or {} do
         local beh = behhandler.GetBehavior(i)
-        if beh and not ( beh["CNRIC"] and  self.ClientControll) then
+        if beh and not ( beh["CNRIC"] and  self.ClientControl) then
             task.spawn(function()
                 beh.func(self,v)
             end)

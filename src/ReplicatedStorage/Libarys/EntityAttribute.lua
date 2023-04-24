@@ -5,9 +5,15 @@ EntityAttribute.__index = function(self,key)
 end
 EntityAttribute.__newindex = function(self,key,value)
     self.Data[key] = value
+    if self.Event then
+        self.Event:fire(key,value)
+    end
+    if self.__Changed then
+        self.__Changed(self,key,value)
+    end
 end
 EntityAttribute.__call = function(self,data)
-    self.Data = data
+    self.Data = EntityAttribute.Desterilize(data)
 end
 EntityAttribute['EntityAttributes'] = true
 function EntityAttribute.new(name,data,M)
@@ -20,13 +26,28 @@ function EntityAttribute.new(name,data,M)
             k[i] = v
         end
     end
-    return setmetatable({Data = type(data) == 'table' and data or {},Component = true,Name = name,Type = "EntityAttribute"},k)
+    return setmetatable({Data = type(data) == 'table' and EntityAttribute.Desterilize(data) or {},Component = true,Name = name,Type = "EntityAttribute"},k)
 end
 function EntityAttribute.create(data)
+    data.Event = nil
+    data.Data = EntityAttribute.Desterilize(data.Data)
     return setmetatable(data,EntityAttribute)
+end
+function EntityAttribute:rawset(key,value)
+    rawset(self.Data,key,value)
 end
 function EntityAttribute:GetComponent()
     return self.Component
+end
+function EntityAttribute:Sterilize()
+    return self
+end
+function EntityAttribute.Desterilize(data)
+    local new = {}
+    for i,v in data or {} do
+        new[tonumber(i) or i] = v
+    end
+    return new
 end
 function EntityAttribute:SetComponent(c)
     self.Component = c
@@ -36,6 +57,10 @@ function EntityAttribute:Clone()
 end
 function EntityAttribute:GetName()
     return self.Name
+end
+function EntityAttribute:GetChangedEvent()
+    self.Event = self.Event or Instance.new("BindableEvent")
+    return self.Event
 end
 function EntityAttribute:GetReallen()
     local i = 0

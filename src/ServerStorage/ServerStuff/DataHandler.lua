@@ -9,12 +9,34 @@ local EntityBridge = bridge.CreateBridge("EntityBridge")
 local GetChunk = bridge.CreateBridge("GetChunk")
 local isserver = runservice:IsServer()
 function self.AddToLoad(cx,cz,stuff)
-    local c = self.GetChunk(cx,cz,true)
+    local c = self.GetChunk(cx,cz,'2')
     c:AddToLoad(stuff)
 end
-function self.DoCaves(cx,cz)
-    local c = self.GetChunk(cx,cz,true)
+function self.DoCaves(cx,cz,from)
+    --if from == '-7,7'and tostring(cx..','..cz) == '-11,12' then print("acb") end 
+    local c = self.GetChunk(cx,cz,'2')
+   -- if from == '-7,7'and tostring(cx..','..cz) == '-11,12' then print("aadsab") end 
     c:DoCaves()
+    -- if from == '-7,7' and tostring(c) == '-11,12' then
+    --     print(c.GeneratingCaves)
+    --     print( c.Setttings.GeneratedCaves)
+    -- end
+    return 
+end
+local InProgress = {}
+function self.GetChunk(cx,cz,create)
+    if not self.LoadedChunks[cx..','..cz] and create then
+        if InProgress[cx..','..cz] then
+            repeat
+                task.wait()
+            until not InProgress[cx..','..cz]
+            return self.LoadedChunks[cx..','..cz] 
+        end
+        InProgress[cx..','..cz] = true
+        self.CreateChunk(nil,cx,cz)
+        InProgress[cx..','..cz] = false
+    end
+    return self.LoadedChunks[cx..','..cz] 
 end
 self.SendToClient = {}
 self.InProgress = {}
@@ -30,15 +52,26 @@ task.spawn(function()
                 if not self.SendToClient[c] or self.InProgress[c] then continue end 
                 i +=1
                 local function fun()
+                    local cx,cz = unpack(string.split(c,","))
+                    cx,cz = tonumber(cx),tonumber(cz)
                     local a = self.SendToClient[c]
                     self.SendToClient[c] = nil
                     self.InProgress[c] = true
                     --task.spawn(function()
-                    local cx,cz = unpack(string.split(c,","))
-                    cx,cz = tonumber(cx),tonumber(cz)
                     local chun = self.GetChunk(cx,cz,true)
-                    chun:Generate()     
+                    -- if cx == -7 and cz ==7 then
+                    --     print("a")
+                    -- end
+                    chun:Generate() 
+                    -- if cx == -7 and cz ==7 then
+                    --     print("acv")
+                    -- end 
+                  --  self.LoadedChunks[cx..','..cz]  = chun
                     for i,v in a do
+                        -- if cx == -7 and cz ==7 then
+                        --      print(chun:GetBlocks())
+                        --     -- print(self.GetChunk(cx,cz):GetBlocks())
+                        -- end   
                         game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
                     end
                     self.InProgress[c] = nil
@@ -73,6 +106,11 @@ end)
 --         end
 --     end)
 -- end
+function self.CreateChunk(cdata,cx,cz)
+    
+    self.LoadedChunks[cx..','..cz] = ChunkObj.Create(cx,cz)
+    return self.LoadedChunks[cx..','..cz] 
+end
 game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)
     -- local position = player.Character.PrimaryPart.Position
     local new = self.GetChunk(cx,cz)

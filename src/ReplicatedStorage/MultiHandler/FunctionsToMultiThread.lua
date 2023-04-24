@@ -1,4 +1,5 @@
 local stuff = {}
+local HttpService = game:GetService("HttpService")
 local runservice = game:GetService("RunService")
 local IsClient = runservice:IsClient()
 function stuff.divide(original,times,destroy)
@@ -33,6 +34,16 @@ function stuff.CreatePart(M,Ammount)
 		table.insert(parts,Instance.new("Part"))
 	end
 	return parts
+end
+function stuff.Compress(M,data)
+	local functions = M.compressor.compress
+	data = HttpService:JSONEncode(data)
+	return functions(data)
+end
+function stuff.DeCompress(M,data)
+	local functions = M.compressor.decompress
+	data = functions(data)
+	return HttpService:JSONDecode(data)
 end
 function stuff.CompressItemData(M,data)
     local functions = M.QuickFunctions.CompressItemData

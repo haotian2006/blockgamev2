@@ -177,24 +177,28 @@ game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
         cam.FieldOfView = 70
     end
 end)
+local i = 0
 EntityBridge:Connect(function(entitys)
+    i +=1 
     for i,v in game.Workspace.Entities:GetChildren() do shoulddel(entitys,v) end
     for i,v in game.Workspace.DamagedEntities:GetChildren() do shoulddel(entitys,v) end
+   --if i == 165 then  print(entitys,i) end 
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i) or workspace.DamagedEntities:FindFirstChild(i)
         local oldentity = datahandler.GetEntity(i)
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
+            --print(v)
             local oldhitbox = oldentity.Hitbox
-            v = entityhandler.new(v)
+            --v = entityhandler.new(v)
             datahandler.GetEntity(i):UpdateEntity(v)
-            if oldentity and v.Hitbox ~= oldhitbox then
+            if oldentity and v.Hitbox and  v.Hitbox ~= oldhitbox then
                 if oldentity.Tweens and oldentity.Tweens["Pos"] then
                     oldentity.Tweens["Pos"]:Cancel()
                 end
                 e.PrimaryPart.Size = Vector3.new(v.Hitbox.X,v.Hitbox.Y,v.Hitbox.X)*3
                 e.PrimaryPart.CFrame = CFrame.new(v.Position*3)
                 oldentity:UpdateModelPosition()
-            else
+            elseif v.Position then 
                 oldentity.Tweens = oldentity.Tweens or {}
                 oldentity.Tweens["Pos"] = tweenservice:Create(e.PrimaryPart,TweenInfo.new(0.1),{CFrame = CFrame.new(v.Position*3)})
                 oldentity.Tweens["Pos"]:Play()
@@ -266,11 +270,11 @@ EntityBridge:Connect(function(entitys)
             end
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
-            if not datahandler.GetEntity(i) or datahandler.GetEntity(i).ClientControll ~= tostring(game.Players.LocalPlayer.UserId) then return end 
+            if not datahandler.GetEntity(i) or datahandler.GetEntity(i).ClientControl ~= tostring(game.Players.LocalPlayer.UserId) then return end 
             hotbar.UpdateAll()
             datahandler.GetEntity(i):UpdateEntityClient(v)
             local function combinevelocity(v1,v2)
-                for i,v in v2.Velocity do
+                for i,v in v2.Velocity or {} do
                     v1:AddVelocity(i,v)
                 end
             end

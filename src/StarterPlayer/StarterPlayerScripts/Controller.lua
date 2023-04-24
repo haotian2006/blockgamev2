@@ -14,7 +14,7 @@ local anihandler = require(game.ReplicatedStorage.AnimationController)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local managers = require(game.ReplicatedStorage.Managers)
 local math = require(game.ReplicatedStorage.Libarys.MathFunctions)
-
+local behaviorhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local hotbarhandler = managers.HotBarManager
 local playerdollmanager = managers.PlayerDollHandler
 local InventoryManager = managers.InventoryManager:Init()
@@ -183,19 +183,22 @@ function func.Interact()
     rayinfo.GetNormal = true
    -- rayinfo.IgnoreEntities = true
    rayinfo.RaySize = Vector3.new(.025,.025,.025)
-    local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*4.5,rayinfo)
+    local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*5.1,rayinfo)
     if #raystuff.Objects >= 1 then
         --print("hit")
         local newpos = {}
         for i,v:string|table in raystuff.Objects do
             --print(v.Normal)
-            if  v.Type == "Block" then
+            local item = localentity().HoldingItem or {}
+            if  v.Type == "Block" and item[1] and ResourceHandler.IsBlock(item[1]) then
                 local coords = v.BlockPosition+v.Normal
                 local hitpos = v.PointOfInt
-                local item = localentity().HoldingItem or {}
                 --print(item)
                 local orientation = nil
-                do
+                local block = ResourceHandler.IsBlock(item[1])
+                block = behaviorhandler.GetBlock(block)
+                if block and block.components then
+                    block = block.components
                     orientation = {0,0,0}
                     local direaction = camera.CFrame.LookVector
                     local angle = math.GetAngleDL(direaction) 
@@ -209,23 +212,23 @@ function func.Interact()
                         dx = direaction.X/dx
                      end
                     -- print(direaction.X,dx,dz)
-                     if dx == -1 or dx == 1 then
+                     if (dx == -1 or dx == 1) and block.RotateY then
                         orientation[2] = dx
                      end
-                     if dz == -1 then
+                     if dz == -1 and block.RotateY then
                         orientation[2] = '-0'
                      elseif  dz == 1 then
                         orientation[3] = 0
                      end
-                     if hitpos.Y >  coords.Y then 
+                     if hitpos.Y >  coords.Y and block.RotateZ then 
                         orientation[3] = '-0'
                     else
                     end
                    -- print(angle)
-                    if angle >=-40 and angle <= - 39 then
-                        --orientation[1] = 1
-                    elseif angle >= 39 and angle <=  40 then
-                       -- orientation[1] = -1
+                    if angle >=-40 and angle <= - 39 and block.RotateX then
+                        orientation[1] = 1
+                    elseif angle >= 39 and angle <=  40 and block.RotateX then
+                        orientation[1] = -1
                     end
                     orientation = (orientation[1]..','..orientation[2]..','..orientation[3])
                     --print(orientation)
@@ -233,7 +236,7 @@ function func.Interact()
                         orientation =nil
                     end
                 end
-                if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z,data) and item[1] and ResourceHandler.IsBlock(item[1]) then 
+                if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z,data)  then 
                     data.InsertBlock(coords.X,coords.Y,coords.Z,item[1])
                     localentity():PlayAnimation("Place",true)
                     ArmsHandler.PlayAnimation('Attack',true)
@@ -253,7 +256,7 @@ function func.Attack()
     rayinfo.BlackList = {tostring(lp.UserId)}
     rayinfo.Debug = false
     rayinfo.RaySize = Vector3.new(.025,.025,.025)
-    local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*4.5,rayinfo)
+    local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*5.1,rayinfo)
     if #raystuff.Objects >= 1 then
         local newpos = {}
         for i,v in raystuff.Objects do
@@ -278,11 +281,27 @@ function Render.Update(dt)
     for i,v in data.LoadedEntities do
         v:Update(dt)
     end
-    if not localentity() then return end 
-    self.Entity.PrimaryPart.CFrame = CFrame.new(self.Position*3)
-    EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),self)
+    if  localentity() then   
+        self.Entity.PrimaryPart.CFrame = CFrame.new(self.Position*3)
+    end
+    local l = {}
+    for i,v in data.LoadedEntities do
+        table.insert(l,i)
+    end
+    local serverstuff = localentity() and self:GetServerChanges() or {}
+    local new = {}
+    for i,v in self do if serverstuff[i] then new[i] = v end end
+    if not localentity() or localentity():GetState('Dead')  then 
+        new.Loaded  = {}
+    else
+        new.Loaded = l
+     end 
+
+    EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),new)
+    if  localentity() then   
     self:ClearVelocity()
     anihandler.UpdateEntity(self)
+    end
 end
 function Render.Move(dt)
     if not localentity() or localentity():GetState('Dead') or not localentity().Entity or localentity().Ingui then return end 
@@ -303,8 +322,7 @@ function Render.Move(dt)
         localentity():SetState('Stopping',false)
     end
     data.LocalPlayer.Velocity["Movement"] = velocity* (localentity():GPWM('Speed') or 0 )
-    if FD["Jump"] then data.LocalPlayer:Jump() 
-end 
+    if FD["Jump"] then data.LocalPlayer:Jump() end 
 end
 local second 
 local outline = game.Workspace.Outline
@@ -317,7 +335,7 @@ function controls.Render.OutLine()
     rayinfo.Debug = false
     rayinfo.RaySize = Vector3.new(.025,.025,.025)
    -- rayinfo.IgnoreEntities = true
-     local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*4.5,rayinfo)
+     local raystuff = Ray.Cast(localentity().Entity.Eye.Position/3,lookvector*5.1,rayinfo)
     if #raystuff.Objects >= 1 then
         local v = raystuff.Objects[1]
            -- print(v.Normal,lookvector)
@@ -406,6 +424,7 @@ local function doinput(input,gameProcessedEvent)
         for i,v in controls[controls.mode] do
             local function second()
                 if v[2] then
+                    if controls.Events[v[2]] then controls.Events[v[2]]:fire(key,"down") end
                     controls.Functionsdown[v[2]] = controls.Functionsdown[v[2]] or {}
                     controls.Functionsdown[v[2]][key] = true
                     if type(v[2]) == "string" then
@@ -436,7 +455,6 @@ uis.InputChanged:Connect(function(i,g)
 end)
 
 uis.InputEnded:Connect(function(input, gameProcessedEvent)
-    if gameProcessedEvent then return end 
     local key = getkeyfrominput(input)
     controls.KeysPressed[key] = nil
     for i,v in controls.Functionsdown do
@@ -444,10 +462,16 @@ uis.InputEnded:Connect(function(input, gameProcessedEvent)
             controls.Functionsdown[i][key] = nil
             if next(controls.Functionsdown[i]) == nil then
                 controls.Functionsdown[i] = nil
+                if controls.Events[i] then controls.Events[i]:fire(key,"up") end
             end
         end
     end
 end)
+controls.Events = {}
+function controls:GetInputEvent(name)
+    if not controls.Events[name] then controls.Events = Instance.new("BindableEvent") end 
+    return controls.Events[name]
+end
 function controls.renderupdate(dt)
     for i,v in controls.Render do
         task.spawn(v,dt)

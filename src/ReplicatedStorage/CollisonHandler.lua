@@ -132,10 +132,10 @@ function collisions.shouldjump(entity,bp,bs)
     if jumpneeded > bs.Y or jumpneeded<= 0 then
         return nil
     end
-    if entity.MinStairHeight or .5 >= jumpneeded  then
+    if (entity.MinTpHeight or .5) >= jumpneeded  then
        -- print(blockheight)
         return "Small",jumpneeded,blockheight
-    elseif 1 >= jumpneeded then
+    elseif (entity.JumpHeight or 1) >= jumpneeded then
         return "Full",jumpneeded,blockheight
     end
     return nil
@@ -214,6 +214,27 @@ local function makeallrhitboxs()-- making this function feels wrong but basicly 
 	end
 end
 makeallrhitboxs()
+makeallrhitboxs()
+makeallrhitboxs()
+function collisions.ConvertToTable(str:string)
+    local function convert(x)
+        if x == '0' then
+            x = 0
+        elseif x == '-0' then
+            x = 180
+        elseif x == '1' then
+            x = 90
+        elseif x == '-1' then
+            x = -90
+        else 
+            x = 0
+        end
+        return (tonumber(x) or 0)
+    end
+    local x,y,z = unpack(str:split(','))
+    return {convert(x),convert(y),convert(z)}
+
+end
 function collisions.ConvertToCFrame(str:string)
     local function convert(x)
         if x == '0' then
@@ -239,7 +260,11 @@ function collisions.RotateHitBoxs(rotation,hitboxinfo)
     local crotation = collisions.ConvertToCFrame(rotation)
     for i,v in hitboxinfo do
         if i == 'CanCollide' then continue end 
-        new[i] = {Size = rotationHitboxs[rotation](v.Size),Offset = (crotation*CFrame.new(v.Offset or Vector3.zero)).Position}
+        new[i] = {Size = rotationHitboxs[rotation](v.Size),
+        Offset = (crotation*
+        CFrame.new(v.Offset or Vector3.zero)).
+        Position
+    }
 
     end
     return new
@@ -251,11 +276,11 @@ function collisions.GetBlockHitBox(data)
         hitboxinfo = debris:GetItemData(data)
         cancollide = hitboxinfo.CanCollide
     else
-        local data = qf.DecompressItemData(data,{"T","O"})
+        local data = qf.DecompressItemData(data,{"T","O","I"})
         local Type,Ori = data.T,data.O
         Type = Type or nil
-        local bdata = behavior.GetBlock(Type)
-        local hb = behavior.GetHbFromBlock(Type)
+        local bdata = behavior.GetBCFD(Type,data.S)
+        local hb = behavior.GetBlockHb(bdata.Hitbox)
         if hb then
             if type(hb) == "table" then
                 hitboxinfo = hb
@@ -266,15 +291,15 @@ function collisions.GetBlockHitBox(data)
         if Ori then
             hitboxinfo = collisions.RotateHitBoxs(Ori,hitboxinfo)
         end
-        hitboxinfo['CanCollide'] = bdata.components.CanCollide 
-        cancollide = bdata.components.CanCollide 
+        hitboxinfo['CanCollide'] = bdata.CanCollide 
+        cancollide = bdata.CanCollide 
     end
     debris:AddItem(data,hitboxinfo,60)
     return hitboxinfo,cancollide
 end
 function collisions.GenerateHitboxes(data,position)
     if data == 'Null' then
-        return {{Vector3.one,position}}
+        return {{Vector3.one,position}},true
     end
     local hb = collisions.GetBlockHitBox(data)
     local t = {}
@@ -338,6 +363,21 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
             elseif velocity.Z <0 then
                 position = qf.EditVector3(position,"z",position.Z + 0.00001)
             end
+            -- if a then
+            --     local info = Ray.newInfo()
+            --     info.IgnoreEntities = true
+            --     info.RaySize = Vector3.new(entity.Hitbox.X,.02,entity.Hitbox.X)
+            --     info.Increaseby = 0.05
+            --     info.BreakOnFirstHit = true
+            --     local ray = Ray.Cast(position,-Vector3.new(0,(entity.MinTpHeight or .5)+.1,0)+entity.Hitbox.Y/2,info)
+            --     if ray and ray.Objects[1]  then
+            --         local hit = ray.Objects[1]
+                    
+            --         if (hit.PointOfInt -ray.Origin).Magnitude <= (entity.MinTpHeight or .5)+0.001 +entity.Hitbox.Y/2 then
+            --             position = Vector3.new(position.X,hit.PointOfInt.Y+entity.Hitbox.Y/2,position.Z)
+            --         end
+            --     end
+            -- end
         end
         remainingtime = 1.0-MinTime
         if remainingtime <=0 then break end
@@ -367,6 +407,8 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
     local zack 
     local gridsize = .5
     local bppos,bpsize = collisions.GetBroadPhase(position,vector3(hitbox.X,hitbox.Y,hitbox.X),velocity)
+    whitelist = whitelist or {}
+    local first = qf.deepCopy(whitelist)
  --   HitboxL(getincreased(min.X,max.X,gridsize),max.Y,max.Z)
    -- print(min)
     for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
@@ -375,8 +417,6 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                 local block,coords = maindata.GetBlock(x,y,z)
                 if whitelist and whitelist[coords] then continue end
                 if block then
-                    whitelist[coords] = true 
-                    
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
                     local bx,by,bz = unpack(coords:split(","))
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
@@ -389,13 +429,16 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                    if not CanCollide then continue end 
                    for i,v in hbdata do
                     local newpos,newsize = v[2],v[1]
+                    if whitelist[coords..','..loop] then
+                       continue 
+                    end
                     if  collisions.AABBcheck(bppos,newpos,bpsize,newsize,true) then  
                         local collisiontime,newnormal1 = collisions.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize,velocity,mintime)
                         if collisiontime < 1 then
                             if collisiontime < currentmin or loop == 0 then
-                            zack = {block,coords,newpos,newsize,i}
-                            currentmin = collisiontime
-                            normal = newnormal1
+                                zack = {block,coords,newpos,newsize,i}
+                                currentmin = collisiontime
+                                normal = newnormal1
                             end
                             local a,b,c = collisions.shouldjump(entity,newpos,newsize)
                             if a and (not needed or c.Y >=maxheight.Y ) then
@@ -403,27 +446,46 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                             end
                          end
                        end
+                       whitelist[coords..','..((loop == 0 and #hbdata == 1) and '' or loop)] = true 
                        loop +=1
                    end
                     mintime = currentmin < mintime and currentmin or mintime
-                     if mintime < 1 and not looop and typejump  then
+                     if mintime < 1 and (typejump) then
                         local dir = (maxheight-position).Unit
                       --  print(typejump, needed,maxheight)
                        -- print(position.Y-hitbox.Y/2)
-                        if typejump == "Small" and entity.Data.Grounded and needed >=0.1 then
-                              needed += 0.015
-                              local m2,n2,z2 = collisions.entityvsterrainloop(entity,vector3(position.X,position.Y,position.Z),vector3(velocity.X,velocity.Y+needed,velocity.Z),{[coords] = true},true)
+                        if typejump == "Small" and entity.Data and entity.Data.Grounded and needed >=0.1 then
+                              needed += 0.023
+                              first[coords] = true
+                              local m2,n2,z2 = collisions.entityvsterrainloop(entity,vector3(position.X,position.Y,position.Z),vector3(velocity.X,velocity.Y+needed,velocity.Z),first,"Small")
                               if m2 <1 then
+                                if looop then
+                                    return .1
+                                end
                               else
+                                local before = position
                                 position += vector3(0,needed,0)
+                                local bfv = velocity
                                 if velocity.Y <0 then
                                     velocity = vector3(velocity.X,0,velocity.Y)
                                 end
-                               return m2,n2,z2 ,velocity,position,1
+                                local m2,n2,z2 = collisions.entityvsterrainloop(entity,position,velocity,{},"Small")
+                                if m2 <1 then
+                                    position = before
+                                    velocity = bfv
+                                    return  m2,n2,z2,velocity,position
+                                else
+                                   -- print(needed)
+                                    return m2,n2,z2 ,velocity,position,1
+                                end
                               end
                            elseif typejump == "Full" and (entity["AutoJump"]or false)   then
-                               local m2,n2,z2 = collisions.entityvsterrainloop(entity,vector3(position.X,position.Y,position.Z),vector3(velocity.X, 1,velocity.Z),{[coords] = true},true)
+                            first[coords] = true
+                               local m2,n2,z2 = collisions.entityvsterrainloop(entity,vector3(position.X,position.Y,position.Z),vector3(velocity.X, 1,velocity.Z),first,"Full")
                                if not m2 or m2 <1 then
+                                if looop then
+                                    return .1
+                                end
                                -- print(z2,zack)
                                else
                                 entity:Jump()

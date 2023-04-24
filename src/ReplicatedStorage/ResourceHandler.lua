@@ -47,7 +47,7 @@ function self:Init()
 end
 function self.IsBlock(data)
     local type =  qf.DecompressItemData(data,"T")
-    return self.GetBlock(type) and true or false   
+    return self.GetBlock(type) and type  or false   
 end
 function self.GetAsset(id)
     return self.Assets and self.Assets[id]
@@ -57,6 +57,9 @@ function self.GetBlock(Name)
 end
 function self.GetEntity(Name)
     return self["Entities"] and self["Entities"][Name] or nil 
+end
+function self.GetItem(name)
+    return self.Items and self.Items[name]
 end
 function self.GetUiContainer(name)
     if self.Containers then

@@ -3,13 +3,19 @@ local workersmodule = require(game.ReplicatedStorage.WorkerThreads)
 local runservice = game:GetService("RunService")
 local IsClient = runservice:IsClient()
 local https = game:GetService("HttpService")
+local memory = script.GlobalMemory
 local libarystosend = {
 	game.ReplicatedStorage.QuickFunctions
 	,not IsClient and game.ServerStorage.GenerationHandler or nil,
 	game.ReplicatedStorage.GameSettings,
 	game.ReplicatedStorage.RenderStuff.Culling,
 	game.ReplicatedStorage.Libarys.compressor, 
-
+	game.ReplicatedStorage.BehaviorHandler,
+	game.ReplicatedStorage.ResourceHandler,
+	game.ReplicatedStorage.Libarys.Debris,
+	game.ReplicatedStorage.Libarys.MathFunctions,
+	game.ReplicatedStorage.WorkerThreads,
+	script.GlobalMemory
 }
 local libarydata = {}
 for i,v in libarystosend do libarydata[v.Name] = require(v) end 
@@ -86,6 +92,46 @@ function self.GetTerrain(cx,cz,times)
 		end)
 	end
 	coroutine.yield()
+	return newdata
+end
+function self.Compress(data)
+	local times = #data or 3
+	local newdata = {}
+	local ammountdone = 0 
+	local thread = coroutine.running()
+	for i,v in ipairs(data) do
+		task.spawn(function()
+			local cdata = self.DoSmt("Compress",v)
+			newdata[i] = cdata
+			ammountdone +=1
+			if ammountdone == times then
+				coroutine.resume(thread)
+			end
+		end)
+	end
+	if ammountdone ~= times then
+		coroutine.yield()
+	end
+	return newdata
+end
+function self.DeCompress(data)
+	local times = #data or 3
+	local newdata = {}
+	local ammountdone = 0 
+	local thread = coroutine.running()
+	for i,v in ipairs(data) do
+		task.spawn(function()
+			local cdata = self.DoSmt("DeCompress",v)
+			newdata[i] = cdata
+			ammountdone +=1
+			if ammountdone == times then
+				coroutine.resume(thread)
+			end
+		end)
+	end
+	if ammountdone ~= times then
+		coroutine.yield()
+	end
 	return newdata
 end
 function self.HideBlocks(cx,cz,chunks,times)

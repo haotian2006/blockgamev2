@@ -17,6 +17,8 @@ local playani = bridge.CreateBridge("PlayAnimation")
 local isClient = RunService:IsClient()
 local EntityAttribute = require(game.ReplicatedStorage.Libarys.EntityAttribute)
 local ts = game:GetService("TweenService")
+local Ray = require(game.ReplicatedStorage.Ray)
+entity.Position = Vector3.new()
 local function interpolate(startVector3, finishVector3, alpha)
     local function currentState(start, finish, alpha)
         return start + (finish - start)*alpha
@@ -37,6 +39,7 @@ entity.__index = function(self,key)
 end
 function entity:IndexFromComponets(key,ignore)
     local comp = rawget(self,'Componets')
+    if key == "Type" then return rawget(self,"Type") end 
     local entitybeh = behhandler.GetEntity(self.Type)
     if type(comp) == "table" and entitybeh and entitybeh.component_groups  then
         for i,v in comp do
@@ -138,19 +141,42 @@ function entity:UpdateIdleAni()-- plays idle ani
         self:PlayAnimation("Idle")
     end
 end
+function entity:GetServerChanges()
+    local ServerOnlyChanges = {Position = true,headdir = true,bodydir = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,ViewMode = true,Ingui = true,CurrentStates = true}
+    for i,v in self.AllowedClientChanges or {} do
+        ServerOnlyChanges[i] = v
+    end
+    return ServerOnlyChanges
+end
+
 -- properties to keep same when updating entitys from the server (All Entities except lp)
-local clientdata = {'Entity','Tweens','ClientAnim','LoadedAnis','VeiwMode','DidDeath'}
+local clientdata = {'Entity','Tweens','ClientAnim','LoadedAnis','ViewMode','DidDeath'}
 function entity:UpdateEntity(newdata)
+    newdata = newdata or {}
     local checked = {}
-    for i,v in self do
-        checked[i] = true
-        if table.find(clientdata,i) then continue end 
-        if type(newdata[i]) == "table" and newdata[i].Type == 'EntityAttribute' then
-            self[i](newdata[i].Data)
-        else
-            self[i] = newdata[i] 
+    if newdata.Container then
+        for i,v in newdata.Container do
+            if type(newdata[i]) == "table" and newdata[i].Type == 'EntityAttribute' then
+                if self.Container[i] then
+                    self.Container[i]( v.Data)
+                else
+                    self.Container[i] = EntityAttribute.create( v)
+                end
+            else
+                self.Container[i] = newdata[i] 
+            end
         end
     end
+    -- for i,v in self do
+    --     checked[i] = true
+    --     if i == 'Container' then continue end 
+    --     if table.find(clientdata,i) then continue end 
+    --     if type(newdata[i]) == "table" and newdata[i].Type == 'EntityAttribute' then
+    --         self[i](newdata[i].Data)
+    --     else
+    --         self[i] = newdata[i] 
+    --     end
+    -- end
     for i,v in newdata do
         if checked[i] then continue end 
         if type(v) == "table" and v.Type == 'EntityAttribute' then
@@ -164,9 +190,24 @@ function entity:UpdateHandSlot(slot)
     self.CurrentSlot = slot 
 end
 -- properties to keep same when updating entitys from the server (local player)
-entity.KeepSame = {"Position",'NotSaved',"Velocity",'Hitbox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'VeiwMode','CurrentStates','Ingui','CurrentStates'}
+entity.KeepSame = {"Position",'NotSaved',"Velocity",'Hitbox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'ViewMode','CurrentStates','Ingui','CurrentStates'}
 function entity:UpdateEntityClient(newdata)
+    newdata = newdata or {}
+    if newdata.Container then
+        for i,v in newdata.Container do
+            if type(v) == "table" and v.Type == 'EntityAttribute' then
+                if self.Container[i] then
+                    self.Container[i](v.Data)
+                else
+                    self.Container[i] = EntityAttribute.create( v)
+                end
+            else
+                self.Container[i] = v
+            end
+        end
+    end
     for i,v in newdata do
+        if i == 'Container' then continue end 
         if table.find(entity.KeepSame,i) then continue end 
         if type(v) == "table" and v.Type == 'EntityAttribute' then
             if self[i] and self[i].EntityAttributes then
@@ -188,28 +229,82 @@ function entity:VisuliseHandItem()
     if not attachment or attachment:FindFirstChild(Item[1] or "") then return nil end 
     if Item[1] and Item ~= '' then
         attachment:ClearAllChildren()
-        local item = Instance.new("Part")
-        item.Size = Vector3.new(1,.1,1)
-        item.Parent = attachment
-        item.Name = Item[1]
-        item.Material = Enum.Material.SmoothPlastic
-        local surfacegui = Instance.new("SurfaceGui",item)
-        surfacegui.Face = Enum.NormalId.Top
-        local txt = Instance.new('TextLabel',surfacegui)
-        txt.Size = UDim2.new(1,0,1,0)
-        txt.TextScaled = true
-        txt.Text = Item[1]
-        local a = surfacegui:Clone()
-        a.Parent = item
-        a.Face = Enum.NormalId.Bottom
-        a.TextLabel.Rotation = 180
-        local weld = item:FindFirstChild("HandleAttach") or Instance.new("Motor6D")
-        weld.Name = "HandleAttach"
-        weld.Part0 = attachment.Parent
-        weld.Part1 = item
-        weld.C0 = attachment.CFrame*CFrame.new(0,0,-0.5)*CFrame.Angles(0,math.rad(-90),0)
-        weld.Parent = item
-        if self.VeiwMode == "First" then item.LocalTransparencyModifier = 1 end 
+        local function  createPlaceHolder()
+            local item = Instance.new("Part")
+            item.Size = Vector3.new(1,.1,1)
+            item.Parent = attachment
+            item.Name = Item[1]
+            item.Material = Enum.Material.SmoothPlastic
+            local surfacegui = Instance.new("SurfaceGui",item)
+            surfacegui.Face = Enum.NormalId.Top
+            local txt = Instance.new('TextLabel',surfacegui)
+            txt.Size = UDim2.new(1,0,1,0)
+            txt.TextScaled = true
+            txt.Text = Item[1]
+            local a = surfacegui:Clone()
+            a.Parent = item
+            a.Face = Enum.NormalId.Bottom
+            a.TextLabel.Rotation = 180
+            local weld = item:FindFirstChild("HandleAttach") or Instance.new("Motor6D")
+            weld.Name = "HandleAttach"
+            weld.Part0 = attachment.Parent
+            weld.Part1 = item
+            weld.C0 = attachment.CFrame*CFrame.new(0,0,-0.5)*CFrame.Angles(0,math.rad(-90),0)
+            weld.Parent = item
+            return item
+        end
+        local function createitem()
+            local sides = {Right = true,Left = true,Top = true,Bottom = true,Back = true,Front =true}
+            local name = self:GetQf().DecompressItemData(Item[1],'T')
+            local itemdata = resourcehandler.GetItem(name) 
+            if itemdata  then
+                local stuff = {}
+                local texture = itemdata.Texture
+                local mesh = type(itemdata.Mesh ) == "table" and itemdata.Mesh.Mesh or itemdata.Mesh 
+                if not mesh then return end 
+                mesh = mesh:Clone()
+                if type(itemdata.Mesh ) == "table" then
+                    for i,v in itemdata.Mesh do
+                        if i == "Mesh" then continue end 
+                        mesh[i] = v
+                    end
+                end
+                if texture then
+                    if type(texture) == "table" then
+                        for i,v in texture do
+                                table.insert(stuff,require(game.ReplicatedStorage.RenderStuff.Render).CreateTexture(v,i))
+                        end
+                    elseif type(texture) == "userdata" then
+                        for v in sides do
+                            table.insert(stuff,require(game.ReplicatedStorage.RenderStuff.Render).CreateTexture(texture,v))
+                        end
+                    end
+                end
+                for i,v in stuff do
+                    v.Parent = mesh
+                end
+                mesh.Parent = attachment
+                mesh.Name = Item[1]
+                local handle = mesh:FindFirstChild("Handle",true) or mesh 
+                local weld = mesh:FindFirstChild("HandleAttach",true) or Instance.new("Motor6D")
+                weld.Name = "HandleAttach"
+                weld.Part0 = attachment.Parent
+                weld.Part1 = mesh
+                weld.C0 = attachment.CFrame
+                weld.C1 = handle.CFrame
+                weld.Parent = mesh
+                return mesh,1
+            end
+        end
+        local item,a = createitem() or createPlaceHolder()
+        for i,v in item.Parent:GetDescendants() do
+            if v:IsA("BasePart") then
+                v.Anchored = false 
+                if self.ViewMode == "First" then v.LocalTransparencyModifier = 1 end 
+            elseif v:IsA("Decal") or v:IsA("Texture") then
+                if self.ViewMode == "First" then v.Transparency = 1 end 
+            end
+        end
     else
         attachment:ClearAllChildren()
     end
@@ -235,7 +330,7 @@ end
 function entity:UpdatePosition(dt)
     local velocity = self:GetVelocity()
     self.NotSaved.ClearVelocity = true
-    if not self.ClientControll or  ( RunService:IsClient() and self.ClientControll and self.ClientControll == tostring(game.Players.LocalPlayer.UserId) ) then 
+    if not self.ClientControl or  ( RunService:IsClient() and self.ClientControl and self.ClientControl == tostring(game.Players.LocalPlayer.UserId) ) then 
         self:UpdateIdleAni()
         local p2 = interpolate(self.Position,self.Position+velocity,dt) 
         local e = velocity
@@ -505,7 +600,7 @@ function entity:RemoveFromChunk()
     end
 end
 function entity:SetNetworkOwner(player)
-    self.ClientControll = player and tostring(player.UserId) or nil
+    self.ClientControl = player and tostring(player.UserId) or nil
 end
 function entity:SetBodyRotationFromDir(dir)
     self.bodydir = dir
@@ -522,12 +617,10 @@ function entity:SetModelTransparency(value)
     local model = self.Entity
     if RunService:IsServer() or not model then return end
     for i,v in model:GetDescendants() do
-        if v:IsA("BasePart") and v.Name ~= "Middle" then
+        if (v:IsA("BasePart") ) and v.Name ~= "Middle" then
             v.LocalTransparencyModifier = value
-        elseif v:IsA('GuiObject') then
+        elseif v:IsA('GuiObject') or v:IsA("Decal") or v:IsA("Texture") or v:IsA("SelectionBox") then
             v.Transparency = value 
-        elseif v:IsA("SelectionBox") then
-            v.Transparency = value
         end
     end
 end
@@ -662,9 +755,9 @@ function entity:MoveTo(x,y,z)
     new:Init()
 end
 function entity:IsClientControl()
-    if self.ClientControll then
+    if self.ClientControl then
         for i,v in game.Players:GetPlayers() do
-            if v.UserId == tonumber(self.ClientControll) then
+            if v.UserId == tonumber(self.ClientControl) then
                 return v,RunService:IsClient()
             end
         end
@@ -752,6 +845,21 @@ function entity:Gravity(dt)
         if math.sign(fallrate) == -1 then 
             entity.Data.FallTicks += dt*20
         end
+        if fallrate == 0 and self.CanSnapDown then
+            local info = Ray.newInfo()
+            info.IgnoreEntities = true
+            info.RaySize = Vector3.new(.02,.02,.02)
+            info.Increaseby = 0.05
+            info.BreakOnFirstHit = true
+            local ray = Ray.Cast(self.Position-Vector3.new(0,self.Hitbox.Y/2,0),-Vector3.new(0,(self.MinTpHeight or .5)+.1,0),info)
+            if ray and ray.Objects[1]  then
+                local hit = ray.Objects[1]
+               
+                if (hit.PointOfInt -ray.Origin).Magnitude <= (self.MinTpHeight or .5)+0.001  then
+                    self.Position = Vector3.new(self.Position.X,hit.PointOfInt.Y+self.Hitbox.Y/2+.02,self.Position.Z)
+                end
+            end
+        end
         fallrate -= 0.08/3
        -- fallrate *= 0.9800000190734863
         entity.Data.LastFallTicks = math.floor(entity.Data.FallTicks)
@@ -831,7 +939,7 @@ function entity:Update(dt)
 
     self:UpdateChunk()
     self:UpdateBodyVelocity(dt)
-    if (RunService:IsServer() and not self.ClientControll) or (RunService:IsClient() and self.ClientControll == tostring(game.Players.LocalPlayer.UserId)) then else return end 
+    if (RunService:IsServer() and not self.ClientControl) or (RunService:IsClient() and self.ClientControl == tostring(game.Players.LocalPlayer.UserId)) then else return end 
     self:Gravity(dt)
     if self:GetState('Dead') then
         -- local a = self.Velocity["Gravity"]

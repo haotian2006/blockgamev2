@@ -2,6 +2,9 @@
 local self = {}
 local f,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local f,settings = pcall(require,game.ReplicatedStorage.GameSettings)
+local f,debris = pcall(require,game.ReplicatedStorage.Libarys.Debris)
+local f,beh = pcall(require,game.ReplicatedStorage.BehaviorHandler)
+local f,res = pcall(require,game.ReplicatedStorage.ResourceHandler)
 function self.GridIsInChunk(cx,cz,x,y,z)
     local ccx,ccz = tonumber(math.floor((x+.5)/settings.ChunkSize.X)),tonumber(math.floor((z+.5)/settings.ChunkSize.X))
     return tonumber(cx) == ccx and tonumber(cz) == ccz
@@ -46,17 +49,41 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
         qf = qf or libs.QuickFunctions
         qf.ADDSETTINGS(libs)
         settings = settings or libs.GameSettings
+        debris = libs.Debris
+        res = libs.ResourceHandler
+        beh = libs.BehaviorHandler
     end
     local chsiz:Vector2 = settings.ChunkSize
     local alreadychecked = {{},{},{},{},{}}
     local once = false
     local function checkblockinch(wt,x,y,z)
         local combined = x..','..y..','..z
-        if alreadychecked[wt][combined] then
-            return alreadychecked[wt][combined]
+        if alreadychecked[wt][combined] ~= nil then
+            return alreadychecked[wt][combined] 
         end
         local nn = combined
         local a = chunks[wt][nn]
+        local transparency = false
+        if a then
+            if not debris:GetItemData(a) then
+                local d = qf.DecompressItemData(a,'T') 
+                if  d and res.GetBlock(d) then
+                    transparency = res.GetBlock(d).Transparency
+                    if transparency and transparency ~= 0 then
+                        debris:AddItem(a,transparency,60)
+                    else
+                        debris:AddItem(a,false,60)
+                        transparency = false
+                    end
+                end
+            else
+                transparency = debris:GetItemData(a)
+                debris:SetTime(a,60)
+            end
+        end
+        if transparency then
+            a = false
+        end
         alreadychecked[wt][combined] = a
         return a
     end

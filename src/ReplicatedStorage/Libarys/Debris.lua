@@ -2,7 +2,7 @@ local debris = {items = {},Running = {}}
 debris.__index = debris
 function debris:AddItem(name,data,duration)
     if data == nil then return end 
-    self.items[name] = {data,os.clock()+duration}
+    self.items[name] = {data,os.clock()+(duration or 0)}
 end
 function debris:Remove(name)
     self.items[name] = nil
@@ -12,6 +12,10 @@ function debris:GetItem(name)
 end
 function debris:GetItemData(name)
     return self.items[name] and self.items[name][1]
+end
+function debris:SetTime(name,duration)
+    if not self.items[name] then return end 
+    self.items[name][2] = os.clock()+(duration or 0)
 end
 function debris:Update()
     for i,v in self.items do

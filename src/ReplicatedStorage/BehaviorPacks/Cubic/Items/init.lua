@@ -21,7 +21,7 @@ return{
         Block = 'C:Grass'
     }),
     ['C:Stone'] = cit(
-    {
+    { 
         type = 'Block',
         Block = 'C:Stone'
     }),
@@ -30,5 +30,19 @@ return{
         type = 'Block',
         Block = 'C:Bedrock'
     }),
-    
+    ['C:Stair'] = cit(
+    {
+        type = 'Block',
+        Block = 'C:Stair'
+    }),
+    ['C:Slab'] = cit(
+    {
+        type = 'Block',
+        Block = 'C:Stair'
+    }),
+    ['DebugPart'] = cit(
+    {
+        type = 'Block',
+        Block = 'C:Stair'
+    }),
 }

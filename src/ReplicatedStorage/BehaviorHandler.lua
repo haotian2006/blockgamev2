@@ -2,6 +2,7 @@ local self = {}
 local BehaviorPacks = game.ReplicatedStorage.BehaviorPacks or Instance.new("Folder",game.ReplicatedStorage)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ResourcePacks = require(ReplicatedStorage.ResourceHandler) 
+local qf = require(game.ReplicatedStorage.QuickFunctions)
 BehaviorPacks.Name = "BehaviorPacks"
 self.LoadOrder = {
     'LoadOrder','Components','ItemTypes' 
@@ -55,7 +56,9 @@ function self:Init()
     for i,v in BehaviorPacks:GetChildren()do
         self.LoadPack(v.Name)
     end
+
     --print(self)
+    return self 
 end
 function self.GetItemData(name)
     if not self.Items then return end
@@ -106,6 +109,9 @@ end
 function self.GetItem(name)
     if not self.Items then return end
     return self.Items[name]
+end
+function self.GetBCFD(Name,C)--GetBlockComponetsFromData
+    return self.Blocks[Name] and self.Blocks[Name][C or "components"]
 end
 function self.GetBlockHb(Name)
     return self.BlockHitboxes[Name]
