@@ -168,7 +168,7 @@ self.Attributes.crafting = {
             end
             return it,count,remove
         end,
-        HandleClickOnIndex = function(self,index,amt,Container)
+        OnClick = function(self,index,amt,Container)
             if index ~= "Output" then return end
             local item,count,remove = self.__Changed(self,"Output")
             if item then

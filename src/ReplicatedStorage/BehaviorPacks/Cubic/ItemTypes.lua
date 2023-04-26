@@ -13,6 +13,9 @@ local crt = behhandler.CreateComponent
 ]]
 types.Block = {
     maxCount = 64,
+    functions = {
+
+    },
     OnInput = {
         Interact = crt({
             Trigger = crt(

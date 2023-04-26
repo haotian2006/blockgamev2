@@ -45,4 +45,10 @@ return{
         type = 'Block',
         Block = 'C:Stair'
     }),
+
+    ['Sword'] = cit(
+    {
+        type = 'Weapon',
+        
+    }),
 }

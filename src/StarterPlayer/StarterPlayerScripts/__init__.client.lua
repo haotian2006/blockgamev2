@@ -179,10 +179,10 @@ game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
 end)
 local i = 0
 EntityBridge:Connect(function(entitys)
-    i +=1 
+    i =i and i + 1 
     for i,v in game.Workspace.Entities:GetChildren() do shoulddel(entitys,v) end
     for i,v in game.Workspace.DamagedEntities:GetChildren() do shoulddel(entitys,v) end
-   --if i == 165 then  print(entitys,i) end 
+   if i == 500 then  print(entitys,i) i = nil end 
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i) or workspace.DamagedEntities:FindFirstChild(i)
         local oldentity = datahandler.GetEntity(i)

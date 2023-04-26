@@ -66,7 +66,7 @@ function c.OnCloseGui(player,index,amt)
         plr.Container = plr.Container or {}
         local continerobj = plr[typec] or plr.Container[typec]
         if plr.Container.HoldingItem and plr.Container.HoldingItem ~= "" and index and continerobj then
-            if continerobj.HandleClickOnIndex and continerobj:HandleClickOnIndex(index,amt,plr.Container) then return end 
+            if continerobj.OnClick and continerobj:OnClick(index,amt,plr.Container) then return end 
             local name,amount = plr.Container.HoldingItem[1],plr.Container.HoldingItem[2]
             if amt and name ~= continerobj[index][1] and continerobj[index] ~= '' then return end 
             if not amount then amount= 0 end 
@@ -85,7 +85,7 @@ function c.OnCloseGui(player,index,amt)
            
            end
         elseif continerobj[index] ~= '' and index then
-            if continerobj.HandleClickOnIndex and continerobj:HandleClickOnIndex(index,amt,plr.Container) then
+            if continerobj.OnClick and continerobj:OnClick(index,amt,plr.Container) then
 
             else
 

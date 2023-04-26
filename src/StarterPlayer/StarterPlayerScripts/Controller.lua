@@ -243,7 +243,7 @@ function func.Interact()
                     placeBlockEvent:Fire(coords,orientation)
                 end
             elseif v.Type == "Entity"  then
-            
+             
             end
         end
     end
@@ -415,6 +415,11 @@ function controls.RenderStepped.Camera()
         lp.CameraMinZoomDistance = 6
     end
 
+end
+local function handleItemInput(input)
+    if not localentity() or localentity():GetState('Dead')  then return end 
+    local plr = localentity()
+    local inv = plr.inventory
 end
 local function doinput(input,gameProcessedEvent)
     if not localentity() or localentity():GetState('Dead')  then return end 

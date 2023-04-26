@@ -199,13 +199,22 @@ function finddiffrences(t1,t2,c)
     end
     return #c ~= 0 and c 
 end
+local lastint = {}
 function entity:ConvertToClient(player,inteval)
     local new = {Container = {}}
     local found =  not table.find(data.loadedentitysforplayer[tostring(player.UserId)] or {},self.Id)
-    if data.OldData.interval ~= inteval or  found or tostring(player.UserId) == self.Id  then
+    if data.OldData.interval ~= inteval or not data.OldData[self.Id] or  found or tostring(player.UserId) == self.Id  then
     local HasOwnerShip = player and self.ClientControl == tostring(player.UserId)
-    local old = not found and rawget(self,'old') or {}
-    local d = finddiffrences(old,self) or {}
+    local d 
+    if data.OldData.interval == inteval and data.OldData[self.Id] and not HasOwnerShip then
+         d = data.OldData[self.Id][2] or {}
+    elseif data.OldData.interval == inteval  then
+        local old = not found and lastint[self.Id] and lastint[self.Id][3] or {}
+        d = finddiffrences(old,self) or {}
+    else
+        local old = not found and data.OldData[self.Id] and data.OldData[self.Id][3] or {}
+        d = finddiffrences(old,self) or {}
+    end
     --if self.Id == "Npc1" then print(table.concat(data.loadedentitysforplayer[tostring(player.UserId)] or {},'/')) end 
     for i,v in self do
         if i == "Container" then continue end 
@@ -237,24 +246,25 @@ function entity:ConvertToClient(player,inteval)
         end
     end
     new.CurrentHandItem = self:GetItemFromSlot(self.CurrentSlot or 1)
+    if not HasOwnerShip then 
+        new.NotSaved = nil
+        new["Container"] = nil
+        new["CurrentHandItem"] = nil
+    end
     if data.OldData.interval ~= inteval then
-        data.OldData = {inteval = inteval}
-        new.old = nil
-        data.OldData[self.Id] = new
-        self.old = nil
-        self.old = qf.deepCopy(self)
-        if not HasOwnerShip then 
-            new.NotSaved = nil
-            new["Container"] = nil
-            new["CurrentHandItem"] = nil
-        end
+        lastint = data.OldData
+        data.OldData = {interval = inteval}
+    end
+    if not data.OldData[self.Id] and not HasOwnerShip then
+        data.OldData[self.Id] = {new,d,qf.deepCopy(self)}
     end
     else
-        new = data.OldData[self.Id] 
+        new = data.OldData[self.Id][1]
     end 
     if self.Type == "C:Item" then
       --  print(new)
     end
+
     return new
 end
 function entity:DoBehaviors(dt)

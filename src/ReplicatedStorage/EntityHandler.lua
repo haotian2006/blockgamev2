@@ -193,6 +193,7 @@ end
 entity.KeepSame = {"Position",'NotSaved',"Velocity",'Hitbox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'ViewMode','CurrentStates','Ingui','CurrentStates'}
 function entity:UpdateEntityClient(newdata)
     newdata = newdata or {}
+  --  print(newdata.HoldingItem and newdata.HoldingItem[1])
     if newdata.Container then
         for i,v in newdata.Container do
             if type(v) == "table" and v.Type == 'EntityAttribute' then

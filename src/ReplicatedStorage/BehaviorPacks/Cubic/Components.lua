@@ -16,7 +16,9 @@ Components.Inputs = {
     HoldTime = 0,
     AlsoHold = {},
     HasToLetGo = false,
-    Trigger = nil
+    Trigger = nil,
+    Weight = -1,
+    HasToBeInHand = true,
 } 
 Components.PlaceBlock = {
     Block = "self.HoldingItem",
