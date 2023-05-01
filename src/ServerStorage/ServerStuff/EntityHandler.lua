@@ -255,7 +255,7 @@ function entity:ConvertToClient(player,inteval)
         lastint = data.OldData
         data.OldData = {interval = inteval}
     end
-    if not data.OldData[self.Id] and not HasOwnerShip then
+    if not data.OldData[self.Id] and (not HasOwnerShip or #game.Players:GetPlayers() == 1) then
         data.OldData[self.Id] = {new,d,qf.deepCopy(self)}
     end
     else

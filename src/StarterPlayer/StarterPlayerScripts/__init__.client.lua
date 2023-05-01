@@ -2,6 +2,7 @@
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
 resource:Init()
+local itemhand = require(game.ReplicatedStorage.ItemHandler):Init()
 require(game.ReplicatedStorage.BehaviorHandler):Init()
 local managers = require(game.ReplicatedStorage.Managers):Init()
 local bridge = require(game.ReplicatedStorage.BridgeNet)

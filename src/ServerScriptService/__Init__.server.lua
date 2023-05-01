@@ -17,16 +17,29 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local CraftingManager =   Manager.CraftingManager:Init()
+
+local KeyDown = bridge.CreateBridge("UisKeyInput")
+data.KeyDown = {}
+KeyDown:Connect(function(player,key,isdown)
+    if isdown then
+        data.KeyDown[player][key] = os.clock()
+    else
+        data.KeyDown[player][key] = nil
+    end
+    print(key,isdown)
+end)
 game.ReplicatedStorage.Events.DoSmt.OnServerEvent:Connect(function(player,stuff)
     require(game.ServerStorage.DataStores.BlockSaver).Save()
 end)
 game.Players.PlayerAdded:Connect(function(player)
+    data.KeyDown[player] = {}
     local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%C:Dirt",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%C:Slab",1},[6] = {"T|s%C:Stair",1},[2] = {"T|s%C:Grass",64},[3] = {"T|s%C:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 60.6, 10),ClientControl = tostring(player.UserId)})
     data.AddEntity(entity)
 end)
 game.Players.PlayerRemoving:Connect(function(player)
     data.loadedentitysforplayer[tostring(player.UserId)] = nil
     data.RemoveEntity(player.UserId)
+    data.KeyDown[player] = nil
 end)
 local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)}) data.AddEntity(entity)
 game.ReplicatedStorage.Events.Respawn.OnServerEvent:Connect(function(player)

@@ -76,7 +76,7 @@ function ItemType.__index(s,x)
 end
 function ItemType:IsA(type)
     return self.type and ((type(self.type) == 'table' and table.find(self.type,type)) or self.type == type )
-end
+end 
 function self.CreateItemType(data)
     return setmetatable(data,ItemType)
 end

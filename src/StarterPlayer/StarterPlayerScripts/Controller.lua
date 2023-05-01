@@ -1,6 +1,7 @@
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local ArmsHandler = require(script.Parent.ArmsController)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
+local itemhand = require(game.ReplicatedStorage.ItemHandler)
 local destroyblockEvent = bridge.CreateBridge("BlockBreak")
 local placeBlockEvent = bridge.CreateBridge("BlockPlace")
 local EntityBridge = bridge.CreateBridge("EntityBridge")
@@ -23,8 +24,10 @@ hotbarhandler:Init()
 local lp = game.Players.LocalPlayer
 local localentity = data.GetLocalPlayer
 local controls = {pc = {},mode = 'pc',func = {},RenderStepped = {}}
+controls.downtimer = {}
+local downtimer = controls.downtimer 
 controls.pc = {
-    Foward = {'w',"Foward"},-- Name = {key:string|table,function or boolname}
+    Foward = {'w',"Foward"},-- Name = {key:string|table,function or bool name}
     Left = {'a',"Left"},
     Right = {'d',"Right"},
     Back = {'s',"Back"},
@@ -352,7 +355,7 @@ function controls.Render.OutLine()
 end
 controls.PlayerDoll = nil 
 function controls.RenderStepped.Update(dt)
-    if not localentity() or localentity():GetState('Dead') or not localentity().Entity then table.clear(controls.Functionsdown) table.clear(controls.KeysPressed)  table.clear(controls.Data) end 
+    if not localentity() or localentity():GetState('Dead') or not localentity().Entity then table.clear(controls.Functionsdown) table.clear(controls.KeysPressed)  table.clear(controls.Data) table.clear(controls.downtimer) end 
     if  localentity() and not localentity().ClientArms then localentity().ClientArms = ArmsHandler.Init() end
     ArmsHandler.UpdateArms(dt)
     if not controls.PlayerDoll then
@@ -416,19 +419,69 @@ function controls.RenderStepped.Camera()
     end
 
 end
-local function handleItemInput(input)
-    if not localentity() or localentity():GetState('Dead')  then return end 
-    local plr = localentity()
-    local inv = plr.inventory
+local function checkconditions(table)
+    for i,v in table do if v then return nil,i end end
+    return true
 end
+local function trigger(v,...)
+    if typeof(v) == "function" then
+        v(localentity(),...)
+    elseif type(v) == "table" then
+        if v.Client then
+            v.Client(localentity(),...)
+        end
+    end
+end
+function Interrupt()
+    
+end
+local bindables = {}
+local function handleItemInput(input,isdown)
+    local plr = localentity()
+    if not plr or plr:GetState('Dead') or not plr.inventory  then return end 
+    local inv = plr.inventory
+    for i,v in inv.Data do
+        if v == '' then continue end 
+        local inputs = itemhand.GetInputs(v[1])
+        if not inputs then continue end
+        for inputname,data in inputs do
+            local conditions = {
+                localentity().Ingui and not data.CanActivateInGui,
+                i ~= (localentity().CurrentSlot or 1) and  data.HasToBeInHand,
+                data.HasToBeInHotBar and i >9,
+                inputname ~= input,
+                (function()
+                    for i,v in data.AlsoHold or {} do if not controls:IsDown(v) then return true end end  
+                end)(),
+            }
+            local pass,err =checkconditions(conditions)
+            if not pass then continue end 
+            if data.HasToLetGo and not isdown then
+                bindables[i][2]:Fire()
+                bindables[i] = nil
+            elseif data.HasToLetGo then
+                bindables[i] = {v[2],Instance.new("BindableEvent")}
+                trigger(bindables[i][2])
+            elseif not data.HasToLetGo and isdown then
+                trigger()
+            end
+        end
+    end
+end
+
+local KeyDown = bridge.CreateBridge("UisKeyInput")
 local function doinput(input,gameProcessedEvent)
     if not localentity() or localentity():GetState('Dead')  then return end 
     local key = getkeyfrominput(input)
     controls.KeysPressed[key] = key
+    downtimer[key] = downtimer[key] or os.clock()
     if controls[controls.mode] then
         for i,v in controls[controls.mode] do
             local function second()
                 if v[2] then
+                    KeyDown:Fire(v[2],true)
+                    handleItemInput(v[2],true)
+                    downtimer[v[2]] = downtimer[v[2]] or os.clock()
                     if controls.Events[v[2]] then controls.Events[v[2]]:fire(key,"down") end
                     controls.Functionsdown[v[2]] = controls.Functionsdown[v[2]] or {}
                     controls.Functionsdown[v[2]][key] = true
@@ -451,6 +504,9 @@ local function doinput(input,gameProcessedEvent)
         end
     end
 end
+function controls:IsDown(key)
+    return self.KeysPressed[key] or controls.Functionsdown[key]
+end
 uis.InputBegan:Connect(doinput)
 uis.InputChanged:Connect(function(i,g)
     local key = getkeyfrominput(i)
@@ -462,11 +518,15 @@ end)
 uis.InputEnded:Connect(function(input, gameProcessedEvent)
     local key = getkeyfrominput(input)
     controls.KeysPressed[key] = nil
+    downtimer[key] = nil
     for i,v in controls.Functionsdown do
         if v[key] then
             controls.Functionsdown[i][key] = nil
             if next(controls.Functionsdown[i]) == nil then
+                handleItemInput(i,false)
+                KeyDown:Fire(i,false)
                 controls.Functionsdown[i] = nil
+                downtimer[i] = nil
                 if controls.Events[i] then controls.Events[i]:fire(key,"up") end
             end
         end

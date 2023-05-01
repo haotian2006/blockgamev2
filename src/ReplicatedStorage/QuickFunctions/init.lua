@@ -47,6 +47,7 @@ function qf.deepCopy(original)
 function qf.GetFolder(x,y)
     return game.Workspace.Chunks:FindFirstChild(x..','..y)
 end
+
 function qf.DestroyBlocks(folder,interval)
     interval = interval or 500
     if type(folder) == "table" then else

@@ -1,3 +1,4 @@
+local bridge = require(game.ReplicatedStorage.BridgeNet)
 local Components = {}
 Components.BlockComp = {
     CanFloat = true,
@@ -13,12 +14,17 @@ Components.BlockComp = {
     RotateZ = false,
 }
 Components.Inputs = {
-    HoldTime = 0,
     AlsoHold = {},
     HasToLetGo = false,
-    Trigger = nil,
+    Trigger = {
+        Client = nil,
+        Server = nil,
+    },
     Weight = -1,
+
     HasToBeInHand = true,
+    HasToBeInHotBar =true,
+    CanActivateInGui = false; 
 } 
 Components.PlaceBlock = {
     Block = "self.HoldingItem",

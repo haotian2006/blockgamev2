@@ -15,6 +15,9 @@ end
 EntityAttribute.__call = function(self,data)
     self.Data = EntityAttribute.Desterilize(data)
 end
+function EntityAttribute.__eq(self,second)
+    return qf.CompareTables(self,second)
+end
 EntityAttribute['EntityAttributes'] = true
 function EntityAttribute.new(name,data,M)
     local k = {}

@@ -23,7 +23,25 @@ return{
     ['C:Stone'] = cit(
     { 
         type = 'Block',
-        Block = 'C:Stone'
+        Block = 'C:Stone',
+        functions = {
+
+        },
+        OnInput = {
+            Interact = crt({
+                HasToBeInHand = true,
+                HasToBeInHotBar = true,
+                Trigger = crt(
+                    {
+    
+                    },
+                    'PlaceBlock'
+                )
+            },
+            'Inputs'
+        )
+        }
+
     }),
     ['C:Bedrock'] = cit(
     {
