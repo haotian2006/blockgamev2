@@ -15,7 +15,6 @@ Components.BlockComp = {
 }
 Components.Inputs = {
     AlsoHold = {},
-    HasToLetGo = false,
     Trigger = {
         Client = nil,
         Server = nil,
