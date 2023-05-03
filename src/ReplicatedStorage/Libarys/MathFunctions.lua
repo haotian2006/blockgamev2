@@ -2,7 +2,7 @@ local maths = {Point = {},Line = {}}
 local Point,Line = maths.Point , maths.Line
 export type Line = typeof(setmetatable({}, {})) & {p1:Point,p2:Point}
 export type Point = typeof(setmetatable({}, {})) & {x:number,y:number}
-for i,v in math do maths[i] = v end -- insert all of the math functions
+ for i,v in math do maths[i] = v end -- insert all of the math functions
 Point.__type,Line.__type = Point, Line
 Point.__index,Line.__index = Point,Line
 --<Point> Class
