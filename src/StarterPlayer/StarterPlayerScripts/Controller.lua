@@ -419,23 +419,6 @@ function controls.RenderStepped.Camera()
     end
 
 end
-local function checkconditions(table)
-    for i,v in table do if v then return nil,i end end
-    return true
-end
-local function trigger(v,...)
-    if typeof(v) == "function" then
-        v(localentity(),...)
-    elseif type(v) == "table" then
-        if v.Client then
-            v.Client(localentity(),...)
-        end
-    end
-end
-function Interrupt()
-    
-end
-local bindables = {}
 local function handleItemInput(input,isdown)
     local plr = localentity()
     if not plr or plr:GetState('Dead') or not plr.inventory  then return end 
@@ -445,26 +428,9 @@ local function handleItemInput(input,isdown)
         local inputs = itemhand.GetInputs(v[1])
         if not inputs then continue end
         for inputname,data in inputs do
-            local conditions = {
-                localentity().Ingui and not data.CanActivateInGui,
-                i ~= (localentity().CurrentSlot or 1) and  data.HasToBeInHand,
-                data.HasToBeInHotBar and i >9,
-                inputname ~= input,
-                (function()
-                    for i,v in data.AlsoHold or {} do if not controls:IsDown(v) then return true end end  
-                end)(),
-            }
-            local pass,err =checkconditions(conditions)
-            if not pass then continue end 
-            if data.HasToLetGo and not isdown then
-                bindables[i][2]:Fire()
-                bindables[i] = nil
-            elseif data.HasToLetGo then
-                bindables[i] = {v[2],Instance.new("BindableEvent")}
-                trigger(bindables[i][2])
-            elseif not data.HasToLetGo and isdown then
-                trigger()
-            end
+            local conditions = itemhand.CheckConditions(plr,i,input,inputname,data,controls)
+            if not conditions or not isdown then continue end 
+            itemhand.trigger(plr,{Index = i,Item = v[1],ItemData = data,Input = input,IsDown = isdown,Controls = controls,ItemHandler = itemhand})
         end
     end
 end

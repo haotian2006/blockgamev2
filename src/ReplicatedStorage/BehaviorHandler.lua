@@ -125,4 +125,7 @@ function self.GetHbFromBlock(Name)
         return type(b.components.Hitbox) == "string" and self.GetBlockHb(b.components.Hitbox) or b.components.Hitbox
     end
 end
+function self.Getfunction(name)
+    return self.Functions and  self.Functions[name]
+end
 return self
