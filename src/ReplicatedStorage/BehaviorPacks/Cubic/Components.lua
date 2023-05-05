@@ -15,21 +15,12 @@ Components.BlockComp = {
 }
 Components.Inputs = {
     AlsoHold = {},
-    Trigger = {
-        Client = nil,
-        Server = nil,
-    },
+    Trigger = nil,
     Weight = -1,
 
     HasToBeInHand = true,
     HasToBeInHotBar =true,
     CanActivateInGui = false; 
 } 
-Components.PlaceBlock = {
-    Block = "self.HoldingItem",
-    At = 'Hit.Position',
-    Offset = Vector3.zero,
-    Size = Vector3.one,
-    Direaction = 'Hit.Direaction'
-}
+
 return Components
