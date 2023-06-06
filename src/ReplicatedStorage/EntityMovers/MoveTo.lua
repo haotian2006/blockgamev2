@@ -34,7 +34,6 @@ function MoveTo:Init()
         self.Position = self.entity.Position
        end
         if  self.entity.Destroyed or ((goal-self.Position).Magnitude <= 0.5 or self.entity.NotSaved["Moving"] ~= currentnumber or  os.clock()-timestart >= timetotake+7 or self["Stoped"] or self.entity:GetState("Dead"))  then
-            
             event:Disconnect()
             coroutine.resume(thread)
         end

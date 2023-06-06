@@ -140,10 +140,11 @@ function self.HideBlocks(cx,cz,chunks,times)
 	local thread = coroutine.running()
 	local ammountdone = 0 
 	--local sterilise = game:GetService("HttpService"):JSONEncode(chunks)
-	for i,v in ipairs(self.divide(chunks[1],times)) do
+	local data = self.divide(chunks[1],times)
+	for i,v in data do
 		task.spawn(function()
 			local hideblocks = require(game.ReplicatedStorage.RenderStuff.Culling)
-			task.desynchronize()
+			--task.desynchronize()
 		--	local cdata = self.LargeSend("HideBlocks",{3},2,cx,cz,v,false)
 			local cdata = hideblocks.HideBlocks(cx,cz,chunks,v,libarydata)
 			--local cdata = self.DoSmt("HideBlocks",cx,cz,sterilise,v)
@@ -151,14 +152,14 @@ function self.HideBlocks(cx,cz,chunks,times)
 			for e,c in cdata do
 				newdata[tostring(e)] = c
 			end
-			task.synchronize()
+			--task.synchronize()
 			ammountdone +=1
-			if ammountdone == times then
+			if ammountdone == #data then
 				coroutine.resume(thread)
 			end
 		end)
 	end
-	coroutine.yield()
+	if ammountdone ~= #data then 	coroutine.yield() end
 	return newdata
 end
 function self.GenerateWorms(cx,cz)
