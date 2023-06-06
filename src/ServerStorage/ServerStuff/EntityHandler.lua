@@ -216,7 +216,7 @@ function entity:ConvertToClient(player,inteval)
         d = finddiffrences(old,self) or {}
     end
     --if self.Id == "Npc1" then print(table.concat(data.loadedentitysforplayer[tostring(player.UserId)] or {},'/')) end 
-    for i,v in self do
+    for i,v in self do 
         if i == "Container" then continue end 
         if type(v) ~="function" and not table.find(entity.ServerOnly,i) and (not table.find(entity.OwnerOnly,i) or  HasOwnerShip) and table.find(d,i)  then
             if type(v) =="table" and not v["ServerOnly"] then

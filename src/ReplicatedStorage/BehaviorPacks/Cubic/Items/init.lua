@@ -11,7 +11,7 @@ local crt = behhandler.CreateComponent
 local cit = behhandler.CreateItemType
 return{
     ['C:Dirt'] = cit(
-    {
+    { 
         type = 'Block',
         Block = 'C:Dirt'
     }),
@@ -24,24 +24,6 @@ return{
     { 
         type = 'Block',
         Block = 'C:Stone',
-        functions = {
-
-        },
-        OnInput = {
-            Interact = crt({
-                HasToBeInHand = true,
-                HasToBeInHotBar = true,
-                Trigger = crt(
-                    {
-    
-                    },
-                    'PlaceBlock'
-                )
-            },
-            'Inputs'
-        )
-        }
-
     }),
     ['C:Bedrock'] = cit(
     {

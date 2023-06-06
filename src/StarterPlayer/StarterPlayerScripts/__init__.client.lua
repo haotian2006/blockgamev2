@@ -196,8 +196,8 @@ EntityBridge:Connect(function(entitys)
                 if oldentity.Tweens and oldentity.Tweens["Pos"] then
                     oldentity.Tweens["Pos"]:Cancel()
                 end
-                e.PrimaryPart.Size = Vector3.new(v.Hitbox.X,v.Hitbox.Y,v.Hitbox.X)*3
-                e.PrimaryPart.CFrame = CFrame.new(v.Position*3)
+                if v.Hitbox then e.PrimaryPart.Size = Vector3.new(v.Hitbox.X,v.Hitbox.Y,v.Hitbox.X)*3 end 
+                if v.Position then e.PrimaryPart.CFrame = CFrame.new(v.Position*3) end 
                 oldentity:UpdateModelPosition()
             elseif v.Position then 
                 oldentity.Tweens = oldentity.Tweens or {}

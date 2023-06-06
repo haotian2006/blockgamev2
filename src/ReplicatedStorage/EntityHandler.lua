@@ -12,6 +12,7 @@ local movers = require(game.ReplicatedStorage.EntityMovers)
 local gs = require(game.ReplicatedStorage.GameSettings)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
+local ItemHandler = require(game.ReplicatedStorage.ItemHandler)
 local changeproperty = bridge.CreateBridge("ChangeEntityProperty")
 local playani = bridge.CreateBridge("PlayAnimation")
 local isClient = RunService:IsClient()
@@ -44,12 +45,12 @@ function entity:IndexFromComponets(key,ignore)
     if type(comp) == "table" and entitybeh and entitybeh.component_groups  then
         for i,v in comp do
             if table.find(ignore or {},v) then continue end 
-            if entitybeh.component_groups[v] and entitybeh.component_groups[v][key] then
+            if entitybeh.component_groups[v] and entitybeh.component_groups[v][key] ~= nil then
                 return entitybeh.component_groups[v][key],v
             end
         end
     end
-    if entitybeh and entitybeh.components and entitybeh.components[key] then
+    if entitybeh and entitybeh.components and entitybeh.components[key] ~= nil then
         return entitybeh.components[key],true
     end
 end
@@ -518,14 +519,21 @@ end
 function entity:GetData()
     return datahandler
 end
+function entity:CanCrouch()
+    local itm = ItemHandler.GetItemData(type(self.HoldingItem)=="table" and self.HoldingItem[1] or "") 
+    return self.CrouchLower and (not itm or (itm and itm.CanCrouch ~= false)) and not self.CannotCrouch
+end
 function entity:Crouch(letgo:boolean)
+    if self.Crouching == not letgo then return end 
     local dcby = self.CrouchLower or 0
     letgo = not letgo
     self.Crouching = letgo
     if not letgo then dcby *= -1 end 
-    self.Position += Vector3.new(0,-dcby/2,0)
-    self.Hitbox = Vector2.new(self.Hitbox.X, self.Hitbox.Y-dcby)
-    self.EyeLevel = self.EyeLevel - dcby
+    if RunService:IsServer() or true then
+        self.Hitbox = Vector2.new(self.Hitbox.X, self.Hitbox.Y-dcby)
+        self.EyeLevel = self.EyeLevel - dcby
+        self.Position += Vector3.new(0,-dcby/2,0)
+    end
     if letgo then
         self:PlayAnimation("Crouch")
         self:SetState('Crouching',true)
@@ -547,7 +555,7 @@ function entity:GPWM(name)
     return self:GetPropertyWithMulti(name)
 end
 function entity:GetEyePosition()
-    local eye = self.EyeLevel/2
+    local eye = (self.EyeLevel or 0)/2
     return self.Position + Vector3.new(0,eye,0)
 end
 function entity:AddVelocity(Name,velocity:Vector3)

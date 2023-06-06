@@ -69,7 +69,7 @@ local ItemType = {
 }
 function ItemType.__index(s,x)
     local y = self.GetItemType(rawget(s,'type'))
-    if y and y[x] then
+    if y and y[x] ~= nil then
         return y[x]
     end
     return rawget(ItemType,x)

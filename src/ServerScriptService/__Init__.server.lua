@@ -1,10 +1,12 @@
 local HttpService = game:GetService("HttpService")
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 --bridge.Start({})
+
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 resourcehandler:Init()
 local beh = require(game.ReplicatedStorage.BehaviorHandler):Init()
 local Manager = require(game.ReplicatedStorage.Managers):Init()
+local itemhand = require(game.ReplicatedStorage.ItemHandler):Init()
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 for i,v in game.ServerStorage.ServerStuff:GetChildren() do
     require(v)
@@ -17,32 +19,32 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local CraftingManager =   Manager.CraftingManager:Init()
-
+local playercontrol = require(game.ServerStorage.PlayerControlsHandler)
 local KeyDown = bridge.CreateBridge("UisKeyInput")
-data.KeyDown = {}
+data.PlayerControl = {}
 KeyDown:Connect(function(player,key,isdown)
-    if isdown then
-        data.KeyDown[player][key] = os.clock()
-    else
-        data.KeyDown[player][key] = nil
-    end
-    print(key,isdown)
+    local e = data.GetEntityFromPlayer(player)
+    if not key or not e then return end 
+    local c =data.PlayerControl[player]
+    if isdown then c:KeyDown(key);itemhand.handleItemInput(key,true,c,e,player)  else c:KeyUp(key) end 
+  --  print(key,isdown)
 end)
 game.ReplicatedStorage.Events.DoSmt.OnServerEvent:Connect(function(player,stuff)
     require(game.ServerStorage.DataStores.BlockSaver).Save()
 end)
 game.Players.PlayerAdded:Connect(function(player)
-    data.KeyDown[player] = {}
+    data.PlayerControl[player] = playercontrol.new()
     local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%C:Dirt",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%C:Slab",1},[6] = {"T|s%C:Stair",1},[2] = {"T|s%C:Grass",64},[3] = {"T|s%C:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 60.6, 10),ClientControl = tostring(player.UserId)})
     data.AddEntity(entity)
 end)
 game.Players.PlayerRemoving:Connect(function(player)
     data.loadedentitysforplayer[tostring(player.UserId)] = nil
+    data.PlayerControl[player] = nil
     data.RemoveEntity(player.UserId)
-    data.KeyDown[player] = nil
 end)
 local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)}) data.AddEntity(entity)
 game.ReplicatedStorage.Events.Respawn.OnServerEvent:Connect(function(player)
+    data.PlayerControl[player]:Clear()
     data.loadedentitysforplayer[tostring(player.UserId)] = nil
     data.RemoveEntity(player.UserId)
     interval += 20 + math.random(1,10)
@@ -67,10 +69,11 @@ EntityBridge:Connect(function(plr,id,newdata)
    -- newdata = HttpService:JSONDecode(newdata)
  
     if entity.ClientControl ~= tostring(plr.UserId) then return end 
-    if entity and newdata.Crouching ~= nil and newdata.Crouching ~= entity.Crouching  then
+    if not entity:CanCrouch() and entity.Crouching then newdata.Crouching = false end 
+    if entity and newdata.Crouching ~= nil and newdata.Crouching ~= not not entity.Crouching  then
         entity.Crouching  = newdata.Crouching
         local dcby = entity.CrouchLower or 0
-        if not entity.Crouching then
+        if not entity.Crouching  then
             --entity.Position -= Vector3.new(0,.3,0)
             entity.Hitbox = Vector2.new(entity.Hitbox.X,entity.Hitbox.Y+dcby)
             entity.EyeLevel = entity.EyeLevel+dcby
@@ -79,6 +82,7 @@ EntityBridge:Connect(function(plr,id,newdata)
           --  entity.Position += Vector3.new(0,.3,0)
             entity.EyeLevel =  entity.EyeLevel- dcby
         end
+
     end
     if id == tostring(plr.UserId) then
         data.loadedentitysforplayer[id] = newdata.Loaded

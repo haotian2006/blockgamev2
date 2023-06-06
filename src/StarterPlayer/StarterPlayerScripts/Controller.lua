@@ -1,5 +1,5 @@
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
-local ArmsHandler = require(script.Parent.ArmsController)
+local ArmsHandler = require(game.ReplicatedStorage.Managers.ArmsManager)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local itemhand = require(game.ReplicatedStorage.ItemHandler)
 local destroyblockEvent = bridge.CreateBridge("BlockBreak")
@@ -164,20 +164,24 @@ function func.HandleJump()
     end)
 end
 function func.Crouch()
-    if not localentity() or localentity():GetState('Dead') or localentity().Ingui then return end 
+    local plr = localentity()
+    if not localentity() or localentity():GetState('Dead') or localentity().Ingui or not plr:CanCrouch() then return end 
     if not data.LocalPlayer.Crouching then
         localentity():Crouch()
     end
     data.LocalPlayer:UpdateModelPosition()
     repeat
         task.wait()
-    until not FD["Crouch"]
+    until not FD["Crouch"] or not plr:CanCrouch() 
     if data.LocalPlayer.Crouching then
         localentity():Crouch(true)
     end
     data.LocalPlayer:UpdateModelPosition()
 end
 function func.Interact()
+    do
+         return
+    end
     if not localentity() or localentity():GetState('Dead') or localentity().Ingui then return end 
     local lookvector = CameraCFrame.LookVector
     local rayinfo = Ray.newInfo()
@@ -375,12 +379,12 @@ function controls.RenderStepped.Camera()
         second = second or Current_Entity:FindFirstChild("SecondLayer",true)
         local muti
         local entityw = Current_Entity
-        local Torso = entityw:FindFirstChild("Torso",true)
-        local neck =  entityw:FindFirstChild("Neck",true)
-        local MainWeld = entityw:FindFirstChild("MainWeld",true)
-        if neck and Torso and MainWeld then
+        -- local Torso = entityw:FindFirstChild("Torso",true)
+        -- local neck =  entityw:FindFirstChild("Neck",true)
+        -- local MainWeld = entityw:FindFirstChild("MainWeld",true)
+        --if neck and Torso and MainWeld then
             data.LocalPlayer:SetHeadRotationFromDir(CameraCFrame.LookVector*10)
-        end
+       -- end
         data.LocalPlayer:UpdateRotationClient()
         if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then
             data.GetLocalPlayer().VeiwMode = "First"
@@ -419,21 +423,7 @@ function controls.RenderStepped.Camera()
     end
 
 end
-local function handleItemInput(input,isdown)
-    local plr = localentity()
-    if not plr or plr:GetState('Dead') or not plr.inventory  then return end 
-    local inv = plr.inventory
-    for i,v in inv.Data do
-        if v == '' then continue end 
-        local inputs = itemhand.GetInputs(v[1])
-        if not inputs then continue end
-        for inputname,data in inputs do
-            local conditions = itemhand.CheckConditions(plr,i,input,inputname,data,controls)
-            if not conditions or not isdown then continue end 
-            itemhand.trigger(plr,{Index = i,Item = v[1],ItemData = data,Input = input,IsDown = isdown,Controls = controls,ItemHandler = itemhand})
-        end
-    end
-end
+
 
 local KeyDown = bridge.CreateBridge("UisKeyInput")
 local function doinput(input,gameProcessedEvent)
@@ -446,9 +436,9 @@ local function doinput(input,gameProcessedEvent)
             local function second()
                 if v[2] then
                     KeyDown:Fire(v[2],true)
-                    handleItemInput(v[2],true)
+                    itemhand.handleItemInput(v[2],true,controls,localentity())
                     downtimer[v[2]] = downtimer[v[2]] or os.clock()
-                    if controls.Events[v[2]] then controls.Events[v[2]]:fire(key,"down") end
+                    if controls.Events[v[2]] then controls.Events[v[2]]:fire(key,true) end
                     controls.Functionsdown[v[2]] = controls.Functionsdown[v[2]] or {}
                     controls.Functionsdown[v[2]][key] = true
                     if type(v[2]) == "string" then
@@ -489,11 +479,10 @@ uis.InputEnded:Connect(function(input, gameProcessedEvent)
         if v[key] then
             controls.Functionsdown[i][key] = nil
             if next(controls.Functionsdown[i]) == nil then
-                handleItemInput(i,false)
                 KeyDown:Fire(i,false)
                 controls.Functionsdown[i] = nil
                 downtimer[i] = nil
-                if controls.Events[i] then controls.Events[i]:fire(key,"up") end
+                if controls.Events[i] then controls.Events[i]:fire(key,false) end
             end
         end
     end
