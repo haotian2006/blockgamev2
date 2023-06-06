@@ -197,7 +197,7 @@ self.Attributes.crafting = {
         end,
         Sterilize = function(self)
             local data = {}
-            local ea = qf.deepCopy(self)
+            local ea = self:Copy()
             for i,v in self.Data do
                 data[tostring(i)] =v
             end

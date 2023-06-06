@@ -1,7 +1,7 @@
 local EntityAttribute = {}
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 EntityAttribute.__index = function(self,key)
-    return self.Data[key] or getmetatable(self)[key]
+    return (self.Methods and self.Methods[key])or  self.Data[key]-- or getmetatable(self)[key]
 end
 EntityAttribute.__newindex = function(self,key,value)
     self.Data[key] = value
@@ -20,16 +20,16 @@ function EntityAttribute.__eq(self,second)
 end
 EntityAttribute['EntityAttributes'] = true
 function EntityAttribute.new(name,data,M)
-    local k = {}
-    if M then
-        for i,v in EntityAttribute do
-            k[i] = v
-        end
-        for i,v in M do
-            k[i] = v
-        end
-    end
-    return setmetatable({Data = type(data) == 'table' and EntityAttribute.Desterilize(data) or {},Component = true,Name = name,Type = "EntityAttribute"},k)
+    -- local k = {}
+    -- if M then
+    --     for i,v in EntityAttribute do
+    --         k[i] = v
+    --     end
+    --     for i,v in M do
+    --         k[i] = v
+    --     end
+    -- end
+    return setmetatable({Methods = M,Data = type(data) == 'table' and EntityAttribute.Desterilize(data) or {},Component = true,Name = name,Type = "EntityAttribute"},EntityAttribute)
 end
 function EntityAttribute.create(data)
     data.Event = nil
@@ -43,7 +43,7 @@ function EntityAttribute:GetComponent()
     return self.Component
 end
 function EntityAttribute:Sterilize()
-    return self
+    return self:Copy()
 end
 function EntityAttribute.Desterilize(data)
     local new = {}
@@ -54,6 +54,14 @@ function EntityAttribute.Desterilize(data)
 end
 function EntityAttribute:SetComponent(c)
     self.Component = c
+end
+function EntityAttribute:Copy(KeepMethods)
+    local clone = qf.deepCopy(self)
+    if KeepMethods then
+        return clone
+    end
+    clone.Methods = nil;
+    return clone
 end
 function EntityAttribute:Clone()
     return setmetatable(qf.deepCopy(self),EntityAttribute)
