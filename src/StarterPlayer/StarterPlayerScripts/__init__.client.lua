@@ -11,7 +11,7 @@ local EntityBridge = bridge.CreateBridge("EntityBridge")
 --bridge.Start({})
 local GetChunk = bridge.CreateBridge("GetChunk")
 local datahandler = require(game.ReplicatedStorage.DataHandler)
-local mulithandler = require(game.ReplicatedStorage.MultiHandler)
+local mulithandler = require(game.ReplicatedStorage.MultiHandler):Init()
 local toload = {}
 local currentlyloading = {}
 local queued = {}
@@ -348,6 +348,8 @@ end)
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
     toload[cx..','..cz] = true
     queued[cx..','..cz] = false
+    data = require(game.ReplicatedStorage.Libarys.lualzw).decompress(data)
+    data = HttpService:JSONDecode(data)
     datahandler.CreateChunk({Blocks = data},cx,cz)
    if false then  
     local p = Instance.new("Part",workspace)

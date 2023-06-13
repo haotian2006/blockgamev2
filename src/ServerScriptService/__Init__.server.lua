@@ -19,6 +19,13 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local CraftingManager =   Manager.CraftingManager:Init()
+
+--<TESTING MODE>
+if false then 
+    return
+end
+
+require(game.ReplicatedStorage.MultiHandler):Init()
 local playercontrol = require(game.ServerStorage.PlayerControlsHandler)
 local KeyDown = bridge.CreateBridge("UisKeyInput")
 data.PlayerControl = {}

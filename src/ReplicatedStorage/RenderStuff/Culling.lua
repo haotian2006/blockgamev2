@@ -3,7 +3,6 @@ local self = {}
 local f,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local f,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 local f,debris = pcall(require,game.ReplicatedStorage.Libarys.Debris)
-local f,beh = pcall(require,game.ReplicatedStorage.BehaviorHandler)
 local f,res = pcall(require,game.ReplicatedStorage.ResourceHandler)
 function self.GridIsInChunk(cx,cz,x,y,z)
     local ccx,ccz = tonumber(math.floor((x+.5)/settings.ChunkSize.X)),tonumber(math.floor((z+.5)/settings.ChunkSize.X))
@@ -51,7 +50,6 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
         settings = settings or libs.GameSettings
         debris = libs.Debris
         res = libs.ResourceHandler
-        beh = libs.BehaviorHandler
     end
     local chsiz:Vector2 = settings.ChunkSize
     local alreadychecked = {{},{},{},{},{}}

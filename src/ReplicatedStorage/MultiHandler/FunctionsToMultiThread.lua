@@ -22,6 +22,9 @@ function stuff.divide(original,times,destroy)
 	end
 	return tables
 end
+function  stuff.Render(M,cx,cz,blocks)
+	M.Render.multiRender(cx,cz,blocks,M)
+end
 function  stuff.HideBlocks(M,...)
 	local func = M.Culling.HideBlocks
 	local dot = {...}

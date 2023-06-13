@@ -2,6 +2,7 @@ local qf = {}
 local found,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 local otherlibs
 function qf.ADDSETTINGS(libs)
+    if otherlibs then return end 
     settings = libs.GameSettings
     otherlibs = libs
 end

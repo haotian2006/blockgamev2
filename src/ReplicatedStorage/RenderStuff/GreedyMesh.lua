@@ -1,10 +1,14 @@
 local greedy = {}
-local gs = require(game.ReplicatedStorage.GameSettings)
-local qf = require(game.ReplicatedStorage.QuickFunctions)
-local mulitthread = require(game.ReplicatedStorage.MultiHandler)
-local gridsize = gs.GridSize
-local delayh = require(game.ReplicatedStorage.Libarys.DelayHandler)
-local reh = require(game.ReplicatedStorage.ResourceHandler)
+local gs
+local mulitthread
+local qf 
+local reh
+pcall(function()
+     gs = require(game.ReplicatedStorage.GameSettings)
+     mulitthread = require(game.ReplicatedStorage.MultiHandler)
+     qf = require(game.ReplicatedStorage.QuickFunctions)
+     reh = require(game.ReplicatedStorage.ResourceHandler)
+end)
 local function findintable(tab,x,y,z)
    if tab[x] and tab[x][y] and tab[x][y][z]   then
        return tab[x][y][z] 
@@ -39,14 +43,27 @@ function greedy.createblock(sx,ex,sz,ez,sy,ey,data)
     h += h ~= -1 and 1 or 0
     return {data = data ,startx = sx,endx = ex,startz = sz,endz = ez,starty = sy,endy = ey,h=h,l=l,w=w,real = Vector3.new(midpointx,midpointy,midpointz)},midpointx..','..midpointy..','..midpointz
 end
-function  greedy.meshtable(tabletodemesh)
-    local df = delayh.new("Greedy")
+function  greedy.meshtable(tabletodemesh,libs)
+    if libs then
+        reh = libs.ResourceHandler
+        qf = libs.QuickFunctions
+        qf:ADDSETTINGS(libs)
+    end
+    --local df = delayh.new("Greedy")
    local startx,endx,startz,endz,starty,endy
    local D3 = {}
    local checked = {}
    local old = 0
    local c = 0
-   tabletodemesh = mulitthread.GlobalGet("DecompressItemData",tabletodemesh,5)
+   if not libs then
+       tabletodemesh = mulitthread.GlobalGet("DecompressItemData",tabletodemesh,5)
+   else
+    local a = {}
+    for i,v in tabletodemesh do
+        a[i] =  qf.DecompressItemData(v)
+    end
+    tabletodemesh = a
+   end
    local unabletomeshblocks = {}
    for i,v in tabletodemesh do
        if not v then continue end
@@ -200,7 +217,7 @@ function  greedy.meshtable(tabletodemesh)
            new[v] = nil
        end
    end
-   df:update("A")
+ --  df:update("A")
    return cc,unabletomeshblocks,unabletomeshblocks
 end
 return greedy

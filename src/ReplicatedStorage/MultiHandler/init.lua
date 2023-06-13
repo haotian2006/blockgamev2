@@ -15,12 +15,20 @@ local libarystosend = {
 	game.ReplicatedStorage.Libarys.Debris,
 	game.ReplicatedStorage.Libarys.MathFunctions,
 	game.ReplicatedStorage.WorkerThreads,
-	script.GlobalMemory
+	script.GlobalMemory,
+	game.ReplicatedStorage.RenderStuff.Render,
+	game.ReplicatedStorage.CollisonHandler,
+	game.ReplicatedStorage.RenderStuff.GreedyMesh
 }
 local libarydata = {}
-for i,v in libarystosend do libarydata[v.Name] = require(v) end 
-local Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",300,libarystosend)
-local LargeWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"LargeHandler",10,libarystosend)
+local Workers
+local LargeWorkers 
+function  self:Init()
+	for i,v in libarystosend do libarydata[v.Name] = require(v) end 
+	 Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",300,libarystosend,{ResourceHandler = {Blocks = require(game.ReplicatedStorage.ResourceHandler).Blocks}})
+	 LargeWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"LargeHandler",1,libarystosend)
+	 return self
+end
 -- local DWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"DHandler",100,{
 -- 	game.ReplicatedStorage.QuickFunctions,
 -- 	game.ReplicatedStorage.compressor,
@@ -133,6 +141,9 @@ function self.DeCompress(data)
 		coroutine.yield()
 	end
 	return newdata
+end
+function  self.Render(cx,cz,data)
+	return self.DoSmt("Render",cx,cz,data)
 end
 function self.HideBlocks(cx,cz,chunks,times)
 	times = times or 3

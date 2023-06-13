@@ -10,7 +10,6 @@ self.GLocalPlayer = {}
 --<Server Only
 self.CompressedChunks = {}
 self.Players = {} 
-local multihandeler = require(game.ReplicatedStorage.MultiHandler)
 local runservice = game:GetService("RunService")
 local ChunkObj = require(game.ReplicatedStorage.Chunk)
 local compresser = require(game.ReplicatedStorage.Libarys.compressor) 

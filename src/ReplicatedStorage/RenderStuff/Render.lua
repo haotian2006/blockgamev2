@@ -1,16 +1,26 @@
 local self = {}
-local bd = require(game.ReplicatedStorage.DataHandler)
-local qf = require(game.ReplicatedStorage.QuickFunctions)
-local multihandler = require(game.ReplicatedStorage.MultiHandler)
-local greedymesh = require(script.Parent.GreedyMesh)
-local csize =require(game.ReplicatedStorage.GameSettings).ChunkSize.X
-local gridS = require(game.ReplicatedStorage.GameSettings).GridSize
-local culling = require(game.ReplicatedStorage.RenderStuff.Culling)
-local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
+local bd
+local qf 
+local multihandler
+local greedymesh
+local csize 
+local gridS 
+local culling 
+local ResourceHandler 
+local collisions
+bd = require(game.ReplicatedStorage.DataHandler)
+qf = require(game.ReplicatedStorage.QuickFunctions)
+multihandler = require(game.ReplicatedStorage.MultiHandler)
+greedymesh = require(script.Parent.GreedyMesh)
+csize =require(game.ReplicatedStorage.GameSettings).ChunkSize.X
+gridS = require(game.ReplicatedStorage.GameSettings).GridSize
+culling = require(game.ReplicatedStorage.RenderStuff.Culling)
+ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
+collisions = require(game.ReplicatedStorage.CollisonHandler)
+
 self.Blocks ={}
 self.storage = self.storage or Instance.new("Folder")
 self.storage2 = self.storage2 or Instance.new("Folder")
-local collisions = require(game.ReplicatedStorage.CollisonHandler)
 local vector3 = Vector3.new
 function self.CreateTexture(texture,face)
     local new
@@ -27,6 +37,17 @@ function self.CreateTexture(texture,face)
 
         return new
 end 
+local function deepCopy(original)
+    if type(original) ~= "table" then return original end 
+    local copy = {}
+    for k, v in pairs(original) do
+      if type(v) == "table" then
+        v = deepCopy(v)
+      end
+      copy[k] = v
+    end
+    return copy
+  end
 local once = false
 local directions = {"Right", "Left", "Top", "Bottom", "Back", "Front"} 
 local mappings = { -- tried to us chatgpt for this, didn't work so decided to just hard code it
@@ -45,10 +66,10 @@ local mappings = { -- tried to us chatgpt for this, didn't work so decided to ju
 do 
     local pos = {[3] = 6,[6] = 4,[5] = 3,[4] = 5}
     local neg = {[3] = 6,[6] = 4,[5] = 3,[4] = 5}
-    local old = qf.deepCopy(mappings)
+    local old = deepCopy(mappings)
     for i,v in old do
         local rx,ry,rz = unpack(i:split(','))
-        v = qf.deepCopy(v)
+        v = deepCopy(v)
         for index,value in v do
            if neg[value] then
             v[index] = neg[value]
@@ -58,7 +79,7 @@ do
     end
     for i,v in old do
         local rx,ry,rz = unpack(i:split(','))
-        v = qf.deepCopy(v)
+        v = deepCopy(v)
         for index,value in v do
            if pos[value] then
             v[index] = pos[value]
@@ -165,7 +186,7 @@ function self.GetBlocks(amount)
     end
     return new,amount - #new
 end
-function self.GetBlockTable(cx,cz)
+function self.GetBlockTable(cx,cz,SPECIAL)
     if bd.GetChunk(cx,cz) and  bd.GetChunk(cx+1,cz) and bd.GetChunk(cx-1,cz) and 
     bd.GetChunk(cx,cz+1) and bd.GetChunk(cx,cz-1) then
        local t = {
@@ -175,15 +196,19 @@ function self.GetBlockTable(cx,cz)
            bd.GetChunk(cx,cz+1):GetEdge("z"),
            bd.GetChunk(cx,cz-1):GetEdge("z-1"),
        }
+       if SPECIAL then return t end 
       -- local culling = culling.HideBlocks(cx,cz,t,bd.GetChunk(cx,cz).Blocks)
      local culling = multihandler.HideBlocks(cx,cz,t,3)--need to fix this
      local meshed,unmeshed = greedymesh.meshtable(culling)
       return meshed,bd.GetChunk(cx,cz),unmeshed 
     end
 end
-function self.CreateBlock(v,ptouse,ori)
+
+function self.CreateBlock(v,ptouse,ori,isSafe)
     local p = ptouse or Instance.new("Part")
-    p:ClearAllChildren()
+    if not isSafe then 
+        p:ClearAllChildren()
+    end
     p.Material = Enum.Material.SmoothPlastic
     local name = v.data.T
     for i,v in  self.GetTextures(name,v.data.AirBlocks,ori,p) do
@@ -341,5 +366,59 @@ function self.render(cx,cz)
     end
     folder.Parent = workspace.Chunks
     folder.Name = cx..','..cz
+end
+function  self.multiRender(cx,cz,data,libs)
+    -- do
+    --     collisions = libs.CollisonHandler
+    --      qf  = libs.QuickFunctions
+    --      greedymesh = libs.GreedyMesh
+    --      csize = libs.GameSettings.ChunkSize.X
+    --      gridS = libs.GameSettings.GridSize
+    --      culling = libs.Culling
+    --      ResourceHandler  = libs.ResourceHandler
+    -- end
+    local culled = culling.HideBlocks(cx,cz,data,data[1],libs)
+    local meshed,unmeshed =greedymesh.meshtable(culled,libs)
+    if not meshed then return false end 
+    local folder = qf.GetFolder(cx,cz) or Instance.new("Model")
+    local index = 0
+    local newb = 0
+    local RenderedBlocks = {}
+    for i,v in meshed do
+        RenderedBlocks[i] = v
+        index +=1
+        if index%2000 == 0 then task.wait() end
+        local pb = Instance.new("Part")
+        local p = self.CreateBlock(v,pb,v.data.O,true)
+        p.Name = i
+        p.Size = Vector3.one
+        p.CFrame  = CFrame.new(Vector3.new(v.real.X+cx*csize,v.real.Y,v.real.Z+cz*csize)*gridS)*(v.data.O and collisions.ConvertToCFrame(v.data.O) or CFrame.new())
+        p.Size = RotateStuff[v.data.O or '0,0,0'](Vector3.new(v.l*gridS,v.h*gridS,v.w*gridS))
+        p.Parent = folder
+    end
+    for i:string,v in unmeshed do
+        RenderedBlocks[i] = v
+        index +=1
+        if index%2000 == 0 then task.wait() end
+       -- print(v.T,i)
+        local p = ResourceHandler.GetBlock(v.T).Mesh:Clone()
+        for i,v in  self.GetTextures(v.T,{},v.O) do
+            v.Parent = p
+        end
+        p.Name = i
+        p.Anchored = true
+        local x,y,z = unpack(i:split(','))
+        local offset = ResourceHandler.GetBlock(v.T).Offset or Vector3.zero
+        p.CFrame = CFrame.new(Vector3.new(x+cx*csize,y,z+cz*csize)*gridS)*(v.O and collisions.ConvertToCFrame(v.O) or CFrame.new())*CFrame.new(offset*gridS)
+        p.Parent = folder
+    end
+    folder.Parent = workspace.Chunks
+    folder.Name = cx..','..cz
+    return RenderedBlocks
+end
+function self.initmultirender(cx,cz)
+    local data = self.GetBlockTable(cx,cz,true)
+    if not data then return end 
+    bd.GetChunk(cx,cz).RenderedBlocks = multihandler.Render(cx,cz,data)
 end
 return self 
