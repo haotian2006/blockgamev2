@@ -1,4 +1,5 @@
 local entity = {}
+local Debris = game:GetService("Debris")
 local https = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local genuuid = function()  return https:GenerateGUID(false) end 
@@ -38,7 +39,7 @@ entity.__index = function(self,key)
     end
     return entity[key]
 end
-function entity:IndexFromComponets(key,ignore)
+function entity:IndexFromComponets(key:any,ignore:{}|nil) : (any,boolean|string)
     local comp = rawget(self,'Componets')
     if key == "Type" then return rawget(self,"Type") end 
     local entitybeh = behhandler.GetEntity(self.Type)
@@ -54,7 +55,7 @@ function entity:IndexFromComponets(key,ignore)
         return entitybeh.components[key],true
     end
 end
-function entity:GetAllData(SPECIAL)
+function entity:GetAllData(SPECIAL:boolean) : {}
     local comp = self.Componets
     local entitybeh = behhandler.GetEntity(self.Type)
     local data = {}
@@ -187,7 +188,7 @@ function entity:UpdateEntity(newdata)
         end
     end
 end
-function entity:UpdateHandSlot(slot)
+function entity:UpdateHandSlot(slot:number)
     self.CurrentSlot = slot 
 end
 -- properties to keep same when updating entitys from the server (local player)
@@ -335,6 +336,13 @@ function entity:UpdatePosition(dt)
     if not self.ClientControl or  ( RunService:IsClient() and self.ClientControl and self.ClientControl == tostring(game.Players.LocalPlayer.UserId) ) then 
         self:UpdateIdleAni()
         local p2 = interpolate(self.Position,self.Position+velocity,dt) 
+        -- if RunService:IsClient()then
+        --     local p = Instance.new("Part",workspace.HighLightStuff)
+        --     p.Size = Vector3.new(1,1,1)
+        --     game:GetService("Debris"):AddItem(p,3)
+        --     p.Anchored = true
+        --     p.Position = p2*3
+        -- end
         local e = velocity
         velocity = (p2-self.Position)
         local newp = CollisionHandler.entityvsterrain(self,velocity)
@@ -348,7 +356,7 @@ function entity:UpdatePosition(dt)
             local realp = maths.newPoint(newp.X,newp.Z)
             local xsidesame,ysidesame = qf.RoundTo(realp.x) == qf.RoundTo(endp.x),qf.RoundTo(realp.y) == qf.RoundTo(endp.y)
             local clonede = {Hitbox = self.Hitbox}--self:CloneProperties()
-            o,realp =  o:Vector2(),realp:Vector2()
+            o,realp =  o:ToVector2(),realp:ToVector2()
             local current = o
             local hit = false
             local last 
@@ -390,7 +398,7 @@ function entity:UpdatePosition(dt)
                 local dc = maths.newLine(realp,maths.newPoint(o.x,realp.y))
                 local midpoint = dc:CalculatePointOfInt(maths.newLine(o,endp))
                 if midpoint then
-                    midpoint = midpoint:Vector2()
+                    midpoint = midpoint:ToVector2()
                     local v1 = (midpoint - o).Unit/20
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     local function checkandadd()
@@ -425,7 +433,7 @@ function entity:UpdatePosition(dt)
                 local dc = maths.newLine(realp,maths.newPoint(realp.x,o.y))
                 local midpoint = dc:CalculatePointOfInt(maths.newLine(o,endp))
                 if midpoint then
-                    midpoint = midpoint:Vector2()
+                    midpoint = midpoint:ToVector2()
                     local v1 = (midpoint - o).Unit/20
                     v1 = v1 ~= v1 and Vector2.zero or v1
                     local function checkandadd()
@@ -507,7 +515,7 @@ function entity:GetVelocity():Vector3
     end
     return Vector3.new(x,y,z)
 end
-function entity:GetItemFromSlot(slot)
+function entity:GetItemFromSlot(slot:number)
     if self.inventory then
         return self.inventory[slot]
     end
@@ -519,7 +527,7 @@ end
 function entity:GetData()
     return datahandler
 end
-function entity:CanCrouch()
+function entity:CanCrouch(): boolean
     local itm = ItemHandler.GetItemData(type(self.HoldingItem)=="table" and self.HoldingItem[1] or "") 
     return self.CrouchLower and (not itm or (itm and itm.CanCrouch ~= false)) and not self.CannotCrouch
 end
@@ -554,9 +562,13 @@ end
 function entity:GPWM(name)
     return self:GetPropertyWithMulti(name)
 end
-function entity:GetEyePosition()
+function entity:GetEyePosition(): Vector3
     local eye = (self.EyeLevel or 0)/2
     return self.Position + Vector3.new(0,eye,0)
+end
+function entity:GetFeetPosition(): Vector3
+    local ysize = (self.Hitbox.Y or 0)/2
+    return self.Position - Vector3.new(0,ysize,0)
 end
 function entity:AddVelocity(Name,velocity:Vector3)
     if not self.NotSaved.ClearVelocity or self.NotSaved.NoClear[Name] then
@@ -570,11 +582,11 @@ function entity:AddVelocity(Name,velocity:Vector3)
     return self
 end
 
-function entity:AddNoClear(Name)
+function entity:AddToNoClear(Name)
     self.NotSaved.NoClear = self.NotSaved.NoClear or {}
     self.NotSaved.NoClear[Name] = true
 end
-function entity:RemoveNoClear(Name)
+function entity:RemoveFromNoClear(Name)
     self.NotSaved.NoClear = self.NotSaved.NoClear or {}
     self.NotSaved.NoClear[Name] = nil
 end
@@ -608,13 +620,13 @@ function entity:RemoveFromChunk()
         datahandler.GetChunk(self.Chunk.X,self.Chunk.Y).Entities[self.Id] = nil
     end
 end
-function entity:SetNetworkOwner(player)
+function entity:SetNetworkOwner(player:Player)
     self.ClientControl = player and tostring(player.UserId) or nil
 end
-function entity:SetBodyRotationFromDir(dir)
+function entity:SetBodyRotationDir(dir)
     self.bodydir = dir
 end
-function entity:SetHeadRotationFromDir(dir)
+function entity:SetHeadRotationDir(dir)
     self.headdir =  dir
 end
 local lp = Instance.new("Part")
@@ -633,7 +645,7 @@ function entity:SetModelTransparency(value)
         end
     end
 end
-function entity:UpdateRotationClient(debugmode)
+function entity:UpdateRotationClient()
     if self:GetState('Dead') then return end 
     if not isClient then warn("Client Only Function") return end 
     local Model = self.Entity
@@ -762,6 +774,7 @@ end
 function entity:MoveTo(x,y,z)
     local new = require(game.ReplicatedStorage.EntityMovers).MoveTo.new(self,x,y,z,true)
     new:Init()
+    return new
 end
 function entity:IsClientControl()
     if self.ClientControl then
@@ -949,13 +962,13 @@ function entity:Update(dt)
     self:UpdateChunk()
     self:UpdateBodyVelocity(dt)
     if (RunService:IsServer() and not self.ClientControl) or (RunService:IsClient() and self.ClientControl == tostring(game.Players.LocalPlayer.UserId)) then else return end 
-    self:Gravity(dt)
     if self:GetState('Dead') then
         -- local a = self.Velocity["Gravity"]
         -- self.Velocity = {}
         -- self.Velocity['Gravity'] = a 
     end
     self:UpdatePosition(dt)
+    self:Gravity(dt)
     if self:GetState('Dead') then self:OnDeath() return end 
     self.NotSaved = self.NotSaved or {}
     self.NotSaved.DeltaTime = dt
@@ -1032,6 +1045,13 @@ function entity:Destroy()
     if self.Entity then
         self.Entity:Destroy()
         self.Entity = nil
+    end
+    for i,v in entity do
+        if type(v) == "table" then
+            if type(v["Destroy"]) == "function" then
+                v["Destroy"](v)
+            end
+        end
     end
     self:RemoveFromChunk()
     self:SetState("Dead",true) 

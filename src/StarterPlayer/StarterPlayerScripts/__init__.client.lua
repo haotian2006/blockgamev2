@@ -21,6 +21,7 @@ local settings = require(game.ReplicatedStorage.GameSettings)
 local control = require(script.Parent.Controller)
 local hotbar = managers.HotBarManager
 local entityhandler = require(game.ReplicatedStorage.EntityHandler)
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 local runservicer = game:GetService("RunService")

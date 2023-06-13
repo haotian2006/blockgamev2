@@ -1,13 +1,14 @@
 local func = {}
-local ModingMods = require(game.ReplicatedStorage.ModdingModules)
+local ModingMod = require(game.ReplicatedStorage.ModHandler)
 export type InputData = {ItemData : {},Index:number,Item:string,InputData:{},Input:string,IsDown:boolean,Controls:{},ItemHandler:{},Player:Player}
 func.PlaceBlockServer = function(entity,Block,id)
+	local ModingMods:ModingMod.AutoFill = ModingMod
     local lookvector = entity.headdir and entity.headdir.Unit
-    local behaviorhandler = ModingMods.Behaviors
+    local behaviorhandler = ModingMods.Behaviors 
     if not lookvector or not  behaviorhandler.GetBlock(Block) or entity:GetState('Dead') then  return end 
     local ResourceHandler = ModingMods.Resources
     local data = ModingMods.DataHandler
-    local ArmsHandler = ModingMods.Manager.ArmsManager
+    local ArmsHandler = ModingMods.Manager.ArmsManager  
     local math = ModingMods.Math
     local Ray = ModingMods.Ray
     local rayinfo = Ray.newInfo()
@@ -64,21 +65,22 @@ func.PlaceBlockServer = function(entity,Block,id)
 
         if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z) and item and not data.GetBlock(coords.X,coords.Y,coords.Z) then 
             data.InsertBlock(coords.X,coords.Y,coords.Z,item)
-            ModingMods.Remote.CreateBridge("UpdateBlocks"):FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = item}})
+            require(game.ReplicatedStorage.BridgeNet).CreateBridge("UpdateBlocks"):FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = item}})
         end
 end
 
 end
 func.PlaceBlockClient = function(entity,Data:InputData)
-    local lookvector = workspace.CurrentCamera.CFrame.LookVector
-    local ResourceHandler = ModingMods.Resources
+	local ModingMods:ModingMod.AutoFill = ModingMod
+	local lookvector = workspace.CurrentCamera.CFrame.LookVector
+    local ResourceHandler = ModingMods.Resources 
     local behaviorhandler = ModingMods.Behaviors
     local data = ModingMods.DataHandler
     local ArmsHandler = ModingMods.Manager.ArmsManager
     local math = ModingMods.Math
     local Ray = ModingMods.Ray
     local rayinfo = Ray.newInfo()
-    local placeBlockEvent = ModingMods.Remote.CreateBridge("BlockPlace")
+	local placeBlockEvent = ModingMods.Remote.GetRemote("BlockPlace")
     rayinfo.BreakOnFirstHit = true
     rayinfo.BlackList = {entity.Id}
     rayinfo.GetNormal = true

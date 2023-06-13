@@ -23,33 +23,10 @@ local UIContainerManager = managers.UIContainerManager
 hotbarhandler:Init()
 local lp = game.Players.LocalPlayer
 local localentity = data.GetLocalPlayer
-local controls = {pc = {},mode = 'pc',func = {},RenderStepped = {}}
+local controls = {func = {},RenderStepped = {}}
+local newKeyBinds = require(game.ReplicatedStorage.Libarys.PlayerControls).new()
 controls.downtimer = {}
 local downtimer = controls.downtimer 
-controls.pc = {
-    Foward = {'w',"Foward"},-- Name = {key:string|table,function or bool name}
-    Left = {'a',"Left"},
-    Right = {'d',"Right"},
-    Back = {'s',"Back"},
-    Jump = {'space',"Jump"},
-    Attack = {'mousebutton1',"Attack"},
-    Interact = {'mousebutton2',"Interact"},
-    Crouch = {"leftshift","Crouch"},
-    HitBoxs = {'r','HitBoxs'},
-    Freecam = {'t',"Freecam"},
-    Slot1 = {'one',"HotBarUpdate"},
-    Slot2 = {'two',"HotBarUpdate"},
-    Slot3 = {'three',"HotBarUpdate"},
-    Slot4 = {'four',"HotBarUpdate"},
-    Slot5 = {'five',"HotBarUpdate"},
-    Slot6 = {'six',"HotBarUpdate"},
-    Slot7 = {'seven',"HotBarUpdate"},
-    Slot8 = {'eight',"HotBarUpdate"},
-    Slot9 = {'nine',"HotBarUpdate"},
-    MouseWheel = {"mousewheel","HotBarUpdate"},
-    Inventory = {'e','Inventory'},
-    F5 = {"q","F5"}
-}
 local function getkeyfrominput(input)
     if input.KeyCode.Name ~= "Unknown" then
         return input.KeyCode.Name:lower()
@@ -108,7 +85,7 @@ function func.HotBarUpdate(key,data)
             end
         end
     else
-        for i,v in controls[controls.mode] do
+        for i,v in newKeyBinds:GetData() do
             if string.find(i,"Slot") then else continue end 
             if v == key or (type(v) == "table" and table.find(v,key)) then
                 slot = string.split(i,"Slot")[2]
@@ -383,7 +360,7 @@ function controls.RenderStepped.Camera()
         -- local neck =  entityw:FindFirstChild("Neck",true)
         -- local MainWeld = entityw:FindFirstChild("MainWeld",true)
         --if neck and Torso and MainWeld then
-            data.LocalPlayer:SetHeadRotationFromDir(CameraCFrame.LookVector*10)
+            data.LocalPlayer:SetHeadRotationDir(CameraCFrame.LookVector*10)
        -- end
         data.LocalPlayer:UpdateRotationClient()
         if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then
@@ -431,8 +408,8 @@ local function doinput(input,gameProcessedEvent)
     local key = getkeyfrominput(input)
     controls.KeysPressed[key] = key
     downtimer[key] = downtimer[key] or os.clock()
-    if controls[controls.mode] then
-        for i,v in controls[controls.mode] do
+    if newKeyBinds:GetData() then
+        for i,v in newKeyBinds:GetData() do
             local function second()
                 if v[2] then
                     KeyDown:Fire(v[2],true)
@@ -488,9 +465,10 @@ uis.InputEnded:Connect(function(input, gameProcessedEvent)
     end
 end)
 controls.Events = {}
+local signal = require(game.ReplicatedStorage.Libarys.Signal)
 function controls:GetInputEvent(name)
-    if not controls.Events[name] then controls.Events = Instance.new("BindableEvent") end 
-    return controls.Events[name]
+    if not controls.Events[name] then controls.Events = signal.new() end 
+    return (controls.Events[name]::signal.Signal<string,boolean>)
 end
 function controls.renderupdate(dt)
     for i,v in controls.Render do

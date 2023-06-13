@@ -213,6 +213,7 @@ local function makeallrhitboxs()-- making this function feels wrong but basicly 
 		end
 	end
 end
+--calls it 3 times because yeah
 makeallrhitboxs()
 makeallrhitboxs()
 makeallrhitboxs()
@@ -386,6 +387,38 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
     if RunService:IsClient() then
         --print(bbaaa)
     end
+    if  entity.NotSaved then 
+        if entity.NotSaved.NOGRAVITY then
+            position += vector3(0,.01,0)
+            entity.NotSaved.NoFall = true
+            -- local p = Instance.new("Part",workspace)
+            -- p.Color = Color3.new(0.549019, 0, 1)
+            -- p.Size = Vector3.new(3,.1,3)
+            -- game:GetService("Debris"):AddItem(p,5)
+            -- p.Anchored = true
+            -- p.Position = (position- vector3(0,entity.Hitbox.y/2)) *3
+            -- print( "real",(position- vector3(0,entity.Hitbox.y/2)).y)
+
+            entity:Gravity(.1)
+            -- task.spawn(function()
+            --     while loop do
+            --         print( "While",(entity.Position- vector3(0,entity.Hitbox.y/2)).y,entity.Data.Grounded )
+            --         task.wait()
+            --         entity.Data.Grounded = true
+            --     end
+            -- end)
+            task.delay(0,function()
+                task.wait()
+                loop = false
+                entity.NotSaved.NoFall = false
+                entity.NotSaved.NOGRAVITY = false
+            --     task.wait()
+            --    if rn ~= entity.Position then
+            --         entity.Position = rn
+            --    end
+            end)
+        end
+    end
     return  position,allnormal,bba
 end
 function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop,old)
@@ -464,6 +497,23 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                                 end
                               else
                                 local before = position
+                                entity.NotSaved.NOGRAVITY = true
+                                if RunService:IsClient() and false then
+                                    local p = Instance.new("Part",workspace)
+                                    p.Color = Color3.new(1, 0, 0)
+                                    p.Size = Vector3.new(3,.1,3)
+                                    game:GetService("Debris"):AddItem(p,5)
+                                    p.Anchored = true
+                                    p.Position = (position- vector3(0,entity.Hitbox.y/2)) *3
+                                    print( "Feet",(position- vector3(0,entity.Hitbox.y/2)).y)
+                                    local p = Instance.new("Part",workspace)
+                                    p.Color = Color3.new(0.368627, 1, 0)
+                                    p.Size = Vector3.new(3,.1,3)
+                                    game:GetService("Debris"):AddItem(p,5)
+                                    p.Anchored = true
+                                    p.Position = (position- vector3(0,entity.Hitbox.y/2) + vector3(0,needed,0))*3
+                                    print( "TP",(position- vector3(0,entity.Hitbox.y/2)+ vector3(0,needed,0)).y)
+                                end
                                 position += vector3(0,needed,0)
                                 local bfv = velocity
                                 if velocity.Y <0 then

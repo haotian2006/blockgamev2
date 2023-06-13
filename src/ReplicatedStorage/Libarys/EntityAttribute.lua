@@ -1,7 +1,8 @@
 local EntityAttribute = {}
 local qf = require(game.ReplicatedStorage.QuickFunctions)
+
 EntityAttribute.__index = function(self,key)
-    return (self.Methods and self.Methods[key])or  self.Data[key]-- or getmetatable(self)[key]
+    return   self.Data[key] or getmetatable(self)[key]
 end
 EntityAttribute.__newindex = function(self,key,value)
     self.Data[key] = value
@@ -19,33 +20,33 @@ function EntityAttribute.__eq(self,second)
     return qf.CompareTables(self,second)
 end
 EntityAttribute['EntityAttributes'] = true
-function EntityAttribute.new(name,data,M)
-    -- local k = {}
-    -- if M then
-    --     for i,v in EntityAttribute do
-    --         k[i] = v
-    --     end
-    --     for i,v in M do
-    --         k[i] = v
-    --     end
-    -- end
-    return setmetatable({Methods = M,Data = type(data) == 'table' and EntityAttribute.Desterilize(data) or {},Component = true,Name = name,Type = "EntityAttribute"},EntityAttribute)
+function EntityAttribute.new(name:string,data:{},M:nil|table)
+    local k = {}
+    if M then
+        for i,v in EntityAttribute do
+            k[i] = v
+        end
+        for i,v in M do
+            k[i] = v
+        end
+    end
+    return setmetatable({Data = type(data) == 'table' and EntityAttribute.Desterilize(data) or {},Component = true,Name = name,Type = "EntityAttribute"},k)
 end
-function EntityAttribute.create(data)
+function EntityAttribute.create(data:table)
     data.Event = nil
     data.Data = EntityAttribute.Desterilize(data.Data)
     return setmetatable(data,EntityAttribute)
 end
-function EntityAttribute:rawset(key,value)
+function EntityAttribute:rawset(key:string,value:any)
     rawset(self.Data,key,value)
 end
-function EntityAttribute:GetComponent()
+function EntityAttribute:GetComponent():table|nil
     return self.Component
 end
-function EntityAttribute:Sterilize()
+function EntityAttribute:Sterilize():table
     return self:Copy()
 end
-function EntityAttribute.Desterilize(data)
+function EntityAttribute.Desterilize(data):EntityAttribute
     local new = {}
     for i,v in data or {} do
         new[tonumber(i) or i] = v
@@ -55,13 +56,8 @@ end
 function EntityAttribute:SetComponent(c)
     self.Component = c
 end
-function EntityAttribute:Copy(KeepMethods)
-    local clone = qf.deepCopy(self)
-    if KeepMethods then
-        return clone
-    end
-    clone.Methods = nil;
-    return clone
+function EntityAttribute:Copy()
+    return qf.deepCopy(self)
 end
 function EntityAttribute:Clone()
     return setmetatable(qf.deepCopy(self),EntityAttribute)
@@ -70,7 +66,7 @@ function EntityAttribute:GetName()
     return self.Name
 end
 function EntityAttribute:GetChangedEvent()
-    self.Event = self.Event or Instance.new("BindableEvent")
+    self.Event = self.Event or require(game.ReplicatedStorage.Libarys.Signal).new()
     return self.Event
 end
 function EntityAttribute:GetReallen()
@@ -85,5 +81,11 @@ function EntityAttribute:len()
 end
 function EntityAttribute:GetData()
     return self.Data
+end
+function EntityAttribute:Destroy()
+    if self.Event then
+        self.Event:DisconnectAll()
+    end
+    setmetatable(self,nil)
 end
 return EntityAttribute

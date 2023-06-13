@@ -5,7 +5,7 @@ function Controls.new()
     return setmetatable({Events = {},Down = {}},Controls)
 end
 
-function Controls:KeyDown(key)
+function Controls:KeyDown(key) 
     if self.Events[key] then
         self.Events[key]:fire(key,true)
     end
@@ -17,9 +17,10 @@ function Controls:KeyUp(key)
     end
     self.Down[key] = nil
 end
+local signal = require(game.ReplicatedStorage.Libarys.Signal)
 function Controls:GetInputEvent(name)
-    if not self.Events[name] then self.Events = Instance.new("BindableEvent") end 
-    return self.Events[name]
+    if not self.Events[name] then self.Events = signal.new() end 
+    return (self.Events[name]::signal.Signal<string,boolean>)
 end
 function Controls:IsDown(key)
     return self.Down[key] 
@@ -28,8 +29,8 @@ function Controls:Clear()
     table.clear(self.Down)
 end
 function Controls:Destroy()
-    for i,v in self.Events do
-        v:Destroy()
+    if self.Events then
+        self.Events:DisconnectAll()
     end
     setmetatable(self)
 end
