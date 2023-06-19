@@ -149,7 +149,7 @@ function func.Crouch()
     data.LocalPlayer:UpdateModelPosition()
     repeat
         task.wait()
-    until not FD["Crouch"] or not plr:CanCrouch() 
+    until (not FD["Crouch"] or not plr:CanCrouch()) and not plr:IsGrounded(true)
     if data.LocalPlayer.Crouching then
         localentity():Crouch(true)
     end

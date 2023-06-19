@@ -19,16 +19,17 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local CraftingManager =   Manager.CraftingManager:Init()
-
 --<TESTING MODE>
+
+
+local playercontrol = require(game.ServerStorage.PlayerControlsHandler)
+local KeyDown = bridge.CreateBridge("UisKeyInput")
+data.PlayerControl = {}
+require(game.ReplicatedStorage.MultiHandler):Init()
 if false then 
     return
 end
 
-require(game.ReplicatedStorage.MultiHandler):Init()
-local playercontrol = require(game.ServerStorage.PlayerControlsHandler)
-local KeyDown = bridge.CreateBridge("UisKeyInput")
-data.PlayerControl = {}
 KeyDown:Connect(function(player,key,isdown)
     local e = data.GetEntityFromPlayer(player)
     if not key or not e then return end 

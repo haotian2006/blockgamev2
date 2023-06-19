@@ -30,7 +30,9 @@ export type Math = {
     GetAngleDL: (originalRayVector:number) ->number
 }
 --\\
-
+export type EntityAttribute ={
+    
+}
 export type Functions = {
 
 }

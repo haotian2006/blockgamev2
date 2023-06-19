@@ -20,8 +20,8 @@ self.Attributes.inventory = {
         newAtt:SetComponent(comp)
         return newAtt
     end,
-    update = function(olddata,newinfo,comp)
-        local data = olddata:GetData()
+    update = function(self,newinfo,comp)
+        local data = self:GetData()
         if #data < newinfo then
             for i = #data+1, newinfo do
                 data[i] = ""
@@ -31,8 +31,8 @@ self.Attributes.inventory = {
                 data[i] = nil
             end
         end
-        olddata:SetComponent(comp)
-        return olddata
+        self:SetComponent(comp)
+        return self
     end,
     Methods = { 
         add = function(self,Item,count)

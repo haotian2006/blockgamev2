@@ -2,8 +2,8 @@ local dss = game:GetService("DataStoreService")
 local module = {}
 local dataHandler = require(game.ReplicatedStorage.DataHandler)
 local compresser = require(game.ReplicatedStorage.Libarys.compressor)
-local SaveInGroupsOf = 20
-local sus,blockdss = pcall(dss.GetDataStore,dss,'Blocks',8)
+local SaveInGroupsOf = 40
+local sus,blockdss = pcall(dss.GetDataStore,dss,'Blocks',11)
 local Debris = require(game.ReplicatedStorage.Libarys.Debris)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local blockqueue = Debris.CreateFolder('BlockLoading')
@@ -20,7 +20,7 @@ function module.clone(t)
     return new
 end
 function module.Save()
-    print("a")
+    print("started saving")
     local stuff = {}
     local t,tt = 0,0
     local thread = coroutine.running()
@@ -29,7 +29,7 @@ function module.Save()
     for i,v in atm do
         local sx,sy = module.GetLargeChunk(v())
         stuff[sx..','..sy] = stuff[sx..','..sy] or {}
-        if t%6 then task.wait() end 
+        if tt%6==0 and v.Changed then task.wait() end 
         task.spawn(function()
             stuff[sx..','..sy][tostring(v)] = v:Compress()
             tt += 1
@@ -58,7 +58,7 @@ function module.Save()
             warn('Large Chunk:',i,"Failed To Save ERROR:",error)
         end
     end
-    print("DoneDebris")
+    print("Done Saving")
 end
 local queue = {}
 function module.GetChunk(cx,cy)

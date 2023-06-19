@@ -12,6 +12,59 @@ end
 local function round(x)
     return math.floor(x+.5)
 end
+function  collisions.newSettings()
+    return {
+        BlackList = {},
+        CanBeLiquid = 0,
+        CanBeSolid = 0,
+        CanBeTransparent =0,
+        CanCollide = 0,
+
+    }
+end
+function  collisions.GetBlocksInBounds(loc,size,Setting)
+    local position = loc
+    local hitbox = size
+    local min = vector3(
+        position.X-hitbox.X/2,
+        position.Y-(hitbox.Y/2),
+        position.Z-hitbox.X/2
+    )   
+    local max = vector3(
+        position.X+hitbox.X/2,
+        position.Y+(hitbox.Y/2),
+        position.Z+hitbox.X/2 
+)
+    local gridsize = .5
+--a
+    local whitelist = {}
+    for x = min.X,getincreased(min.X,max.X,gridsize),gridsize do    
+        for y = min.Y,getincreased(min.Y,max.Y,gridsize),gridsize do
+            for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
+                local block,coords = maindata.GetBlock(x,y,z,true)
+                if whitelist and whitelist[coords] then continue end
+                if block then
+                    whitelist[coords] = true
+                    local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
+                    local bx,by,bz = unpack(coords:split(","))
+                    local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
+                    bx,by,bz = a.X,a.Y,a.Z
+                   local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
+                   local hbdata,CanCollide = collisions.GenerateHitboxes(block,newpos)
+                   local loop = 0
+                   if not CanCollide then continue end 
+                   for i,v in hbdata do
+                    local newpos,newsize = v[2],v[1]
+                    if collisions.AABBcheck(vector3(position.X, position.Y,position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then
+                        return true,block
+                    end
+                   end
+                end
+
+            end 
+        end 
+    end 
+end
 function  collisions.IsGrounded(entity,CheckForBlockAboveInstead)
     local position = entity.Position
     local hitbox = entity.Hitbox
@@ -48,7 +101,7 @@ function  collisions.IsGrounded(entity,CheckForBlockAboveInstead)
                    if not CanCollide then continue end 
                    for i,v in hbdata do
                     local newpos,newsize = v[2],v[1]
-                    if collisions.AABBcheck(vector3(position.X, position.Y-(0.005*invert),position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then
+                    if collisions.AABBcheck(vector3(position.X, position.Y-(0.01*invert),position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then
                         return true,block
                     end
                    end
@@ -409,7 +462,6 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
             -- end)
             task.delay(0,function()
                 task.wait()
-                loop = false
                 entity.NotSaved.NoFall = false
                 entity.NotSaved.NOGRAVITY = false
             --     task.wait()
@@ -421,6 +473,7 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
     end
     return  position,allnormal,bba
 end
+local a = false
 function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop,old)
     local hitbox = entity.Hitbox
     local min = vector3(
@@ -485,8 +538,6 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                     mintime = currentmin < mintime and currentmin or mintime
                      if mintime < 1 and (typejump) then
                         local dir = (maxheight-position).Unit
-                      --  print(typejump, needed,maxheight)
-                       -- print(position.Y-hitbox.Y/2)
                         if typejump == "Small" and entity.Data and entity.Data.Grounded and needed >=0.1 then
                               needed += 0.023
                               first[coords] = true

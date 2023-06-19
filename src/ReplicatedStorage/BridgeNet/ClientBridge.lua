@@ -229,7 +229,7 @@ function ClientBridge.new(remoteName: string)
 			repeat
 				timer += task.wait()
 				self._id = SerdesLayer.FromIdentifier(self._name)
-				if timer > nextOutput then
+				if timer > nextOutput  then
 					nextOutput += 0.1
 					print("[BridgeNet] waiting for (" .. self._name .. ") to be replicated to the client")
 				end

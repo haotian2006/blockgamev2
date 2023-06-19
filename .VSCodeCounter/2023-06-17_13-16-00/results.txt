@@ -1,0 +1,151 @@
+Date : 2023-06-17 13:16:00
+Directory : c:\Users\haoti\Documents\GitHub\blockgamev2
+Total : 91 files,  11619 codes, 562 comments, 749 blanks, all 12930 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Lua      |         79 |     11,530 |        562 |        734 |     12,826 |
+| JSON     |         10 |         75 |          0 |          9 |         84 |
+| Markdown |          1 |         12 |          0 |          5 |         17 |
+| Log      |          1 |          2 |          0 |          1 |          3 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                         | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                            |         91 |     11,619 |        562 |        749 |     12,930 |
+| . (Files)                                                                                                    |          3 |         62 |          0 |          6 |         68 |
+| src                                                                                                          |         88 |     11,557 |        562 |        743 |     12,862 |
+| src\ReplicatedStorage                                                                                        |         72 |      8,808 |        387 |        619 |      9,814 |
+| src\ReplicatedStorage (Files)                                                                                |         10 |      2,476 |        115 |         36 |      2,627 |
+| src\ReplicatedStorage\BehaviorPacks                                                                          |         12 |        599 |         13 |         39 |        651 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic                                                                    |         12 |        599 |         13 |         39 |        651 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic (Files)                                                            |          5 |        303 |          4 |          8 |        315 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic\BlockHitboxes                                                      |          1 |         21 |          0 |          0 |         21 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic\Blocks                                                             |          1 |         85 |          0 |         13 |         98 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic\Crafting                                                           |          1 |         34 |          0 |          4 |         38 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic\Entities                                                           |          3 |        106 |          8 |         11 |        125 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic\Items                                                              |          1 |         50 |          1 |          3 |         54 |
+| src\ReplicatedStorage\BridgeNet                                                                              |          6 |      1,307 |         49 |        301 |      1,657 |
+| src\ReplicatedStorage\DataHandler                                                                            |          2 |        139 |          5 |          4 |        148 |
+| src\ReplicatedStorage\EntityMovers                                                                           |          3 |        143 |          9 |          1 |        153 |
+| src\ReplicatedStorage\Events                                                                                 |          8 |         24 |          0 |          8 |         32 |
+| src\ReplicatedStorage\Libarys                                                                                |         12 |        995 |         64 |        145 |      1,204 |
+| src\ReplicatedStorage\Libarys (Files)                                                                        |         11 |        939 |         64 |        144 |      1,147 |
+| src\ReplicatedStorage\Libarys\ModingRemote                                                                   |          1 |         56 |          0 |          1 |         57 |
+| src\ReplicatedStorage\Managers                                                                               |          7 |        843 |         13 |         15 |        871 |
+| src\ReplicatedStorage\ModHandler                                                                             |          2 |        203 |          8 |         28 |        239 |
+| src\ReplicatedStorage\MultiHandler                                                                           |          3 |        389 |         16 |          9 |        414 |
+| src\ReplicatedStorage\QuickFunctions                                                                         |          1 |        440 |         15 |          4 |        459 |
+| src\ReplicatedStorage\RenderStuff                                                                            |          6 |      1,250 |         80 |         29 |      1,359 |
+| src\ServerScriptService                                                                                      |          1 |        170 |         13 |          9 |        192 |
+| src\ServerStorage                                                                                            |         11 |      1,488 |        135 |         43 |      1,666 |
+| src\ServerStorage (Files)                                                                                    |          4 |        551 |         27 |         18 |        596 |
+| src\ServerStorage\DataStores                                                                                 |          2 |         90 |          1 |          1 |         92 |
+| src\ServerStorage\GenerationHandler                                                                          |          1 |        158 |         16 |          7 |        181 |
+| src\ServerStorage\ServerStuff                                                                                |          4 |        689 |         91 |         17 |        797 |
+| src\StarterPlayer                                                                                            |          3 |        838 |         24 |         14 |        876 |
+| src\StarterPlayer\StarterPlayerScripts                                                                       |          3 |        838 |         24 |         14 |        876 |
+| src\Workspace                                                                                                |          1 |        253 |          3 |         58 |        314 |
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                     | language | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\haoti\Documents\GitHub\blockgamev2\README.md                                                        | Markdown |         12 |          0 |          5 |         17 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\default.project.json                                             | JSON     |         48 |          0 |          0 |         48 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\rbxlx-to-rojo.log                                                | Log      |          2 |          0 |          1 |          3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\AnimationController.lua                    | Lua      |         72 |          0 |          0 |         72 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorHandler.lua                        | Lua      |        129 |          1 |          1 |        131 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Behaviors.lua          | Lua      |         79 |          1 |          0 |         80 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\BlockHitboxes\init.lua | Lua      |         21 |          0 |          0 |         21 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Blocks\init.lua        | Lua      |         85 |          0 |         13 |         98 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Components.lua         | Lua      |         24 |          0 |          2 |         26 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Crafting\init.lua      | Lua      |         34 |          0 |          4 |         38 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Entities\Npc.lua       | Lua      |         44 |          8 |          2 |         54 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Entities\Player.lua    | Lua      |         34 |          0 |          4 |         38 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Entities\init.lua      | Lua      |         28 |          0 |          5 |         33 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Functions.lua          | Lua      |        133 |          1 |          3 |        137 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Info.lua               | Lua      |          2 |          0 |          0 |          2 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\ItemTypes.lua          | Lua      |         65 |          2 |          3 |         70 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Items\init.lua         | Lua      |         50 |          1 |          3 |         54 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BridgeNet\Bridge.lua                       | Lua      |         16 |          0 |          2 |         18 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BridgeNet\ClientBridge.lua                 | Lua      |        351 |         12 |         88 |        451 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BridgeNet\CreateBridgeTree.lua             | Lua      |         34 |          1 |          9 |         44 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BridgeNet\SerdesLayer.lua                  | Lua      |        165 |          8 |         48 |        221 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BridgeNet\ServerBridge.lua                 | Lua      |        636 |         24 |        126 |        786 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BridgeNet\init.lua                         | Lua      |        105 |          4 |         28 |        137 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\CHUNKOLD.lua                               | Lua      |        133 |          8 |          1 |        142 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Chunk.lua                                  | Lua      |        168 |          0 |          3 |        171 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\CollisonHandler.lua                        | Lua      |        672 |         53 |         20 |        745 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\DataHandler\DoFunc.model.json              | JSON     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\DataHandler\init.lua                       | Lua      |        136 |          5 |          3 |        144 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityHandler.lua                          | Lua      |      1,015 |         46 |          8 |      1,069 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityMovers\Curve.lua                     | Lua      |         80 |          7 |          1 |         88 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityMovers\MoveTo.lua                    | Lua      |         58 |          2 |          0 |         60 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityMovers\init.lua                      | Lua      |          5 |          0 |          0 |          5 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Events\DoSmt.model.json                    | JSON     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Events\EntityUpdater.model.json            | JSON     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Events\GetChunk.model.json                 | JSON     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Events\KB.model.json                       | JSON     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Events\OnDeath.model.json                  | JSON     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Events\Respawn.model.json                  | JSON     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Events\SendEntities.model.json             | JSON     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Events\ServerFPS.model.json                | JSON     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\GameSettings.lua                           | Lua      |         14 |          0 |          0 |         14 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\ItemHandler.lua                            | Lua      |         89 |          0 |          1 |         90 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\Bezier.lua                         | Lua      |        168 |         49 |         87 |        304 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\Debris.lua                         | Lua      |         40 |          0 |          0 |         40 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\Debugger.lua                       | Lua      |         25 |          9 |          0 |         34 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\DelayHandler.lua                   | Lua      |         47 |          0 |          1 |         48 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\EntityAttribute.lua                | Lua      |         90 |          0 |          1 |         91 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\Grid.lua                           | Lua      |         22 |          0 |          1 |         23 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\MathFunctions.lua                  | Lua      |        111 |          2 |          2 |        115 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\ModingRemote\init.lua              | Lua      |         56 |          0 |          1 |         57 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\PlayerControls.lua                 | Lua      |         63 |          0 |          5 |         68 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\Signal.lua                         | Lua      |         58 |          1 |         17 |         76 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\compressor.lua                     | Lua      |        169 |          2 |         12 |        183 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\lualzw.lua                         | Lua      |        146 |          1 |         18 |        165 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Managers\ArmsManager.lua                   | Lua      |        168 |          1 |          1 |        170 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Managers\CraftingManager.lua               | Lua      |        145 |          3 |          3 |        151 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Managers\HotBarManager.lua                 | Lua      |         68 |          0 |          0 |         68 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Managers\InventoryManager.lua              | Lua      |        143 |          7 |          3 |        153 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Managers\PlayerDollHandler.lua             | Lua      |         38 |          0 |          1 |         39 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Managers\UIContainerManager.lua            | Lua      |        270 |          2 |          7 |        279 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Managers\init.lua                          | Lua      |         11 |          0 |          0 |         11 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\ModHandler\Types.lua                       | Lua      |        148 |          8 |         27 |        183 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\ModHandler\init.lua                        | Lua      |         55 |          0 |          1 |         56 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\MultiHandler\FunctionsToMultiThread.lua    | Lua      |        133 |          2 |          4 |        139 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\MultiHandler\GlobalMemory.lua              | Lua      |         35 |          0 |          1 |         36 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\MultiHandler\init.lua                      | Lua      |        221 |         14 |          4 |        239 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\QuickFunctions\init.lua                    | Lua      |        440 |         15 |          4 |        459 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Ray.lua                                    | Lua      |         97 |          1 |          0 |         98 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\RenderStuff\Culling.lua                    | Lua      |         72 |          2 |          2 |         76 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\RenderStuff\GreedyMesh.lua                 | Lua      |        222 |          6 |          0 |        228 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\RenderStuff\GreedyMeshingHandler.lua       | Lua      |         13 |          1 |         12 |         26 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\RenderStuff\OLD Culling copy.lua           | Lua      |        129 |          5 |          2 |        136 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\RenderStuff\OldRender.lua                  | Lua      |        408 |         34 |          6 |        448 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\RenderStuff\Render.lua                     | Lua      |        406 |         32 |          7 |        445 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\ResourceHandler.lua                        | Lua      |         87 |          6 |          2 |         95 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerScriptService\__Init__.server.lua                      | Lua      |        170 |         13 |          9 |        192 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\DataStores\BlockSaver.lua                      | Lua      |         88 |          1 |          0 |         89 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\DataStores\init.lua                            | Lua      |          2 |          0 |          1 |          3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\EntityAttributesCreator.lua                    | Lua      |        209 |          1 |          2 |        212 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\GenerationHandler\init.lua                     | Lua      |        158 |         16 |          7 |        181 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\LargeChunk.lua                                 | Lua      |         54 |          0 |          1 |         55 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\PathFinding.lua                                | Lua      |        253 |         26 |         13 |        292 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\PlayerControlsHandler.lua                      | Lua      |         35 |          0 |          2 |         37 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\ServerStuff\DataHandler.lua                    | Lua      |         82 |         56 |          3 |        141 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\ServerStuff\EntityHandler.lua                  | Lua      |        305 |          3 |          2 |        310 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\ServerStuff\Old Chunk copy.lua                 | Lua      |        154 |         32 |          7 |        193 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\ServerStuff\ServerChunk.lua                    | Lua      |        148 |          0 |          5 |        153 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Controller.lua            | Lua      |        461 |         16 |          7 |        484 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\PlayerSettings.lua        | Lua      |          0 |          0 |          1 |          1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\__init__.client.lua       | Lua      |        377 |          8 |          6 |        391 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\Workspace\SimplexModule.lua                                  | Lua      |        253 |          3 |         58 |        314 |
+| Total                                                                                                        |          |     11,619 |        562 |        749 |     12,930 |
++--------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

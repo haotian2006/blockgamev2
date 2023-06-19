@@ -333,6 +333,8 @@ end
 function entity:UpdatePosition(dt)
     local velocity = self:GetVelocity()
     self.NotSaved.ClearVelocity = true
+    if RunService:IsServer() then
+    end
     if not self.ClientControl or  ( RunService:IsClient() and self.ClientControl and self.ClientControl == tostring(game.Players.LocalPlayer.UserId) ) then 
         self:UpdateIdleAni()
         local p2 = interpolate(self.Position,self.Position+velocity,dt) 
@@ -514,6 +516,12 @@ function entity:GetVelocity():Vector3
         z = -0.00000001
     end
     return Vector3.new(x,y,z)
+end
+function entity:IsGrounded(IsTouchingCeil)
+    return CollisionHandler.IsGrounded(self,IsTouchingCeil) 
+end
+function entity:IsSuffocating()
+    return CollisionHandler.GetBlocksInBounds(self:GetEyePosition(),Vector3.new(self.Hitbox.X,.001,self.Hitbox.X)) 
 end
 function entity:GetItemFromSlot(slot:number)
     if self.inventory then
@@ -909,7 +917,7 @@ function entity:Gravity(dt)
 end
 ]]
 function entity:Jump()
-    if  self.NotSaved.Jumping or self["CanNotJump"]  then return end
+    if  self.NotSaved.Jumping or self["CanNotJump"] or CollisionHandler.IsGrounded(self,true)  then return end
     local datacondition = DateTime.now().UnixTimestampMillis/1000-(self.NotSaved["ExtraJump"] or 0) <=0.08
     if not self.Data.Grounded and not datacondition  then return end 
     if datacondition then  self.NotSaved["ExtraJump"] = 0  end

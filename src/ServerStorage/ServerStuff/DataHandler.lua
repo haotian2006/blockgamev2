@@ -65,16 +65,14 @@ task.spawn(function()
                     --     print("a")
                     -- end
                     chun:Generate() 
-                    -- if cx == -7 and cz ==7 then
-                    --     print("acv")
-                    -- end 
+
                   --  self.LoadedChunks[cx..','..cz]  = chun
                     for i,v in a do
                         -- if cx == -7 and cz ==7 then
                         --      print(chun:GetBlocks())
                         --     -- print(self.GetChunk(cx,cz):GetBlocks())
                         -- end   
-                        game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,lualzw.compress(HttpService:JSONEncode(self.GetChunk(cx,cz):GetBlocks())))
+                        game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):CompressVoxels())
                     end
                     self.InProgress[c] = nil
                 end
@@ -117,7 +115,7 @@ game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,
     -- local position = player.Character.PrimaryPart.Position
     local new = self.GetChunk(cx,cz)
     if new and new:IsGenerating() then
-        game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,lualzw.compress(HttpService:JSONEncode(new:GetBlocks())))
+        game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,new:CompressVoxels())
         return 
     end
      --new:Generate()

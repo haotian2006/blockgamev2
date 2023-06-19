@@ -62,9 +62,9 @@ func.PlaceBlockServer = function(entity,Block,id)
             item ..= '/O|s%'..x..','..y..','..z
         end
         --print(item)
-
         if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z) and item and not data.GetBlock(coords.X,coords.Y,coords.Z) then 
             data.InsertBlock(coords.X,coords.Y,coords.Z,item)
+
             require(game.ReplicatedStorage.BridgeNet).CreateBridge("UpdateBlocks"):FireAll({Add = {[coords1.X..','..coords1.Y..','..coords1.Z] = item}})
         end
 end

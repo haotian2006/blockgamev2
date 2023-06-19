@@ -12,7 +12,7 @@ local lacunarity = 0
 local persistence = 2
 local seed = 1234567
 
-local max_height = 6--60
+local max_height = 60--60
 local noiseScale2 = 60/2
 
 local maxwormlength = 400
@@ -47,7 +47,7 @@ local maxres = 5
 function generation.CreateBedrock(cx,cz,gtable):table
 	for x = 0,st.ChunkSize.X-1 do
 		for z = 0,st.ChunkSize.X-1 do
-			local combine = qf.cv3type("string",x,0,z)
+			local combine = require(game.ReplicatedStorage.Chunk).to1D(x,0,z)
 			gtable[combine] = 'T|s%C:Bedrock'
 		end
 	end	
@@ -79,7 +79,7 @@ end
 function generation.CreateWorms(cx,cz) -- cx and cy is the chunk it is being generated in
 	--note that all math.random functions will be changed so it will be procedural generated instead
 	do 
-		return {}
+		--return {}
 	end
 	local ammountofcaves =  generation.proceduralNum(cx,cz,seed,6)
 	local worms = {}
@@ -102,7 +102,7 @@ function generation.CreateWorms(cx,cz) -- cx and cy is the chunk it is being gen
 				WormP = WormP*CFrame.Angles(x*(1+ci),y*(1+ci),z*(1+ci))*CFrame.new(0,0,-Resolution) -- adding ci so it adds an offset
 				local roundpos = roundpos(WormP.Position)--rounds to grid
 				x,y,z = roundpos.X,roundpos.Y,roundpos.Z
-				wormdata[roundpos.X..','..roundpos.Y..','..roundpos.Z] = false -- convert the vector3 to a string and store it in a dictionary
+				--wormdata[roundpos.X..','..roundpos.Y..','..roundpos.Z] = false -- convert the vector3 to a string and store it in a dictionary
 				local ccx,ccz = qf.GetChunkfromReal(x,y,z,true)
 				local function sphere()
 					for x1 = 1, Resolution*2 do

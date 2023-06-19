@@ -4,11 +4,9 @@ local f,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local f,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 local f,debris = pcall(require,game.ReplicatedStorage.Libarys.Debris)
 local f,res = pcall(require,game.ReplicatedStorage.ResourceHandler)
-function self.GridIsInChunk(cx,cz,x,y,z)
-    local ccx,ccz = tonumber(math.floor((x+.5)/settings.ChunkSize.X)),tonumber(math.floor((z+.5)/settings.ChunkSize.X))
-    return tonumber(cx) == ccx and tonumber(cz) == ccz
-end
-local function IsAnBorder(lx,ly,lz,chsiz)
+local f,datahandler = pcall(require,game.ReplicatedStorage.DataHandler)
+local chsiz:Vector2 = settings.ChunkSize
+local function IsAnBorder(lx,ly,lz)
     local walls,ammount = {},0
     if lx+1 >= chsiz.X then
         walls["x1"] = true
@@ -28,119 +26,65 @@ local function IsAnBorder(lx,ly,lz,chsiz)
     end
     return walls,ammount
 end
-function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 = +x 3 = -x 4 = +z 5 = -z
-    -- local delay = require(game.ReplicatedStorage.DelayHandler).new("a")
-    if type(chunks) == "string" then
-        chunks = game.HttpService:JSONDecode(chunks)
-    end
-    if not chunks then
-        chunks = {}
-        chunks[1] = blockstocheck
-    end
-    if not blockstocheck then
-        blockstocheck =  chunks
-        local p = chunks
-        chunks = {p}
-    end
-    local currentblockid 
+function self.HideBlocks(cx,cz,chunks)
     local new = {}
-    if libs then
-        qf = qf or libs.QuickFunctions
-        qf.ADDSETTINGS(libs)
-        settings = settings or libs.GameSettings
-        debris = libs.Debris
-        res = libs.ResourceHandler
-    end
-    local chsiz:Vector2 = settings.ChunkSize
-    local alreadychecked = {{},{},{},{},{}}
-    local once = false
+    local i = 0
     local function checkblockinch(wt,x,y,z)
-        local combined = x..','..y..','..z
-        if alreadychecked[wt][combined] ~= nil then
-            return alreadychecked[wt][combined] 
-        end
-        local nn = combined
-        local a = chunks[wt][nn]
+        local combined = Vector3.new(x,y,z)
+        local a = chunks[wt][combined]
         local transparency = false
-        if a then
-            if not debris:GetItemData(a) then
-                local d = qf.DecompressItemData(a,'T') 
-                if  d and res.GetBlock(d) then
-                    transparency = res.GetBlock(d).Transparency
-                    if transparency and transparency ~= 0 then
-                        debris:AddItem(a,transparency,60)
-                    else
-                        debris:AddItem(a,false,60)
-                        transparency = false
-                    end
-                end
-            else
-                transparency = debris:GetItemData(a)
-                debris:SetTime(a,60)
-            end
-        end
-        if transparency then
-            a = false
-        end
-        alreadychecked[wt][combined] = a
-        return a
+        -- if a then
+        --     if res.GetBlock(a.T) then
+        --         transparency = res.GetBlock(a.T).Transparency
+        --         if transparency and transparency ~= 0 then
+        --         else
+        --             transparency = false
+        --         end
+        --     end
+        -- end
+        -- if transparency then
+        --     a = false
+        -- end
+        return a 
     end
-    --EX: 'Name|s%C:dirt/Orientation|t%0,0,0/Position|0,0,0'
     local function checksurroundingblocks(x,y,z)
-        local walls,ammount = IsAnBorder(x,y,z,chsiz)
-        local check = 0
+        local walls,ammount = IsAnBorder(x,y,z)
         local sides = {}
         --/AirBlocks|t%
-        local str,a = "",""
-        local function addtorstr(w)
-            if str ~= "" then str ..= ',' end
-            str..=w
-            a..=w
-        end
+        local num = 0
+    
         if (not walls["x1"] and checkblockinch(1,x+1,y,z)) or (walls["x1"] and checkblockinch(2,0,y,z))  then
-            check +=1
-            sides['x1'] = true--right
-            addtorstr(1)
+            num += 1
         end 
         if (not walls["x-1"] and checkblockinch(1,x-1,y,z)) or (walls["x-1"] and checkblockinch(3,7,y,z))  then
-            check +=1
-            sides['x-1'] = true--left
-            addtorstr(2)
+            num += 2
         end
         if (checkblockinch(1,x,y+1,z)) then
-            check +=1
-            sides['y1'] = true--up
-            addtorstr(3)
+            num += 4
         end
         if (checkblockinch(1,x,y-1,z))  then
-            check +=1
-            sides['y-1'] = true--down 
-            addtorstr(4)
+            num += 8
         end
         if (not walls["z1"] and checkblockinch(1,x,y,z+1)) or (walls["z1"] and checkblockinch(4,x,y,0))  then
-            check +=1
-            sides['z1'] = true--back
-            addtorstr(5)
+            num += 16
         end
         if (not walls["z-1"] and checkblockinch(1,x,y,z-1)) or (walls["z-1"] and checkblockinch(5,x,y,7))  then
-            check +=1
-            sides['z-1'] = true--front
-            addtorstr(6)
+            num += 32
          end
-        return check == 6,'/AirBlocks|t%'..a..','..str
+         return num == 63,num
     end
-    local i = 0
-    for index:string,data in blockstocheck do
+    for index:Vector3,data in chunks[1] do
         if not data then continue end
         i+=1
-        
-        local x,y,z = unpack(index:split(','))
-        -- currentblockid = qf.convertchgridtoreal(cx,cz,x,y,z,true)
+        local x,y,z = index.X,index.Y,index.Z
         local cann,newstr = checksurroundingblocks(x,y,z)
-        new[index] = (not (cann)and data..newstr) or nil
+        if newstr then
+            data..='/AirBlocks|'..newstr
+			--data.AirBlocks = newstr
+		end
+        new[index] = (not (cann) and data) or nil 
     end
-    -- delay:update("1")
-    -- print(delay:gettime())
+   -- error(new)
     return new
 end
 return self 

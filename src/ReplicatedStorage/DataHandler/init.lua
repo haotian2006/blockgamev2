@@ -126,13 +126,13 @@ function self.InsertBlock(x,y,z,block)
     return chunk
 end
 function c(x,y,z) local a = workspace.IDK:Clone() a.Parent = workspace a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true game:GetService("Debris"):AddItem(a,1) end 
-function self.GetBlock(x,y,z,a)
+function self.GetBlock(x,y,z)
     local cx,cz = qf.GetChunkfromReal((x),(y),(z),true)
     local chunk = self.GetChunk(cx,cz)
     local localgrid = Vector3.new(round(x)%settings.ChunkSize.X,round(y),round(z)%settings.ChunkSize.X)
     localgrid = Vector3.new((localgrid.X),(localgrid.Y),(localgrid.Z))
     if chunk and (not isserver or chunk.Setttings["Generated"]) then
-       return unpack({chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z,true)})
+       return chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z),localgrid.X..','..localgrid.Y..','..localgrid.Z
     else
        return "Null",localgrid.X..','..localgrid.Y..','..localgrid.Z
     end

@@ -60,10 +60,11 @@ function stuff.DecompressItemData(M,data)
     local functions = M.QuickFunctions.DecompressItemData
     local newdata = {}
     for i,v in data do
+		if type(i) == "number" then i = tostring(i) end 
 		if typeof(v) == "table" then
-       		newdata[tostring(i)] = functions(unpack(v))
+       		newdata[i] = functions(unpack(v))
 		else
-			newdata[tostring(i)] = functions(v)
+			newdata[i] = functions(v)
         end
     end
     return newdata

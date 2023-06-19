@@ -14,6 +14,7 @@ local mod = {
 	Remote = "Libarys.ModingRemote",
 	AnimationController = "AnimationController",
 	ItemHandler = "ItemHandler",
+	EntityAttribute = "Libarys.EntityAttribute"
 }
 export type AutoFill =  {
 	Math:types.Math,
@@ -29,7 +30,7 @@ export type AutoFill =  {
 	Functions : types.Functions,
 	AnimationController : types.AnimationController,
 	ItemHandler : types.ItemHandler ,
-
+	EntityAttribute : types.EntityAttribute,
 }
 
 local function getInstanceFromPath(path)

@@ -5,7 +5,7 @@ local multihandler
 local greedymesh
 local csize 
 local gridS 
-local culling  
+local culling 
 local ResourceHandler 
 local collisions
 bd = require(game.ReplicatedStorage.DataHandler)
@@ -79,7 +79,6 @@ do
         mappings2[i] = findCombo(i)
     end
 end
-
 do 
     local pos = {[3] = 6,[6] = 4,[5] = 3,[4] = 5}
     local neg = {[3] = 6,[6] = 4,[5] = 3,[4] = 5}
@@ -118,8 +117,7 @@ function self.GetOrderOfSide(Orientation)
     end
     return new_directions
 end
-local once =0 
-function self.GetTextures(Id,walls,Orientation,part,loc)
+function self.GetTextures(Id,walls,Orientation,part)
    -- print(walls[2])
     local info = ResourceHandler.GetBlock(Id)
     local texture = info["Texture"]
@@ -137,12 +135,8 @@ function self.GetTextures(Id,walls,Orientation,part,loc)
     -- for i,v in sidesnumbers do
     --     t[v] = directions[i]
     -- end
-    -- if once <= 10 then 
-    -- print(mappings2[tonumber(walls)],loc)
-    -- once += 1
-    -- end
-    for i,v in mappings2[tonumber(walls)] do
-        if  not tonumber(v) then continue end
+    for i,v in mappings2[walls] do
+        if i == 1 or not tonumber(v) then continue end
         sides[sidesnumbers[tonumber(v)]] = nil
     end
     if texture then
@@ -212,38 +206,34 @@ tada = true
 function self.GetBlockTable(cx,cz,SPECIAL)
     if bd.GetChunk(cx,cz) and  bd.GetChunk(cx+1,cz) and bd.GetChunk(cx-1,cz) and 
     bd.GetChunk(cx,cz+1) and bd.GetChunk(cx,cz-1) then
-        local current =  bd.GetChunk(cx,cz)
-        local chunks = {
-            bd.GetChunk(cx,cz):to3DBlocks(),
-            bd.GetChunk(cx+1,cz):GetEdge("x"),
-            bd.GetChunk(cx-1,cz):GetEdge("-x"),
-            bd.GetChunk(cx,cz+1):GetEdge("z"),
-            bd.GetChunk(cx,cz-1):GetEdge("-z"),
-        }
-        -- for ic,chunkdata in chunks do
-        --     local new = {}
-        --     for i,v in chunkdata do
-        --         if v == "" then chunkdata[i] = nil end 
-        --         new[tostring(current.to1D(i.X,i.Y,i.Z))] = v ~= "" and v 
-        --     end
-        --     new = multihandler.GlobalGet("DecompressItemData",new,ic == 1 and 5 or 2)
-        --     for i,v in new do
-        --         chunkdata[Vector3.new(current.to3D(tonumber(i)))] = v
-        --      end
-        -- end
-        if SPECIAL then return chunks end 
-            local culling = culling.HideBlocks(cx,cz,chunks)
-        local meshed,unmeshed = greedymesh.meshtable(culling,false,cx,cz)
-        return meshed,current,unmeshed 
-        end
+        local chunk = bd.GetChunk(cx,cz)
+       local t = {
+        chunk.tableTo3DV(multihandler.GlobalGet("DecompressItemData",bd.GetChunk(cx,cz):GetAllBlocks(),3)),
+        chunk.tableTo3DV(  multihandler.GlobalGet("DecompressItemData",bd.GetChunk(cx+1,cz):GetEdge("x"),2)),
+        chunk.tableTo3DV(  multihandler.GlobalGet("DecompressItemData", bd.GetChunk(cx-1,cz):GetEdge("-x"),2)),
+        chunk.tableTo3DV(   multihandler.GlobalGet("DecompressItemData",bd.GetChunk(cx,cz+1):GetEdge("z"),2)),
+        chunk.tableTo3DV(   multihandler.GlobalGet("DecompressItemData",bd.GetChunk(cx,cz-1):GetEdge("-z"),2)),
+        --    bd.GetChunk(cx+1,cz):GetEdge("x"),
+        --    bd.GetChunk(cx-1,cz):GetEdge("-x"),
+        --    bd.GetChunk(cx,cz+1):GetEdge("z"),
+        --    bd.GetChunk(cx,cz-1):GetEdge("-z"),
+       }
+       if SPECIAL then return t end 
+       local culling = culling.HideBlocks(cx,cz,t,nil,multihandler.libs)
+    -- local culling = multihandler.HideBlocks(cx,cz,t,3)--need to fix this
+      local meshed,unmeshed = greedymesh.meshtable(culling)
+      return meshed,bd.GetChunk(cx,cz),unmeshed 
+    end
 end
 
 function self.CreateBlock(v,ptouse,ori,isSafe)
     local p = ptouse or Instance.new("Part")
+    if not isSafe then 
+        p:ClearAllChildren()
+    end
     p.Material = Enum.Material.SmoothPlastic
-    p:ClearAllChildren()
     local name = v.data.T
-    for i,v in  self.GetTextures(name,v.data.AirBlocks,ori,p,isSafe) do
+    for i,v in  self.GetTextures(name,v.data.AirBlocks,ori,p) do
         v.Parent = p
     end
     p.Anchored = true
@@ -284,6 +274,9 @@ do
 end
 function self.UpdateChunk(cx,cz,debug)
     local meshed,chunkobj,unmeshed = self.GetBlockTable(cx,cz)
+    print('B')
+    print(Vector3.new()+321312)
+    print("c")
     if not (meshed or unmeshed) or not chunkobj  then  return false end 
     local ammountofblocks = 0
     local blockstodel = {}
@@ -334,28 +327,26 @@ function self.UpdateChunk(cx,cz,debug)
         if index%2000 == 0 then task.wait() end
         local pi,pb = next(blockstodel)
         if pi then blockstodel[pi] = nil else newb +=1 end 
-        if tostring(i) == "6,59,3.5" and cx == -1 and cz == -1 then
-            print(v.data.AirBlocks)
-        end
-        local p = self.CreateBlock(v,pb,v.data.O,CFrame.new(Vector3.new(v.real.X+cx*csize,v.real.Y,v.real.Z+cz*csize)*gridS)*(v.data.O and collisions.ConvertToCFrame(v.data.O) or CFrame.new()).Position)
-        p.Name = tostring(i)
+        local p = self.CreateBlock(v,pb,v.data.O)
+        p.Name = i
         p.Size = Vector3.one
         p.CFrame  = CFrame.new(Vector3.new(v.real.X+cx*csize,v.real.Y,v.real.Z+cz*csize)*gridS)*(v.data.O and collisions.ConvertToCFrame(v.data.O) or CFrame.new())
         p.Size = RotateStuff[v.data.O or '0,0,0'](Vector3.new(v.l*gridS,v.h*gridS,v.w*gridS))
         p.Parent = folder
     end
-    for i:Vector3,v in unmeshed do
+    for i:string,v in unmeshed do
         chunkobj.RenderedBlocks[i] = v
         if nonchangedblocks[i] then continue end
         index +=1
         if index%2000 == 0 then task.wait() end
+       -- print(v.T,i)
         local p = ResourceHandler.GetBlock(v.T).Mesh:Clone()
-        for i,v in  self.GetTextures(v.T,0,v.O) do
+        for i,v in  self.GetTextures(v.T,{},v.O) do
             v.Parent = p
         end
-        p.Name = tostring(i)
+        p.Name = i
         p.Anchored = true
-        local x,y,z = i.X,i.Y,i.Z
+        local x,y,z = unpack(i:split(','))
         local offset = ResourceHandler.GetBlock(v.T).Offset or Vector3.zero
         p.CFrame = CFrame.new(Vector3.new(x+cx*csize,y,z+cz*csize)*gridS)*(v.O and collisions.ConvertToCFrame(v.O) or CFrame.new())*CFrame.new(offset*gridS)
         p.Parent = folder

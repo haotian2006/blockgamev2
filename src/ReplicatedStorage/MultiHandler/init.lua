@@ -16,13 +16,15 @@ local libarystosend = {
 	game.ReplicatedStorage.Libarys.MathFunctions,
 	game.ReplicatedStorage.WorkerThreads,
 	script.GlobalMemory,
-	game.ReplicatedStorage.RenderStuff.Render,
+	--game.ReplicatedStorage.RenderStuff.Render,
 	game.ReplicatedStorage.CollisonHandler,
+	game.ReplicatedStorage.Chunk,
 	game.ReplicatedStorage.RenderStuff.GreedyMesh
 }
 local libarydata = {}
 local Workers
 local LargeWorkers 
+self.libs = libarydata
 function  self:Init()
 	for i,v in libarystosend do libarydata[v.Name] = require(v) end 
 	 Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",300,libarystosend,{ResourceHandler = {Blocks = require(game.ReplicatedStorage.ResourceHandler).Blocks}})
@@ -151,14 +153,15 @@ function self.HideBlocks(cx,cz,chunks,times)
 	local thread = coroutine.running()
 	local ammountdone = 0 
 	--local sterilise = game:GetService("HttpService"):JSONEncode(chunks)
-	local data = self.divide(chunks[1],times)
+	local c= require(game.ReplicatedStorage.Chunk)
+	local data = self.divide(c.tableTo3D(c.DeCompressVoxels(chunks[1])),times)
 	for i,v in data do
 		task.spawn(function()
 			local hideblocks = require(game.ReplicatedStorage.RenderStuff.Culling)
 			--task.desynchronize()
 		--	local cdata = self.LargeSend("HideBlocks",{3},2,cx,cz,v,false)
-			local cdata = hideblocks.HideBlocks(cx,cz,chunks,v,libarydata)
-			--local cdata = self.DoSmt("HideBlocks",cx,cz,sterilise,v)
+			--local cdata = hideblocks.HideBlocks(cx,cz,chunks,v,libarydata)
+			local cdata = self.DoSmt("HideBlocks",cx,cz,chunks,v)
 			--local cdata = self.DDoSmt("HideBlocks",cx,cz,true,true)
 			for e,c in cdata do
 				newdata[tostring(e)] = c

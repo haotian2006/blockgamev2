@@ -184,7 +184,7 @@ EntityBridge:Connect(function(entitys)
     i =i and i + 1 
     for i,v in game.Workspace.Entities:GetChildren() do shoulddel(entitys,v) end
     for i,v in game.Workspace.DamagedEntities:GetChildren() do shoulddel(entitys,v) end
-   if i == 500 then  print(entitys,i) i = nil end 
+  -- if i == 500 then  print(entitys,i) i = nil end 
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i) or workspace.DamagedEntities:FindFirstChild(i)
         local oldentity = datahandler.GetEntity(i)
@@ -320,7 +320,7 @@ bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
     local cx,cy,x,y,z = qf.GetChunkAndLocal(x,y,z)
     local chunk = datahandler.GetChunk(cx,cy)
     if not chunk then return end 
-    chtoup[chunk:GetNString()]= chunk
+    chtoup[chunk]= chunk
     local cx,cz = chunk:GetNTuple()
     local v3 = Vector3.new(x,y,z)
     local isedge,edges = qf.CheckIfChunkEdge(v3.X,v3.Y,v3.Z)
@@ -348,8 +348,14 @@ end)
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
     toload[cx..','..cz] = true
     queued[cx..','..cz] = false
-    data = require(game.ReplicatedStorage.Libarys.lualzw).decompress(data)
-    data = HttpService:JSONDecode(data)
+    -- do
+    --     local p = Instance.new("Part")
+    --     p.Position =  qf.convertchgridtoreal(cx,cz,4,66,4)
+    --     p.Anchored = true
+    --     p.Parent = workspace
+    --     p.Material = Enum.Material.Neon
+    -- end
+    data = require(game.ReplicatedStorage.Chunk).DeCompressVoxels(data)
     datahandler.CreateChunk({Blocks = data},cx,cz)
    if false then  
     local p = Instance.new("Part",workspace)

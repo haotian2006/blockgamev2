@@ -6,7 +6,7 @@ local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
 local multihandler = require(game.ReplicatedStorage.MultiHandler)
 local compresser = require(game.ReplicatedStorage.Libarys.compressor)
-local Chunk = require(game.ReplicatedStorage.Chunk)
+local Chunk = {}--require(game.ReplicatedStorage.oldchunk)
 local BlockSaver = require(game.ServerStorage.DataStores.BlockSaver)
 function Chunk:LoadToLoad()
     for i,v in self.ToLoad do
