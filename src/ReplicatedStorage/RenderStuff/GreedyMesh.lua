@@ -58,14 +58,14 @@ function  greedy.meshtable(tabletodemesh,libs,c,ce)
     local old = 0
     local c = 0
     local chunk = require(game.ReplicatedStorage.Chunk)
-    local new = {}
-    for i,v in tabletodemesh do
-        new[tostring(chunk.to1D(i.X,i.Y,i.Z))] = v
-    end
-    new = mulitthread.GlobalGet("DecompressItemData",new,5)
-    for i,v in new do
-        tabletodemesh[Vector3.new(chunk.to3D(tonumber(i)))] = v
-    end
+    -- local new = {}
+    -- for i,v in tabletodemesh do
+    --     new[tostring(chunk.to1D(i.X,i.Y,i.Z))] = v
+    -- end
+    -- new = mulitthread.GlobalGet("DecompressItemData",new,5)
+    -- for i,v in new do
+    --     tabletodemesh[Vector3.new(chunk.to3D(tonumber(i)))] = v
+    -- end
     local unabletomeshblocks = {}
     for i,v in tabletodemesh do
         if not v then continue end
@@ -119,7 +119,8 @@ function  greedy.meshtable(tabletodemesh,libs,c,ce)
             --     print(tabletodemesh[ Vector3.new(5,59,7)])
             -- end
             if d1 and d2 then
-                if d1.T ~= d2.T or d1.AirBlocks ~= d2.AirBlocks or d1.O ~= d2.O then
+                if d1 ~= d2 then
+               -- if d1.T ~= d2.T or d1.AirBlocks ~= d2.AirBlocks or d1.O ~= d2.O then
                     return false
                 end
             end
@@ -180,9 +181,9 @@ function  greedy.meshtable(tabletodemesh,libs,c,ce)
         while true do
             move(currentdir ==-1 and true or nil)
             local c = new[rx..','..ry..','..rz]
-            if c and c.w == w and c.l == l and c.h == h 
-            and c.data.T == info.data.T
-            and c.data.AirBlocks == info.data.AirBlocks  and c.data.O == info.data.O then
+            if c and c.w == w and c.l == l and c.h == h and c.data == info.data then
+            -- and c.data.T == info.data.T
+            -- and c.data.AirBlocks == info.data.AirBlocks  and c.data.O == info.data.O then
                 if currentdir == -1 then
                     sx = c.startx
                     sz = c.startz

@@ -12,6 +12,7 @@ for i,v in game.ServerStorage.ServerStuff:GetChildren() do
     require(v)
 end
 local interval = 0
+local debirs = require(game.ReplicatedStorage.Libarys.Debris):Init()
 local AnimationBridge = bridge.CreateBridge("AnimationHandler")
 local data = require(game.ReplicatedStorage.DataHandler)
 local entityahndler = require(game.ReplicatedStorage.EntityHandler)

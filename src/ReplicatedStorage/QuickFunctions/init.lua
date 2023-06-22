@@ -1,10 +1,16 @@
 local qf = {}
 local found,settings = pcall(require,game.ReplicatedStorage.GameSettings)
+local found,Debris = pcall(require,game.ReplicatedStorage.Libarys.Debris)
+local decompressFolder 
+if found then
+    decompressFolder = Debris.CreateFolder("Debris")
+end
 local otherlibs
 function qf.ADDSETTINGS(libs)
     if otherlibs then return end 
     settings = libs.GameSettings
     otherlibs = libs
+    decompressFolder = libs.Debris.CreateFolder("Debris")
 end
 repeat
     task.wait()
@@ -442,8 +448,30 @@ function qf.CompressItemData(data:table)
     end
     return currentcompressed
 end
+local safe = pcall(function()
+    game.Workspace.Camera:ClearAllChildren()
+end)
 function qf.DecompressItemData(data:string,specificitems:table|string):table|ValueBase
-    if type(data) ~= "string" then return data end  
+    if type(data) ~= "string" then return data end
+    if safe then
+    local dec = decompressFolder:GetItemData(data)
+    if dec then 
+        decompressFolder:SetTime(data,15)
+        if type(specificitems) == "table" then 
+            local t = {}
+            for a,i in specificitems do
+                if dec[i] then
+                    t[i] = dec[i]
+                end
+            end
+            return t
+        elseif type(specificitems) == "string" then
+            return dec[specificitems]
+        else 
+            return dec 
+        end
+    end
+    end
     --EX: 'Name|s%C:dirt/Orientation|t%0,0,0/Position|0,0,0'
     --types: (s) = string, (t) = table, (n) = number ,(v3) = vector3
     -- (/) is like a comma (|) is the equal key in index = value (%) determines the type of the value default is string
@@ -454,6 +482,7 @@ function qf.DecompressItemData(data:string,specificitems:table|string):table|Val
         if spi and not spi[index] then continue end if spi and next(spi) == nil  then break end
         newdata[index] = qf.ConvertString(value) if spi then spi[index] = nil end 
     end
+    if not specificitems then decompressFolder:AddItem(data,newdata,15) end 
     return is1 and newdata[next(newdata)] or newdata
 end
 return qf 

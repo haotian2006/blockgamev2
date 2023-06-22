@@ -334,6 +334,7 @@ function self.UpdateChunk(cx,cz,debug)
         if index%2000 == 0 then task.wait() end
         local pi,pb = next(blockstodel)
         if pi then blockstodel[pi] = nil else newb +=1 end 
+        v.data = qf.DecompressItemData(v.data)
         if tostring(i) == "6,59,3.5" and cx == -1 and cz == -1 then
             print(v.data.AirBlocks)
         end
@@ -348,6 +349,7 @@ function self.UpdateChunk(cx,cz,debug)
         chunkobj.RenderedBlocks[i] = v
         if nonchangedblocks[i] then continue end
         index +=1
+        v = qf.DecompressItemData(v)
         if index%2000 == 0 then task.wait() end
         local p = ResourceHandler.GetBlock(v.T).Mesh:Clone()
         for i,v in  self.GetTextures(v.T,0,v.O) do

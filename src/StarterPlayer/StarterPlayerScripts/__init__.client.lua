@@ -15,6 +15,7 @@ local mulithandler = require(game.ReplicatedStorage.MultiHandler):Init()
 local toload = {}
 local currentlyloading = {}
 local queued = {}
+local debirs = require(game.ReplicatedStorage.Libarys.Debris):Init()
 local anihandler = require(game.ReplicatedStorage.AnimationController)
 local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)

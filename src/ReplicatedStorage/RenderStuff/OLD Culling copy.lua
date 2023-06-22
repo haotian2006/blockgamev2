@@ -4,6 +4,7 @@ local f,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local f,settings = pcall(require,game.ReplicatedStorage.GameSettings)
 local f,debris = pcall(require,game.ReplicatedStorage.Libarys.Debris)
 local f,res = pcall(require,game.ReplicatedStorage.ResourceHandler)
+local debrisfolder
 function self.GridIsInChunk(cx,cz,x,y,z)
     local ccx,ccz = tonumber(math.floor((x+.5)/settings.ChunkSize.X)),tonumber(math.floor((z+.5)/settings.ChunkSize.X))
     return tonumber(cx) == ccx and tonumber(cz) == ccz
@@ -41,6 +42,10 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
         debris = libs.Debris
         res = libs.ResourceHandler
     end
+    if not debrisfolder then
+        debrisfolder = debris.CreateFolder("Blocks",true)
+    end
+    debrisfolder:Update()
     local chsiz:Vector2 = settings.ChunkSize
     local alreadychecked = {{},{},{},{},{}}
     local once = false
@@ -53,20 +58,23 @@ function self.HideBlocks(cx,cz,chunks,blockstocheck,libs)--chunks 1 = middle 2 =
         local a = chunks[wt][nn]
         local transparency = false
         if a then
-            if not debris:GetItemData(a) then
+            local dt = debrisfolder:GetItemData(a)
+            if not dt then
+                print(debrisfolder)
                 local d = qf.DecompressItemData(a,'T') 
-                if  d and res.GetBlock(d) then
-                    transparency = res.GetBlock(d).Transparency
+                local cb = res.GetBlock(d)
+                if  d and cb then
+                    transparency = cb.Transparency
                     if transparency and transparency ~= 0 then
-                        debris:AddItem(a,transparency,60)
+                        debrisfolder:AddItem(a,transparency,60)
                     else
-                        debris:AddItem(a,false,60)
+                        debrisfolder:AddItem(a,false,60)
                         transparency = false
                     end
                 end
             else
-                transparency = debris:GetItemData(a)
-                debris:SetTime(a,60)
+                transparency = dt
+                debrisfolder:SetTime(a,60)
             end
         end
         if transparency then

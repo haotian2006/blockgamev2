@@ -6,6 +6,8 @@ local f,debris = pcall(require,game.ReplicatedStorage.Libarys.Debris)
 local f,res = pcall(require,game.ReplicatedStorage.ResourceHandler)
 local f,datahandler = pcall(require,game.ReplicatedStorage.DataHandler)
 local chsiz:Vector2 = settings.ChunkSize
+local debrisfolder = debris.CreateFolder("Blocks",true)
+
 local function IsAnBorder(lx,ly,lz)
     local walls,ammount = {},0
     if lx+1 >= chsiz.X then
@@ -29,22 +31,33 @@ end
 function self.HideBlocks(cx,cz,chunks)
     local new = {}
     local i = 0
+    debrisfolder:Update()
     local function checkblockinch(wt,x,y,z)
         local combined = Vector3.new(x,y,z)
         local a = chunks[wt][combined]
         local transparency = false
-        -- if a then
-        --     if res.GetBlock(a.T) then
-        --         transparency = res.GetBlock(a.T).Transparency
-        --         if transparency and transparency ~= 0 then
-        --         else
-        --             transparency = false
-        --         end
-        --     end
-        -- end
-        -- if transparency then
-        --     a = false
-        -- end
+        if not a then return a end 
+        local dt = debrisfolder:GetItemData(a)
+        if dt == nil then
+            local d = qf.DecompressItemData(a)
+            d = d and d.T 
+            local cb = res.GetBlock(d)
+            if  d and cb then
+                transparency = cb.Transparency
+                if transparency and transparency ~= 0 then
+                    debrisfolder:AddItem(a,transparency,60)
+                else
+                    debrisfolder:AddItem(a,false,60)
+                    transparency = false
+                end
+            end
+        else
+            transparency = dt
+            debrisfolder:SetTime(a,60)
+        end
+        if transparency then
+            a = false
+        end
         return a 
     end
     local function checksurroundingblocks(x,y,z)
