@@ -10,7 +10,7 @@ local Chunk = require(game.ReplicatedStorage.Chunk)
 local BlockSaver = require(game.ServerStorage.DataStores.BlockSaver)
 function Chunk:LoadToLoad()
     for i,v in self.ToLoad do
-        self.Blocks[self.to1D(unpack(i:split(',')))] = v
+        self:AddBlock(i,v)
         self.Changed = true
     end
     
@@ -26,22 +26,10 @@ function Chunk:DoCaves()
         return
     end
     self.Changed = true
-    self.GeneratingCaves = true
+    self.GeneratingCaves = true 
     self.Setttings.GeneratedCaves = true
     local stuff = require(game.ServerStorage.GenerationHandler).CreateWorms(self.Chunk.X,self.Chunk.Y)--multihandler.GenerateWorms(self.Chunk.X,self.Chunk.Y)
-    local chunks = {}
     for i,v in stuff do
-        for positon,data in v do
-            local x,y,z = unpack(positon:split(','))
-            local a,b = qF.GetChunkfromReal(x,y,z,true)
-            local chunk = qF.combinetostring(a,b)
-            chunks[chunk] = chunks[chunk] or {}
-            local c =Vector3.new(x%chunksize.X,y,z%chunksize.X)
-            x,y,z = c.X,c.Y,c.Z
-            chunks[chunk][qF.combinetostring(x,y,z)] = data
-        end    
-    end
-    for i,v in chunks do
         if i  == self:GetNString() then
             self:AddToLoad(v)
         else
@@ -97,14 +85,16 @@ function Chunk:Generate()
     local color = terrainh.Color(self.Chunk.X,self.Chunk.Y,terrain) 
     if not self.Setttings.GeneratedCaves  then
         self:DoCaves()
-      end
-    for i:string,v in color do
-        self.Blocks[self.to1D(unpack(i:split(',')))] = v
+    end
+    for i:Vector3,v in color do
+        self:AddBlock(i,v)
     end
     self:GenerateCavesNearBy()
     self:LoadToLoad()
     task.wait()
-    terrainh.CreateBedrock(self.Chunk.X,self.Chunk.Y,self.Blocks)
+    for i,v in terrainh.CreateBedrock(self.Chunk.X,self.Chunk.Y,{}) do
+        self:InsertBlock(i.X,i.Y,i.Z,v)
+    end
     self.Generating = false
     self.Changed = true
 end

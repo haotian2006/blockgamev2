@@ -16,7 +16,7 @@ function self.AddInstanceChildren(Object,AssetObj)
             Folder[stuff.Name] = stuff
         end
     end
-end
+end 
 function self.LoadPack(PackName:string)
     local pack = ResourcePacks:FindFirstChild(PackName)
     if pack then

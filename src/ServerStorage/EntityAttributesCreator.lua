@@ -67,12 +67,14 @@ self.Attributes.inventory = {
                 else
                     break
                 end
+                self:UP()
             end
             return count
         end,
         set = function(self,index,id,count)
             index = index or 1
             self[index] = {id,count}
+            self:UP()
         end,
         setAt = function(self,index,Itemdata,count)
             if index == "Output" then return Itemdata,count,true end 
@@ -106,6 +108,7 @@ self.Attributes.inventory = {
                 self[index] = {Itemdata,count}
                 count= 0
             end
+            self:UP()
             return Itemdata,count
         end,
         find = function(self,Item:string,Id,CannotBeFull)
@@ -164,7 +167,7 @@ self.Attributes.crafting = {
                 if id then it ..='/n%'..id end
                 self:rawset("Output",{it,count})
             else
-                self:rawset("Output","")
+                self:rawset("Output","") 
             end
             return it,count,remove
         end,

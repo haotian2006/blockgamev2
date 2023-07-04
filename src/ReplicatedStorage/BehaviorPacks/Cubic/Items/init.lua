@@ -46,9 +46,26 @@ return{
         Block = 'C:Stair'
     }),
 
-    ['Sword'] = cit(
+    ['C:Stick'] = cit(
     {
-        type = 'Weapon',
+        type = 'Sword',
+        Damage = 5,
+        
+    }),
+    ['C:LongStick'] = cit(
+    {
+        type = 'Sword',
+        Range = 120,
+        KnockBackForce = Vector3.new(20,12,20),
+        Damage = 0,
+        
+    }),
+    ['C:GodStick'] = cit(
+    {
+        type = 'Sword',
+        Range = 3,
+        KnockBackForce = Vector3.new(50,30,50),
+        Damage = 100,
         
     }),
 }

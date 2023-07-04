@@ -32,7 +32,7 @@ function self.CreateTexture(texture,face)
         new.Face = face
     elseif texture:IsA("SurfaceGui") then
         new = texture:Clone()
-        new.Face = face
+        new.Face = face 
     end
 
         return new
@@ -220,20 +220,10 @@ function self.GetBlockTable(cx,cz,SPECIAL)
             bd.GetChunk(cx,cz+1):GetEdge("z"),
             bd.GetChunk(cx,cz-1):GetEdge("-z"),
         }
-        -- for ic,chunkdata in chunks do
-        --     local new = {}
-        --     for i,v in chunkdata do
-        --         if v == "" then chunkdata[i] = nil end 
-        --         new[tostring(current.to1D(i.X,i.Y,i.Z))] = v ~= "" and v 
-        --     end
-        --     new = multihandler.GlobalGet("DecompressItemData",new,ic == 1 and 5 or 2)
-        --     for i,v in new do
-        --         chunkdata[Vector3.new(current.to3D(tonumber(i)))] = v
-        --      end
-        -- end
         if SPECIAL then return chunks end 
-            local culling = culling.HideBlocks(cx,cz,chunks)
-        local meshed,unmeshed = greedymesh.meshtable(culling,false,cx,cz)
+        local culling = culling.HideBlocks(cx,cz,chunks)
+        local meshed,unmeshed = {},{}
+        meshed,unmeshed = greedymesh.meshtable(culling,false,cx,cz)
         return meshed,current,unmeshed 
         end
 end
@@ -335,9 +325,6 @@ function self.UpdateChunk(cx,cz,debug)
         local pi,pb = next(blockstodel)
         if pi then blockstodel[pi] = nil else newb +=1 end 
         v.data = qf.DecompressItemData(v.data)
-        if tostring(i) == "6,59,3.5" and cx == -1 and cz == -1 then
-            print(v.data.AirBlocks)
-        end
         local p = self.CreateBlock(v,pb,v.data.O,CFrame.new(Vector3.new(v.real.X+cx*csize,v.real.Y,v.real.Z+cz*csize)*gridS)*(v.data.O and collisions.ConvertToCFrame(v.data.O) or CFrame.new()).Position)
         p.Name = tostring(i)
         p.Size = Vector3.one

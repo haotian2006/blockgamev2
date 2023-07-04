@@ -64,14 +64,16 @@ task.spawn(function()
                     -- if cx == -7 and cz ==7 then
                     --     print("a")
                     -- end
+                 -- print(  pcall(function()
                     chun:Generate() 
-
+               -- end))
                   --  self.LoadedChunks[cx..','..cz]  = chun
                     for i,v in a do
                         -- if cx == -7 and cz ==7 then
                         --      print(chun:GetBlocks())
                         --     -- print(self.GetChunk(cx,cz):GetBlocks())
                         -- end   
+
                         game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):CompressVoxels())
                     end
                     self.InProgress[c] = nil
@@ -106,12 +108,22 @@ end)
 --         end
 --     end)
 -- end
+local ublock = bridge.CreateBridge("UpdateBlocks")
 function self.CreateChunk(cdata,cx,cz)
     
     self.LoadedChunks[cx..','..cz] = ChunkObj.Create(cx,cz)
     return self.LoadedChunks[cx..','..cz] 
 end
+function self.PlaceBlockGLOBAL(x,y,z,data)
+    self.InsertBlock(x,y,z,data)
+    ublock:FireAll({Add = {{Vector3.new(x,y,z),data}}})
+end
+function self.RemoveBlockGlobal(x,y,z,data)
+    self.RemoveBlock(x,y,z)
+    ublock:FireAll({Remove = {Vector3.new(x,y,z)}})
+end
 game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)
+    if cx > 32767 or cx < -32768 or cz > 32767 or cz < -32768 then warn("REACHED BORDER") return end 
     -- local position = player.Character.PrimaryPart.Position
     local new = self.GetChunk(cx,cz)
     if new and new:IsGenerating() then

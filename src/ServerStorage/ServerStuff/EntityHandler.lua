@@ -6,15 +6,16 @@ local settings = require(game.ReplicatedStorage.GameSettings)
 local data = require(game.ReplicatedStorage.DataHandler)
 local EAC = require(game.ServerStorage.EntityAttributesCreator)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
+local entityatr = require(game.ReplicatedStorage.Libarys.EntityAttribute)
 entity.ServerOnly = {
-    "ServerOnly","Data"
+    "ServerOnly","Data","NotSaved"
 }
 entity.OwnerOnly = {
-    "inventory" ,"Velocity","BodyVelocity"
+    "inventory" ,"Container","Velocity"
 }
-function deepCopy(original)
+local function deepCopy(original)
     local copy = {}
-    for k, v in pairs(original) do
+    for k, v in original do
         if type(v) == "table" then
             v = deepCopy(v)
         end
@@ -132,7 +133,7 @@ function entity:AddComponents(cpname,cpdata,IsFromcomp)
         return 
     end
     if self[cpname] and type(cpdata) == "table" and cpdata["AddTo"] then
-        if rawget(self,cpname) == nil then
+        if entity.rawGet(self,cpname) == nil then
             self[cpname] = cpdata
         end
         for i,v in cpdata do
@@ -145,7 +146,7 @@ function entity:AddComponents(cpname,cpdata,IsFromcomp)
     return self
 end
 function entity:UpdateComponets(cpname,cpdata,IsFromcomp)
-    if rawget(self,cpname) == nil then return self:AddComponents(cpname,cpdata,IsFromcomp) end 
+    if entity.rawGet(self,cpname)  == nil then return self:AddComponents(cpname,cpdata,IsFromcomp) end 
     local EACd = EAC.Find(cpname)
     if EACd then
         if EACd.update then
@@ -156,7 +157,7 @@ function entity:UpdateComponets(cpname,cpdata,IsFromcomp)
     end
 end
 function entity:DropItem(name,count)
-    local dir = self.headdir.Unit
+    local dir = self.Headdir.Unit
     local item = entity.Create('C:Item',{Position = self:GetEyePosition(),Item = name,Count = count })
     self:GetData().AddEntity(item)
     item:KnockBack(Vector3.new(dir.X*3,dir.Y/1.2,dir.Z*3)+Vector3.new(0,.2,0),.2)
@@ -166,9 +167,22 @@ function entity:UpdateDataServer(newdata)
     local oldingui = self.Ingui
     local ServerOnlyChanges= self:GetServerChanges()
     for i,v in newdata do
-        if ServerOnlyChanges[i] then
-            self[i] = v
+        if not ServerOnlyChanges[i] then continue end 
+        if type(v) == "table" then
+            if v.__type == "EntityAttribute" then
+                self[i](v)
+            else
+                for i1,v1 in v do
+                    if v == "__NULL__" then
+                        self[i][i1] = nil
+                    else
+                        self[i][i1] = v1
+                    end
+                end
+            end
+            continue
         end
+        self[i] = v
     end
     if oldingui and not self.Ingui then
         require(game.ReplicatedStorage.Managers.UIContainerManager).OnCloseGui(self)
@@ -178,7 +192,7 @@ function entity:UpdateDataServer(newdata)
     self.HoldingItem = inventory[index] or {}
 end
 data.OldData = {interval = 0}
-function finddiffrences(t1,t2,c)
+local function finddiffrences(t1,t2,c)
     c = c or {}
     if type(t1) == "table" and type(t2) == "table" then
         local checkedindexs = {}
@@ -199,8 +213,45 @@ function finddiffrences(t1,t2,c)
     end
     return #c ~= 0 and c 
 end
-local lastint = {}
-function entity:ConvertToClient(player,inteval)
+local lastint = {}  
+function entity:ConvertToClient(player,interval)
+    local ToSend = {}
+    local found =   table.find(data.loadedentitysforplayer[tostring(player.UserId)] or {},self.Id)
+    local HasOwnerShip = player and self.ClientControl == tostring(player.UserId)
+    for i,v in self.__P do 
+        if type(v) =="function" or table.find(entity.ServerOnly,i)  then continue end 
+        if not HasOwnerShip and table.find(entity.OwnerOnly,i) then continue end
+        if found  then
+            if type(v) == "table" and type(v.GetUpdated) == "function"then
+                ToSend[i] = v:GetUpdated()
+                continue
+            elseif not self:IsUpdated(i) then
+                continue
+            end
+        end
+        if type(v) ~= "table"then ToSend[i] = v continue end 
+        if  type(v["Sterilize"]) == "function" then
+            ToSend[i] = v:Sterilize()
+        else
+            if i == "HoldingItem" then print( "a")end 
+            ToSend[i] = deepCopy(v)
+        end
+    end
+    if found  then
+        for i,v in self.__Update do
+            if self.__P[i] == nil then
+                ToSend[i] = "__NULL__"
+            end
+        end
+    end
+    if self.Type == "Player" then
+       --print(ToSend.HoldingItem)
+      -- print(self.HoldingItem)
+    end
+   -- print(ToSend,found)
+    return ToSend
+end
+function entity:ConvertToClientOLD(player,inteval)
     local new = {Container = {}}
     local found =  not table.find(data.loadedentitysforplayer[tostring(player.UserId)] or {},self.Id)
     if data.OldData.interval ~= inteval or not data.OldData[self.Id] or  found or tostring(player.UserId) == self.Id  then
@@ -220,7 +271,7 @@ function entity:ConvertToClient(player,inteval)
         if i == "Container" then continue end 
         if type(v) ~="function" and not table.find(entity.ServerOnly,i) and (not table.find(entity.OwnerOnly,i) or  HasOwnerShip) and table.find(d,i)  then
             if type(v) =="table" and not v["ServerOnly"] then
-                if v.Type == "EntityAttribute" then
+                if v.__type == "EntityAttribute" or  type(v["Sterilize"]) == "function" then
                     new[i] = v:Sterilize()
                 else
                     new[i] = deepCopy(v)
@@ -234,7 +285,7 @@ function entity:ConvertToClient(player,inteval)
         for i,v in self.Container or {} do
             if type(v) ~="function" and not table.find(entity.ServerOnly,i) and (not table.find(entity.OwnerOnly,i) or  HasOwnerShip)  then
                 if type(v) =="table" and not v["ServerOnly"] then
-                    if v.Type == "EntityAttribute" then
+                    if v.__type == "EntityAttribute" then
                         new.Container[i] = v:Sterilize()
                     else
                         new.Container[i] = deepCopy(v)
@@ -264,7 +315,6 @@ function entity:ConvertToClient(player,inteval)
     if self.Type == "C:Item" then
       --  print(new)
     end
-
     return new
 end
 function entity:DoBehaviors(dt)
@@ -292,7 +342,7 @@ function entity:Damage(amt)
     self.Health -= amt
     if self.Health <= 0 then
         self:SetState("Dead",true) 
-        self.PlayingAnimations = {}
+        self.PlayingAnimations:Clear()
         self:SetNetworkOwner()
         if type(self:GetEvent('OnDeath') or true ) =='function' then
             self:GetEvent('OnDeath')(self)

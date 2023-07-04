@@ -21,6 +21,8 @@ local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local control = require(script.Parent.Controller)
 local hotbar = managers.HotBarManager
+local comp = require(game.ReplicatedStorage.Libarys.compressor)
+local https = game:GetService("HttpService")
 local entityhandler = require(game.ReplicatedStorage.EntityHandler)
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -96,19 +98,7 @@ end
 
 bridge.CreateBridge("ChangeEntityProperty"):Connect(function(entitid,property,value)
     if datahandler.GetEntity(entitid) then
-        if type(property) == "table" then
-            local tab = datahandler.GetEntity(entitid)
-            for i,v in ipairs(property) do
-                if i == #property then
-                    tab[v] = 5
-                else
-                    tab[v] = tab[v] or {}
-                    tab = tab[v] 
-                end
-            end
-        else
-            datahandler.GetEntity(entitid)[property] = value
-        end
+        datahandler.GetEntity(entitid)[property] = value
     end
 end)
 game.ReplicatedStorage.Events.EntityUpdater.OnClientEvent:Connect(function(entityId,newdata,dostuff)
@@ -185,7 +175,7 @@ EntityBridge:Connect(function(entitys)
     i =i and i + 1 
     for i,v in game.Workspace.Entities:GetChildren() do shoulddel(entitys,v) end
     for i,v in game.Workspace.DamagedEntities:GetChildren() do shoulddel(entitys,v) end
-  -- if i == 500 then  print(entitys,i) i = nil end 
+   if i == 250 then  print(entitys,i) i = nil end 
     for i,v in entitys do
         local e = game.Workspace.Entities:FindFirstChild(i) or workspace.DamagedEntities:FindFirstChild(i)
         local oldentity = datahandler.GetEntity(i)
@@ -209,15 +199,16 @@ EntityBridge:Connect(function(entitys)
             oldentity:UpdateRotationClient(true)
         elseif not e then
             local entity = entityhandler.new(v)
+            if not entity then continue end 
             datahandler.AddEntity(i,entity)
             local model = Instance.new("Model",workspace.Entities)
             local hitbox = Instance.new("Part",model)
             model.PrimaryPart = hitbox
-            hitbox.Size = (Vector3.new(v.Hitbox.X,v.Hitbox.Y,v.Hitbox.X) or Vector3.new(1,1,1))*settings.GridSize 
-            local eye = createEye(v.EyeLevel,hitbox)
+            hitbox.Size = (Vector3.new(entity.Hitbox.X,entity.Hitbox.Y,entity.Hitbox.X) or Vector3.new(1,1,1))*settings.GridSize 
+            local eye = createEye(entity.EyeLevel,hitbox)
             local eyebox = createAselectionBox(eye,Color3.new(1, 0, 0))
             eyebox.Parent = hitbox
-            CreateModel(v,model)
+            CreateModel(entity,model)
             entity.Entity = model
             entity:UpdateModelPosition()
             createAselectionBox(hitbox)
@@ -225,8 +216,8 @@ EntityBridge:Connect(function(entitys)
             hitbox.Anchored = true
             hitbox.Transparency = 1
             hitbox.Name = "Hitbox"
-            hitbox.CFrame = CFrame.new(v.Position*3)
-            model.Name = i
+            hitbox.CFrame = CFrame.new(entity.Position*3)
+            model.Name = i 
             if resource.GetAsset("Nametag") then
                 local nametag = resource.GetAsset("Nametag"):Clone()
                 nametag.Parent = hitbox
@@ -270,6 +261,9 @@ EntityBridge:Connect(function(entitys)
                     runservicer.Heartbeat:Wait()
                 end
                 end)
+            end
+            if entity.Health <= 0 then
+                entity:OnHarmed(0)
             end
         end
         if i == tostring(game.Players.LocalPlayer.UserId) then
@@ -341,11 +335,12 @@ bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
         addtoup(v.X,v.Y,v.Z)
     end
     for i,v in data.Add or {} do
-        local coords =  Vector3.new(unpack(i:split(',')))
-        datahandler.InsertBlock(coords.X,coords.Y,coords.Z,v)
+        local coords =  v[1]
+        datahandler.InsertBlock(coords.X,coords.Y,coords.Z,v[2])
         addtoup(coords.X,coords.Y,coords.Z)
     end
 end)
+local a = false
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
     toload[cx..','..cz] = true
     queued[cx..','..cz] = false

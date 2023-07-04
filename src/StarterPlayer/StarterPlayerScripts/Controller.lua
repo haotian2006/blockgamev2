@@ -246,8 +246,8 @@ function func.Attack()
         for i,v in raystuff.Objects do
             if  v.Type == "Block" then
                 local block = v.BlockPosition
-                local blocktr = qf.DecompressItemData(data.GetBlock(block.X,block.Y,block.Z),"T")
-                if blocktr == "C:Bedrock" then return end 
+                local blocktr =data.GetBlock(block.X,block.Y,block.Z)
+                if (blocktr and blocktr[2].T == "C:Bedrock") or not blocktr then return end 
                 data.RemoveBlock(block.X,block.Y,block.Z)
                 destroyblockEvent:Fire(block)
             elseif v.Type == "Entity"  then
@@ -273,15 +273,31 @@ function Render.Update(dt)
         table.insert(l,i)
     end
     local serverstuff = localentity() and self:GetServerChanges() or {}
-    local new = {}
-    for i,v in self do if serverstuff[i] then new[i] = v end end
+    local ToSend = {}
+    for i,v in self do 
+        if not serverstuff[i] then continue end 
+        do
+            if type(v) == "table" and type(v.GetUpdated) == "function"then
+                ToSend[i] = v:GetUpdated()
+                continue
+            elseif not self:IsUpdated(i) then
+                continue
+            end
+        end
+        if type(v) ~= "table"then ToSend[i] = v continue end 
+        if  type(v["Sterilize"]) == "function" then
+            ToSend[i] = v:Sterilize()
+        else
+            ToSend[i] = qf.deepCopy(v)
+        end
+    end
     if not localentity() or localentity():GetState('Dead')  then 
-        new.Loaded  = {}
+        ToSend.Loaded  = {}
     else
-        new.Loaded = l
+        ToSend.Loaded = l
      end 
 
-    EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),new)
+    EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),ToSend)
     if  localentity() then   
     self:ClearVelocity()
     anihandler.UpdateEntity(self)
@@ -298,7 +314,7 @@ function Render.Move(dt)
     local Left = -RightVector*(FD["Left"]and 1 or 0)
     local Right = RightVector*(FD["Right"]and 1 or 0)
     local velocity = foward + Back + Left+ Right
-    data.LocalPlayer.bodydir = velocity
+    data.LocalPlayer.Bodydir = velocity
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit)
     if velocity:FuzzyEq(Vector3.zero,0.01) then
         localentity():SetState('Stopping',true)
@@ -413,11 +429,13 @@ local function doinput(input,gameProcessedEvent)
             local function second()
                 if v[2] then
                     KeyDown:Fire(v[2],true)
-                    itemhand.handleItemInput(v[2],true,controls,localentity())
                     downtimer[v[2]] = downtimer[v[2]] or os.clock()
                     if controls.Events[v[2]] then controls.Events[v[2]]:fire(key,true) end
                     controls.Functionsdown[v[2]] = controls.Functionsdown[v[2]] or {}
                     controls.Functionsdown[v[2]][key] = true
+                    if itemhand.handleItemInput(v[2],true,controls,localentity()) then
+                        return
+                    end
                     if type(v[2]) == "string" then
                         if controls.func[v[2]] then
                             task.spawn(controls.func[v[2]],key,input)

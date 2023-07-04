@@ -4,7 +4,7 @@ local settings = require(game.ReplicatedStorage.GameSettings)
 local chunksize = settings.ChunkSize
 local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
-local multihandler = require(game.ReplicatedStorage.MultiHandler)
+local bs = require(game.ReplicatedStorage.Libarys.BlockStore)
 Chunk.EdgeIndexs ={
     x = {},["-x"] = {},z = {},["-z"] = {}
 }
@@ -17,7 +17,10 @@ Chunk.__call = function(self)
     return self:GetNTuple()
 end
 local farea = (chunksize.X)*(chunksize.Y)
-Chunk.to1D = function(x,y,z)
+Chunk.to1D = function(x,y,z,toString)
+    if toString then
+        return tostring(x + y * chunksize.X + z *farea+1)
+    end
     return x + y * chunksize.X + z *farea+1
 end
 local ym = chunksize.Y-1
@@ -37,7 +40,7 @@ end
 function  Chunk.new(x,z,data)
     data = data or {}
     local self = setmetatable({},Chunk)
-    self.Blocks = data.Blocks or table.create(chunksize.X^2*chunksize.Y,false)
+    self.Blocks = data.Blocks or table.create(chunksize.X^2*chunksize.Y,bs:get(false))
     self.Chunk =Vector2.new(x,z)
     self.Entities = data.Entities or {}
     self.Setttings = data.Setttings or {}
@@ -50,9 +53,8 @@ function Chunk:AddToLoad(stuff)
     self.Changed = true
     if  self.Setttings.Generated  then
         for i,v in stuff do
-            local t = i:split(',')
-            if tonumber(t[2]) <=0 then continue end  
-            self.Blocks[self.to1D(unpack(t))] = v
+            if tonumber(i) <=0 then continue end  
+            self:AddBlock(i,v)
         end
     else
         for i,v in stuff do
@@ -60,27 +62,13 @@ function Chunk:AddToLoad(stuff)
         end
     end
 end
-function Chunk.tableTo3D(Blocks)
-    local new = {}
-    for i,v in Blocks do
-        local x,y,z = Chunk.to3D(i)
-        new[x..','..y..','..z] = v
-    end
-    return new
-end
-function Chunk.tableTo3DV(Blocks)
-    local new = {}
-    for i,v in Blocks do
-        local x,y,z = Chunk.to3D(i)
-        new[Vector3.new(x,y,z)] = v
-    end
-    return new
-end
+local Vector3 = Vector3.new
+
 function Chunk:to3DBlocks()
     local new = {}
     for i,v in self.Blocks do
         local x,y,z = self.to3D(i)
-        new[Vector3.new(x,y,z)] = v
+        new[Vector3(x,y,z)] = v
     end
     return new
 end
@@ -93,7 +81,15 @@ function Chunk:RemoveBlock(x,y,z)
     self.Changed = true
 end
 function Chunk:InsertBlock(x,y,z,data)
-    self.Blocks[self.to1D(x,y,z)] = data
+    self:AddBlock(self.to1D(x,y,z),data)
+end
+function  Chunk:AddBlock(index,data)
+    if type(data)=="string" or type(data) == "boolean" then
+        data = bs:get(data)
+    end
+    index = tonumber(index)
+    if index >8192 or index <1 then error("OUT OF BOUNDS") end 
+    self.Blocks[index] = data
     self.Changed = true
 end
 function Chunk:GetAllBlocks()
@@ -104,7 +100,7 @@ function Chunk:GetEdge(dir)
     local newtable = {}
     for i,v in toLoop do
         if self.Blocks[v] then
-            newtable[Vector3.new(self.to3D(v))] = self.Blocks[v]
+            newtable[Vector3(self.to3D(v))] = self.Blocks[v]
         end
     end
     return newtable
@@ -120,14 +116,14 @@ function Chunk:CompressVoxels()
         if current == last then
             count +=1
         else
-            table.insert(compressed,{last,count})
-            last = current
+            table.insert(compressed,{last:getKey(),count})
+            last = current 
             total+= count
             count = 1
             
         end
     end
-    table.insert(compressed,{last,count})
+    table.insert(compressed,{last:getKey(),count})
     return compressed
 end
 function Chunk.DeCompressVoxels(data)
@@ -135,7 +131,7 @@ function Chunk.DeCompressVoxels(data)
     local current = 1
     for i,v in data do
         for _ = 1,v[2] do
-            decompressed[current] = v[1]
+            decompressed[tonumber(current)] = bs:get(v[1])
             current +=1
         end
     end

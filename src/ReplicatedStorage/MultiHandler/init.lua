@@ -8,28 +8,32 @@ local libarystosend = {
 	game.ReplicatedStorage.QuickFunctions
 	,not IsClient and game.ServerStorage.GenerationHandler or nil,
 	game.ReplicatedStorage.GameSettings,
-	game.ReplicatedStorage.RenderStuff.Culling,
+	--game.ReplicatedStorage.RenderStuff.Culling,
 	game.ReplicatedStorage.Libarys.compressor, 
 	game.ReplicatedStorage.BehaviorHandler,
 	game.ReplicatedStorage.ResourceHandler,
 	game.ReplicatedStorage.Libarys.Debris,
 	game.ReplicatedStorage.Libarys.MathFunctions,
-	game.ReplicatedStorage.WorkerThreads,
 	script.GlobalMemory,
 	--game.ReplicatedStorage.RenderStuff.Render,
-	game.ReplicatedStorage.CollisonHandler,
+	--game.ReplicatedStorage.CollisonHandler,
 	game.ReplicatedStorage.Chunk,
-	game.ReplicatedStorage.RenderStuff.GreedyMesh
+	--game.ReplicatedStorage.RenderStuff.GreedyMesh
 }
 local libarydata = {}
 local Workers
 local LargeWorkers 
 self.libs = libarydata
+local did = false
+if not did then
+    did = true
+for i,v in libarystosend do  libarydata[v.Name] = require(v) end 
+Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",300,libarystosend,{ResourceHandler = {Blocks = require(game.ReplicatedStorage.ResourceHandler).Blocks}})
+LargeWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"LargeHandler",1,libarystosend)
+task.wait(.1)
+end
 function  self:Init()
-	for i,v in libarystosend do libarydata[v.Name] = require(v) end 
-	 Workers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"Handler",300,libarystosend,{ResourceHandler = {Blocks = require(game.ReplicatedStorage.ResourceHandler).Blocks}})
-	 LargeWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"LargeHandler",1,libarystosend)
-	 return self
+return self
 end
 -- local DWorkers = workersmodule.New(game.ReplicatedStorage.MultiHandler.FunctionsToMultiThread,"DHandler",100,{
 -- 	game.ReplicatedStorage.QuickFunctions,
@@ -80,7 +84,7 @@ function self.GlobalGet(func,data,times)
 	end
 	coroutine.yield()
 	return newdata
-end
+end 
 function self.GetTerrain(cx,cz,times)
 	if IsClient then return end
 	local genhand = require(game.ServerStorage.GenerationHandler)
@@ -93,7 +97,7 @@ function self.GetTerrain(cx,cz,times)
 		task.spawn(function()
 			local cdata = self.DoSmt("GenerateTerrain",v,cx,cz)
 			for e,c in cdata do
-				newdata[e] = c
+				newdata[tonumber(e)] = c
 			end
 			ammountdone +=1
 			if ammountdone == times then

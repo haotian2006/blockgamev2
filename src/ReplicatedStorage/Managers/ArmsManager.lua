@@ -89,10 +89,13 @@ function  self.renderarmitem(dt)
                 return mesh,itemdata
             end
         end
-        local item,id = createitem() or createPlaceHolder()
+        local item,id = createitem()
+        item = item or  createPlaceHolder()
         id = id or {}
         if not id.RenderHand then
             attachment.Parent.LocalTransparencyModifier = 1
+        else
+            attachment.Parent.LocalTransparencyModifier = 0
         end
         for i,v in item.Parent:GetDescendants() do
             if v:IsA("BasePart") then
@@ -102,9 +105,13 @@ function  self.renderarmitem(dt)
                 if self.ViewMode == "First" then v.Transparency = 1 end 
             end
         end
-        if not retracted.Value then
+        local amm =  id.ArmAnimations or {}
+        if  not amm.Idle then
             retracted.Value = true
             aw.C0 = origaw.C0*CFrame.new(1,-1.6,-3) *CFrame.Angles(math.rad(90),0,math.rad(20))
+        elseif amm.Idle then
+            retracted.Value = true
+            aw.C0 = origaw.C0
         end
     else
         attachment:ClearAllChildren()
@@ -132,7 +139,6 @@ function self.Init()
     local armsframe = self.GetArmsframe()
     if entity and entity.Entity and armsframe then
         self.Arms = entityhandler.new({Type = "Speical:Arm"})
-        self.PlayingAnimations = {}
         armsframe.vp:ClearAllChildren()
         local arms = armsframe.vp:FindFirstChild("PlayerArms") or resource.GetEntity('Speical:Arm').Model:Clone()
         local cam = armsframe:FindFirstChild("Camera") or Instance.new('Camera',armsframe)

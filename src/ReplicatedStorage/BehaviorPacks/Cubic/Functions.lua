@@ -1,9 +1,13 @@
 local func = {}
 local ModingMod = require(game.ReplicatedStorage.ModHandler)
-export type InputData = {ItemData : {},Index:number,Item:string,InputData:{},Input:string,IsDown:boolean,Controls:{},ItemHandler:{},Player:Player}
+local MH:ModingMod.AutoFill = ModingMod
+type InputData = ModingMod.InputData
 func.PlaceBlockServer = function(entity,Block,id)
+    do
+        return
+    end
 	local ModingMods:ModingMod.AutoFill = ModingMod
-    local lookvector = entity.headdir and entity.headdir.Unit
+    local lookvector = entity.Headdir and entity.Headdir.Unit
     local behaviorhandler = ModingMods.Behaviors 
     if not lookvector or not  behaviorhandler.GetBlock(Block) or entity:GetState('Dead') then  return end 
     local ResourceHandler = ModingMods.Resources
@@ -34,7 +38,7 @@ func.PlaceBlockServer = function(entity,Block,id)
                 dx = 0
                 dz = direaction.Z / dz
             else
-                dz = 0
+                dz = 0 
                 dx = direaction.X/dx
             end
             if (dx == -1 or dx == 1) and block.RotateY then orientation[2] = dx end
@@ -127,11 +131,36 @@ func.PlaceBlockClient = function(entity,Data:InputData)
             end
         end
         if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z,data)  then 
-            data.InsertBlock(coords.X,coords.Y,coords.Z,item[1]..(orientation and '/O|s%'..orientation or ""))
+            local b= item[1]..(orientation and '/O|s%'..orientation or "")
+            data.InsertBlock(coords.X,coords.Y,coords.Z,b)
             entity:PlayAnimation("Place",true)
             ArmsHandler.PlayAnimation('Attack',true)
+            MH.Remote.GetRemote("BlockPlace"):FireServer(coords,b)
         end
     end
-
+end
+func.SwordAttack = function(entity,Data:InputData)
+    if not entity or entity:GetState('Dead') or entity.Ingui then    return end 
+    local Item = Data.ItemData
+    local lookvector = workspace.CurrentCamera.CFrame.LookVector
+    local Ray = MH.Ray
+    local rayinfo = Ray.newInfo()
+    rayinfo.BreakOnFirstHit = true 
+    rayinfo.BlackList = {tostring(Data.Player.UserId)}
+    rayinfo.Debug = false
+    rayinfo.RaySize = Vector3.new(.025,.025,.025)
+    local raystuff = Ray.Cast(entity.Entity.Eye.Position/3,lookvector*Item.Range,rayinfo)
+    if #raystuff.Objects >= 1 then
+        local newpos = {}
+        for i,v in raystuff.Objects do
+            if  v.Type == "Block" then
+    
+            elseif v.Type == "Entity"  then
+                MH.Remote.GetRemote("Damage"):FireServer(v.EntityId,lookvector)
+            end
+        end
+    end
+    entity:PlayAnimation("Attack",true)
+    MH.Manager.ArmsManager.PlayAnimation('Attack',true)
 end
 return func 

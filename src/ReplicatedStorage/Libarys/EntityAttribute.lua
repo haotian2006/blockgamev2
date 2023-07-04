@@ -1,10 +1,22 @@
 local EntityAttribute = {}
 local qf = require(game.ReplicatedStorage.QuickFunctions)
-
+function EntityAttribute.deepCopy(original)
+    if type(original) ~= "table" then return original end 
+    local copy = {}
+    for k, v in pairs(original) do
+      if type(v) == "table" then
+        v = qf.deepCopy(v)
+      end
+      copy[k] = v
+    end
+    return copy
+  end
+EntityAttribute.__type = "EntityAttribute"
 EntityAttribute.__index = function(self,key)
     return   self.Data[key] or getmetatable(self)[key]
 end
 EntityAttribute.__newindex = function(self,key,value)
+    rawset(self,"__Update",true)
     self.Data[key] = value
     if self.Event then
         self.Event:fire(key,value)
@@ -30,7 +42,10 @@ function EntityAttribute.new(name:string,data:{},M:nil|table)
             k[i] = v
         end
     end
-    return setmetatable({Data = type(data) == 'table' and EntityAttribute.Desterilize(data) or {},Component = true,Name = name,Type = "EntityAttribute"},k)
+    return setmetatable({Data = type(data) == 'table' and EntityAttribute.Desterilize(data) or {},Component = true,Name = name,__type = "EntityAttribute",__Update = false},k)
+end
+function EntityAttribute:UP()
+    self.__Update = true
 end
 function EntityAttribute.create(data:table)
     data.Event = nil
@@ -54,16 +69,22 @@ function EntityAttribute.Desterilize(data):EntityAttribute
     return new
 end
 function EntityAttribute:SetComponent(c)
+    self:UP()
     self.Component = c
 end
 function EntityAttribute:Copy()
-    return qf.deepCopy(self)
+    return self:deepCopy()
 end
 function EntityAttribute:Clone()
-    return setmetatable(qf.deepCopy(self),EntityAttribute)
+    return setmetatable(self:deepCopy(),EntityAttribute)
 end
 function EntityAttribute:GetName()
     return self.Name
+end
+function  EntityAttribute:GetUpdated()
+    if self.__Update then
+        return self:Sterilize()
+    end
 end
 function EntityAttribute:GetChangedEvent()
     self.Event = self.Event or require(game.ReplicatedStorage.Libarys.Signal).new()
@@ -82,10 +103,14 @@ end
 function EntityAttribute:GetData()
     return self.Data
 end
+function EntityAttribute:ClearUpdated()
+   self.__Update = false
+end
 function EntityAttribute:Destroy()
     if self.Event then
         self.Event:DisconnectAll()
     end
+    table.clear(self)
     setmetatable(self,nil)
 end
 return EntityAttribute

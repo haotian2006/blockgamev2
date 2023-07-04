@@ -2,7 +2,7 @@ local types = {}
 local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local crt = behhandler.CreateComponent
 local ModingMods = require(game.ReplicatedStorage.ModHandler)
-local Types = require(game.ReplicatedStorage.ModHandler.Types)
+local Types = ModingMods
 type InputData = Types.InputData
 --{BlockData = bdata,Index = i,Item = v[1],InputData = data,Input = input,IsDown = isdown,Controls = controls,ItemHandler = itemhand,Player = Player or game.Players.LocalPlayer}
 --[[
@@ -19,11 +19,6 @@ types.Block = {
     maxCount = 64,
     functions = {
        
-    },
-    Animations = {
-        Idle = nil,
-        Walk = nil,
-        Crouch = nil,
     },
     CanCrouch = nil,
     OnInput = {
@@ -45,22 +40,14 @@ types.Sword = {
     functions = {
        
     },
-    Animations = {
-        Idle = nil,
-        Walk = nil,
-        Crouch = nil,
-    },
     CanCrouch = nil,
+    Range = 5.1,
     Damage = 0,
-    KnockBackForce = Vector3.zero,
+    KnockBackForce = Vector3.one,
     OnInput = {
-        Interact = crt({
-            Attack ={
-                Client = "PlaceBlockClient",
-                Server = function(entity,data:InputData)
-                    local func = behhandler.Getfunction("PlaceBlockServer")
-                    if func then func(entity,ModingMods.ItemHandler.GetItemName(data.Item)) end
-                end
+        Attack = crt({
+            Trigger ={
+                Client = "SwordAttack",
             }
         },
         'Inputs'

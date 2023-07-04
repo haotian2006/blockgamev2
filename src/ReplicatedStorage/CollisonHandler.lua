@@ -43,7 +43,7 @@ function  collisions.GetBlocksInBounds(loc,size,Setting)
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z,true)
                 if whitelist and whitelist[coords] then continue end
-                if block then
+                if block and block:getKey() then
                     whitelist[coords] = true
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
                     local bx,by,bz = unpack(coords:split(","))
@@ -89,7 +89,7 @@ function  collisions.IsGrounded(entity,CheckForBlockAboveInstead)
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z,true)
                 if whitelist and whitelist[coords] then continue end
-                if block then
+                if block and block:getKey() then
                     whitelist[coords] = true
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
                     local bx,by,bz = unpack(coords:split(","))
@@ -108,7 +108,7 @@ function  collisions.IsGrounded(entity,CheckForBlockAboveInstead)
                 end
 
             end 
-        end 
+        end  
     end 
     return false
 end
@@ -213,7 +213,7 @@ function collisions.AABBvsTerrain(position,hitbox,CanCollideMatters)
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z,true)
                 if whitelist and whitelist[coords] then continue end
-                if block and block ~= "Null" then
+                if block and block:getKey() ~= "NULL" and block:getKey()  then
                     whitelist[coords] = true
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
                     local bx,by,bz = unpack(coords:split(","))
@@ -326,33 +326,30 @@ end
 function collisions.GetBlockHitBox(data)
     local hitboxinfo = {}
     local cancollide = true
-    if debris:GetItemData(data) then
-        hitboxinfo = debris:GetItemData(data)
-        cancollide = hitboxinfo.CanCollide
-    else
-        local data = qf.DecompressItemData(data,{"T","O","I"})
-        local Type,Ori = data.T,data.O
-        Type = Type or nil
-        local bdata = behavior.GetBCFD(Type,data.S)
-        local hb = behavior.GetBlockHb(bdata.Hitbox)
-        if hb then
-            if type(hb) == "table" then
-                hitboxinfo = hb
-            else
-                hitboxinfo = {{Size = hb}}
-            end
+    --print(data)
+    data = data:getData()
+    local Type,Ori = data.T,data.O
+    Type = Type or nil
+
+    local bdata = behavior.GetBCFD(Type,data.S)
+    local hb = behavior.GetBlockHb(bdata.Hitbox)
+    if hb then
+        if type(hb) == "table" then
+            hitboxinfo = hb
+        else
+            hitboxinfo = {{Size = hb}}
         end
-        if Ori then
-            hitboxinfo = collisions.RotateHitBoxs(Ori,hitboxinfo)
-        end
-        hitboxinfo['CanCollide'] = bdata.CanCollide 
-        cancollide = bdata.CanCollide 
     end
-    debris:AddItem(data,hitboxinfo,60)
+    if Ori then
+        hitboxinfo = collisions.RotateHitBoxs(Ori,hitboxinfo)
+    end
+    hitboxinfo['CanCollide'] = bdata.CanCollide 
+    cancollide = bdata.CanCollide 
+
     return hitboxinfo,cancollide
 end
 function collisions.GenerateHitboxes(data,position)
-    if data == 'Null' then
+    if data:getKey() == 'NULL' then
         return {{Vector3.one,position}},true
     end
     local hb = collisions.GetBlockHitBox(data)
@@ -380,6 +377,7 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
     local allnormal = {X =0,Y=0,Z=0}
     local bba
     local a,d= false
+    local jumpa 
     local bbaaa
     for i =1,3,1 do
     velocity = vector3(
@@ -388,7 +386,11 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
         velocity.Z * (1-math.abs(normal.Z))*remainingtime
         )
         local bb
-        MinTime,normal,bb,velocity,a,d = collisions.entityvsterrainloop(entity,position,velocity,{},IsRay,oldv)
+        local jump
+        MinTime,normal,bb,velocity,a,d,jump = collisions.entityvsterrainloop(entity,position,velocity,{},IsRay,oldv)
+        if jump then
+            jumpa = true
+        end
         bbaaa = bb or bbaaa
         if a then position = a end 
         if bb and IsRay then
@@ -440,41 +442,26 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
     if RunService:IsClient() then
         --print(bbaaa)
     end
-    if  entity.NotSaved then 
+    if  entity.NotSaved and jumpa ==false then 
         if entity.NotSaved.NOGRAVITY then
             position += vector3(0,.01,0)
             entity.NotSaved.NoFall = true
-            -- local p = Instance.new("Part",workspace)
-            -- p.Color = Color3.new(0.549019, 0, 1)
-            -- p.Size = Vector3.new(3,.1,3)
-            -- game:GetService("Debris"):AddItem(p,5)
-            -- p.Anchored = true
-            -- p.Position = (position- vector3(0,entity.Hitbox.y/2)) *3
-            -- print( "real",(position- vector3(0,entity.Hitbox.y/2)).y)
-
             entity:Gravity(.1)
-            -- task.spawn(function()
-            --     while loop do
-            --         print( "While",(entity.Position- vector3(0,entity.Hitbox.y/2)).y,entity.Data.Grounded )
-            --         task.wait()
-            --         entity.Data.Grounded = true
-            --     end
-            -- end)
             task.delay(0,function()
                 task.wait()
                 entity.NotSaved.NoFall = false
                 entity.NotSaved.NOGRAVITY = false
-            --     task.wait()
-            --    if rn ~= entity.Position then
-            --         entity.Position = rn
-            --    end
             end)
         end
+    elseif jumpa then
+        entity.NotSaved.NoFall = false
+        entity.NotSaved.NOGRAVITY = false
     end
-    return  position,allnormal,bba
+    return  position,allnormal,bba,jumpa
 end
 local a = false
 function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop,old)
+    local j = false
     local hitbox = entity.Hitbox
     local min = vector3(
         position.X-hitbox.X/2+(velocity.X <0 and velocity.X or 0)   ,
@@ -502,7 +489,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z)
                 if whitelist and whitelist[coords] then continue end
-                if block then
+                if block and block:getKey()  then
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
                     local bx,by,bz = unpack(coords:split(","))
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
@@ -574,10 +561,10 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                                 if m2 <1 then
                                     position = before
                                     velocity = bfv
-                                    return  m2,n2,z2,velocity,position
+                                    return  m2,n2,z2,velocity,position,nil,false
                                 else
                                    -- print(needed)
-                                    return m2,n2,z2 ,velocity,position,1
+                                    return m2,n2,z2 ,velocity,position,1,false
                                 end
                               end
                            elseif typejump == "Full" and (entity["AutoJump"]or false)   then
@@ -587,9 +574,9 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                                 if looop then
                                     return .1
                                 end
+                                j = true
                                -- print(z2,zack)
                                else
-                                entity:Jump()
                                end
                            end
 
@@ -598,7 +585,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
             end 
         end 
     end 
-    return mintime,normal,zack,velocity
+    return mintime,normal,zack,velocity,nil,nil,j
 end
 --b1:entitypos b2:blockpos s1:entitysize s2:blocksize o1:entity orientation o2:block orientation 
 

@@ -74,19 +74,19 @@ function stuff.GenerateWorms(M,cx,cz)
 	return  functions(M,"CreateWorms",cx,cz)
 
 end
-
 function stuff.GenerateTerrain(M,data,cx,cz)
     local functions = M.GenerationHandler.runfunctionfrommuti
     local newdata = {}
 	local index = 0
     for i,v in data do
 		local x,z = unpack(i:split(','))
+		x,z = tonumber(x),tonumber(z)
 		local isblock = false
-		for y = 60,0,-1 do
+		for y = M.GameSettings.ChunkSize.Y-1,0,-1 do
 			local v = M.QuickFunctions.convertchgridtoreal(cx,cz,x,y,z,true)
 			index+=1
 			local isair = (not functions(M,"IsAir",v.X,v.Y,v.Z)) and true
-			newdata[x..','..y..','..z] =  isblock or isair or nil
+			newdata[M.Chunk.to1D(x,y,z,1)] =  isblock or isair or false
 			isblock = isblock or isair
 		end
 		--v = M.QuickFunctions.cv3type("vector3",i) 'T|s%C:Dirt'

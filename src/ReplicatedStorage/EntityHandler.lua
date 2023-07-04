@@ -13,6 +13,7 @@ local movers = require(game.ReplicatedStorage.EntityMovers)
 local gs = require(game.ReplicatedStorage.GameSettings)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local anihandler = require(game.ReplicatedStorage.AnimationController)
+local settings = require(game.ReplicatedStorage.GameSettings)
 local ItemHandler = require(game.ReplicatedStorage.ItemHandler)
 local changeproperty = bridge.CreateBridge("ChangeEntityProperty")
 local playani = bridge.CreateBridge("PlayAnimation")
@@ -20,6 +21,7 @@ local isClient = RunService:IsClient()
 local EntityAttribute = require(game.ReplicatedStorage.Libarys.EntityAttribute)
 local ts = game:GetService("TweenService")
 local Ray = require(game.ReplicatedStorage.Ray)
+local proxy = require(game.ReplicatedStorage.Libarys.ProxyTable)
 entity.Position = Vector3.new()
 local function interpolate(startVector3, finishVector3, alpha)
     local function currentState(start, finish, alpha)
@@ -33,15 +35,30 @@ local function interpolate(startVector3, finishVector3, alpha)
     )
 end
 entity.__index = function(self,key)
+    if rawget(self,"__P") and rawget(self,"__P")[key] then
+        return self.__P[key]
+    end
     local data,path = entity.IndexFromComponets(self,key)
     if data then
         return data,path
     end
     return entity[key]
 end
+entity.__newindex= function(self,key,v)
+    if self.__P[key] ~= v then
+        rawget(self,"__Update")[key] = true
+   end
+    self.__P[key] = v
+end
+entity.__iter = function(self)
+    return next,self.__P
+end
+function entity:rawGet(key)
+    return rawget(self,"__P") and rawget(self,"__P")[key]
+end
 function entity:IndexFromComponets(key:any,ignore:{}|nil) : (any,boolean|string)
-    local comp = rawget(self,'Componets')
-    if key == "Type" then return rawget(self,"Type") end 
+    local comp = entity.rawGet(self,"Componets")
+    if key == "Type" then return entity.rawGet(self,"Type") end 
     local entitybeh = behhandler.GetEntity(self.Type)
     if type(comp) == "table" and entitybeh and entitybeh.component_groups  then
         for i,v in comp do
@@ -100,20 +117,43 @@ entity.SpecialNames = {
 entity.NotClearedNames = {
     --Move = true
 }
-function entity.new(data)
+function entity.new(data) 
     local self = data or {}
-    setmetatable(self,entity)
+    local real = {}
+    real.__P = self
+    real.__Update = {}
+    setmetatable(real,entity)
     self.Id = data.Id and tostring(data.Id) or genuuid()
     self.Position = data.Position or Vector3.new()
     self.Type = data.Type or warn("Failed To Create Entity | No Entity Type Giving for:",self.Id) 
+    if not data then return end 
     if not data.Type then self:Destroy() return end 
-    self.Velocity = self.Velocity or {}
-    self.Data = data.Data or {}
-    self.NotSaved = {}
-    self.PlayingAnimations = data.PlayingAnimations or {}
+    self.Velocity = proxy.new(self.Velocity or {})
+    self.Data = proxy.new(self.Data or {},true)
+    self.NotSaved = proxy.new({},true)
+    self.Componets = proxy.new(self.Componets or {})
+    self.PlayingAnimations = proxy.new(self.PlayingAnimations or {})
     self.NotSaved["behaviors"] =  {}
     self.NotSaved.NoClear = {}
-    return self
+    self.Container = proxy.new(self.Container or {},true)
+    real.__Last ={}
+    return real
+end
+function entity:ClearUpdated()
+    table.clear(self.__Update)
+    for i,v in self.__P do
+        if type(v) == "table" and v.ClearUpdated  then 
+            v:ClearUpdated()
+        end
+        
+    end
+end
+function entity:IsUpdated(key)
+    if type(self[key]) == "table" then
+        return self[key].__Update
+    else
+        return self.__Update[key]
+    end
 end
 function entity:UpdateChunk() -- adds it self to a chunk or remove from one
     local cx,cz = qf.GetChunkfromReal(self.Position.X,self.Position.Y,self.Position.Z,true)
@@ -124,7 +164,7 @@ function entity:UpdateChunk() -- adds it self to a chunk or remove from one
     if chunk then
         chunk.Entities[self.Id] = self
     end
-    self.Chunk = Vector2.new(cx,cz)
+    self.Chunk = Vector2int16.new(cx,cz)
 end
 function entity:UpdateIdleAni()-- plays idle ani
     local entitydata = resourcehandler.GetEntity(self.Type)
@@ -144,7 +184,7 @@ function entity:UpdateIdleAni()-- plays idle ani
     end
 end
 function entity:GetServerChanges()
-    local ServerOnlyChanges = {Position = true,headdir = true,bodydir = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,ViewMode = true,Ingui = true,CurrentStates = true}
+    local ServerOnlyChanges = {Position = true,Headdir = true,Bodydir = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,ViewMode = true,Ingui = true,CurrentStates = true}
     for i,v in self.AllowedClientChanges or {} do
         ServerOnlyChanges[i] = v
     end
@@ -158,33 +198,39 @@ function entity:UpdateEntity(newdata)
     local checked = {}
     if newdata.Container then
         for i,v in newdata.Container do
-            if type(newdata[i]) == "table" and newdata[i].Type == 'EntityAttribute' then
-                if self.Container[i] then
-                    self.Container[i]( v.Data)
-                else
-                    self.Container[i] = EntityAttribute.create( v)
+            if type(newdata[i]) == "table" then
+                if newdata[i].__type == 'EntityAttribute'then
+                    if self.Container[i] then
+                        self.Container[i]( v.Data)
+                    else
+                        self.Container[i] = EntityAttribute.create( v)
+                    end
                 end
             else
                 self.Container[i] = newdata[i] 
             end
         end
     end
-    -- for i,v in self do
-    --     checked[i] = true
-    --     if i == 'Container' then continue end 
-    --     if table.find(clientdata,i) then continue end 
-    --     if type(newdata[i]) == "table" and newdata[i].Type == 'EntityAttribute' then
-    --         self[i](newdata[i].Data)
-    --     else
-    --         self[i] = newdata[i] 
-    --     end
-    -- end
     for i,v in newdata do
         if checked[i] then continue end 
-        if type(v) == "table" and v.Type == 'EntityAttribute' then
-            self[i] = EntityAttribute.create(v)
+        if type(v) == "table"  then
+            if v.__type == 'EntityAttribute' then
+                self[i] = EntityAttribute.create(v)
+            else
+                if not self[i] then
+                    self[i] = v
+                    continue
+                end
+                for i2,v in v do
+                    if v == "__NULL__" then
+                        self[i][i2] = nil
+                    else
+                        self[i][i2] = v
+                    end
+                end
+            end
         else
-            self[i] = v 
+            self[i] = v ~= "__NULL__" and v or nil
         end
     end
 end
@@ -198,7 +244,7 @@ function entity:UpdateEntityClient(newdata)
   --  print(newdata.HoldingItem and newdata.HoldingItem[1])
     if newdata.Container then
         for i,v in newdata.Container do
-            if type(v) == "table" and v.Type == 'EntityAttribute' then
+            if type(v) == "table" and v.__type == 'EntityAttribute' then
                 if self.Container[i] then
                     self.Container[i](v.Data)
                 else
@@ -212,14 +258,28 @@ function entity:UpdateEntityClient(newdata)
     for i,v in newdata do
         if i == 'Container' then continue end 
         if table.find(entity.KeepSame,i) then continue end 
-        if type(v) == "table" and v.Type == 'EntityAttribute' then
-            if self[i] and self[i].EntityAttributes then
-                self[i](v.Data)
+        if type(v) == "table" then
+            if v.__type == 'EntityAttribute'  then
+                if self[i] and self[i].EntityAttributes then
+                    self[i](v.Data)
+                else
+                    self[i] = EntityAttribute.create(v)
+                end
             else
-                self[i] = EntityAttribute.create(v)
+                if not self[i] then
+                    self[i] = v
+                    continue
+                end
+                for i2,v in v do
+                    if v == "__NULL__" then
+                        self[i][i2] = nil
+                    else
+                        self[i][i2] = v
+                    end
+                end
             end
         else
-            self[i] = v
+            self[i] = v ~= "__NULL__" and v or nil
         end
     end
 end
@@ -331,6 +391,7 @@ function entity:UpdateModelPosition()-- Updates the Eye positions etc
     eyeweld.C0 = offset and CFrame.new( Vector3.new(0,offset/2,0)*3) or CFrame.new()
 end
 function entity:UpdatePosition(dt)
+    local JUMP
     local velocity = self:GetVelocity()
     self.NotSaved.ClearVelocity = true
     if RunService:IsServer() then
@@ -347,7 +408,8 @@ function entity:UpdatePosition(dt)
         -- end
         local e = velocity
         velocity = (p2-self.Position)
-        local newp = CollisionHandler.entityvsterrain(self,velocity)
+        local newp,_,_
+        newp,_,_,JUMP = CollisionHandler.entityvsterrain(self,velocity)
         local newp2 = newp
         local velocity2 = (newp-self.Position)
         local dir = newp - self.Position
@@ -498,7 +560,9 @@ function entity:UpdatePosition(dt)
         self.NotSaved["ExtraJump"] = DateTime.now().UnixTimestampMillis/1000
     end
     self.NotSaved.LastG = self.Data.Grounded
-
+    if JUMP then
+        self:Jump()
+    end
 end
 function entity:GetVelocity():Vector3
     local x,y,z = 0,0,0
@@ -534,6 +598,9 @@ function entity:GetQf()-- returns quick functions module
 end
 function entity:GetData()
     return datahandler
+end
+function entity:GetSelf()
+    return entity
 end
 function entity:CanCrouch(): boolean
     local itm = ItemHandler.GetItemData(type(self.HoldingItem)=="table" and self.HoldingItem[1] or "") 
@@ -632,10 +699,10 @@ function entity:SetNetworkOwner(player:Player)
     self.ClientControl = player and tostring(player.UserId) or nil
 end
 function entity:SetBodyRotationDir(dir)
-    self.bodydir = dir
+    self.Bodydir = dir
 end
 function entity:SetHeadRotationDir(dir)
-    self.headdir =  dir
+    self.Headdir =  dir
 end
 local lp = Instance.new("Part")
 lp.Size = Vector3.one
@@ -666,19 +733,19 @@ function entity:UpdateRotationClient()
     local mainneck = Model:FindFirstChild("Neck",true)
     local neckjoints = {}
     if not mainjoint or not mainneck or not neck["Neck"]  then return end
-    self.BodyLookingPoint = self.bodydir and self.Position + self.bodydir or self.BodyLookingPoint 
-    self.HeadLookingPoint = self.headdir and self.Position + self.headdir or self.HeadLookingPoint 
-    local lap = (self.HeadLookingPoint or self.Position+mainjoint.C0.LookVector)*gs.GridSize
-    local bdp = (self.BodyLookingPoint or self.Position+mainjoint.C0.LookVector)*gs.GridSize
-    local bodydir = (bdp-self.Position*gs.GridSize).Unit
-    bodydir = Vector3.new(bodydir.X,0,bodydir.Z)*2
-    bodydir = (bodydir == bodydir and bodydir.Magnitude ~= 0) and bodydir or mainjoint.C0.LookVector
+    local BodyLookingPoint = self.Bodydir and self.Position + self.Bodydir or Vector3.zero
+    local HeadLookingPoint = self.Headdir and self.Position + self.Headdir or Vector3.zero
+    local lap = (HeadLookingPoint or self.Position+mainjoint.C0.LookVector)*gs.GridSize
+    local bdp = (BodyLookingPoint or self.Position+mainjoint.C0.LookVector)*gs.GridSize
+    local Bodydir = (bdp-self.Position*gs.GridSize).Unit
+    Bodydir = Vector3.new(Bodydir.X,0,Bodydir.Z)*2
+    Bodydir = (Bodydir == Bodydir and Bodydir.Magnitude ~= 0) and Bodydir or mainjoint.C0.LookVector
     local lookAtdir = (lap -Model.Eye.Position).Unit
     lookAtdir = (lookAtdir == lookAtdir and lookAtdir.Magnitude ~= 0) and lookAtdir or mainneck.C0.LookVector
     if self.Name == "Npc1" then
-        lp.Position = mainjoint.Part0.Position+bodydir*4
+        lp.Position = mainjoint.Part0.Position+Bodydir*4
     end
-    local _, ay,_ = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+Vector3.new(bodydir.X,0,bodydir.Z))):ToOrientation()
+    local _, ay,_ = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+Vector3.new(Bodydir.X,0,Bodydir.Z))):ToOrientation()
     local hx,hy,hz = (CFrame.new(mainneck.C0.Position,mainneck.C0.Position +Vector3.new(lookAtdir.X,0,lookAtdir.Z))):ToOrientation()
     local agl = (maths.NegativeToPos(math.deg(hy))-maths.NegativeToPos(math.deg(ay)))+360
     agl %= 360
@@ -704,13 +771,13 @@ function entity:UpdateRotationClient()
        else
         tuse = -10
        end
-       local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)):ToOrientation()
+       local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+Bodydir)):ToOrientation()
        local bcf = CFrame.fromOrientation(mx,my,mz)
          cf = CFrame.new(mainjoint.C0.Position)*bcf*CFrame.fromOrientation(0,math.rad(tuse),0)
          mainjoint.C0 = cf
     else
-        if flagA then bodydir = -bodydir end 
-        local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+bodydir)):ToOrientation()
+        if flagA then Bodydir = -Bodydir end 
+        local mx, my, mz = maths.worldCFrameToC0ObjectSpace(mainjoint,CFrame.new(mainjoint.C0.Position,mainjoint.C0.Position+Bodydir)):ToOrientation()
          cf = CFrame.new(mainjoint.C0.Position)*CFrame.fromOrientation(mx,my,mz)
         mainjoint.C0 = cf
     end
@@ -733,10 +800,10 @@ function entity:UpdateRotationClient()
     end
 end
 function entity:TurnTo(Position,timetotake)
-    local current = self.bodydir
+    local current = self.Bodydir
     timetotake = timetotake or 0
     if not current or true then 
-    self.BodyLookingPoint = Position
+    self:SetBodyRotationDir((Position-self.Position))
     task.wait(.1)
     if self.BodyLookingPoint ~= Position then return end 
     self.BodyLookingPoint = nil
@@ -758,7 +825,7 @@ function entity:TurnTo(Position,timetotake)
         local hb
         local thread =coroutine.running()
         local newp = maths.GetXYfromangle(t3angle,rad,body)
-        self.bodydir = (Vector3.new(newp.X,current.Y,newp.Y)-self.Position).Unit
+        self.Bodydir = (Vector3.new(newp.X,current.Y,newp.Y)-self.Position).Unit
        -- print(Vector3.new(newp.X,current.Y,newp.Z),"aaa")
         -- hb = RunService.Heartbeat:Connect(function(deltaTime)
         --     ctime += deltaTime
@@ -773,7 +840,7 @@ function entity:TurnTo(Position,timetotake)
 end
 function entity:LookAt(Position,timetotake)
     timetotake = timetotake or 0
-    self.HeadLookingPoint = Position
+    self:SetHeadRotationDir((Position-self:GetEyePosition()))
 end
 function entity:KnockBack(force,time)
     self.NotSaved.Tick = 0
@@ -866,7 +933,8 @@ function entity:Gravity(dt)
         entity.Data.LastFallTicks = math.floor(entity.Data.FallTicks)
     end
     if entity.Data.Grounded  or entity.NotSaved.NoFall or  entity.NotSaved.Jumping or (CollisionHandler.IsGrounded(self,true) and fallrate >0)  then -- or not entity.CanFall
-        self:SetBodyVelocity("Gravity",Vector3.zero )
+   
+    self:SetBodyVelocity("Gravity",Vector3.zero )
         entity.Data.IsFalling = false
         entity.Data.FallTicks = 0
         entity.Data.LastFallTicks = 0
@@ -916,7 +984,7 @@ function entity:Gravity(dt)
     end
 end
 ]]
-function entity:Jump()
+function entity:Jump(override)
     if  self.NotSaved.Jumping or self["CanNotJump"] or CollisionHandler.IsGrounded(self,true)  then return end
     local datacondition = DateTime.now().UnixTimestampMillis/1000-(self.NotSaved["ExtraJump"] or 0) <=0.08
     if not self.Data.Grounded and not datacondition  then return end 
@@ -931,6 +999,8 @@ function entity:Jump()
     self:SetBodyVelocity("Gravity",Vector3.new(0,velocity*20,0) )
     self.Data.Gravity = velocity
     self.Data.Grounded = false
+
+    
     if true then return end 
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
         tickspast += deltaTime*20
@@ -996,7 +1066,7 @@ function entity:OnHarmed(dmg)
         end
         if not self:GetState('Dead') and self.Health > 0 then 
             task.delay(.35,function()
-                if not self:GetState('Dead') and self.Health > 0 then 
+                if not self:GetState('Dead') and self.Health > 0 and dmg >=1 then 
                     model.Parent = workspace.Entities
                 else
                     self:OnDeath()
@@ -1021,7 +1091,7 @@ function entity:GetStateData(state,target)
     return self.CurrentStatesInfo[state]
 end
 function entity:OnDeath()
-    if not isClient then return end 
+    if not isClient or self.Health >0 then return end 
     self:SetState('Dead',true) 
     local model = self.Entity
     if not model then return end 
@@ -1045,9 +1115,98 @@ function entity:OnDeath()
         task.wait(deathani.Length * 0.99)
         deathani:AdjustSpeed(0)
     end
-    self.PlayingAnimations = {}
+    self.PlayingAnimations:Clear()
     anihandler.UpdateEntity(self)
 end
+
+
+local size1000 = settings.ChunkSize.X*1000
+local X_BITS = 0b0000_0000_1111_1111
+local Z_BITS = 0b1111_1111_0000_0000
+local function combine(x,y)
+    return bit32.band(x, X_BITS)+ bit32.band(bit32.lshift(y, 8), Z_BITS)
+end
+local function decombine(i)
+    return bit32.extract(i, 0, 8),bit32.extract(i, 8, 8)
+end
+local function getENCODEDlv(d)
+    local mag = d.Magnitude
+    local unit = d.Unit
+    local x,y,z = unit.X,unit.Y,unit.Z
+    x = math.floor(x*255+0.5)
+    y = math.floor(y*255+0.5)
+    z = math.floor(z*255+0.5)
+    local s1 = combine(x,y)
+    local s2 = combine(z,math.clamp(mag,-255,255))
+    return Vector2int16.new(s1,s2)
+end
+local function getDECODEDlv(d)
+    local x,y = decombine(d.X)
+    local z,m = decombine(d.Y)
+    return Vector3.new(x,y,z)/255*m
+end
+function entity:ENCODE(Changed) 
+    local posvector
+    local chunkvector 
+    local hdlv 
+    local bdlv 
+    local c = false
+    if Changed.Chunk then
+        c = true
+        chunkvector = Vector2int16.new(self.Chunk.X,self.Chunk.Y)
+        Changed.Chunk = nil
+    end
+    if Changed.Position then
+        c = true
+        local p = Changed.Position
+        local cx,cz,lx,ly,lz = qf.GetChunkAndLocal(p.X,p.Y,p.Z)
+        local c= Vector2int16(cx,cz)
+        lx= math.floor(lx*36+0.5)
+        ly = math.floor(math.clamp(ly,-1820,1820)*36+0.5)
+        lz= math.floor(lz*36+0.5)
+        posvector = Vector2int16.new(combine(lx,lz),ly)
+        if self.Chunk ~= c then
+            chunkvector = c
+            Changed.Chunk = nil
+        end
+        Changed.Position = nil
+    end
+    if Changed.Headdir then
+        c = true
+        hdlv = getENCODEDlv(Changed.Headdir)
+        Changed.Headdir = nil
+    end
+    if Changed.Bodydir then
+        c = true
+        bdlv = getENCODEDlv(Changed.Bodydir)
+        Changed.Bodydir = nil
+    end
+    return c,{posvector or false,chunkvector or false,hdlv or false,bdlv or false}
+end
+function entity:DECODE(data)
+    local new = {}
+    local posvector
+    local chunkvector 
+    local hdlv 
+    local bdlv 
+    if data[2] then
+        chunkvector = data[2]
+    end
+    if data[1] then
+        local ly,lx,lz= data[1].Y,decombine(data[1].X)
+        local Lposvector = Vector3.new(lx,ly,lz)/36
+        local chunk = chunkvector or self.Chunk
+        posvector = qf.convertchgridtoreal(chunk.X,chunk.Y,Lposvector.X,Lposvector.Y,Lposvector.Z,true)
+    end
+    if data[3] then
+        hdlv = getDECODEDlv(data[3])
+    end
+    if data[4] then
+        bdlv = getDECODEDlv(data[4])
+    end
+    return {Position = posvector,Chunk = chunkvector,Headir = hdlv, Bodydir = bdlv}
+end
+
 function entity:Destroy()
     datahandler.RemoveEntity(self.Id)
     if self.Entity then
@@ -1064,6 +1223,6 @@ function entity:Destroy()
     self:RemoveFromChunk()
     self:SetState("Dead",true) 
     self.Destroyed = true
-    setmetatable(self,nil) self = nil
 end
+
 return entity

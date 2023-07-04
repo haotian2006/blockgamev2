@@ -102,7 +102,7 @@ function c.OnCloseGui(player,index,amt)
         elseif continerobj[index] ~= '' then
             for i,v in plr.Container or {} do
               --  print(i)
-                if type(v) == "table" and v.Type == "EntityAttribute" then
+                if type(v) == "table" and v.__type == "EntityAttribute" then
                   --  print(i)
                     for z,y in v do
                         if z ~= "Output" then

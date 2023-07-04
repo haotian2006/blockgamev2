@@ -18,6 +18,7 @@ local bridge = require(game.ReplicatedStorage.BridgeNet)
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local GetChunk = bridge.CreateBridge("GetChunk")
 local isserver = runservice:IsServer()
+local bS = require(game.ReplicatedStorage.Libarys.BlockStore)
 function self.AddEntity(uuid:string,address:table)
     self.AmmountOfEntities += 1
     if type(uuid) == "table" then
@@ -132,9 +133,14 @@ function self.GetBlock(x,y,z)
     local localgrid = Vector3.new(round(x)%settings.ChunkSize.X,round(y),round(z)%settings.ChunkSize.X)
     localgrid = Vector3.new((localgrid.X),(localgrid.Y),(localgrid.Z))
     if chunk and (not isserver or chunk.Setttings["Generated"]) then
-       return chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z),localgrid.X..','..localgrid.Y..','..localgrid.Z
+        if localgrid.Y >= settings.ChunkSize.Y then
+            return false,localgrid.X..','..localgrid.Y..','..localgrid.Z
+        end
+        local b = chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z)
+        if b and not b:getKey() then b = false  end 
+       return b,localgrid.X..','..localgrid.Y..','..localgrid.Z
     else
-       return "Null",localgrid.X..','..localgrid.Y..','..localgrid.Z
+       return bS:get("NULL"),localgrid.X..','..localgrid.Y..','..localgrid.Z
     end
 end
 

@@ -17,7 +17,8 @@ recipes.Test = {
 
 
 }
-recipes.Test2 = {
+
+recipes.KBStick = {
     type = "Crafting",
     key = {
         d = {
@@ -29,8 +30,25 @@ recipes.Test2 = {
         "d"
     },
     result = {
-        Item = 'C:Grass',
-        Count = 3
+        Item = 'C:GodStick',
+        Count = 1
+    }
+
+}
+recipes.LongStick = {
+    type = "Crafting",
+    key = {
+        d = {
+            Item ='C:Stone',
+            }
+    },
+    shape = {
+        "d",
+        "d"
+    },
+    result = {
+        Item = 'C:LongStick',
+        Count = 1
     }
 
 }

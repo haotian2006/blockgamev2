@@ -38,6 +38,7 @@ function itemhand.handleItemInput(input,isdown,controls,entity,Player)
     local plr = entity 
     if not plr or plr:GetState('Dead') or not plr.inventory  then return end 
     local inv = plr.inventory
+    local ovri =false
     for i,v in inv.Data do
         if v == '' then continue end 
         local inputs,bdata = itemhand.GetInputs(v[1])
@@ -45,9 +46,13 @@ function itemhand.handleItemInput(input,isdown,controls,entity,Player)
         for inputname,data in inputs do
             local conditions,i = itemhand.CheckConditions(plr,i,input,inputname,data,controls)
             if not conditions or not isdown then continue end 
-            itemhand.trigger(plr,{ItemData = bdata,Index = i,Item = v[1],InputData = data,Input = input,IsDown = isdown,Controls = controls,ItemHandler = itemhand,Player = Player or game.Players.LocalPlayer})
+            task.spawn(function()
+                itemhand.trigger(plr,{ItemData = bdata,Index = i,Item = v[1],InputData = data,Input = input,IsDown = isdown,Controls = controls,ItemHandler = itemhand,Player = Player or game.Players.LocalPlayer})
+            end)
+            ovri = true
         end
     end 
+    return ovri
 end 
 function itemhand.CheckConditions(self,currentslot,input,triggername,data,controls)
     local conditions = {

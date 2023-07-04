@@ -26,7 +26,7 @@ local entity = {
             priority = 20,
             MaxRange = 10,
         },
-        --  ['behavior.GoToPlayer'] = {MaxRange = 20,priority = 2,interval = 1,},
+         ['behavior.GoToPlayer'] = {MaxRange = 20,priority = 2,interval = 1,},
         --  ['behavior.AttackPlayer'] = {MaxRange = 3,priority = 2,},
     },
     component_groups = {
@@ -43,7 +43,7 @@ local entity = {
     },
     events ={
         OnDeath = function(self)
-            local entity = require(game.ReplicatedStorage.EntityHandler).Create("Npc",{Name = "Npc1",Position = Vector3.new(-7.2, 6.6, 10)}) self:GetData().AddEntity(entity)
+            local entity = require(game.ReplicatedStorage.EntityHandler).Create("Npc",{Name = "Npc1",Position = Vector3.new(-7.2, 90, 10)}) self:GetData().AddEntity(entity)
         end
     },
     functions = {

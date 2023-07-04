@@ -43,7 +43,7 @@ end
 function qf.deepCopy(original)
     if type(original) ~= "table" then return original end 
     local copy = {}
-    for k, v in pairs(original) do
+    for k, v in original do
       if type(v) == "table" then
         v = qf.deepCopy(v)
       end

@@ -1,6 +1,7 @@
 local self = {}
 local BehaviorPacks = game.ReplicatedStorage.BehaviorPacks or Instance.new("Folder",game.ReplicatedStorage)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ResourcePacks = require(ReplicatedStorage.ResourceHandler) 
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 BehaviorPacks.Name = "BehaviorPacks"
@@ -21,6 +22,10 @@ function self.AddInstanceChildren(Object,AssetObj)
         end
     end
 end
+local Scripts = {
+    [true] ={},
+    [false] = {}
+}
 function self.LoadPack(PackName:string,loadComponet)
     local pack = BehaviorPacks:FindFirstChild(PackName)
     if pack then
@@ -29,6 +34,10 @@ function self.LoadPack(PackName:string,loadComponet)
                 self[v.Name] = self[v.Name] or {}
                  self.AddInstanceChildren(v, self[v.Name])
             elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
+                if (v.Name == "Server" and RunService:IsServer()) or (v.Name == "Client" and RunService:IsClient()) then
+                    table.insert(Scripts[RunService:IsServer()],v)
+                    return
+                end
                 self[v.Name] = self[v.Name] or {}
                 for i,data in require(v)do
                     self[v.Name][i] = data
@@ -56,7 +65,16 @@ function self:Init()
     for i,v in BehaviorPacks:GetChildren()do
         self.LoadPack(v.Name)
     end
-
+    for ii,v in Scripts do
+        for i,s in v do
+            if ii == RunService:IsServer() then
+                local m = require(s)
+                if m.Init then
+                    m:Init()
+                end
+            end
+        end
+    end
     --print(self)
     return self 
 end
@@ -84,13 +102,11 @@ function self.GetItemType(name)
     if not self.ItemTypes then return end
     return self.ItemTypes[name]
 end
-function self.CreateComponent(data,table,subtable)
-    local t = self.GetComponent(table)
+function self.CreateComponent(data,Parent,subtable)
+    local t = self.GetComponent(Parent)
     if subtable and t[subtable] then t= t[subtable] end 
     if not rawget(t,'__index') then
-        t.__index = function(self,x)
-            return t[x]
-        end
+        t.__index = t
     end
     return setmetatable(data,t)
 end
@@ -118,12 +134,6 @@ function self.GetBlockHb(Name)
 end
 function self.GetBlock(Name)
     return self.Blocks[Name]
-end
-function self.GetHbFromBlock(Name)
-    local b = self.GetBlock(Name)
-    if b and b.components and b.components.Hitbox then 
-        return type(b.components.Hitbox) == "string" and self.GetBlockHb(b.components.Hitbox) or b.components.Hitbox
-    end
 end
 function self.Getfunction(name)
     return self.Functions and  self.Functions[name]

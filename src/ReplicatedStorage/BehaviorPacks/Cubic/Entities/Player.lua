@@ -15,6 +15,7 @@ local entity = {
         DoGravity = true,
         Health = 20,
         MaxHealth = 20,
+        AutoJump = true,
         CrouchLower = 0.3,
         StateInfo = {
             Sprinting = {Speed = 1.3},
