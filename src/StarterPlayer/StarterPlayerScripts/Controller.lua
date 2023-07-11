@@ -268,10 +268,6 @@ function Render.Update(dt)
     if  localentity() then   
         self.Entity.PrimaryPart.CFrame = CFrame.new(self.Position*3)
     end
-    local l = {}
-    for i,v in data.LoadedEntities do
-        table.insert(l,i)
-    end
     local serverstuff = localentity() and self:GetServerChanges() or {}
     local ToSend = {}
     for i,v in self do 
@@ -291,15 +287,21 @@ function Render.Update(dt)
             ToSend[i] = qf.deepCopy(v)
         end
     end
+    local changed,encoded
     if not localentity() or localentity():GetState('Dead')  then 
-        ToSend.Loaded  = {}
+        ToSend.Loaded  = {} 
     else
-        ToSend.Loaded = l
+        ToSend.Loaded = data.ClientEntityIndex
+        changed,encoded = self:ENCODE(ToSend)
      end 
-
+     ToSend =  next(ToSend) ~= nil and ToSend or (changed and encoded) or {}
+     if next(ToSend) ~= nil then
+         ToSend.ENCODE = encoded 
+     end
     EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),ToSend)
     if  localentity() then   
     self:ClearVelocity()
+    self:ClearUpdated()
     anihandler.UpdateEntity(self)
     end
 end

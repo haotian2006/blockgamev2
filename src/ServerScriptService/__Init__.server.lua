@@ -58,7 +58,7 @@ game.Players.PlayerRemoving:Connect(function(player)
     data.PlayerControl[player] = nil
     data.RemoveEntity(player.UserId)
 end)
-for i =1,0 do
+for i =1,1 do
     local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1"..i,Position = Vector3.new(-7.2, 90, 10)}) data.AddEntity(entity)
 end
 game.ReplicatedStorage.Events.Respawn.OnServerEvent:Connect(function(player)
@@ -86,7 +86,7 @@ EntityBridge:Connect(function(plr,id,newdata)
     if entity.ClientControl ~= tostring(plr.UserId) then return end 
     if not entity:CanCrouch() and entity.Crouching then newdata.Crouching = false end 
     if entity and newdata.Crouching ~= nil and newdata.Crouching ~= not not entity.Crouching  then
-        entity.Crouching  = newdata.Crouching
+        entity.Crouching  = newdata.Crouching 
         local dcby = entity.CrouchLower or 0
         if not entity.Crouching  then
             --entity.Position -= Vector3.new(0,.3,0)
@@ -185,7 +185,11 @@ function UpdateClientEntities(player)
     if player.Character and player.Character.PrimaryPart and data.GetEntity(player.UserId) then
         local Pb = data.GetEntity(player.UserId).Position
         local a = data.EntitiesinR(Pb.X,Pb.Y,Pb.Z,100,player,interval)
-        EntityBridge:FireTo(player,a)
+        local new = {}
+        for i,v in a do
+            table.insert(new,v)
+        end
+        EntityBridge:FireTo(player,new)
     else
         EntityBridge:FireTo(player,{})
     end

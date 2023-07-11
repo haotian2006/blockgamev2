@@ -112,4 +112,11 @@ function maths.GetAngleDL(originalRayVector:number):number
     local new = Vector3.new(1,originalRayVector.Y,1)
     return math.deg(math.atan(new.Unit:Dot(Vector3.new(1,0,1).Unit)))*(originalRayVector.Y/math.abs(originalRayVector.Y))
 end
+function maths.SpeicalRound(x)
+    if x > 0 then
+        return math.floor(x)
+    else
+        return math.ceil(x)
+    end
+end
 return maths

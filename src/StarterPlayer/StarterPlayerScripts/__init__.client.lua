@@ -134,6 +134,7 @@ local function shoulddel(entitys,v)
             local chunk = datahandler.GetChunk(last.Chunk.X,last.Chunk.Y)
             datahandler.GetEntity(i):Destroy()
         end
+        table.remove(datahandler.ClientEntityIndex,table.find(datahandler.ClientEntityIndex,v.Name))
     end
 end
 game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
@@ -171,16 +172,34 @@ game.ReplicatedStorage.Events.OnDeath.Event:Connect(function()
     end
 end)
 local i = 0
+datahandler.ClientEntityIndex = {}
 EntityBridge:Connect(function(entitys)
     i =i and i + 1 
-    for i,v in game.Workspace.Entities:GetChildren() do shoulddel(entitys,v) end
-    for i,v in game.Workspace.DamagedEntities:GetChildren() do shoulddel(entitys,v) end
+
    if i == 250 then  print(entitys,i) i = nil end 
+   local IDKEY = {} 
     for i,v in entitys do
+        local id = v.Id or v[5]
+        if type(id) == "string" then
+            i =id
+            v.Id = id
+        elseif type(id) == "number" then
+            i = datahandler.ClientEntityIndex[id]
+            v.Id = datahandler.ClientEntityIndex[i] 
+        end
+        IDKEY[i] = true
         local e = game.Workspace.Entities:FindFirstChild(i) or workspace.DamagedEntities:FindFirstChild(i)
         local oldentity = datahandler.GetEntity(i)
+        if v.ENCODE then
+            for i,a in entityhandler.DECODE(oldentity or {},v.ENCODE) do
+                v[i] = a
+            end
+            v.ENCODE = nil
+        else
+            v = entityhandler.DECODE(oldentity or {},v) 
+        end
         if e and tostring(i) ~= tostring(Players.LocalPlayer.UserId) then
-            --print(v)
+            local a =  datahandler.GetEntity(i)
             local oldhitbox = oldentity.Hitbox
             --v = entityhandler.new(v)
             datahandler.GetEntity(i):UpdateEntity(v)
@@ -198,7 +217,9 @@ EntityBridge:Connect(function(entitys)
             end
             oldentity:UpdateRotationClient(true)
         elseif not e then
+            print(v)
             local entity = entityhandler.new(v)
+            table.insert(datahandler.ClientEntityIndex,v.Id)
             if not entity then continue end 
             datahandler.AddEntity(i,entity)
             local model = Instance.new("Model",workspace.Entities)
@@ -292,6 +313,8 @@ EntityBridge:Connect(function(entitys)
             anihandler.UpdateEntity(oldentity)
         end
     end
+    for i,v in game.Workspace.Entities:GetChildren() do shoulddel(IDKEY,v) end
+    for i,v in game.Workspace.DamagedEntities:GetChildren() do shoulddel(IDKEY,v) end
 end)
 function GetChunks(cx,cz)
     queued[cx..','..cz] = true
@@ -348,7 +371,7 @@ game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data
     --     local p = Instance.new("Part")
     --     p.Position =  qf.convertchgridtoreal(cx,cz,4,66,4)
     --     p.Anchored = true
-    --     p.Parent = workspace
+    --     p.Parent = workspace 
     --     p.Material = Enum.Material.Neon
     -- end
     data = require(game.ReplicatedStorage.Chunk).DeCompressVoxels(data)

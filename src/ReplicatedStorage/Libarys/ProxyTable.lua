@@ -23,7 +23,7 @@ function proxy:GetUpdated()
                 new[i] = v
             end
         end
-        for i,v in self.__Last do
+        for i,v in self.__Last or {} do
             if not self[i] then
                 new[i] = "__NULL__"
             end

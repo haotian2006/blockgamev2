@@ -31,6 +31,16 @@ controls.TOUCH = {
 controls.CONTROLLER = {
     
 }
+local function ToString(t)
+    for i,v:EnumItem in table do
+        if typeof(v) == "table" then
+            ToString(v)
+        elseif typeof(v) == "EnumItem" then
+            t[i] = v.Name
+        end
+    end
+end
+ToString(controls)
 controls.Mode = "Keyboard"
 controls.__index = controls
 function controls.new(data)

@@ -166,6 +166,14 @@ function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
     local oldingui = self.Ingui
     local ServerOnlyChanges= self:GetServerChanges()
+    local dec = {}
+    if newdata.ENCODE then
+        dec = self:DECODE(newdata.ENCODE)
+        for i,v in dec do
+            newdata[i] = v
+        end
+        newdata.ENCODE = nil
+    end
     for i,v in newdata do
         if not ServerOnlyChanges[i] then continue end 
         if type(v) == "table" then
@@ -216,7 +224,8 @@ end
 local lastint = {}  
 function entity:ConvertToClient(player,interval)
     local ToSend = {}
-    local found =   table.find(data.loadedentitysforplayer[tostring(player.UserId)] or {},self.Id)
+    local playerLoaded = data.loadedentitysforplayer[tostring(player.UserId)] or {}
+    local found =   table.find(playerLoaded,self.Id)
     local HasOwnerShip = player and self.ClientControl == tostring(player.UserId)
     for i,v in self.__P do 
         if type(v) =="function" or table.find(entity.ServerOnly,i)  then continue end 
@@ -233,7 +242,6 @@ function entity:ConvertToClient(player,interval)
         if  type(v["Sterilize"]) == "function" then
             ToSend[i] = v:Sterilize()
         else
-            if i == "HoldingItem" then print( "a")end 
             ToSend[i] = deepCopy(v)
         end
     end
@@ -249,6 +257,15 @@ function entity:ConvertToClient(player,interval)
       -- print(self.HoldingItem)
     end
    -- print(ToSend,found)
+    local changed,encoded = self:ENCODE(ToSend,found)
+    local nextIsnotnil = next(ToSend) ~= nil
+    ToSend =  nextIsnotnil and ToSend or (changed and encoded) or {Id =found or self.Id}
+    if  nextIsnotnil then
+        ToSend.ENCODE = encoded
+        ToSend.Id = found or self.Id
+    elseif changed then
+        ToSend[5] = found or self.Id
+    end
     return ToSend
 end
 function entity:ConvertToClientOLD(player,inteval)

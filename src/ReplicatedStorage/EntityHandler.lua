@@ -125,9 +125,9 @@ function entity.new(data)
     setmetatable(real,entity)
     self.Id = data.Id and tostring(data.Id) or genuuid()
     self.Position = data.Position or Vector3.new()
-    self.Type = data.Type or warn("Failed To Create Entity | No Entity Type Giving for:",self.Id) 
+    self.Type = data.Type or warn("Failed To Create Entity | No Entity Type Giving for:",self.Id,data) 
     if not data then return end 
-    if not data.Type then self:Destroy() return end 
+    if not data.Type then real:Destroy() return end 
     self.Velocity = proxy.new(self.Velocity or {})
     self.Data = proxy.new(self.Data or {},true)
     self.NotSaved = proxy.new({},true)
@@ -136,6 +136,7 @@ function entity.new(data)
     self.NotSaved["behaviors"] =  {}
     self.NotSaved.NoClear = {}
     self.Container = proxy.new(self.Container or {},true)
+    self.CurrentStates = proxy.new(self.CurrentStates or {},true)
     real.__Last ={}
     return real
 end
@@ -184,7 +185,7 @@ function entity:UpdateIdleAni()-- plays idle ani
     end
 end
 function entity:GetServerChanges()
-    local ServerOnlyChanges = {Position = true,Headdir = true,Bodydir = true,HeadLookingPoint = true,BodyLookingPoint = true,Crouching = true,PlayingAnimations = true,Speed = true,CurrentSlot = true,ViewMode = true,Ingui = true,CurrentStates = true}
+    local ServerOnlyChanges = {Position = true,Headdir = true,Bodydir = true,PlayingAnimations = true,CurrentSlot = true,ViewMode = true,Ingui = true,CurrentStates = true}
     for i,v in self.AllowedClientChanges or {} do
         ServerOnlyChanges[i] = v
     end
@@ -238,7 +239,7 @@ function entity:UpdateHandSlot(slot:number)
     self.CurrentSlot = slot 
 end
 -- properties to keep same when updating entitys from the server (local player)
-entity.KeepSame = {"Position",'NotSaved',"Velocity",'Hitbox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'ViewMode','CurrentStates','Ingui','CurrentStates'}
+entity.KeepSame = {"Position",'NotSaved',"Velocity",'Hitbox',"EyeLevel","Crouching","PlayingAnimations","Speed","CurrentSlot",'ViewMode','Ingui','CurrentStates','ClientIndex'}
 function entity:UpdateEntityClient(newdata)
     newdata = newdata or {}
   --  print(newdata.HoldingItem and newdata.HoldingItem[1])
@@ -1160,15 +1161,19 @@ function entity:ENCODE(Changed)
         c = true
         local p = Changed.Position
         local cx,cz,lx,ly,lz = qf.GetChunkAndLocal(p.X,p.Y,p.Z)
-        local c= Vector2int16(cx,cz)
-        lx= math.floor(lx*36+0.5)
-        ly = math.floor(math.clamp(ly,-1820,1820)*36+0.5)
-        lz= math.floor(lz*36+0.5)
-        posvector = Vector2int16.new(combine(lx,lz),ly)
-        if self.Chunk ~= c then
-            chunkvector = c
-            Changed.Chunk = nil
+        local c= Vector2int16.new(cx,cz)
+        if self.Type == "Npc" then
+            warn(c,Vector3.new(lx,ly,lz),p)
         end
+        lx= math.floor(lx*30)
+        ly = math.floor(math.clamp(ly,-1820,1820)*30+0.5)
+        lz= math.floor(lz*30)
+        posvector = Vector2int16.new(combine(lx,lz),ly)
+       -- if self.Chunk ~= c then
+            chunkvector = c
+
+            Changed.Chunk = nil
+       -- end
         Changed.Position = nil
     end
     if Changed.Headdir then
@@ -1189,14 +1194,22 @@ function entity:DECODE(data)
     local chunkvector 
     local hdlv 
     local bdlv 
+    local aaa = false
     if data[2] then
         chunkvector = data[2]
+       if RunService:IsClient() and data[5] == 2 then
+        print(chunkvector)
+        aaa = true
+       end
     end
     if data[1] then
         local ly,lx,lz= data[1].Y,decombine(data[1].X)
-        local Lposvector = Vector3.new(lx,ly,lz)/36
+        local Lposvector = Vector3.new(lx,ly,lz)/30
         local chunk = chunkvector or self.Chunk
         posvector = qf.convertchgridtoreal(chunk.X,chunk.Y,Lposvector.X,Lposvector.Y,Lposvector.Z,true)
+        if aaa then
+            print(posvector,Lposvector)
+        end
     end
     if data[3] then
         hdlv = getDECODEDlv(data[3])
@@ -1205,7 +1218,7 @@ function entity:DECODE(data)
         bdlv = getDECODEDlv(data[4])
     end
     return {Position = posvector,Chunk = chunkvector,Headir = hdlv, Bodydir = bdlv}
-end
+end 
 
 function entity:Destroy()
     datahandler.RemoveEntity(self.Id)

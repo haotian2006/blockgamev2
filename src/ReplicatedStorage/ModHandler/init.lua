@@ -71,7 +71,7 @@ export type Point = typeof(setmetatable({}, {})) & {
     DistanceFromPoint: (self:Point,p:Point) -> number,
     ToVector2: (self:Point) -> Vector2,
 }
-export type Math = {
+export type Math =  {
     newPoint : (x:number,y:number) -> (),
     newLine:(p1:Point,p2:Point) -> Line,
     worldCFrameToC0ObjectSpace: (motor6DJoint:Motor6D,worldCFrame:CFrame) -> CFrame,
@@ -83,7 +83,8 @@ export type Math = {
     ReflectAngleAcrossY: (dt:number) -> number,
     NegativeToPos: (dt:number) -> number,
     PosToNegative:(dt:number) -> number,
-    GetAngleDL: (originalRayVector:number) ->number
+    GetAngleDL: (originalRayVector:number) ->number,
+    SpeicalRound: (x : number) -> number
 }
 --\\
 export type EntityAttribute ={
