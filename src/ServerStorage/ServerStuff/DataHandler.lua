@@ -20,8 +20,8 @@ function self.DoCaves(cx,cz,from)
    -- if from == '-7,7'and tostring(cx..','..cz) == '-11,12' then print("aadsab") end 
     c:DoCaves()
     -- if from == '-7,7' and tostring(c) == '-11,12' then
-    --     print(c.GeneratingCaves)
-    --     print( c.Setttings.GeneratedCaves)
+    --     print(c.GeneratingOther)
+    --     print( c.Settings.GeneratedOthers)
     -- end
     return 
 end
@@ -66,6 +66,7 @@ task.spawn(function()
                     -- end
                  -- print(  pcall(function()
                     chun:Generate() 
+                    
                -- end))
                   --  self.LoadedChunks[cx..','..cz]  = chun
                     for i,v in a do
@@ -113,7 +114,7 @@ function self.CreateChunk(cdata,cx,cz)
     
     self.LoadedChunks[cx..','..cz] = ChunkObj.Create(cx,cz)
     return self.LoadedChunks[cx..','..cz] 
-end
+end 
 function self.PlaceBlockGLOBAL(x,y,z,data)
     self.InsertBlock(x,y,z,data)
     ublock:FireAll({Add = {{Vector3.new(x,y,z),data}}})
@@ -137,7 +138,7 @@ game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,
     --game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
    --                                                              task.wait(1)
    -- self.GetChunk(cx,cz).Blocks = {}
-   -- self.GetChunk(cx,cz).Setttings.Generated = false
+   -- self.GetChunk(cx,cz).Settings.Generated = false
      -- game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,compresser.compresslargetable(self.GetChunk(cx,cz):GetBlocks(),6) )
  end)
 --  game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)
@@ -147,7 +148,7 @@ game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,
 --     game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
 --    --                                                              task.wait(1)
 --    -- self.GetChunk(cx,cz).Blocks = {}
---    -- self.GetChunk(cx,cz).Setttings.Generated = false
+--    -- self.GetChunk(cx,cz).Settings.Generated = false
 --      -- game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,compresser.compresslargetable(self.GetChunk(cx,cz):GetBlocks(),6) )
 --  end)
 return {}

@@ -103,7 +103,8 @@ export type Compresser = {
 
 }
 export type Manager = {
-    ArmsManager:{}
+    ArmsManager:{},
+    
 }
 export type Behaviors = {
 	GetItemData: (name:string) -> ({}),
@@ -205,14 +206,14 @@ export type Entity = typeof(setmetatable({}, {})) & {
     LookAt:(self:Entity,Position:Vector3,timetotake:number|nil) ->nil,
     KnockBack:(self:Entity,force:Vector3,time:number|nil) ->nil,
     MoveTo: (self:Entity,x:number,y:number,z:number) -> MoveTo,
-    IsClientControl: (self:Entity) ->boolean,
+    GetClientController: (self:Entity) ->boolean,
     SetPosition: (self:Entity,position: Vector3)->nil,
     PlayAnimation: (self:Entity,Name:string,PlayOnce:boolean|nil) -> nil,
     StopAnimation: (self:Entity,Name:string) -> nil,
     SetBodyVelocity: (self:Entity,name:string,velocity:Vector3) -> nil,
     GetBodyVelocity: (self:Entity,name:string) -> Vector3|nil,
     Jump: (self:Entity) -> nil,
-    SetState: (self:Entity,state:string,value:any) -> nil,
+    SetState: (self:Entity,state:string,value:boolean|nil) -> nil,
     GetState: (self:Entity,state:string) -> any,
     GetStateData: (self:Entity,state:string,target:string) -> any ,
     OnDeath: (self:Entity) -> nil,

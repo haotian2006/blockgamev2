@@ -13,7 +13,7 @@ function LChunk.new(cx,cz,data)
     setmetatable(ch,LChunk)
     ch.RegionData = {}
     ch.Entitys = {}
-    ch.Setttings = data and data.Setttings or {}
+    ch.Settings = data and data.Settings or {}
     ch.Blocks = data and data.Blocks or {}
     ch.Chunk = {cx,cz}
     ch.Generating = false

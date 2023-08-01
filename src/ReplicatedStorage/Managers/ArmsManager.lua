@@ -11,6 +11,19 @@ local localentity = data.GetLocalPlayer
 local camera = game.Workspace.CurrentCamera
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 local qf =  require(game.ReplicatedStorage.QuickFunctions)
+local function CreateTexture(texture,face)
+    local new
+    if texture:IsA("Decal") or texture:IsA("Texture") or type(texture) == "string" then
+        new = Instance.new("Decal")
+        new.Texture = type(texture) == "string" and texture or texture.Texture
+        new.Face = face
+    elseif texture:IsA("SurfaceGui") then
+        new = texture:Clone()
+        new.Face = face 
+    end
+
+        return new
+end 
 function  self.renderarmitem(dt)
     local entity = localentity()
     local armsframe = self.GetArmsframe()
@@ -62,15 +75,18 @@ function  self.renderarmitem(dt)
                         mesh[i] = v
                     end
                 end
+
                 if texture then
                     if type(texture) == "table" then
                         for i,v in texture do
-                                table.insert(stuff,require(game.ReplicatedStorage.RenderStuff.Render).CreateTexture(v,i))
+                                table.insert(stuff,CreateTexture(v,i))
                         end
                     elseif type(texture) == "userdata" then
                         for v in sides do
-                            table.insert(stuff,require(game.ReplicatedStorage.RenderStuff.Render).CreateTexture(texture,v))
+                            table.insert(stuff,CreateTexture(texture,v))
                         end
+                    elseif typeof(texture) == "string" and mesh:IsA("MeshPart") then
+                        mesh.TextureID = texture
                     end
                 end
                 for i,v in stuff do

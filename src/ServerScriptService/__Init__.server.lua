@@ -1,6 +1,22 @@
 local HttpService = game:GetService("HttpService")
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 --bridge.Start({})
+local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+local PlayersLoaded = {}
+local function PlayerIsLoaded(player,wait)
+    if not  PlayersLoaded[player.UserId] then
+        PlayersLoaded[player.UserId] = Signal.new()
+    end
+    if PlayersLoaded[player.UserId] == true then return true end 
+    if not wait then return  end 
+    PlayersLoaded[player.UserId]:Wait()
+    PlayersLoaded[player.UserId]:DisconnectAll()
+    PlayersLoaded[player.UserId] = true
+end
+game.ReplicatedStorage.Events.LOAD.OnServerEvent:Connect(function(plr)
+    PlayerIsLoaded(plr)
+    PlayersLoaded[plr.UserId]:Fire()
+end)
 
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 resourcehandler:Init()
@@ -21,6 +37,7 @@ local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
 local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local CraftingManager =   Manager.CraftingManager:Init()
+local LEntity = data.GetLoadedEntitys()
 --<TESTING MODE>
 local MR = require(game.ReplicatedStorage.Libarys.ModingRemote)
 local Damage = MR.GetRemote("Damage")
@@ -38,31 +55,34 @@ end)
 game.ReplicatedStorage.Events.DoSmt.OnServerEvent:Connect(function(player,stuff)
     require(game.ServerStorage.DataStores.BlockSaver).Save()
 end)
-
 local function CreatePlayer(player)
+    PlayerIsLoaded(player,true)
     if   data.PlayerControl[player] then
         data.PlayerControl[player]:Clear()
     else
         data.PlayerControl[player] = playercontrol.new()
     end
-    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%C:Dirt",64},[12] = {"T|s%C:Grass",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%C:Slab",1},[6] = {"T|s%C:Stair",1},[3] = {"T|s%C:Stick",1},[5] = {"T|s%C:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 90, 10),ClientControl = tostring(player.UserId)})
+    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%C:Dirt",64},[2] = {"T|s%C:Leaf",64},[11] = {"T|s%C:Wood",64},[12] = {"T|s%C:Grass",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%C:Slab",1},[6] = {"T|s%C:Stair",1},[3] = {"T|s%C:Stick",1},[5] = {"T|s%C:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 90, 10),ClientControl = tostring(player.UserId)})
     task.wait(.2 )
     data.AddEntity(entity)
 end
 for i,v in game.Players:GetPlayers() do
-    CreatePlayer(v)
+   task.spawn( CreatePlayer,v)
 end
-game.Players.PlayerAdded:Connect(CreatePlayer)
+game.Players.PlayerAdded:Connect(function(player)
+    CreatePlayer(player)
+end)
 game.Players.PlayerRemoving:Connect(function(player)
-    data.loadedentitysforplayer[tostring(player.UserId)] = nil
+    LEntity.Remove(player)
     data.PlayerControl[player] = nil
     data.RemoveEntity(player.UserId)
+    PlayersLoaded[player.UserId] = nil
 end)
 for i =1,1 do
     local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1"..i,Position = Vector3.new(-7.2, 90, 10)}) data.AddEntity(entity)
 end
 game.ReplicatedStorage.Events.Respawn.OnServerEvent:Connect(function(player)
-    data.loadedentitysforplayer[tostring(player.UserId)] = nil
+    LEntity.Remove(player)
     data.RemoveEntity(player.UserId)
     interval += 20 + math.random(1,10)
     for i,player in game.Players:GetPlayers() do
@@ -77,31 +97,26 @@ game.ReplicatedStorage.Events.ServerFPS.OnServerEvent:Connect(function(player,a)
    -- pe.PlayingAnimations.Normal = not pe.PlayingAnimations.Normal 
 end)
 local domoverbridge = bridge.CreateBridge("DoMover")
-data.loadedentitysforplayer = {}
+
 EntityBridge:Connect(function(plr,id,newdata)
     local entity = data.GetEntity(id)
     if not entity then return end 
    -- newdata = HttpService:JSONDecode(newdata)
- 
     if entity.ClientControl ~= tostring(plr.UserId) then return end 
     if not entity:CanCrouch() and entity.Crouching then newdata.Crouching = false end 
     if entity and newdata.Crouching ~= nil and newdata.Crouching ~= not not entity.Crouching  then
         entity.Crouching  = newdata.Crouching 
         local dcby = entity.CrouchLower or 0
         if not entity.Crouching  then
-            --entity.Position -= Vector3.new(0,.3,0)
+           -- entity.Position += Vector3.new(0,dcby,0)
             entity.Hitbox = Vector2.new(entity.Hitbox.X,entity.Hitbox.Y+dcby)
             entity.EyeLevel = entity.EyeLevel+dcby
         else
             entity.Hitbox = Vector2.new(entity.Hitbox.X,entity.Hitbox.Y-dcby)
-          --  entity.Position += Vector3.new(0,.3,0)
+          --  entity.Position -= Vector3.new(0,dcby,0)
             entity.EyeLevel =  entity.EyeLevel- dcby
         end
 
-    end
-    if id == tostring(plr.UserId) then
-        data.loadedentitysforplayer[id] = newdata.Loaded
-        newdata.Loaded = nil
     end
   --  print(data.LoadedEntities[tostring(plr.UserId)].Hitbox)
     if entity then 
@@ -166,6 +181,7 @@ game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvecto
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end 
     local entity = data.GetEntity(id)
     if not entity or entity:GetState('Dead') then return end 
+
     --entity:AddVelocity("KnockBack",Vector3.new(lookvector.X,.5,lookvector.Z)*100)
     local velocity = Vector3.new(lookvector.X*5,.6,lookvector.Z*5)
     entity:Damage(1)
@@ -182,20 +198,30 @@ game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvecto
 
 end)
 function UpdateClientEntities(player)
+    if not PlayerIsLoaded(player) then return end 
     if player.Character and player.Character.PrimaryPart and data.GetEntity(player.UserId) then
         local Pb = data.GetEntity(player.UserId).Position
-        local a = data.EntitiesinR(Pb.X,Pb.Y,Pb.Z,100,player,interval)
+        local a = data.EntitiesinR(Pb.X,Pb.Y,Pb.Z,100)
         local new = {}
+        local le = LEntity.Get(player)
         for i,v in a do
-            table.insert(new,v)
+            local id = le:Find(i)
+            local cmp = v:ConvertToClient(player,interval)
+            if next(cmp) ~= nil then
+                table.insert(new,cmp)
+            end
         end
-        EntityBridge:FireTo(player,new)
+        le:Update(a)
+        local ab= le:Get()
+        if next(new) ~= nil or ab then
+            EntityBridge:FireTo(player,new,ab)
+        end
     else
-        EntityBridge:FireTo(player,{})
+        EntityBridge:FireTo(player,{},{})
     end
 end
 local t = 0
-local tick = 1/20
+local tick = Cfig.ClientReplicationRate
 game:GetService("RunService").Heartbeat:Connect(function( deltaTime)
     local entitycollisons = {}
     for id,entity in data.LoadedEntities do

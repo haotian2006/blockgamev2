@@ -7,6 +7,7 @@ local placeBlockEvent = bridge.CreateBridge("BlockPlace")
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local resource = require(game.ReplicatedStorage.ResourceHandler)
+local gamesettings = require(game.ReplicatedStorage.GameSettings)
 local data = require(game.ReplicatedStorage.DataHandler)
 local Ray = require(game.ReplicatedStorage.Ray)
 local camera = game.Workspace.CurrentCamera
@@ -251,8 +252,6 @@ function func.Attack()
                 data.RemoveBlock(block.X,block.Y,block.Z)
                 destroyblockEvent:Fire(block)
             elseif v.Type == "Entity"  then
-                --debugger.HighLightEntity(v.EntityId,1)
-               -- print(CameraCFrame.LookVector)
                 game.ReplicatedStorage.Events.KB:FireServer(v.EntityId,CameraCFrame.LookVector)
             end
         end
@@ -260,6 +259,8 @@ function func.Attack()
     data.LocalPlayer:PlayAnimation("Attack",true)
     ArmsHandler.PlayAnimation('Attack',true)
 end
+local t = 0
+local tick = gamesettings.ClientReplicationRate
 function Render.Update(dt)
     local self = data.LocalPlayer
     for i,v in data.LoadedEntities do
@@ -268,40 +269,52 @@ function Render.Update(dt)
     if  localentity() then   
         self.Entity.PrimaryPart.CFrame = CFrame.new(self.Position*3)
     end
-    local serverstuff = localentity() and self:GetServerChanges() or {}
-    local ToSend = {}
-    for i,v in self do 
-        if not serverstuff[i] then continue end 
-        do
-            if type(v) == "table" and type(v.GetUpdated) == "function"then
-                ToSend[i] = v:GetUpdated()
-                continue
-            elseif not self:IsUpdated(i) then
-                continue
+    if t >= tick and localentity() then
+        t = 0
+        local serverstuff = localentity() and self:GetServerChanges() or {}
+        local ToSend = {}
+        for i,v in self do 
+            if not serverstuff[i] then continue end 
+            do
+                if type(v) == "table" and type(v.GetUpdated) == "function"then
+                    ToSend[i] = v:GetUpdated()
+                    continue
+                elseif not self:IsUpdated(i) then
+                    continue
+                end
+            end
+            if type(v) ~= "table"then ToSend[i] = v continue end 
+            if  type(v["Sterilize"]) == "function" then
+                ToSend[i] = v:Sterilize()
+            else
+                ToSend[i] = qf.deepCopy(v)
             end
         end
-        if type(v) ~= "table"then ToSend[i] = v continue end 
-        if  type(v["Sterilize"]) == "function" then
-            ToSend[i] = v:Sterilize()
+        for i,v in self.__Update do
+            if not serverstuff[i] then continue end 
+            if self.__P[i] == nil then
+                ToSend[i] = "__NULL__"
+            else
+                ToSend[i] = self.__P[i]
+            end
+        end 
+        local changed,encoded
+        if not localentity() or localentity():GetState('Dead')  then 
         else
-            ToSend[i] = qf.deepCopy(v)
+            changed,encoded = self:ENCODE(ToSend)
+        end 
+        ToSend =  next(ToSend) ~= nil and ToSend or (changed and encoded) or {}
+        if next(ToSend) ~= nil and ToSend[1] == nil  then
+            ToSend.ENCODE = encoded 
         end
+        if next(ToSend) ~= nil then
+         EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),ToSend)
+        end
+        self:ClearUpdated()
     end
-    local changed,encoded
-    if not localentity() or localentity():GetState('Dead')  then 
-        ToSend.Loaded  = {} 
-    else
-        ToSend.Loaded = data.ClientEntityIndex
-        changed,encoded = self:ENCODE(ToSend)
-     end 
-     ToSend =  next(ToSend) ~= nil and ToSend or (changed and encoded) or {}
-     if next(ToSend) ~= nil then
-         ToSend.ENCODE = encoded 
-     end
-    EntityBridge:Fire(tostring(game.Players.LocalPlayer.UserId),ToSend)
+    t+= dt
     if  localentity() then   
     self:ClearVelocity()
-    self:ClearUpdated()
     anihandler.UpdateEntity(self)
     end
 end
@@ -374,10 +387,6 @@ function controls.RenderStepped.Camera()
         second = second or Current_Entity:FindFirstChild("SecondLayer",true)
         local muti
         local entityw = Current_Entity
-        -- local Torso = entityw:FindFirstChild("Torso",true)
-        -- local neck =  entityw:FindFirstChild("Neck",true)
-        -- local MainWeld = entityw:FindFirstChild("MainWeld",true)
-        --if neck and Torso and MainWeld then
             data.LocalPlayer:SetHeadRotationDir(CameraCFrame.LookVector*10)
        -- end
         data.LocalPlayer:UpdateRotationClient()

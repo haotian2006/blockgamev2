@@ -41,25 +41,22 @@ function manager.UpdateHotbarF()
 end
 function manager.UpdateOne(index)
     if not PEntity() or not PEntity().inventory then return nil end 
-    local inventory = PEntity().inventory or {}
+    local inventory = PEntity().inventory or {Data = {}}
     local frame = manager.iframes[index]
     if not frame then return end
     local item = inventory[index]
-    local amt = 0
-    local inframe = frame:FindFirstChild('IconTemp') or GetIconTemp() and GetIconTemp():clone()
-    if not inframe then return end 
-    inframe.Parent = frame
-    if type(item) =="table" then
-        amt = item[2]
-        inframe.name.Text = qf.DecompressItemData(item[1],'T')
-    else
-        inframe.name.Text = ""
-    end
-    if amt == 0 or amt == 1 then
-        inframe.Amount.Text = ""
-    else
-        inframe.Amount.Text = amt
-    end
+    Manager.UIContainerManager.UpdateOne(frame,item)
+    -- if type(item) =="table" then
+    --     amt = item[2]
+    --     inframe.name.Text = qf.DecompressItemData(item[1],'T')
+    -- else
+    --     inframe.name.Text = ""
+    -- end
+    -- if amt == 0 or amt == 1 then
+    --     inframe.Amount.Text = ""
+    -- else
+    --     inframe.Amount.Text = amt
+    -- end 
 end
 function manager.UpdateIcons()
     local changes = false
@@ -74,7 +71,7 @@ end
 function manager.UpdateInventoryF()
     local inv = PEntity().inventory.Data
     local IVFrame = manager.Frame:FindFirstChild('Inventory',true)
-    local IF = qf.FindFirstChild(manager.Frame,'Assests','ItemFrame')
+    local IF =  qf.FindFirstChild(manager.Frame,'Assests','ItemFrame') or resourcehandler.GetUI("ItemFrame")
     if not IF or not IVFrame then return end 
     for i = 10 , #inv do
         local f = manager.iframes[i] or manager.Frame:FindFirstChild('Container.Inventory.'..i,true)

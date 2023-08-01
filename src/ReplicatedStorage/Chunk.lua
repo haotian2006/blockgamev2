@@ -4,7 +4,7 @@ local settings = require(game.ReplicatedStorage.GameSettings)
 local chunksize = settings.ChunkSize
 local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
-local bs = require(game.ReplicatedStorage.Libarys.BlockStore)
+local bs = require(game.ReplicatedStorage.Libarys.Store)
 Chunk.EdgeIndexs ={
     x = {},["-x"] = {},z = {},["-z"] = {}
 }
@@ -43,7 +43,7 @@ function  Chunk.new(x,z,data)
     self.Blocks = data.Blocks or table.create(chunksize.X^2*chunksize.Y,bs:get(false))
     self.Chunk =Vector2.new(x,z)
     self.Entities = data.Entities or {}
-    self.Setttings = data.Setttings or {}
+    self.Settings = data.Settings or {}
     self.RenderedBlocks = {}
     self.ToLoad = data.ToLoad or {}
     self.Changed = data and  (data.Changed ~= false and true or false)
@@ -51,7 +51,7 @@ function  Chunk.new(x,z,data)
 end
 function Chunk:AddToLoad(stuff)
     self.Changed = true
-    if  self.Setttings.Generated  then
+    if  self.Settings.Generated  then
         for i,v in stuff do
             if tonumber(i) <=0 then continue end  
             self:AddBlock(i,v)
@@ -76,6 +76,14 @@ function  Chunk:GetBlock(x,y,z)
     local at = self.Blocks[self.to1D(x,y,z)]
     return  at and at 
 end
+function Chunk:GetBlockGrid(x,y,z)
+    x,y,z = x%chunksize.X,y,z%chunksize.X
+    return self:GetBlock(x,y,z)
+end
+function Chunk:RemoveBlockGrid(x,y,z)
+    x,y,z = x%chunksize.X,y,z%chunksize.X
+    return self:RemoveBlock(x,y,z)
+end
 function Chunk:RemoveBlock(x,y,z)
     self:InsertBlock(x,y,z,false)
     self.Changed = true
@@ -83,17 +91,33 @@ end
 function Chunk:InsertBlock(x,y,z,data)
     self:AddBlock(self.to1D(x,y,z),data)
 end
+function Chunk:InsertBlockGrid(x,y,z,data)
+    x,y,z = x%chunksize.X,y,z%chunksize.X
+    return self:InsertBlock(x,y,z,data)
+end
 function  Chunk:AddBlock(index,data)
     if type(data)=="string" or type(data) == "boolean" then
         data = bs:get(data)
     end
     index = tonumber(index)
-    if index >8192 or index <1 then error("OUT OF BOUNDS") end 
+    if index >8192 or index <1 then 
+        error("OUT OF BOUNDS") 
+    end 
     self.Blocks[index] = data
     self.Changed = true
 end
 function Chunk:GetAllBlocks()
     return self.Blocks
+end
+function Chunk:InBounds(x,y,z,GetChunkCoord)
+    local min,max = self:GetCorners2D()
+    if (x >= min.X and x <= max.X and z >= min.Y and z <= max.Y) then
+        return true,self.Chunk.X,self.Chunk.Y
+    elseif GetChunkCoord then
+        return false,math.floor((x+0.5)/settings.ChunkSize.X),
+        math.floor((z+0.5)/settings.ChunkSize.X)
+    end
+    return false
 end
 function Chunk:GetEdge(dir)
     local toLoop = self.EdgeIndexs[dir]
@@ -104,6 +128,13 @@ function Chunk:GetEdge(dir)
         end
     end
     return newtable
+end
+function Chunk:GetCorners2D()
+    local min,max = self:ConvertLocalToGrid(0,0,0),self:ConvertLocalToGrid(settings.ChunkSize.X-1,0,settings.ChunkSize.X-1)
+    return Vector2.new(min.X,min.Z),Vector2.new(max.X,max.Z)
+end
+function Chunk:ConvertLocalToGrid(x,y,z)
+    return Vector3(x,y,z) + Vector3(self.Chunk.X,0,self.Chunk.Y)*settings.ChunkSize.X
 end
 function Chunk:CompressVoxels()
     local blocks = self:GetAllBlocks()
@@ -164,4 +195,4 @@ end
 function Chunk:Destroy()
     setmetatable(self, nil) self = nil
 end
-return Chunk
+return Chunk 

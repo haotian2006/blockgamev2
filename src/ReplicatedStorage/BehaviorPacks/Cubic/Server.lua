@@ -11,7 +11,7 @@ local qf = MH.Functions
 BlockPlace.OnServerEvent:Connect(function(plr,coords1,ori)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end  
     
-    local coords = coords1 
+    local coords = coords1  
     local plre = data.GetEntityFromPlayer(plr)
     local item = plre.HoldingItem or {}
     item = qf.deepCopy(item)

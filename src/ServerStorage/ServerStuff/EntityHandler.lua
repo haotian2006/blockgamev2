@@ -7,6 +7,7 @@ local data = require(game.ReplicatedStorage.DataHandler)
 local EAC = require(game.ServerStorage.EntityAttributesCreator)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local entityatr = require(game.ReplicatedStorage.Libarys.EntityAttribute)
+local LEntity = data.GetLoadedEntitys()
 entity.ServerOnly = {
     "ServerOnly","Data","NotSaved"
 }
@@ -162,6 +163,11 @@ function entity:DropItem(name,count)
     self:GetData().AddEntity(item)
     item:KnockBack(Vector3.new(dir.X*3,dir.Y/1.2,dir.Z*3)+Vector3.new(0,.2,0),.2)
 end
+-- local p = Instance.new("Part",workspace)
+-- p.Anchored = true
+-- p.Size = Vector3.new(1,5,1)
+-- local h = Instance.new("Highlight",p)
+-- h.Adornee = p
 function entity:UpdateDataServer(newdata)
     if not self.ServerOnly then return end 
     local oldingui = self.Ingui
@@ -173,12 +179,14 @@ function entity:UpdateDataServer(newdata)
             newdata[i] = v
         end
         newdata.ENCODE = nil
+    else
+        newdata = self:DECODE(newdata)
     end
     for i,v in newdata do
         if not ServerOnlyChanges[i] then continue end 
         if type(v) == "table" then
             if v.__type == "EntityAttribute" then
-                self[i](v)
+                self[i]:Update(v)
             else
                 for i1,v1 in v do
                     if v == "__NULL__" then
@@ -196,7 +204,7 @@ function entity:UpdateDataServer(newdata)
         require(game.ReplicatedStorage.Managers.UIContainerManager).OnCloseGui(self)
     end
     local index = self.CurrentSlot or 1
-    local inventory = self.inventory or {}
+    local inventory = self.inventory or {Data = {}}
     self.HoldingItem = inventory[index] or {}
 end
 data.OldData = {interval = 0}
@@ -224,8 +232,8 @@ end
 local lastint = {}  
 function entity:ConvertToClient(player,interval)
     local ToSend = {}
-    local playerLoaded = data.loadedentitysforplayer[tostring(player.UserId)] or {}
-    local found =   table.find(playerLoaded,self.Id)
+    local playerLoaded = LEntity.Get(player)
+    local found =  playerLoaded:Find(self.Id)
     local HasOwnerShip = player and self.ClientControl == tostring(player.UserId)
     for i,v in self.__P do 
         if type(v) =="function" or table.find(entity.ServerOnly,i)  then continue end 
@@ -249,23 +257,22 @@ function entity:ConvertToClient(player,interval)
         for i,v in self.__Update do
             if self.__P[i] == nil then
                 ToSend[i] = "__NULL__"
+            else
+                ToSend[i] = self.__P[i]
             end
         end
     end
-    if self.Type == "Player" then
-       --print(ToSend.HoldingItem)
-      -- print(self.HoldingItem)
-    end
-   -- print(ToSend,found)
+
     local changed,encoded = self:ENCODE(ToSend,found)
     local nextIsnotnil = next(ToSend) ~= nil
-    ToSend =  nextIsnotnil and ToSend or (changed and encoded) or {Id =found or self.Id}
+    ToSend =  nextIsnotnil and ToSend or (changed and encoded) or {}
     if  nextIsnotnil then
         ToSend.ENCODE = encoded
         ToSend.Id = found or self.Id
     elseif changed then
         ToSend[5] = found or self.Id
     end
+    ToSend.__Last = nil
     return ToSend
 end
 function entity:ConvertToClientOLD(player,inteval)

@@ -2,7 +2,7 @@ local LocalizationService = game:GetService("LocalizationService")
 
 local generation = {}
 local c,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
-local c,st = pcall(require,game.ReplicatedStorage.GameSettings)
+local cs,st = pcall(require,game.ReplicatedStorage.GameSettings)
 local c,chunk = pcall(require,game.ReplicatedStorage.Chunk)
 local part_scale  = 3
 local noise_scale = 100
@@ -11,7 +11,7 @@ local height_scale = 60/2
 local octaves = 1 
 local lacunarity = 0
 local persistence = 2
-local seed = 1234567
+local seed = cs and st.Seed
 
 local max_height = 60--60
 local noiseScale2 = 60/2
@@ -50,7 +50,7 @@ function generation.CreateBedrock(cx,cz,gtable):table
 	for x = 0,st.ChunkSize.X-1 do
 		for z = 0,st.ChunkSize.X-1 do
 			local combine = vector3int(x,0,z)
-			gtable[combine] = 'T|s%C:Bedrock'
+			gtable[combine] = 'T|s%C:Bedrock' 
 		end
 	end	
 	return gtable
@@ -180,6 +180,7 @@ function generation.runfunctionfrommuti(m,func,...)
 	qf = m.QuickFunctions
 	qf.ADDSETTINGS(m)
 	st = m.GameSettings
+	seed = st.Seed
 	chunk = m.Chunk
 	if generation[func] then
 		return generation[func](...)

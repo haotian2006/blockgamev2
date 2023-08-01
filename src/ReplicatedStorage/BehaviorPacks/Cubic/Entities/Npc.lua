@@ -26,7 +26,7 @@ local entity = {
             priority = 20,
             MaxRange = 10,
         },
-         ['behavior.GoToPlayer'] = {MaxRange = 20,priority = 2,interval = 1,},
+       --  ['behavior.GoToPlayer'] = {MaxRange = 20,priority = 2,interval = 1,},
         --  ['behavior.AttackPlayer'] = {MaxRange = 3,priority = 2,},
     },
     component_groups = {

@@ -32,6 +32,7 @@ self.Attributes.inventory = {
             end
         end
         self:SetComponent(comp)
+        self:UP()
         return self
     end,
     Methods = { 
@@ -54,6 +55,7 @@ self.Attributes.inventory = {
                                 add = count
                             end
                             self[i][2] += add
+                            self:UP()
                         end
                     else
                         if count <= max then
@@ -62,12 +64,12 @@ self.Attributes.inventory = {
                             add = max 
                         end
                         self[i] = {Item,add}
+                        self:UP()
                     end
                     count -= add
                 else
                     break
                 end
-                self:UP()
             end
             return count
         end,
@@ -107,6 +109,7 @@ self.Attributes.inventory = {
             else
                 self[index] = {Itemdata,count}
                 count= 0
+                
             end
             self:UP()
             return Itemdata,count
@@ -171,6 +174,18 @@ self.Attributes.crafting = {
             end
             return it,count,remove
         end,
+        __OnUpdate = function(self)
+            local crafting = require(game.ReplicatedStorage.Managers).CraftingManager
+            local item,count,id,remove = crafting.GetOutResult(self)
+            local it
+            if item then
+                it = "T|s%"..item
+                if id then it ..='/n%'..id end
+                self:rawset("Output",{it,count})
+            else
+                self:rawset("Output","") 
+            end
+        end,
         OnClick = function(self,index,amt,Container)
             if index ~= "Output" then return end
             local item,count,remove = self.__Changed(self,"Output")
@@ -194,19 +209,20 @@ self.Attributes.crafting = {
                 if Container.HoldingItem == "" then
                     Container.HoldingItem = count > 0 and {item,count} or ""
                 end
+                self:UP()
             end
             self:__Changed()
             return true 
         end,
-        Sterilize = function(self)
-            local data = {}
-            local ea = self:Copy()
-            for i,v in self.Data do
-                data[tostring(i)] =v
-            end
-            ea.Data = data
-            return ea
-        end
+        -- Sterilize = function(self)
+        --     local data = {}
+        --     local ea = self:Copy()
+        --     for i,v in self.Data do
+        --         data[tostring(i)] =v
+        --     end
+        --     ea.Data = data
+        --     return ea
+        -- end
     },
 }
 function self.Find(name)

@@ -32,7 +32,7 @@ function manager.Visulise(index)
 end
 function manager.UpdateOne(index)
     if not PEntity() then return nil end 
-    local inventory = PEntity().inventory or {}
+    local inventory = PEntity().inventory or {Data = {}}
     local frame = manager.Uis[index]
     local item = inventory.Data[index]
     local amt = 0

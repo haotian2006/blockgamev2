@@ -33,6 +33,30 @@ local Blocks = {
             end
         }
     },
+    ['C:Wood'] = {
+        components = crt({
+            RotateX = true,
+            RotateY = true,
+          --  RotateZ = true
+        }
+        ,'BlockComp'),
+        events ={
+            OnTouched = function(self,entity,side)
+                
+            end
+        }
+    },
+    ['C:Leaf'] = {
+        components = crt({
+  
+        }
+        ,'BlockComp'),
+        events ={
+            OnTouched = function(self,entity,side)
+                
+            end
+        }
+    },
     ['C:Stair'] = {
         components = crt({
             Hitbox = "Stair",

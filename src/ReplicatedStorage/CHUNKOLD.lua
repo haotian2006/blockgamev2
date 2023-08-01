@@ -31,7 +31,7 @@ function Chunk.new(cx,cz,data)
     setmetatable(ch,Chunk)
     ch.RegionData = {}
     ch.Entities = {}
-    ch.Setttings = data and data.Setttings or {}
+    ch.Settings = data and data.Settings or {}
     ch.Blocks = data and data.Blocks or {}
     ch.ToLoad = data and data.ToLoad or {}
     ch.Chunk = Vector2.new(cx,cz)
@@ -49,7 +49,7 @@ function Chunk.new(cx,cz,data)
 end
 function Chunk:AddToLoad(stuff)
     self.Changed = true
-    if  self.Setttings.Generated  then
+    if  self.Settings.Generated  then
         for i,v in stuff do
             local t = i:split(',')
             if tonumber(t[2]) <=0 then continue end  

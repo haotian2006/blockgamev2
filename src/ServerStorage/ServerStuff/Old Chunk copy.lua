@@ -22,21 +22,21 @@ function Chunk:DoCaves()
         until not self.Saving 
     end
     -- if tostring(self) == '-11,12' then
-    --     print(self.GeneratingCaves)
-    --     print( self.Setttings.GeneratedCaves)
+    --     print(self.GeneratingOther)
+    --     print( self.Settings.GeneratedOthers)
     -- end
-    if self.GeneratingCaves then
+    if self.GeneratingOther then
         repeat
             task.wait()
-        until not self.GeneratingCaves
+        until not self.GeneratingOther
         return
     end
-    if self.Setttings.GeneratedCaves then
+    if self.Settings.GeneratedOthers then
         return
     end
     self.Changed = true
-    self.GeneratingCaves = true
-    self.Setttings.GeneratedCaves = true
+    self.GeneratingOther = true
+    self.Settings.GeneratedOthers = true
     local stuff = multihandler.GenerateWorms(self.Chunk.X,self.Chunk.Y)
     local chunks = {}
     for i,v in stuff do
@@ -58,7 +58,7 @@ function Chunk:DoCaves()
            local c= require(game.ReplicatedStorage.DataHandler).AddToLoad(cx,cz,v) --game.ReplicatedStorage.DataHandler.DoFunc:Invoke("AddToLoad",cx,cz,v)
         end
     end
-    self.GeneratingCaves = false
+    self.GeneratingOther = false
 end
 
 function Chunk:GenerateCavesNearBy()
@@ -100,7 +100,7 @@ function Chunk:IsGenerating()
     if self.Generating then
         repeat task.wait()until self.Generating == false
     end
-    return self.Generating or self.Setttings.Generated
+    return self.Generating or self.Settings.Generated
 end
 function Chunk:Generate()
     if self.Saving  then
@@ -108,10 +108,10 @@ function Chunk:Generate()
             task.wait()
         until not self.Saving 
     end
-    if self.Setttings.Generated then return end
+    if self.Settings.Generated then return end
    -- local generationhand = require(game.ServerStorage.GenerationHandler)
-    self.Setttings.Generated = true
-    self.Setttings.GeneratedCaves = self.Setttings.GeneratedCaves or false
+    self.Settings.Generated = true
+    self.Settings.GeneratedOthers = self.Settings.GeneratedOthers or false
     if self.Generating then
         repeat task.wait()until self.Generating == false
         return
@@ -120,7 +120,7 @@ function Chunk:Generate()
     local t = multihandler.GetTerrain(self.Chunk.X,self.Chunk.Y,16)
    --local t = generationhand.GenerateTerrain(self.Chunk.X,self.Chunk.Y)
     self.Blocks = terrainh.Color(self.Chunk.X,self.Chunk.Y,t) 
-    if not self.Setttings.GeneratedCaves  then
+    if not self.Settings.GeneratedOthers  then
       self:DoCaves()
     end
   self:GenerateCavesNearBy()
@@ -141,10 +141,10 @@ function Chunk.Create(x,y,ndata)
     local data = BlockSaver.GetChunk(x,y)
     if data then
         data = multihandler.DeCompress({data})[1]
-        local newdata = {Setttings = {}}
-        local settings = newdata.Setttings
+        local newdata = {Settings = {}}
+        local settings = newdata.Settings
         local c,g,b,l = data.c,data.g,data.b,data.l
-        settings.GeneratedCaves = (not c) and true 
+        settings.GeneratedOthers = (not c) and true 
         settings.Generated = (not g) and true
         --if not settings.Generated then print(x,y) end 
         newdata.ToLoad = l 
@@ -159,11 +159,11 @@ function Chunk:Compress()
     self.Saving = true
     if not self.Changed then return   end 
     print(self)
-    local settings = qF.deepCopy(self.Setttings)
+    local settings = qF.deepCopy(self.Settings)
     local ToLoad = self.ToLoad or {}
     local Blocks = self.Blocks or {}
     local tosave = {
-        c = (not settings.GeneratedCaves) and 1 or nil,
+        c = (not settings.GeneratedOthers) and 1 or nil,
         g = (not settings.Generated) and 1 or nil,
         b = Blocks,
         l = ToLoad

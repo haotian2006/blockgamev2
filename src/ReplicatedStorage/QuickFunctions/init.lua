@@ -174,9 +174,6 @@ function qf.GetChunkAndLocal(x,y,z)
     return cx,cz,lx,ly,lz
 end
 function qf.SpeicalRound(x)
-    do 
-        return math.floor(x)
-    end
     if x > 0 then
         return math.floor(x)
     else
@@ -187,8 +184,8 @@ function qf.GetChunkfromReal(x,y,z,blockinstead)
     if not blockinstead then
         x,y,z = x/gridS,y/gridS,z/gridS
     end
-	local cx =	tonumber(qf.SpeicalRound((x)/chunkd))
-	local cz= 	tonumber(qf.SpeicalRound((z)/chunkd))
+	local cx =	tonumber(math.floor((x+0.5)/chunkd))
+	local cz= 	tonumber(math.floor((z+0.5)/chunkd))
 	return cx,cz
 end
 function qf.convertchgridtoreal(cx,cz,x,y,z,toblockinstead):Vector3

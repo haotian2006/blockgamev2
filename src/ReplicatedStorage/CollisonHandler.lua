@@ -73,12 +73,12 @@ function  collisions.IsGrounded(entity,CheckForBlockAboveInstead)
     local bb = CheckForBlockAboveInstead and 1 or 0
     local min = vector3(
         position.X-hitbox.X/2,
-        position.Y-(hitbox.Y/2+0.0225*aa),
+        position.Y-(hitbox.Y/2+0.0225*aa)*invert,
         position.Z-hitbox.X/2
     )   
     local max = vector3(
         position.X+hitbox.X/2,
-        position.Y+(hitbox.Y/2+0.0225*bb),
+        position.Y-(hitbox.Y/2+0.0225*bb)*invert,
         position.Z+hitbox.X/2 
 )
     local gridsize = .5
@@ -112,6 +112,7 @@ function  collisions.IsGrounded(entity,CheckForBlockAboveInstead)
     end 
     return false
 end
+
 function collisions.GetBroadPhase(b1,s1,velocity)
     b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)
     local position = vector3(
@@ -314,6 +315,7 @@ function collisions.RotateHitBoxs(rotation,hitboxinfo)
     local crotation = collisions.ConvertToCFrame(rotation)
     for i,v in hitboxinfo do
         if i == 'CanCollide' then continue end 
+        if rotationHitboxs[rotation] == nil then print(rotation) end 
         new[i] = {Size = rotationHitboxs[rotation](v.Size),
         Offset = (crotation*
         CFrame.new(v.Offset or Vector3.zero)).

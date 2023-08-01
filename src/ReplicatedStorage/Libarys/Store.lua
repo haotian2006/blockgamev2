@@ -5,12 +5,9 @@ local BSD = debirs.CreateFolder("BlockStore")
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local reh = require(game.ReplicatedStorage.ResourceHandler)
 local DEFAULT_TIME = 60
-Block.Type = "block"
+Block.Type = "store"
 Block.__index = Block
 Block.__eq = function(a,b)
-    if type(b) ~= "table" then
-        return a[1] == b
-    end
     return a[1] == b[1]
 end
 Block.__metatable = false
@@ -25,6 +22,9 @@ function Block:getKey()
 end
 function Block:getData()
     return self[2]
+end
+function Block:IsA(t)
+    return self[2].T == t
 end
 BS.Predefined = {
     empty = Block.new("",{}),

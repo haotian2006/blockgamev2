@@ -18,7 +18,7 @@ local bridge = require(game.ReplicatedStorage.BridgeNet)
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local GetChunk = bridge.CreateBridge("GetChunk")
 local isserver = runservice:IsServer()
-local bS = require(game.ReplicatedStorage.Libarys.BlockStore)
+local bS = require(game.ReplicatedStorage.Libarys.Store)
 function self.AddEntity(uuid:string,address:table)
     self.AmmountOfEntities += 1
     if type(uuid) == "table" then
@@ -59,7 +59,7 @@ function self.EntitiesinR(x,y,z,r,ConvertToClient,interval )
     for i,v in self.LoadedEntities do
         if not y then vector = Vector3.new(x,v.Position.Y,z) end 
         if (v.Position - vector).Magnitude <= r then
-            entitys[i] = not ConvertToClient and v or v:ConvertToClient(ConvertToClient,interval)
+            entitys[i] = v
         end
     end
     return entitys
@@ -111,7 +111,7 @@ end
 function self.canPlaceBlockAt(X,Y,Z,block) 
     if self.GetBlock(X,Y,Z) then return end
     for i,v in self.EntitiesinR(X,Y,Z,1.5) or {} do
-        local a = require(game.ReplicatedStorage.CollisonHandler).AABBcheck(v.Position+v:GetVelocity()*task.wait(),Vector3.new(X,Y,Z),Vector3.new(v.Hitbox.X,v.Hitbox.Y,v.Hitbox.X),Vector3.new(1,1,1))
+        local a = require(game.ReplicatedStorage.CollisonHandler).AABBcheck(v.Position+v:GetVelocity()*task.wait(),Vector3.new(X,Y,Z),Vector3.new(v.Hitbox.X,v.Hitbox.Y,v.Hitbox.X)*.99,Vector3.new(1,1,1))
         if a then
             return false 
         end
@@ -132,7 +132,7 @@ function self.GetBlock(x,y,z)
     local chunk = self.GetChunk(cx,cz)
     local localgrid = Vector3.new(round(x)%settings.ChunkSize.X,round(y),round(z)%settings.ChunkSize.X)
     localgrid = Vector3.new((localgrid.X),(localgrid.Y),(localgrid.Z))
-    if chunk and (not isserver or chunk.Setttings["Generated"]) then
+    if chunk and (not isserver or chunk.Settings["Generated"]) then
         if localgrid.Y >= settings.ChunkSize.Y then
             return false,localgrid.X..','..localgrid.Y..','..localgrid.Z
         end
@@ -142,6 +142,10 @@ function self.GetBlock(x,y,z)
     else
        return bS:get("NULL"),localgrid.X..','..localgrid.Y..','..localgrid.Z
     end
+end
+local le = require(script.LoadedEntities)
+function self.GetLoadedEntitys()
+    return le
 end
 
 --<server functions

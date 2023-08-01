@@ -94,6 +94,7 @@ function c.OnCloseGui(player,index,amt)
                 if amt and amount > 1 then
                     amount = math.round(amount/2)
                     continerobj[index][2] -= amount
+                    continerobj:UP()
                 else
                     continerobj[index]= ''
                 end
@@ -188,7 +189,15 @@ runservice.Heartbeat:Connect(function(deltaTime)
     c.HoverFrame.Destroying:Connect(function()
         c.HoverFrame = nil
     end)
-end 
+    end
+    if not c.ItemInfo and resourcehandler.GetUI('ItemInfoFrame') then 
+        c.ItemInfo = resourcehandler.GetUI('ItemInfoFrame'):Clone() 
+        c.ItemInfo.Parent = game.Players.LocalPlayer.PlayerGui
+        c.ItemInfo.Enabled = false
+        c.ItemInfo.Destroying:Connect(function()
+            c.ItemInfo = nil
+        end)
+    end 
     if not PEntity() or PEntity():GetState('Dead') then
         c.ResetUis()
         return
@@ -208,14 +217,33 @@ end
         end 
         end
         local ui = player.PlayerGui:GetGuiObjectsAtPosition(mouse.X,mouse.Y)
+        local pass = false
+        if  c.ItemInfo then
+            local size = c.Uis['HoldingFrame'].Holding.AbsoluteSize.X
+             c.ItemInfo.Main.Position = UDim2.new(0,mouse.X+size  ,0,mouse.Y+36)
+        end
         for i,v:string in ui do
             local s = v.Name:split('.')
             if s[1] == 'Container' then
                 if c.HoverFrame.Parent ~= v then
                     c.HoverFrame.Parent = v
+                    if   c.ItemInfo and  c.ItemInfo:FindFirstChild("Main") and v:FindFirstChild("IconTemp") and v:FindFirstChild("IconTemp").name.Text ~= "" then
+
+                        local rn = v:FindFirstChild("IconTemp").name.Text
+                        local data = resourcehandler.GetItem(rn) and resourcehandler.GetItem(rn).DisplayName or (rn:find(":") and rn:sub(rn:find(":")+1,#rn)) or rn 
+                        c.ItemInfo.Main.DisplayName.Text = data
+                        c.ItemInfo.Main.RealName.Text = rn
+                        pass = true
+                        c.ItemInfo.Enabled  = true
+                    elseif  c.ItemInfo  then
+                        c.ItemInfo.Enabled  = false
+                    end
                 end
                 return
             end
+         end
+         if  c.ItemInfo then
+          c.ItemInfo.Enabled = pass
          end
          if c.HoverFrame and c.HoverFrame.Parent ~= script then
             c.HoverFrame.Parent = script
@@ -224,30 +252,44 @@ end
         c.Uis['HoldingFrame'].Enabled = false
         c.HoverFrame.Parent = script
         if PEntity().Container.HoldingItem then
-            UpdateHolding:Fire(nil)
+            UpdateHolding:Fire()
         end
     elseif PEntity() and not PEntity().Ingui then
-        if c.Uis['HoldingFrame'] then
-            c.Uis['HoldingFrame'].Enabled = false
+        if  c.ItemInfo  then
+            c.ItemInfo.Enabled  = false
         end
-        if PEntity().Container and PEntity().Container.HoldingItem then
-            UpdateHolding:Fire(nil)
+        if c.Uis['HoldingFrame'] and c.Uis['HoldingFrame'].Enabled then
+            c.Uis['HoldingFrame'].Enabled = false
+            if PEntity().Container and PEntity().Container.HoldingItem then
+                UpdateHolding:Fire()
+            end
         end
     end
 end)
 function c.UpdateOne(frame,item)
     if not PEntity() or not PEntity().inventory then return nil end 
-    local inventory = PEntity().inventory or {}
+    local inventory = PEntity().inventory or {Data = {}}
     if not frame then return end
     local amt = 0
     local inframe = frame:FindFirstChild('IconTemp') or GetIconTemp() and GetIconTemp():clone()
     if not inframe then return end 
     inframe.Parent = frame
     if type(item) =="table" then
+        local itemdata = qf.DecompressItemData(item[1]) or {}
+        local rsdata = resourcehandler.GetItem(itemdata.T) or {}
         amt = item[2]
-        inframe.name.Text = qf.DecompressItemData(item[1],'T')
+        if rsdata.Icon then
+            inframe.name.Text = itemdata.T
+            inframe.name.Visible = false
+            inframe.Icon.Image = type( rsdata.Icon) == "string" and  rsdata.Icon or  rsdata.Icon.Texture
+        else
+            inframe.name.Visible = true
+            inframe.name.Text = itemdata.T
+            inframe.Icon.Image = ""
+        end
     else
         inframe.name.Text = ""
+        inframe.Icon.Image = ""
     end
     if amt == 0 or amt == 1 then
         inframe.Amount.Text = ""
@@ -273,6 +315,7 @@ c.disableUis = function(name)
         end
         c.Uis[name].Enabled= false
         UpdateHolding:Fire()
+        
     end
 end
 end

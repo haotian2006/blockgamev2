@@ -22,13 +22,13 @@ self.Blocks ={}
 self.storage = self.storage or Instance.new("Folder")
 self.storage2 = self.storage2 or Instance.new("Folder")
 local vector3 = Vector3.new
-function self.CreateTexture(texture,face)
+function self.CreateTexture(texture,face,size)
     local new
-    if texture:IsA("Decal") or texture:IsA("Texture") then
+    if texture:IsA("Decal") or texture:IsA("Texture") or type(texture) == "string" then
         new = Instance.new("Texture")
-        new.Texture = texture.Texture
-        new.StudsPerTileU = gridS
-        new.StudsPerTileV = gridS
+        new.Texture = type(texture) == "string" and texture or texture.Texture
+        new.StudsPerTileU = size or gridS
+        new.StudsPerTileV = size or gridS
         new.Face = face
     elseif texture:IsA("SurfaceGui") then
         new = texture:Clone()
@@ -50,15 +50,15 @@ local function deepCopy(original)
   end
 local once = false
 local directions = {"Right", "Left", "Top", "Bottom", "Back", "Front"} 
-local mappings = { -- tried to us chatgpt for this, didn't work so decided to just hard code it
+local mappings = {
 --['90,0,0'] = {1, 2, 6, 5, 3, 4}, 
 --['-90,0,0'] = {1, 2, 5, 6, 4, 3}, 
     ['0,0,0'] = {1, 2, 3, 4, 5, 6}, 
-    ['0,90,0'] = {5, 6, 3, 4, 2, 1},
+    ['0,90,0'] = {5, 6, 3, 4, 2, 1},--
     ['0,-90,0'] = {6, 5, 3, 4, 1, 2},
     ['0,180,0'] = {2, 1, 3, 4, 6, 5},
     ['0,90,180'] = {5, 6, 4, 3, 1, 2},
-    ['0,-90,180'] = {6, 5, 4, 3, 2, 1},
+    ['0,-90,180'] = {6, 5, 4, 3, 2, 1},--{4,3,5,6,2,1}
     ['0,0,180'] = {2, 1, 4, 3, 5, 6}, 
     ['0,180,180'] = {1, 2, 4, 3, 6, 5}, 
 --3 = 6 4 = 5 
@@ -105,7 +105,12 @@ do
         mappings['90,'..ry..','..rz] = v
     end
     mappings['90,180,180'] = {1, 2, 6, 5, 3, 4}
+    mappings['90,-90,180'] = {3,4,6,5,2,1}
+    mappings['90,0,180'] =   {2,1,6,5,4,3}
+    mappings ["-90,-90,0"] = {3,4,5,6,1,2}
+    mappings["90,90,180"] = {4,3,6,5,1,2}
 end
+print(mappings)
 function self.GetOrderOfSide(Orientation)
     if not Orientation then return directions end 
     local orientation = collisions.ConvertToTable(Orientation)

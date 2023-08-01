@@ -136,7 +136,7 @@ function entity.new(data)
     self.NotSaved["behaviors"] =  {}
     self.NotSaved.NoClear = {}
     self.Container = proxy.new(self.Container or {},true)
-    self.CurrentStates = proxy.new(self.CurrentStates or {},true)
+    self.CurrentStates = proxy.new(self.CurrentStates or {})
     real.__Last ={}
     return real
 end
@@ -185,7 +185,7 @@ function entity:UpdateIdleAni()-- plays idle ani
     end
 end
 function entity:GetServerChanges()
-    local ServerOnlyChanges = {Position = true,Headdir = true,Bodydir = true,PlayingAnimations = true,CurrentSlot = true,ViewMode = true,Ingui = true,CurrentStates = true}
+    local ServerOnlyChanges = {Position = true,Headdir = true,Bodydir = true,PlayingAnimations = true,CurrentSlot = true,ViewMode = true,Ingui = true,CurrentStates = true,Crouching = true}
     for i,v in self.AllowedClientChanges or {} do
         ServerOnlyChanges[i] = v
     end
@@ -202,7 +202,7 @@ function entity:UpdateEntity(newdata)
             if type(newdata[i]) == "table" then
                 if newdata[i].__type == 'EntityAttribute'then
                     if self.Container[i] then
-                        self.Container[i]( v.Data)
+                        self.Container[i]:Update( v.Data)
                     else
                         self.Container[i] = EntityAttribute.create( v)
                     end
@@ -218,7 +218,7 @@ function entity:UpdateEntity(newdata)
             if v.__type == 'EntityAttribute' then
                 self[i] = EntityAttribute.create(v)
             else
-                if not self[i] then
+                if not self[i] or type(self[i]) ~= "table" then
                     self[i] = v
                     continue
                 end
@@ -247,9 +247,9 @@ function entity:UpdateEntityClient(newdata)
         for i,v in newdata.Container do
             if type(v) == "table" and v.__type == 'EntityAttribute' then
                 if self.Container[i] then
-                    self.Container[i](v.Data)
+                    self.Container.__P[i]:Update(v.Data)
                 else
-                    self.Container[i] = EntityAttribute.create( v)
+                    self.Container.__P[i] = EntityAttribute.create( v)
                 end
             else
                 self.Container[i] = v
@@ -262,12 +262,12 @@ function entity:UpdateEntityClient(newdata)
         if type(v) == "table" then
             if v.__type == 'EntityAttribute'  then
                 if self[i] and self[i].EntityAttributes then
-                    self[i](v.Data)
+                    self[i]:Update(v.Data)
                 else
-                    self[i] = EntityAttribute.create(v)
+                    self.__P[i] = EntityAttribute.create(v)
                 end
             else
-                if not self[i] then
+                if not self[i] or type(self[i]) ~= "table" then
                     self[i] = v
                     continue
                 end
@@ -282,8 +282,21 @@ function entity:UpdateEntityClient(newdata)
         else
             self[i] = v ~= "__NULL__" and v or nil
         end
-    end
+    end      
 end
+local function CreateTexture(texture,face)
+    local new
+    if texture:IsA("Decal") or texture:IsA("Texture") or type(texture) == "string" then
+        new = Instance.new("Decal")
+        new.Texture = type(texture) == "string" and texture or texture.Texture
+        new.Face = face
+    elseif texture:IsA("SurfaceGui") then
+        new = texture:Clone()
+        new.Face = face 
+    end
+
+        return new
+end 
 function entity:VisuliseHandItem()
     if not isClient then warn("Client Only Function") return end 
     local Item = self.HoldingItem or {}
@@ -336,11 +349,11 @@ function entity:VisuliseHandItem()
                 if texture then
                     if type(texture) == "table" then
                         for i,v in texture do
-                                table.insert(stuff,require(game.ReplicatedStorage.RenderStuff.Render).CreateTexture(v,i))
+                                table.insert(stuff,CreateTexture(v,i))
                         end
                     elseif type(texture) == "userdata" then
                         for v in sides do
-                            table.insert(stuff,require(game.ReplicatedStorage.RenderStuff.Render).CreateTexture(texture,v))
+                            table.insert(stuff,CreateTexture(texture,v))
                         end
                     end
                 end
@@ -371,6 +384,163 @@ function entity:VisuliseHandItem()
         end
     else
         attachment:ClearAllChildren()
+    end
+end
+
+function entity:GetVelocity():Vector3
+    local x,y,z = 0,0,0
+    for i,v in self.Velocity do
+        if typeof(v) == "Vector3" and v == v then
+            x+= v.X
+            y+= v.Y
+            z+= v.Z
+        end
+    end
+    if x == 0 then
+        x = -0.00000001
+    end
+    if z == 0 then
+        z = -0.00000001
+    end
+    return Vector3.new(x,y,z)
+end
+function entity:IsGrounded(IsTouchingCeil)
+    return CollisionHandler.IsGrounded(self,IsTouchingCeil) 
+end
+function entity:IsSuffocating()
+    return CollisionHandler.GetBlocksInBounds(self:GetEyePosition(),Vector3.new(self.Hitbox.X,.001,self.Hitbox.X)) 
+end
+function entity:GetItemFromSlot(slot:number)
+    if self.inventory then
+        return self.inventory[slot]
+    end
+    return ""
+end
+function entity:GetQf()-- returns quick functions module 
+    return qf
+end
+function entity:GetData()
+    return datahandler
+end
+function entity:GetSelf()
+    return entity
+end
+function entity:CanCrouch(): boolean
+    local itm = ItemHandler.GetItemData(type(self.HoldingItem)=="table" and self.HoldingItem[1] or "") 
+    return self.CrouchLower and (not itm or (itm and itm.CanCrouch ~= false)) and not self.CannotCrouch
+end
+function entity:Crouch(letgo:boolean)
+    if self.Crouching == not letgo then return end 
+    local dcby = self.CrouchLower or 0
+    letgo = not letgo
+    self.Crouching = letgo
+    if not letgo then dcby *= -1 end 
+    if RunService:IsServer() or true then
+        self.Hitbox = Vector2.new(self.Hitbox.X, self.Hitbox.Y-dcby)
+        self.EyeLevel = self.EyeLevel - dcby
+        self.Position = self.Position +Vector3.new(0,-dcby/2,0)
+    end
+    if letgo then
+        self:PlayAnimation("Crouch")
+        self:SetState('Crouching',true)
+    else
+        self:StopAnimation("Crouch")
+        self:SetState('Crouching',false)
+    end
+end
+function entity:GetPropertyWithMulti(name)
+    local muti = self[name] or 0
+    for i,v in self.StateInfo or {} do
+        if self.CurrentStates[i] then
+            muti *= v[name] or 1
+        end
+    end
+    return muti
+end
+function entity:GPWM(name)
+    return self:GetPropertyWithMulti(name)
+end
+function entity:GetEyePosition(): Vector3
+    local eye = (self.EyeLevel or 0)/2
+    return self.Position + Vector3.new(0,eye,0)
+end
+function entity:GetFeetPosition(): Vector3
+    local ysize = (self.Hitbox.Y or 0)/2
+    return self.Position - Vector3.new(0,ysize,0)
+end
+function entity:AddVelocity(Name,velocity:Vector3)
+    if not self.NotSaved.ClearVelocity or self.NotSaved.NoClear[Name] then
+        self.Velocity[Name] = self.Velocity[Name] or Vector3.new()
+        self.Velocity[Name] = velocity
+    else
+        self.NotSaved.Velocity = self.NotSaved.Velocity or {}
+        self.NotSaved.Velocity[Name] =  self.NotSaved.Velocity[Name] or Vector3.new()
+        self.NotSaved.Velocity[Name] = velocity
+    end
+    return self
+end
+
+function entity:AddToNoClear(Name)
+    self.NotSaved.NoClear = self.NotSaved.NoClear or {}
+    self.NotSaved.NoClear[Name] = true
+end
+function entity:RemoveFromNoClear(Name)
+    self.NotSaved.NoClear = self.NotSaved.NoClear or {}
+    self.NotSaved.NoClear[Name] = nil
+end
+function entity:DoBehaviors(dt)
+    --wip
+end
+function entity:ClearVelocity()
+    for i,v in self.Velocity do
+        if not entity.NotClearedNames[i] and not self.NotSaved.NoClear[i] then
+            self.Velocity[i] = nil
+        end
+    end
+    self.NotSaved.ClearVelocity = false
+    for i,v in self.NotSaved.Velocity or {} do
+        self.Velocity[i] = v
+        self.NotSaved.Velocity[i] = nil
+    end
+end
+function entity:CloneProperties(x)
+        local copy = {}
+        for k, v in pairs(x or self) do
+          if type(v) == "table" then
+            v = entity:CloneProperties(v)
+          end
+          copy[k] = v
+        end
+        return copy
+end
+function entity:RemoveFromChunk()
+    if self.Chunk and datahandler.GetChunk(self.Chunk.X,self.Chunk.Y) then
+        datahandler.GetChunk(self.Chunk.X,self.Chunk.Y).Entities[self.Id] = nil
+    end
+end
+function entity:SetNetworkOwner(player:Player)
+    self.ClientControl = player and tostring(player.UserId) or nil
+end
+function entity:SetBodyRotationDir(dir)
+    self.Bodydir = dir
+end
+function entity:SetHeadRotationDir(dir)
+    self.Headdir =  dir
+end
+local lp = Instance.new("Part")
+lp.Size = Vector3.one
+lp.Anchored = true
+lp.Name = "AJAJAJAJA"
+function entity:SetModelTransparency(value)
+    if not isClient then warn("Client Only Function") return end 
+    local model = self.Entity
+    if RunService:IsServer() or not model then return end
+    for i,v in model:GetDescendants() do
+        if (v:IsA("BasePart") ) and v.Name ~= "Middle" then
+            v.LocalTransparencyModifier = value
+        elseif v:IsA('GuiObject') or v:IsA("Decal") or v:IsA("Texture") or v:IsA("SelectionBox") then
+            v.Transparency = value 
+        end
     end
 end
 function entity:UpdateModelPosition()-- Updates the Eye positions etc 
@@ -565,160 +735,9 @@ function entity:UpdatePosition(dt)
         self:Jump()
     end
 end
-function entity:GetVelocity():Vector3
-    local x,y,z = 0,0,0
-    for i,v in self.Velocity do
-        if typeof(v) == "Vector3" and v == v then
-            x+= v.X
-            y+= v.Y
-            z+= v.Z
-        end
-    end
-    if x == 0 then
-        x = -0.00000001
-    end
-    if z == 0 then
-        z = -0.00000001
-    end
-    return Vector3.new(x,y,z)
-end
-function entity:IsGrounded(IsTouchingCeil)
-    return CollisionHandler.IsGrounded(self,IsTouchingCeil) 
-end
-function entity:IsSuffocating()
-    return CollisionHandler.GetBlocksInBounds(self:GetEyePosition(),Vector3.new(self.Hitbox.X,.001,self.Hitbox.X)) 
-end
-function entity:GetItemFromSlot(slot:number)
-    if self.inventory then
-        return self.inventory[slot]
-    end
-    return ""
-end
-function entity:GetQf()-- returns quick functions module 
-    return qf
-end
-function entity:GetData()
-    return datahandler
-end
-function entity:GetSelf()
-    return entity
-end
-function entity:CanCrouch(): boolean
-    local itm = ItemHandler.GetItemData(type(self.HoldingItem)=="table" and self.HoldingItem[1] or "") 
-    return self.CrouchLower and (not itm or (itm and itm.CanCrouch ~= false)) and not self.CannotCrouch
-end
-function entity:Crouch(letgo:boolean)
-    if self.Crouching == not letgo then return end 
-    local dcby = self.CrouchLower or 0
-    letgo = not letgo
-    self.Crouching = letgo
-    if not letgo then dcby *= -1 end 
-    if RunService:IsServer() or true then
-        self.Hitbox = Vector2.new(self.Hitbox.X, self.Hitbox.Y-dcby)
-        self.EyeLevel = self.EyeLevel - dcby
-        self.Position += Vector3.new(0,-dcby/2,0)
-    end
-    if letgo then
-        self:PlayAnimation("Crouch")
-        self:SetState('Crouching',true)
-    else
-        self:StopAnimation("Crouch")
-        self:SetState('Crouching',false)
-    end
-end
-function entity:GetPropertyWithMulti(name)
-    local muti = self[name] or 0
-    for i,v in self.StateInfo or {} do
-        if self.CurrentStates[i] then
-            muti *= v[name] or 1
-        end
-    end
-    return muti
-end
-function entity:GPWM(name)
-    return self:GetPropertyWithMulti(name)
-end
-function entity:GetEyePosition(): Vector3
-    local eye = (self.EyeLevel or 0)/2
-    return self.Position + Vector3.new(0,eye,0)
-end
-function entity:GetFeetPosition(): Vector3
-    local ysize = (self.Hitbox.Y or 0)/2
-    return self.Position - Vector3.new(0,ysize,0)
-end
-function entity:AddVelocity(Name,velocity:Vector3)
-    if not self.NotSaved.ClearVelocity or self.NotSaved.NoClear[Name] then
-        self.Velocity[Name] = self.Velocity[Name] or Vector3.new()
-        self.Velocity[Name] = velocity
-    else
-        self.NotSaved.Velocity = self.NotSaved.Velocity or {}
-        self.NotSaved.Velocity[Name] =  self.NotSaved.Velocity[Name] or Vector3.new()
-        self.NotSaved.Velocity[Name] = velocity
-    end
-    return self
-end
-
-function entity:AddToNoClear(Name)
-    self.NotSaved.NoClear = self.NotSaved.NoClear or {}
-    self.NotSaved.NoClear[Name] = true
-end
-function entity:RemoveFromNoClear(Name)
-    self.NotSaved.NoClear = self.NotSaved.NoClear or {}
-    self.NotSaved.NoClear[Name] = nil
-end
-function entity:DoBehaviors(dt)
-    --wip
-end
-function entity:ClearVelocity()
-    for i,v in self.Velocity do
-        if not entity.NotClearedNames[i] and not self.NotSaved.NoClear[i] then
-            self.Velocity[i] = nil
-        end
-    end
-    self.NotSaved.ClearVelocity = false
-    for i,v in self.NotSaved.Velocity or {} do
-        self.Velocity[i] = v
-        self.NotSaved.Velocity[i] = nil
-    end
-end
-function entity:CloneProperties(x)
-        local copy = {}
-        for k, v in pairs(x or self) do
-          if type(v) == "table" then
-            v = entity:CloneProperties(v)
-          end
-          copy[k] = v
-        end
-        return copy
-end
-function entity:RemoveFromChunk()
-    if self.Chunk and datahandler.GetChunk(self.Chunk.X,self.Chunk.Y) then
-        datahandler.GetChunk(self.Chunk.X,self.Chunk.Y).Entities[self.Id] = nil
-    end
-end
-function entity:SetNetworkOwner(player:Player)
-    self.ClientControl = player and tostring(player.UserId) or nil
-end
-function entity:SetBodyRotationDir(dir)
-    self.Bodydir = dir
-end
-function entity:SetHeadRotationDir(dir)
-    self.Headdir =  dir
-end
-local lp = Instance.new("Part")
-lp.Size = Vector3.one
-lp.Anchored = true
-lp.Name = "AJAJAJAJA"
-function entity:SetModelTransparency(value)
-    if not isClient then warn("Client Only Function") return end 
-    local model = self.Entity
-    if RunService:IsServer() or not model then return end
-    for i,v in model:GetDescendants() do
-        if (v:IsA("BasePart") ) and v.Name ~= "Middle" then
-            v.LocalTransparencyModifier = value
-        elseif v:IsA('GuiObject') or v:IsA("Decal") or v:IsA("Texture") or v:IsA("SelectionBox") then
-            v.Transparency = value 
-        end
+function entity:UpdateBodyVelocity(dt)
+    for i,v in self.BodyVelocity or {} do
+        self.Velocity[i] = self.BodyVelocity[i]
     end
 end
 function entity:UpdateRotationClient()
@@ -782,7 +801,7 @@ function entity:UpdateRotationClient()
          cf = CFrame.new(mainjoint.C0.Position)*CFrame.fromOrientation(mx,my,mz)
         mainjoint.C0 = cf
     end
-   local upordown = math.sign(lookAtdir.Unit:Dot(Vector3.new(0,1,0)))
+  -- local upordown = math.sign(lookAtdir.Unit:Dot(Vector3.new(0,1,0)))
     for v,i in neckjoints do
         local maxleftright = type(neck[v.Name][1]) == "table" and neck[v.Name][1] or neck[v.Name]
         local maxupdown = type(neck[v.Name][1]) == "table" and neck[v.Name][2] 
@@ -845,6 +864,7 @@ function entity:LookAt(Position,timetotake)
 end
 function entity:KnockBack(force,time)
     self.NotSaved.Tick = 0
+    --self:ApplyVelocity(force)
     movers.Curve.new(self,force,time,nil,nil,false)
 end
 function entity:MoveTo(x,y,z)
@@ -852,7 +872,7 @@ function entity:MoveTo(x,y,z)
     new:Init()
     return new
 end
-function entity:IsClientControl()
+function entity:GetClientController()
     if self.ClientControl then
         for i,v in game.Players:GetPlayers() do
             if v.UserId == tonumber(self.ClientControl) then
@@ -863,7 +883,7 @@ function entity:IsClientControl()
     return nil,RunService:IsClient()
 end
 function entity:SetPosition(position)
-    local plr,client = self:IsClientControl()
+    local plr,client = self:GetClientController()
     if plr and not client then
         changeproperty:Fire(plr,self.Id,"Position",position)
     elseif client and plr == game.Players.LocalPlayer then
@@ -878,7 +898,7 @@ function  entity:LoadAnimation(Name)
 end
 function entity:PlayAnimation(Name,PlayOnce)
     if self:GetState('Dead') then return end 
-    local plr,client = self:IsClientControl()
+    local plr,client = self:GetClientController()
     if PlayOnce then 
         if not client then
             playani:FireAll(self.Id,Name)
@@ -899,7 +919,7 @@ function entity:PlayAnimation(Name,PlayOnce)
     end
 end
 function entity:StopAnimation(Name)
-    local plr,client = self:IsClientControl()
+    local plr,client = self:GetClientController()
     if plr and not client then
         changeproperty:Fire(plr,self.Id,{"PlayingAnimations",Name},false)
     elseif client and plr == game.Players.LocalPlayer then
@@ -907,6 +927,41 @@ function entity:StopAnimation(Name)
     else
         self.PlayingAnimations[Name] = false
     end
+end
+function entity:ApplyVelocity(v:Vector3) 
+    local y = if v.Y ~= 0 then 0.125*(v.Y) + 0.375 else 0 
+    self:SetBodyVelocity("Gravity",Vector3.new(0,y,0) )
+    self.Data.Gravity = y
+    self.Data.Grounded = false
+    self:SetBodyVelocity("DVelocity",Vector3.new(v.X,0,v.Z) )
+end
+function entity:UpdateVelocity(dt) 
+    local v = self:GetBodyVelocity("DVelocity") or Vector3.zero
+    local x,z = v.X,v.Z
+    local xs = math.sign(x)
+    local zs = math.sign(z)
+    x,z = math.abs(x),math.abs(z)
+    local decraseRate = self.DragRate or .008
+    local change = false
+    local tick = self.Data.DragTicks or 1
+    if x>0 then
+        x -=  decraseRate*tick*(60* dt)
+        x= math.max(x,0)
+        x*= xs
+        change = true
+    else
+        x = 0
+    end
+    if z > 0 then
+        z -=  decraseRate*tick*(60* dt)
+        z = math.max(z,0)
+        z *=zs
+        change = true
+    else 
+        z = 0
+    end
+    if change then  self.Data.DragTicks += dt*20 else  self.Data.DragTicks = 0 end 
+    self:SetBodyVelocity("DVelocity",Vector3.new(x,0,z) )
 end
 function entity:SetBodyVelocity(name,velocity)
     self.BodyVelocity = self.BodyVelocity or {}
@@ -916,11 +971,7 @@ function entity:GetBodyVelocity(name)
     self.BodyVelocity= self.BodyVelocity or {}
     return self.BodyVelocity[name] 
 end
-function entity:UpdateBodyVelocity(dt)
-    for i,v in self.BodyVelocity or {} do
-        self.Velocity[i] = self.BodyVelocity[i]
-    end
-end
+
 function entity:Gravity(dt)
     local entity = self
     local cx,cz = entity:GetQf().GetChunkfromReal(entity.Position.X,entity.Position.Y,entity.Position.Z,true)
@@ -959,7 +1010,7 @@ function entity:Gravity(dt)
                 end
             end
         end
-        fallrate -= 0.08/3
+        fallrate -= 0.08/3*(60* dt)
        -- fallrate *= 0.9800000190734863
         entity.Data.LastFallTicks = math.floor(entity.Data.FallTicks)
         self:SetBodyVelocity("Gravity",Vector3.new(0,fallrate*20,0) )
@@ -1047,6 +1098,7 @@ function entity:Update(dt)
         -- self.Velocity['Gravity'] = a 
     end
     self:UpdatePosition(dt)
+    self:UpdateVelocity(dt)
     self:Gravity(dt)
     if self:GetState('Dead') then self:OnDeath() return end 
     self.NotSaved = self.NotSaved or {}
@@ -1096,7 +1148,7 @@ function entity:OnDeath()
     self:SetState('Dead',true) 
     local model = self.Entity
     if not model then return end 
-    if self:IsClientControl() == game.Players.LocalPlayer and not game.Players.LocalPlayer.PlayerGui:FindFirstChild("DeathScreen") then
+    if self.Id == tostring(game.Players.LocalPlayer.UserId) and not game.Players.LocalPlayer.PlayerGui:FindFirstChild("DeathScreen") then
         game.ReplicatedStorage.Events.OnDeath:Fire()
     end
     if self.DidDeath then return end 
@@ -1119,32 +1171,34 @@ function entity:OnDeath()
     self.PlayingAnimations:Clear()
     anihandler.UpdateEntity(self)
 end
-
-
-local size1000 = settings.ChunkSize.X*1000
-local X_BITS = 0b0000_0000_1111_1111
-local Z_BITS = 0b1111_1111_0000_0000
+local lvm = 127
+local X_BITS = 0b0000_0001_1111_1100
+local Z_BITS = 0b1111_1110_0000_0000
 local function combine(x,y)
-    return bit32.band(x, X_BITS)+ bit32.band(bit32.lshift(y, 8), Z_BITS)
+    local xs = x < 0 and 0 or 1
+    local ys = y < 0 and 0 or 1
+    return bit32.band(bit32.lshift(math.abs(x), 2), X_BITS)+ bit32.band(bit32.lshift(math.abs(y), 9), Z_BITS)+ bit32.band(bit32.lshift(ys, 1), 0b10)+xs
 end
 local function decombine(i)
-    return bit32.extract(i, 0, 8),bit32.extract(i, 8, 8)
+    local xs=   bit32.extract(i, 0, 1) == 1 and 1 or -1
+    local ys =  bit32.extract(i, 1, 1) == 1 and 1 or -1
+    return bit32.extract(i, 2, 7)*xs,bit32.extract(i, 9, 7)*ys
 end
 local function getENCODEDlv(d)
     local mag = d.Magnitude
     local unit = d.Unit
     local x,y,z = unit.X,unit.Y,unit.Z
-    x = math.floor(x*255+0.5)
-    y = math.floor(y*255+0.5)
-    z = math.floor(z*255+0.5)
+    x = math.floor(x*lvm)
+    y =math.floor(y*lvm)
+    z = math.floor(z*lvm)
     local s1 = combine(x,y)
-    local s2 = combine(z,math.clamp(mag,-255,255))
+    local s2 = combine(z,math.clamp(mag,-lvm,lvm))
     return Vector2int16.new(s1,s2)
 end
 local function getDECODEDlv(d)
     local x,y = decombine(d.X)
     local z,m = decombine(d.Y)
-    return Vector3.new(x,y,z)/255*m
+    return Vector3.new(x,y,z)/lvm*m
 end
 function entity:ENCODE(Changed) 
     local posvector
@@ -1160,25 +1214,30 @@ function entity:ENCODE(Changed)
     if Changed.Position then
         c = true
         local p = Changed.Position
-        local cx,cz,lx,ly,lz = qf.GetChunkAndLocal(p.X,p.Y,p.Z)
+        local cx = math.floor(( math.floor(p.X))/settings.ChunkSize.X)
+        local cz = math.floor(( math.floor(p.Z))/settings.ChunkSize.X)
+        local lx,ly,lz = p.X%settings.ChunkSize.X,p.Y,p.Z%settings.ChunkSize.X
         local c= Vector2int16.new(cx,cz)
         if self.Type == "Npc" then
-            warn(c,Vector3.new(lx,ly,lz),p)
+           -- warn(c,Vector3.new(lx,ly,lz),p)
         end
-        lx= math.floor(lx*30)
-        ly = math.floor(math.clamp(ly,-1820,1820)*30+0.5)
-        lz= math.floor(lz*30)
-        posvector = Vector2int16.new(combine(lx,lz),ly)
-       -- if self.Chunk ~= c then
+        lx= math.floor(lx*4050)
+        ly = math.floor(math.clamp(ly,-300,300)*100+0.5)
+        lz= math.floor(lz*4050)
+        posvector = Vector3int16.new(lx,ly,lz)
+        if true then
             chunkvector = c
 
             Changed.Chunk = nil
-       -- end
+        end
         Changed.Position = nil
     end
     if Changed.Headdir then
         c = true
-        hdlv = getENCODEDlv(Changed.Headdir)
+        if self.Type == "Npc" then 
+          --  print( Changed.Headdir)
+         end
+        hdlv =  getENCODEDlv(Changed.Headdir)
         Changed.Headdir = nil
     end
     if Changed.Bodydir then
@@ -1198,28 +1257,30 @@ function entity:DECODE(data)
     if data[2] then
         chunkvector = data[2]
        if RunService:IsClient() and data[5] == 2 then
-        print(chunkvector)
+       -- print(chunkvector)
         aaa = true
        end
     end
     if data[1] then
-        local ly,lx,lz= data[1].Y,decombine(data[1].X)
-        local Lposvector = Vector3.new(lx,ly,lz)/30
+        --local ly,lx,lz= data[1].Y,decombine(data[1].X)
+        local Lposvector = Vector3.new(data[1].X/4050,data[1].Y/100,data[1].Z/4050)
         local chunk = chunkvector or self.Chunk
         posvector = qf.convertchgridtoreal(chunk.X,chunk.Y,Lposvector.X,Lposvector.Y,Lposvector.Z,true)
         if aaa then
-            print(posvector,Lposvector)
+           -- print(posvector,Lposvector)
         end
     end
     if data[3] then
         hdlv = getDECODEDlv(data[3])
+        if self.Type == "Npc" then 
+          --  print( hdlv)
+         end
     end
     if data[4] then
-        bdlv = getDECODEDlv(data[4])
+        bdlv =getDECODEDlv(data[4])
     end
-    return {Position = posvector,Chunk = chunkvector,Headir = hdlv, Bodydir = bdlv}
+    return {Position = posvector,Chunk = chunkvector,Headdir = hdlv, Bodydir = bdlv}
 end 
-
 function entity:Destroy()
     datahandler.RemoveEntity(self.Id)
     if self.Entity then

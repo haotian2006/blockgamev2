@@ -118,24 +118,28 @@ func.PlaceBlockClient = function(entity,Data:InputData)
             elseif  dz == 1 then
                 orientation[3] = 0
             end
-            if hitpos.Y >  coords.Y and block.RotateZ then  orientation[3] = '-0' else
+            if hitpos.Y >  coords.Y and block.RotateZ then  
+                orientation[3] = '-0'
+            else
             end
-            if angle >=-40 and angle <= - 39 and block.RotateX then
+            if angle >=-41 and angle <= - 39 and block.RotateX then
                 orientation[1] = 1
-            elseif angle >= 39 and angle <=  40 and block.RotateX then
+            elseif angle >= 39 and angle <=  41 and block.RotateX then
                 orientation[1] = -1
             end
             orientation = (orientation[1]..','..orientation[2]..','..orientation[3])
             if orientation == '0,0,0' then 
                 orientation =nil
             end
+          --  print(angle)
         end
         if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z,data)  then 
             local b= item[1]..(orientation and '/O|s%'..orientation or "")
-            data.InsertBlock(coords.X,coords.Y,coords.Z,b)
+           -- print(orientation)
+       --     data.InsertBlock(coords.X,coords.Y,coords.Z,b)
             entity:PlayAnimation("Place",true)
             ArmsHandler.PlayAnimation('Attack',true)
-            MH.Remote.GetRemote("BlockPlace"):FireServer(coords,b)
+            MH.Remote.GetRemote("BlockPlace"):FireServer(coords,orientation)
         end
     end
 end

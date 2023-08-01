@@ -7,7 +7,7 @@ local f,res = pcall(require,game.ReplicatedStorage.ResourceHandler)
 local f,datahandler = pcall(require,game.ReplicatedStorage.DataHandler)
 local chsiz:Vector2 = settings.ChunkSize
 local debrisfolder = debris.CreateFolder("Blocks",true)
-local bs = require(game.ReplicatedStorage.Libarys.BlockStore)
+local bs = require(game.ReplicatedStorage.Libarys.Store)
 local function IsAnBorder(lx,ly,lz)
     local walls,ammount = {},0
     if lx+1 >= chsiz.X then
@@ -80,6 +80,7 @@ function self.HideBlocks(cx,cz,chunks)
     for index:Vector3,data in chunks[1] do
         if not data or not data:getKey() then continue end
         i+=1
+        if i%1500 == 0 then task.wait() end 
         local x,y,z = index.X,index.Y,index.Z
         local cann,newstr = checksurroundingblocks(x,y,z)
         if not cann then
