@@ -17,22 +17,9 @@ Chunk.__call = function(self)
     return self:GetNTuple()
 end
 local farea = (chunksize.X)*(chunksize.Y)
-Chunk.to1D = function(x,y,z,toString)
-    if toString then
-        return tostring(x + y * chunksize.X + z *farea+1)
-    end
-    return x + y * chunksize.X + z *farea+1
-end
+Chunk.to1D = settings.to1D
 local ym = chunksize.Y-1
-Chunk.to3D = function(index)
-    index = tonumber(index) - 1
-	local x = index % chunksize.X
-	index = math.floor(index / chunksize.X)
-	local y = index % chunksize.Y
-	index = math.floor(index / chunksize.Y)
-	local z = index % chunksize.X
-	return x, y, z
-end
+Chunk.to3D = settings.to3D
 local function round(x)
     return math.floor(x+.5)
 end
@@ -48,19 +35,6 @@ function  Chunk.new(x,z,data)
     self.ToLoad = data.ToLoad or {}
     self.Changed = data and  (data.Changed ~= false and true or false)
     return self
-end
-function Chunk:AddToLoad(stuff)
-    self.Changed = true
-    if  self.Settings.Generated  then
-        for i,v in stuff do
-            if tonumber(i) <=0 then continue end  
-            self:AddBlock(i,v)
-        end
-    else
-        for i,v in stuff do
-            self.ToLoad[i] = v
-        end
-    end
 end
 local Vector3 = Vector3.new
 
@@ -136,8 +110,8 @@ end
 function Chunk:ConvertLocalToGrid(x,y,z)
     return Vector3(x,y,z) + Vector3(self.Chunk.X,0,self.Chunk.Y)*settings.ChunkSize.X
 end
-function Chunk:CompressVoxels()
-    local blocks = self:GetAllBlocks()
+function Chunk:CompressVoxels(data,special)
+    local blocks = data or self:GetAllBlocks()
     local compressed = {}
     local last = blocks[1]
     local count = 1
@@ -147,22 +121,22 @@ function Chunk:CompressVoxels()
         if current == last then
             count +=1
         else
-            table.insert(compressed,{last:getKey(),count})
+            table.insert(compressed,{if special then last else last:getKey(),count})
             last = current 
             total+= count
             count = 1
             
         end
     end
-    table.insert(compressed,{last:getKey(),count})
+    table.insert(compressed,{if special then last else last:getKey(),count})
     return compressed
 end
-function Chunk.DeCompressVoxels(data)
+function Chunk.DeCompressVoxels(data,notbs)
     local decompressed = {}
     local current = 1
     for i,v in data do
         for _ = 1,v[2] do
-            decompressed[tonumber(current)] = bs:get(v[1])
+            decompressed[tonumber(current)] = if notbs then v[1] else bs:get(v[1])
             current +=1
         end
     end

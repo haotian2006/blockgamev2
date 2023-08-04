@@ -38,6 +38,7 @@ local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local CraftingManager =   Manager.CraftingManager:Init()
 local LEntity = data.GetLoadedEntitys()
+require(game.ServerStorage.GenerationMultiHandler):Init()
 --<TESTING MODE>
 local MR = require(game.ReplicatedStorage.Libarys.ModingRemote)
 local Damage = MR.GetRemote("Damage")

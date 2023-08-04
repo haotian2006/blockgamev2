@@ -10,9 +10,9 @@ local EntityBridge = bridge.CreateBridge("EntityBridge")
 local GetChunk = bridge.CreateBridge("GetChunk")
 local isserver = runservice:IsServer()
 local lualzw = require(game.ReplicatedStorage.Libarys.lualzw)
-function self.AddToLoad(cx,cz,stuff)
+function self.AddToLoad(cx,cz,stuff,op2)
     local c = self.GetChunk(cx,cz,'2')
-    c:AddToLoad(stuff)
+    c:AddToLoad(stuff,op2)
 end
 function self.DoCaves(cx,cz,from)
     --if from == '-7,7'and tostring(cx..','..cz) == '-11,12' then print("acb") end 
@@ -74,7 +74,6 @@ task.spawn(function()
                         --      print(chun:GetBlocks())
                         --     -- print(self.GetChunk(cx,cz):GetBlocks())
                         -- end   
-
                         game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):CompressVoxels())
                     end
                     self.InProgress[c] = nil

@@ -10,6 +10,7 @@ local Chunk = require(game.ReplicatedStorage.Chunk)
 local BlockSaver = require(game.ServerStorage.DataStores.BlockSaver)
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local gh = require(game.ServerStorage.GenerationHandler)
+local multigh = require(game.ServerStorage.GenerationMultiHandler)
 function Chunk:LoadToLoad()
     for i,v in self.ToLoad do
         self:AddBlock(i,v)
@@ -17,26 +18,38 @@ function Chunk:LoadToLoad()
     end
     
 end
+function Chunk:AddToLoad(stuff,special)
+    self.Changed = true
+    if  self:StateIsDone("Terrian") and not special then
+        for i,v in stuff do
+            if tonumber(i) <=0 then continue end  
+            self:AddBlock(i,v)
+        end
+    else
+        for i,v in stuff do
+            self.ToLoad[i] = v
+        end
+    end
+end
 function Chunk:GenerateTerrian()
     if self:StateIsDone("Terrian") or self:StateIsDone("GTerrian",true) then   return end
     self:SetState("GTerrian",true)
-    
-    local terrain = multihandler.GetTerrain(self.Chunk.X,self.Chunk.Y,16)
-    local color = terrainh.Color(self.Chunk.X,self.Chunk.Y,terrain) 
+    local color = Chunk.DeCompressVoxels(multigh:CreateTerrain(self.Chunk.X,self.Chunk.Y),true)
+    color = gh.Color(0,0,color) 
     for i:Vector3,v in color do 
         self:AddBlock(i,v)
     end
-
     self.Changed = true
     self:SetState("GTerrian")
     self:SetState("Terrian",true)
 end
 function Chunk:DoCaves()
+    self:StateIsDone("GTerrian",true) 
     if self:StateIsDone("Caves") or self:StateIsDone("GCaves",true) then return end
     self:SetState("GCaves",true)
 
-    local stuff = gh.CreateWorms(self.Chunk.X,self.Chunk.Y)--multihandler.GenerateWorms(self.Chunk.X,self.Chunk.Y)
-    for i,v in stuff do
+    local stuff = multigh:GenerateCaves(self:GetNTuple())
+    for i,v in stuff or {} do
         if i  == self:GetNString() then
             self:AddToLoad(v)
         else
@@ -51,23 +64,58 @@ function Chunk:DoCaves()
 
 end
 function Chunk:GenerateStructures()
+    self:StateIsDone("GTerrian",true) 
+    self:StateIsDone("GCaves",true)
     if self:StateIsDone("Structures") or self:StateIsDone("GStructures",true) then return end
+    self:LoadToLoad()
     self:SetState("GStructures",true)
     local start,endd = self:GetCorners2D()
-    for x = start.X,endd.X,2 do
-        for z = start.Y,endd.Y,2 do
+    local x = start.X
+    local z = start.Y
+    local xhastree = 1
+    local zhastree = 1 
+    while  x <= endd.X do
+        z = start.Y
+        while z <= endd.Y do
             for y = settings.ChunkSize.Y-1,0,-1 do
                 local b = self:GetBlockGrid(x,y,z)
                 if type(b) == "table" and b:IsA("C:Grass") then
-                --if not gh.IsAir(x,y,z) then
-                    local noise = math.noise(x*2/10,z*y/10,settings.Seed)
-                    if noise <-.1 then
-                        self:InsertBlockGrid(x,y+1,z,"T|s%C:Wood")
+
+                    local noise = Random.new((x*y*z*settings.Seed+settings.Seed+self.Chunk.X+self.Chunk.Y+x+y+z)/100):NextNumber()
+                    if noise <= .2 and false then
+                        local t = {
+                            [Vector3.new(x,y+1,z)] = "T|s%C:Wood/O|s%1,0,0",
+                            [Vector3.new(x,y+2,z)] ="T|s%C:Wood/O|s%1,0,0",
+                            [Vector3.new(x,y+3,z)] = "T|s%C:Wood/O|s%1,0,0",
+                            [Vector3.new(x,y+4,z)] = "T|s%C:Leaf",
+                            [Vector3.new(x+1,y+4,z)] = "T|s%C:Leaf",
+                            [Vector3.new(x-1,y+4,z)] = "T|s%C:Leaf",
+                            [Vector3.new(x,y+4,z+1)] = "T|s%C:Leaf",
+                            [Vector3.new(x,y+4,z-1)] = "T|s%C:Leaf",
+                            [Vector3.new(x,y+5,z)] = "T|s%C:Leaf",
+                        }
+                        local a = {}
+                        for v,i in t do
+                            local cx,cz,x,y,z = qF.GetChunkAndLocal(v.X,v.Y,v.Z)
+                            local d = self.to1D(x,y,z)
+                            local ab = Vector2.new(cx,cz)
+                            a[ab] = a[ab]  or {}
+                            a[ab][d] = i
+                        end
+                        for i,v in a do
+                            datahandler.AddToLoad(i.X,i.Y,v)
+                        end
+                        xhastree = 4
+                        zhastree = 4
                     end
                     break
                 end
             end
+            z += zhastree
+            zhastree = 1
         end
+        x += xhastree
+        xhastree = 1
     end
 
     self.Changed = true
@@ -89,12 +137,11 @@ function Chunk:GenerateOthers(x)
 end
 local once = false
 function Chunk:GenerateNearByChunks()
-    if  once then  return end 
-    once = true
     local cx,cz =self:GetNTuple()
     local a = qF.GetSurroundingChunk(cx,cz,3)
     local times = 1
     local stuff = {}
+    local thread = coroutine.running()
     for ci,chunk in pairs(a) do
         local cx1,cz1 = unpack(chunk:split(','))
         cx1 ,cz1 = tonumber(cx1),tonumber(cz1)
@@ -105,17 +152,18 @@ function Chunk:GenerateNearByChunks()
             continue
         end
         if cx1 == cx and cz1 == cz then continue end
-        -- task.spawn(function()
-
-        --     if cx1 == -1 and cz1 == 0 then print("a") end 
-        --     chunk:GenerateTerrian()
-        --     if cx1 == -1 and cz1 == 0 then print("b") end 
-        --     times +=1
-        -- end)
+        task.wait()
+        task.spawn(function()
+            chunk:GenerateTerrian()
+            times +=1
+            if times == #stuff then
+                coroutine.resume(thread)
+            end
+        end)
     end
-    -- while times ~= #stuff do
-    --     task.wait(.05)
-    -- end
+    if times ~= #stuff then 
+        coroutine.yield(thread)
+    end
    for i,v in GenerationOrder do
     local times = 1
     for ci,chunk in pairs(stuff) do
@@ -133,10 +181,13 @@ function Chunk:GenerateNearByChunks()
                 end
             end
             times+=1
+            if times == #stuff then
+                coroutine.resume(thread)
+            end
         end)
     end
-    while times ~= #stuff do
-        task.wait()
+    if times ~= #stuff then 
+        coroutine.yield(thread)
     end
    end
 end

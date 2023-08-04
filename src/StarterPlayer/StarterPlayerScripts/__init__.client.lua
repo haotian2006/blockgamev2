@@ -397,12 +397,14 @@ game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data
     p.Position = Vector3.new(cx*8*3,180,cz*8*3)
    end
 end)
+local deloaddistance = 14
+local renderdistance = 6
 function srender(p)
     for v,i in datahandler.LoadedChunks  do
 		local splited = v:split(",")
 		local vector = Vector2.new(splited[1],splited[2])*settings.ChunkSize.X*settings.GridSize
         local pv = Vector2.new(p.Position.X,p.Position.Z)
-		if (vector-pv).Magnitude > 10*settings.ChunkSize.X*settings.GridSize then
+		if (vector-pv).Magnitude > deloaddistance*settings.ChunkSize.X*settings.GridSize then
            -- print()
             task.spawn( function()
                 toload[v] = nil
@@ -412,7 +414,7 @@ function srender(p)
         end
 	end
     local cx1,cz1 = qf.GetChunkfromReal(qf.cv3type("tuple",p.Position)) 
-    local s= qf.GetSurroundingChunk(cx1,cz1,6)
+    local s= qf.GetSurroundingChunk(cx1,cz1,renderdistance)
     local passed = 0
     for i,v in qf.SortTables(p.Position,s) do
         v = v[1]

@@ -3,7 +3,7 @@ local module = {}
 local dataHandler = require(game.ReplicatedStorage.DataHandler)
 local compresser = require(game.ReplicatedStorage.Libarys.compressor)
 local SaveInGroupsOf = 40
-local sus,blockdss = pcall(dss.GetDataStore,dss,'Blocks',13)
+local blockdss = dss:GetDataStore("BlockStore",0)
 local Debris = require(game.ReplicatedStorage.Libarys.Debris)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local blockqueue = Debris.CreateFolder('BlockLoading')
@@ -20,6 +20,7 @@ function module.clone(t)
     return new
 end
 function module.Save()
+    do return end 
     print("started saving")
     local stuff = {}
     local t,tt = 0,0
@@ -70,20 +71,26 @@ function module.GetChunk(cx,cy)
     local data = blockqueue:GetItemData(str)
     if not data then
         queue[str] = true
-        local ds 
-        local sus,error = pcall(function()
-            ds = blockdss:GetAsync(str)
+        local sus,ds = pcall(function()
+            return blockdss:GetAsync(str)
         end)
+        if type(ds) == "number" then
+            ds = nil
+        end
         if not sus then
-            warn('Large Chunk:',str,"Failed to get ERROR:",error)
+            warn('Large Chunk:',str,"Failed to get ERROR:",ds)
         end
         blockqueue:AddItem(str,(ds or {}),120)
         data = ds or {}
         queue[str] = false
-        --print(str,"B")
+       -- print(str,"B",ds)
     else
         blockqueue:SetTime(str,120)
     end
+    -- print(str,data)
+    -- if type(data) == "number" then print(
+    --     data,str,"C"
+    -- ) end 
     return data[cx..','..cy]
 end
 return module  
