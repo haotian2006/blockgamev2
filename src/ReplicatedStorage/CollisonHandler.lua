@@ -417,9 +417,9 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
                 position = qf.EditVector3(position,"y",position.Y + 0.001)
             end
             if velocity.Z >0 and velocity.Z ~= -9.99999993922529e-09 then
-                position = qf.EditVector3(position,"z",position.Z - 0.00001)
+                position = qf.EditVector3(position,"z",position.Z - 0.001)
             elseif velocity.Z <0 then
-                position = qf.EditVector3(position,"z",position.Z + 0.00001)
+                position = qf.EditVector3(position,"z",position.Z + 0.001)
             end
             -- if a then
             --     local info = Ray.newInfo()
@@ -557,7 +557,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                                 position += vector3(0,needed,0)
                                 local bfv = velocity
                                 if velocity.Y <0 then
-                                    velocity = vector3(velocity.X,0,velocity.Y)
+                                    velocity = vector3(velocity.X,0,velocity.Z)-- velocity.Y 
                                 end
                                 local m2,n2,z2 = collisions.entityvsterrainloop(entity,position,velocity,{},"Small")
                                 if m2 <1 then

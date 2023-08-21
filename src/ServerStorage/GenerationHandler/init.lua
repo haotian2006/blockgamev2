@@ -1,8 +1,12 @@
-local LocalizationService = game:GetService("LocalizationService")
-
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
+local SharedTableRegistry = game:GetService("SharedTableRegistry")
+local TerrianHandler = require(script.TerrianHandler)
+local NoiseRouter = require(ServerStorage.GenerationManager.worldgen.NoiseRouter)
 local generation = {}
 local c,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local cs,st = pcall(require,game.ReplicatedStorage.GameSettings)
+local GM = require(ServerStorage.GenerationManager)
 local part_scale  = 3
 local noise_scale = 100
 local height_scale = 60/2
@@ -19,6 +23,68 @@ local maxwormlength = 400
 local maxwormsperchunk = 3
 local maxworminchunklength = 3
 local vector3int = Vector3int16.new
+local registryfunc = {
+	density_function = function(d,p)
+		local df = GM.DensityFunction.HolderHolder.new(GM.Holder.parser(GM.WorldgenRegistries.DENSITY_FUNCTION,GM.DensityFunction.Evaluate)(d))
+		GM.WorldgenRegistries.DENSITY_FUNCTION:register(GM.Identifier.parse(p),df)
+	end,
+	noise = function(d,p)
+		GM.WorldgenRegistries.NOISE:register(GM.Identifier.parse(p),GM.NoiseParameters.Evaluate(d))
+	end,
+	noise_settings = function(d,p)
+		GM.WorldgenRegistries.NOISE_SETTINGS:register(GM.Identifier.parse(p),GM.NoiseGeneratorSettings.Evaluate(d))
+	end
+}
+local function ISATU(t)
+	return type(t) == 'table' or type(t) =="userdata"
+end
+local function regisertstuff(path,type,prefix)
+	local fx = registryfunc[type] 
+	local function dosmt(d,p)
+		if  typeof(d) == "boolean" then return end 
+		if ISATU(d) and d.ISFOLDER then
+			for i,v in d do
+				local a = p..'/'..i
+				dosmt(v,a)
+			end
+		else
+			fx(d,p)
+		end
+	end
+	if fx == nil then
+		error(`{type} is not a valid registry`)
+	end
+	for i,v in path do
+		local p = prefix..":"..i
+		dosmt(v,p)
+	end
+end
+local RandomState,Router,Sampler,Visitor,SurfaceNoise,FactorNoise,Seed,NoiseSettings,MappedRouter
+function generation:Init(seed)
+	Seed = seed
+	local beh = require(ReplicatedStorage.BehaviorHandler)
+	for i,v in beh.WorldGeneration  do
+		if type(v) == "boolean" then continue end 
+		local pf = i
+		for ii,dir in v do
+			if type(dir) == "boolean" then continue end 
+			regisertstuff(dir,ii,pf)
+		end
+	end
+	NoiseSettings = GM.WorldgenRegistries.NOISE_SETTINGS:get(GM.Identifier.parse("C:overworld"))
+	RandomState = GM.RandomState.new(NoiseSettings,seed)
+	Router = RandomState.router
+	Sampler = GM.Climate.fromRouter
+	Visitor = RandomState:createVisitor(NoiseSettings.noise)
+	local sD =  GM.WorldgenRegistries.DENSITY_FUNCTION:get(GM.Identifier.parse("C:overworld/CubicalSurface"))--CubicalSurface
+	local fD =  GM.WorldgenRegistries.DENSITY_FUNCTION:get(GM.Identifier.parse("C:overworld/factor"))
+	SurfaceNoise = sD:mapAll(Visitor)
+	FactorNoise = fD:mapAll(Visitor)
+	MappedRouter = RandomState.router--NoiseRouter.mapAll(Router,Visitor)
+	TerrianHandler:Init(RandomState,MappedRouter,Visitor)
+end
+
+
 function generation.RandNumber(x,y,seed,range)
 	range = range or 1
 	return math.clamp(math.round(math.abs(math.noise((x/y+y/x),seed))*10),0,range)
@@ -57,6 +123,9 @@ end
 local function getColor(x,y,z,gtable)
 	local self = gtable[st.to1D(x,y,z)]
 	local above = gtable[st.to1D(x,y+1,z)]
+	if  y <57 and (not above or above == 'T|s%C:Sand') and self  then
+		return 'T|s%C:Sand'
+	end
 	if not above and self then
 		return 'T|s%C:Grass'
 	elseif (above == 'T|s%C:Grass' or not gtable[st.to1D(x,y+3,z)]  ) and self  then
@@ -166,6 +235,112 @@ function generation.GenerateTable(cx,cz)
 	end
 	return newtable
 end
+local smoothingRadius = 4
+local sizex = st.ChunkSize.X-1
+local sizexn = st.ChunkSize.X
+local function getnearby(x,z,cx,cz,data)
+	if x <0 then
+		x = sizexn-x
+		cx -= 1
+	elseif x>sizex then
+		cx += 1
+		x = x-sizexn
+	end
+	if z <0 then
+		z = sizexn-z
+		cz -= 1
+	elseif z>sizex then
+		cz += 1
+		z = z-sizexn
+	end
+	return data[cx..','..cz][st.to1DXZ(x,z)] 
+end
+function generation.SmoothTerrian(cx,cz,data)
+	local main = data[cx..','..cz]
+	local new =  table.create(size,false)
+	for x = 0,sizex do
+		for z = 0,sizex do
+			local idx = st.to1DXZ(x,z)
+			local sumY = main[idx]
+			local numPoints = 1
+			for dx = -smoothingRadius, smoothingRadius do
+				for dz = -smoothingRadius, smoothingRadius do
+					if dx ~= 0 or dz ~= 0 then
+						local nx,nz =x+dx,z+dz
+						local nearbyY = getnearby(nx,nz,cx,cz,data)
+						if nearbyY then
+							sumY = sumY + nearbyY
+							numPoints = numPoints + 1
+						end
+					end
+				end
+			end
+			local averageY = sumY / numPoints
+			local height = math.round(averageY)
+			for y =height,0,-1 do
+				new[st.to1D(x,y,z)] =  true
+			end
+		end
+	end
+	return new
+end
+local function lerp(a, b, t)
+    return a + (b - a) * t
+end
+local HorizontalNoiseResolutionDivisor = 1
+function generation.SmoothDensity(cx,cz,data)
+	local main = data[cx..','..cz]
+	for x = 0,sizex do
+		for z = 0,sizex do
+			local idx = st.to1DXZ(x,z)
+			
+			local level00 = getnearby(x,z,cx,cz,data)
+			local level10 = getnearby(x+4,z,cx,cz,data)
+			local level01 = getnearby(x,z+4,cx,cz,data)
+			local level11 = getnearby(x+4,z+4,cx,cz,data)
+			
+			local lerpResult = GM.Utils.lerp2((x) / 8, (z) / 8, level00, level10, level01, level11)
+			
+			local level =(lerpResult)
+			main[idx] =  level + 0 
+		end
+	end
+	return main
+end
+function generation.GenerateSurfaceDensity(cx,cz)
+	local bp = {}
+	local ofx,ofy = st.getoffset(cx,cz)
+	for x = 0,st.ChunkSize.X-1,4 do
+		for z = 0,st.ChunkSize.X-1,4 do
+			local rx,rz = ofx +x, ofy+z
+			local offset =SurfaceNoise:compute(Vector3.new(rx,0,rz))
+			--local factor = FactorNoise:compute(Vector3.new(rx,0,rz))
+			local indx = st.to1DXZ(x,z)
+			local value = offset
+			bp[indx] = value
+			bp[indx+1] = value
+			bp[indx+2] = value
+			bp[indx+3] = value
+
+			bp[indx+8] = value
+			bp[indx+16] = value
+			bp[indx+24] = value
+
+			bp[indx+9] = value
+			bp[indx+10] = value
+			bp[indx+11] = value
+
+			bp[indx+17] = value
+			bp[indx+18] = value
+			bp[indx+19] = value
+			
+			bp[indx+25] = value
+			bp[indx+26] = value
+			bp[indx+27] = value
+		end
+	end
+	return bp
+end
 function generation.GenerateTerrain(cx,cz,usesplinepoints)
 	local bp = {}
 	for x = 0,st.ChunkSize.X-1 do
@@ -173,7 +348,9 @@ function generation.GenerateTerrain(cx,cz,usesplinepoints)
 			local height 
 			local rx,_,rz = st.convertchgridtoreal(cx,cz,x,0,z)
 			if usesplinepoints then
-				height = generation.GetHeightFromSpline(rx,rz)  
+				height =SurfaceNoise:compute(Vector3.new(rx,0,rz)) --generation.GetHeightFromSpline(rx,rz)  
+				-- bp[st.to1DXZ(x,z)] = height
+				-- continue 
 			end
 			for y = st.ChunkSize.Y-1,0,-1 do
 				if not height then
@@ -188,49 +365,12 @@ end
 function  generation.GetBiomeType(x,y)
     
 end
-local SplinePoints = {
-	{-1,30},
-	{-.5,50},
-	{-0,50},
-	{.3,70},
-	{.4,80},
-	{1,80}
-}
-local SplinePoints1 = {
-	{-1,50},
-	{1,50}
-}
-function generation.splineInterpolation(x, splineTable)
-    local n = #splineTable
-    if x <= splineTable[1][1] then
-        return splineTable[1][2]
-    elseif x >= splineTable[n][1] then
-        return splineTable[n][2]
-    end
-    local i = 1
-    for j = 2, n do
-        if x <= splineTable[j][1] then
-            i = j - 1
-            break
-        end
-    end
-    local x0, x1, y0, y1 = splineTable[i][1], splineTable[i + 1][1], splineTable[i][2], splineTable[i + 1][2]
-    local t = (x - x0) / (x1 - x0)
-    local t2 = t * t
-    local t3 = t2 * t
-    local c0 = 2 * t3 - 3 * t2 + 1
-    local c1 = t3 - 2 * t2 + t
-    local c2 = -2 * t3 + 3 * t2
-    local c3 = t3 - t2
 
-    local interpolatedValue = c0 * y0 + c1 * (x1 - x0) * (y0 + y1) / 2 + c2 * y1 + c3 * (x1 - x0) * (y0 + y1) / 2
-
-    return interpolatedValue
-end
-
-function generation.GetHeightFromSpline(x,z)
-	local noise = generation.Noise(x,z,octaves,lacunarity,persistence,noise_scale,seed)
-	return generation.splineInterpolation(noise,SplinePoints)
+function generation.GenerateMultiNoise(x,z)
+	local continentalness = math.noise(x/1000,z/1000,seed)*3
+	local erosion  = math.noise(x/670,z/670,seed)*.5
+	local pv  = math.noise(x/345,z/345,seed)*.2
+	return continentalness,erosion,pv
 end
 function generation.IsAir(x,y,z)
     local surface = (2+  generation.Noise(x,z,octaves,lacunarity,persistence,noise_scale,seed))*height_scale

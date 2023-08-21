@@ -4,12 +4,14 @@ local Worker = {}
 local Workers = {}
 local Index = 0
 Worker.__index = Worker
-local deafultAmount = 30
+local deafultAmount = 50
 local Settings = require(game.ReplicatedStorage.GameSettings)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local GenHandler = require(game.ServerStorage.GenerationHandler)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
+local sharedservice = game:GetService("SharedTableRegistry")
+local st 
 local mhworkers = Instance.new("Folder")
 mhworkers.Name = "idk"
 mhworkers.Parent = game.ServerScriptService
@@ -31,23 +33,66 @@ function GH:GetWorker()
         return self:GetWorker()
     end
 end
+local id = 0
+function GH:GetId()
+    id += 1
+    if st[id] then
+        return self:GetId()
+    elseif id >= 32768 then
+        id = 0
+        return self:GetId()
+    end
+    return id 
+end
+local function SharedToNormal(shared,p)
+    p = p or {}
+    for i,v in shared do
+        if typeof(v) == "SharedTable" then
+            p[i] = {}
+            SharedToNormal(v,p[i])
+        else
+            p[i] = v
+        end
+    end
+    return p
+end
 function GH:DoWork(...)
+    local c = self:GetId()
     local worker:Actor = GH:GetWorker()
-    worker:SendMessage("M",...)
-    return worker.DataHandler.Event:Wait()
+    worker:SendMessage("M",c,...)
+    worker.DataHandler.Event:Wait()
+    local data = st[c]
+    st[c] = nil
+    return SharedToNormal(data)
 end
 function GH:Init(amt)
     amt = amt or deafultAmount
     if inited then warn("GENERATION WAS INITEDED TWICE") return end 
+    st = SharedTable.new()
+    sharedservice:SetSharedTable("Generation",st)
     inited = true
     for i = 1,amt do
         local worker = Worker.new(i)
         table.insert(Workers,worker)
+        task.spawn(function()
+            repeat
+                task.wait()
+            until worker.Init.Value == true
+            worker:SendMessage('Init',Settings.Seed)
+       end)
     end
 end
-
+function GH:SmoothTerrian(cx,cz,data)
+    return GH:DoWork("SmoothTerrian",cx,cz,data)
+end
 function GH:CreateTerrain(cx,cz)
     return GH:DoWork("GenerateTerrain",cx,cz)
+end
+function GH:GenerateSurfaceDensity(cx,cz)
+    return GH:DoWork("GenerateSurfaceDensity",cx,cz)
+end
+function GH:SmoothDensity(cx,cz,data)
+    return GH:DoWork("SmoothDensity",cx,cz,data)
 end
 function GH:GenerateCaves(cx,cz)
     local sx,sy,sz,ammount,Resolution = GenHandler.GetWormData(cx,cz)
@@ -66,4 +111,10 @@ function GH:GenerateCaves(cx,cz)
     end
     return new
 end
-return GH
+
+return setmetatable(GH,{__index =function(self,key)
+    GH[key] = function (self,...)
+        return GH:DoWork(key,...)
+    end
+    return  GH[key] 
+end})

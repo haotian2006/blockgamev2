@@ -23,6 +23,16 @@ local Blocks = {
             end
         }
     },
+    ['C:Sand'] = {
+        components = crt({
+        }
+        ,'BlockComp'),
+        events ={
+            OnTouched = function(self,entity,side)
+                
+            end
+        }
+    },
     ['C:Stone'] = {
         components = crt({
         }

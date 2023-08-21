@@ -63,7 +63,7 @@ local function CreatePlayer(player)
     else
         data.PlayerControl[player] = playercontrol.new()
     end
-    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%C:Dirt",64},[2] = {"T|s%C:Leaf",64},[11] = {"T|s%C:Wood",64},[12] = {"T|s%C:Grass",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%C:Slab",1},[6] = {"T|s%C:Stair",1},[3] = {"T|s%C:Stick",1},[5] = {"T|s%C:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-7, 90, 10),ClientControl = tostring(player.UserId)})
+    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%C:Dirt",64},[2] = {"T|s%C:Leaf",64},[11] = {"T|s%C:Wood",64},[12] = {"T|s%C:Grass",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%C:Slab",1},[6] = {"T|s%C:Stair",1},[3] = {"T|s%C:Stick",1},[5] = {"T|s%C:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-100, 90, -400),ClientControl = tostring(player.UserId)})
     task.wait(.2 )
     data.AddEntity(entity)
 end

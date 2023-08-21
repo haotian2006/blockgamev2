@@ -5,14 +5,35 @@ local RunService = game:GetService("RunService")
 local ResourcePacks = require(ReplicatedStorage.ResourceHandler) 
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 BehaviorPacks.Name = "BehaviorPacks"
+local STR = game:GetService("SharedTableRegistry")
 self.LoadOrder = {
     'LoadOrder','Components','ItemTypes' 
 }
+self.Shared = {
+    --'WorldGeneration' 
+}
+self.SPECIALLOAD = {
+    'WorldGeneration' 
+}
+function self.GetOrCreated(name)
+    if not table.find(self.Shared,name)  then
+        return self[name] or {}
+    end
+    if STR:GetSharedTable(name) then
+        return STR:GetSharedTable(name)
+    else
+        print(name)
+        local t = SharedTable.new()
+        STR:SetSharedTable(name,t)
+        return t
+    end
+end
 function self.AddInstanceChildren(Object,AssetObj)
     local Folder = AssetObj
     for i,stuff in Object:GetChildren() do
         if stuff:IsA("Folder") then
             Folder[stuff.Name] = Folder[stuff.Name] or {}
+            Folder[stuff.Name].ISFOLDER = true
             self.AddInstanceChildren(stuff,Folder[stuff.Name])
         elseif stuff:IsA("ModuleScript") then
             Folder[stuff.Name] = require(stuff)
@@ -26,19 +47,23 @@ local Scripts = {
     [true] ={},
     [false] = {}
 }
-function self.LoadPack(PackName:string,loadComponet)
+function self.LoadPack(PackName:string,loadComponet,SPECIAL)
     local pack = BehaviorPacks:FindFirstChild(PackName)
     if pack then
         local function x(v)
+            if not table.find(self.SPECIALLOAD,v.Name) and SPECIAL then
+                return 
+            end
             if v:IsA("Folder") then
-                self[v.Name] = self[v.Name] or {}
+                self[v.Name] = self.GetOrCreated(v.Name)
+                self[v.Name].ISFOLDER = true
                  self.AddInstanceChildren(v, self[v.Name])
             elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
                 if (v.Name == "Server" and RunService:IsServer()) or (v.Name == "Client" and RunService:IsClient()) then
                     table.insert(Scripts[RunService:IsServer()],v)
                     return
                 end
-                self[v.Name] = self[v.Name] or {}
+                self[v.Name] = self.GetOrCreated(v.Name)
                 for i,data in require(v)do
                     self[v.Name][i] = data
                 end
@@ -56,15 +81,16 @@ function self.LoadPack(PackName:string,loadComponet)
         end
     end
 end
-function self:Init()
+function self:Init(SPECIAL) 
     for i,name in self.LoadOrder do
         for i,v in BehaviorPacks:GetChildren()do
-            self.LoadPack(v.Name,name)
+            self.LoadPack(v.Name,name,SPECIAL)
         end
     end
     for i,v in BehaviorPacks:GetChildren()do
-        self.LoadPack(v.Name)
+        self.LoadPack(v.Name,nil,SPECIAL)
     end
+    if SPECIAL then return end 
     for ii,v in Scripts do
         for i,s in v do
             if ii == RunService:IsServer() then
@@ -137,5 +163,9 @@ function self.GetBlock(Name)
 end
 function self.Getfunction(name)
     return self.Functions and  self.Functions[name]
+end
+function self.GetWorldGeneration(path)
+    local gen = self.WorldGeneration or STR:GetWorldGeneration("WorldGeneration")
+    return gen[path]
 end
 return self

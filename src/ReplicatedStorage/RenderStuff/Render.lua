@@ -27,8 +27,8 @@ function self.CreateTexture(texture,face,size)
     if texture:IsA("Decal") or texture:IsA("Texture") or type(texture) == "string" then
         new = Instance.new("Texture")
         new.Texture = type(texture) == "string" and texture or texture.Texture
-        new.StudsPerTileU = size or gridS
-        new.StudsPerTileV = size or gridS
+        new.StudsPerTileU = (size or gridS )
+        new.StudsPerTileV =( size or gridS)
         new.Face = face
     elseif texture:IsA("SurfaceGui") then
         new = texture:Clone()
@@ -216,7 +216,7 @@ end
 tada = true
 function self.GetBlockTable(cx,cz,SPECIAL)
     if bd.GetChunk(cx,cz) and  bd.GetChunk(cx+1,cz) and bd.GetChunk(cx-1,cz) and 
-    bd.GetChunk(cx,cz+1) and bd.GetChunk(cx,cz-1) then
+    bd.GetChunk(cx,cz+1) and bd.GetChunk(cx,cz-1) and true then
         local current =  bd.GetChunk(cx,cz)
         local chunks = {
             bd.GetChunk(cx,cz):to3DBlocks(),
@@ -231,6 +231,7 @@ function self.GetBlockTable(cx,cz,SPECIAL)
         meshed,unmeshed = greedymesh.meshtable(culling,false,cx,cz)
         return meshed,current,unmeshed 
         end
+      --  return {},bd.GetChunk(cx,cz),{}
 end
 
 function self.CreateBlock(v,ptouse,ori,isSafe)

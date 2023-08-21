@@ -2,6 +2,8 @@ type config = {
 	maxRatePerMinute: number,
 	Middleware: { (...any) -> ...any },
 	ReplicationRate: number,
+	InboundMiddleware: { (...any) -> ...any },
+	OutboundMiddleware: { (...any) -> ...any },
 }
 
 return function(config: config?)
@@ -10,7 +12,8 @@ return function(config: config?)
 	end
 	return {
 		_isBridge = true,
-		middleware = config["Middleware"],
+		inbound = config["InboundMiddleware"],
+		outbound = config["OutboundMiddleware"],
 		rate = config["maxRatePerMinute"],
 		replicationrate = config["ReplicationRate"],
 	}

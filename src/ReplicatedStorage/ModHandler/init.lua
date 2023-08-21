@@ -52,6 +52,9 @@ end
 function mod:GetModule(name)
 	return mod[name]
 end
+function  mod.p(loc,value,derivative)
+    return {location = loc or 0,value = value or 0,derivative = derivative or 0}    
+end
 
 --//|TYPES|\\
 
@@ -77,7 +80,8 @@ export type Math =  {
     worldCFrameToC0ObjectSpace: (motor6DJoint:Motor6D,worldCFrame:CFrame) -> CFrame,
     angle_between: (n:number, a:number ,b:number) -> boolean, 
     GetClosestNumber: (num:number,tab:{number}) -> number,
-    lerp: (start:number,goal:number,dt:number) -> number,
+    lerp: (start:number,goal:number,value:number) -> number,
+    inverselerp: (start:number,goal:number,value:number) -> number,
     GetXYfromangle: (angle:number,radius:number,center:number) ->number,
     AngleDifference: (angle1:number,angle2:number ) -> number,
     ReflectAngleAcrossY: (dt:number) -> number,

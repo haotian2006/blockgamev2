@@ -69,12 +69,13 @@ function Chunk:InsertBlockGrid(x,y,z,data)
     x,y,z = x%chunksize.X,y,z%chunksize.X
     return self:InsertBlock(x,y,z,data)
 end
+local maxsize = chunksize.X^2*chunksize.Y
 function  Chunk:AddBlock(index,data)
     if type(data)=="string" or type(data) == "boolean" then
         data = bs:get(data)
     end
     index = tonumber(index)
-    if index >8192 or index <1 then 
+    if index >maxsize or index <1 then 
         error("OUT OF BOUNDS") 
     end 
     self.Blocks[index] = data

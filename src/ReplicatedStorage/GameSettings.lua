@@ -5,7 +5,7 @@ settings.ServerReplicationRate = 1/20
 settings.ClientReplicationRate = 1/30
 settings.Version = 0.01
 settings.GridSize = 3
-settings.ChunkSize = Vector2.new(8,128)
+settings.ChunkSize = Vector2.new(8,256)
 settings.LargeChunkSize = 30 -- n x n
 settings.MaxBuildHeight = 200
 settings.MaxEntityRunDistance = 5--Chunks 
@@ -46,6 +46,9 @@ function settings.to2D(index)
 end
 function settings.convertchgridtoreal(cx,cz,x,y,z):Vector3
     return (x+settings.ChunkSize.X*cx),y,(z+settings.ChunkSize.X*cz)
+end
+function settings.getoffset(cx,cz):Vector3
+    return (settings.ChunkSize.X*cx),(settings.ChunkSize.X*cz)
 end
 meta.__index = settings
 meta.__metatable = "No Metatable for you hahahaha"

@@ -79,8 +79,11 @@ function maths.GetClosestNumber(num:number,tab:{number}):number
     end
     return n
 end
-function maths.lerp(start:number,goal:number,dt:number):number
-    return start + (goal - start) *dt
+function maths.lerp(start:number,goal:number,value:number):number
+    return start + (goal - start) *value
+end
+function maths.inverselerp(start:number,goal:number,value:number):number
+    return (value - start) / (goal - start)
 end
 function maths.lerp_angle(a:number, b:number, t:number)--needs fixing
     local gcframe = CFrame.Angles(0,math.rad(a),0)

@@ -25,6 +25,11 @@ return{
         type = 'Block',
         Block = 'C:Wood'
     }),
+    ['C:Sand'] = cit(
+        {
+            type = 'Block',
+            Block = 'C:Sand'
+        }),
     ['C:Leaf'] = cit(
     {
         type = 'Block',

@@ -1,6 +1,7 @@
 local terrainh = require(game.ServerStorage.GenerationHandler)
 local qF = require(game.ReplicatedStorage.QuickFunctions)
 local settings = require(game.ReplicatedStorage.GameSettings)
+local debris = require(game.ReplicatedStorage.Libarys.Debris)
 local chunksize = settings.ChunkSize
 local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
@@ -11,6 +12,7 @@ local BlockSaver = require(game.ServerStorage.DataStores.BlockSaver)
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local gh = require(game.ServerStorage.GenerationHandler)
 local multigh = require(game.ServerStorage.GenerationMultiHandler)
+local PGC = debris.CreateFolder("PREGENERATEDCHUNKS")
 function Chunk:LoadToLoad()
     for i,v in self.ToLoad do
         self:AddBlock(i,v)
@@ -31,12 +33,70 @@ function Chunk:AddToLoad(stuff,special)
         end
     end
 end
+local v2 = function(x,y)
+    return x..','..y
+end
+local function smoothSurface(cx,cy)
+    local loc  = {v2(cx,cy),v2(cx+1,cy),v2(cx-1,cy),v2(cx,cy+1),v2(cx,cy-1),
+    v2(cx+1,cy+1),v2(cx-1,cy-1),v2(cx-1,cy+1),v2(cx+1,cy-1)
+    }
+    local nd = {}
+    local thread =coroutine.running()
+    local finished = 0
+    for i,v in loc do
+       task.spawn(function()
+        local data = PGC:GetItemData(v)
+        if data then
+            if data.Loading then
+                repeat task.wait(.1)
+                until not data.Loading
+            end
+        else
+            data = {Loading = true}
+            PGC:AddItem(v,data,60)
+            local x,y = v:split(',')
+            x,y = x[1],x[2]
+            local ndata = multigh:ComputeChunk(x,y)
+            data.Data = ndata
+            data.Loading = nil
+        end
+        nd[v] = data.Data
+        finished +=1
+        if finished == #loc then
+            coroutine.resume(thread)
+        end
+       end)
+    end
+    if finished ~= #loc then
+        coroutine.yield()
+    end
+    local data = multigh:InterpolateDensity(cx,cy,nd)
+    return data
+end
+-- function Chunk:Surface()
+--     local x = smoothSurface(self:GetNTuple())
+--     local bp = {}
+--     for i,v in x do
+--         local x,z = settings.to2D(i)
+--         local height = math.clamp(math.round(v*80+100),40,100)
+--         for y = settings.ChunkSize.Y-1,0,-1 do
+--             bp[settings.to1D(x,y,z)] =  (height and y <= height and true) or false
+--         end
+--     end
+--    -- local n = multigh:GenerateSurfaceDensity(self:GetNTuple())
+--    return bp
+-- end
+function Chunk:Surface()
+    local n =multigh:test()
+   return {}
+end
 function Chunk:GenerateTerrian()
     if self:StateIsDone("Terrian") or self:StateIsDone("GTerrian",true) then   return end
     self:SetState("GTerrian",true)
-    local color = Chunk.DeCompressVoxels(multigh:CreateTerrain(self.Chunk.X,self.Chunk.Y),true)
-    color = gh.Color(0,0,color) 
-    for i:Vector3,v in color do 
+   -- local terrian = smoothNearby(self.Chunk.X,self.Chunk.Y)
+    local terrian = multigh:ComputeChunk(self.Chunk.X,self.Chunk.Y)--smoothSurface(self:GetNTuple())--multigh:ComputeChunk(self.Chunk.X,self.Chunk.Y)--self:Surface()--multigh:CreateTerrain(self.Chunk.X,self.Chunk.Y)
+    terrian = gh.Color(0,0,terrian) 
+    for i:Vector3,v in terrian do 
         self:AddBlock(i,v)
     end
     self.Changed = true
