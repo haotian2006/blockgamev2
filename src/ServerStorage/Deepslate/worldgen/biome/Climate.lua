@@ -70,7 +70,7 @@ end
 sub.ParamPoint = {}
 local ParamPoint = sub.ParamPoint
 function ParamPoint.new(temperature, humidity, continentalness, erosion, depth, weirdness, offset)
-    local data = setmetatable({temperature=temperature, humidity=humidity, continentalness=continentalness, erosion=erosion, depth=depth, weirdness=weirdness, offset=offset},ParamPoint)
+    local data = setmetatable({temperature=temperature, humidity=humidity, continentalness=continentalness, erosion=erosion, depth=depth, weirdness=weirdness, offset=offset or 0},ParamPoint)
     return data
 end
 function ParamPoint:fittness(point)
