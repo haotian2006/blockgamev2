@@ -1,5 +1,5 @@
 local self = require(game.ReplicatedStorage.DataHandler)
-local multihandeler = require(game.ReplicatedStorage.MultiHandler)
+
 local HttpService = game:GetService("HttpService")
 local runservice = game:GetService("RunService")
 local ChunkObj = require(game.ReplicatedStorage.Chunk)

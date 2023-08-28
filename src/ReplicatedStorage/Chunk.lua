@@ -6,7 +6,7 @@ local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
 local bs = require(game.ReplicatedStorage.Libarys.Store)
 Chunk.EdgeIndexs ={
-    x = {},["-x"] = {},z = {},["-z"] = {}
+    x = {},["-x"] = {},z = {},["-z"] = {},init = false
 }
 
 Chunk.__index = Chunk
@@ -23,11 +23,11 @@ Chunk.to3D = settings.to3D
 local function round(x)
     return math.floor(x+.5)
 end
-
+local dsize = chunksize.X^2*chunksize.Y
 function  Chunk.new(x,z,data)
     data = data or {}
     local self = setmetatable({},Chunk)
-    self.Blocks = data.Blocks or table.create(chunksize.X^2*chunksize.Y,bs:get(false))
+    self.Blocks = data.Blocks or self.newBluePrint()
     self.Chunk =Vector2.new(x,z)
     self.Entities = data.Entities or {}
     self.Settings = data.Settings or {}
@@ -37,14 +37,32 @@ function  Chunk.new(x,z,data)
     return self
 end
 local Vector3 = Vector3.new
-
-function Chunk:to3DBlocks()
-    local new = {}
-    for i,v in self.Blocks do
-        local x,y,z = self.to3D(i)
-        new[Vector3(x,y,z)] = v
+function Chunk.newBluePrint(deafult)
+    return  table.create(dsize,deafult or bs:get(false))
+end
+local function specialidk(data,refrence)
+    local key = data:getKey()
+    if not key or  refrence.data[key] then return key end 
+    local info = table.clone(data:getData())
+    local rsdata = info.Data
+    info.Data = nil
+    refrence.data[key] = info
+    if not refrence.rsdata[info.T] then
+    refrence.rsdata[info.T] = rsdata
     end
-    return new
+    return key
+end
+function Chunk:to3DBlocks(special,refrence)
+    local new = self.newBluePrint(if special then false else nil)
+    local refrence =  refrence or (special and {data = {},rsdata= {}})
+    for i,v in self.Blocks do
+        local data = v
+        if special then
+            data = specialidk(data,refrence)   
+        end
+        new[i] = data
+    end
+    return new,refrence
 end
 function  Chunk:GetBlock(x,y,z)
     local at = self.Blocks[self.to1D(x,y,z)]
@@ -94,12 +112,16 @@ function Chunk:InBounds(x,y,z,GetChunkCoord)
     end
     return false
 end
-function Chunk:GetEdge(dir)
-    local toLoop = self.EdgeIndexs[dir]
-    local newtable = {}
-    for i,v in toLoop do
+function Chunk:GetEdge(dir,refrence)
+    local toLoop = self.GetEdgeIndexs(dir)
+    local newtable = self.newBluePrint(if refrence then false else nil)
+    for v,idx in toLoop do
         if self.Blocks[v] then
-            newtable[Vector3(self.to3D(v))] = self.Blocks[v]
+            local data = self.Blocks[idx]
+            if refrence then
+                data = specialidk(data,refrence)   
+            end
+            newtable[idx] = data
         end
     end
     return newtable
@@ -143,7 +165,7 @@ function Chunk.DeCompressVoxels(data,notbs)
     end
     return decompressed
 end
-function Chunk:GetNString():string
+function Chunk:GetNString():string 
     return self.Chunk.X..","..self.Chunk.Y
 end
 function Chunk:GetNTuple():IntValue|IntValue
@@ -153,7 +175,10 @@ function Chunk:SetData(which,data)
     self.Changed = true
     self[which] = data
 end
-do 
+function  Chunk.GetEdgeIndexs(edge)
+    if  Chunk.EdgeIndexs.init then
+        return Chunk.EdgeIndexs[edge]
+    end
     for y = 0, chunksize.Y-1 do for z =0,chunksize.X-1 do
         table.insert(Chunk.EdgeIndexs.x,Chunk.to1D(0,y,z))
     end end
@@ -166,7 +191,10 @@ do
     for y = 0, chunksize.Y-1 do for x =0,chunksize.X-1 do
         table.insert(Chunk.EdgeIndexs["-z"],Chunk.to1D(x,y,chunksize.X-1))
     end end
+    Chunk.EdgeIndexs.init = true
+    return Chunk.EdgeIndexs[edge]
 end
+ 
 function Chunk:Destroy()
     setmetatable(self, nil) self = nil
 end

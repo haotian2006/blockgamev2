@@ -67,6 +67,17 @@ local Blocks = {
             end
         }
     },
+    ['C:Water'] = {
+        components = crt({
+  
+        }
+        ,'BlockComp'),
+        events ={
+            OnTouched = function(self,entity,side)
+                
+            end
+        }
+    },
     ['C:Stair'] = {
         components = crt({
             Hitbox = "Stair",

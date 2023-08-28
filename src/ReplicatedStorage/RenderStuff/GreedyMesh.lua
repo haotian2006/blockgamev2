@@ -1,12 +1,9 @@
 local greedy = {}
-local gs
-local mulitthread
+local gs = require(game.ReplicatedStorage.GameSettings)
 local qf 
 local reh
 local cx,cz
 pcall(function()
-     gs = require(game.ReplicatedStorage.GameSettings)
-     mulitthread = require(game.ReplicatedStorage.MultiHandler)
      qf = require(game.ReplicatedStorage.QuickFunctions)
      reh = require(game.ReplicatedStorage.ResourceHandler)
 end)
@@ -42,28 +39,20 @@ function greedy.createblock(sx,ex,sz,ez,sy,ey,data)
     local h = math.sqrt((sy-ey)^2)
     local midpointy = (sy+ey )/2
     h += h ~= -1 and 1 or 0
-    return {data = data ,startx = sx,endx = ex,startz = sz,endz = ez,starty = sy,endy = ey,h=h,l=l,w=w,real = Vector3.new(midpointx,midpointy,midpointz)},midpointx..','..midpointy..','..midpointz
+    return {data = data ,startx = sx,endx = ex,startz = sz,endz = ez,starty = sy,endy = ey,h=h,l=l,w=w,real = Vector3.new(midpointx,midpointy,midpointz)},`{midpointx},{midpointy},{midpointz}`
 end
-function  greedy.meshtable(tabletodemesh,libs,c,ce)
-    cx,cz = c,ce
-    if libs then
-        reh = libs.ResourceHandler
-        qf = libs.QuickFunctions
-        qf:ADDSETTINGS(libs)
-    end
-    --local df = delayh.new("Greedy")
+function  greedy.meshtable(tabletodemesh)
     local startx,endx,startz,endz,starty,endy
     local D3 = {}
     local checked = {}
     local old = 0
     local c = 0
-    local chunk = require(game.ReplicatedStorage.Chunk)
     if next(tabletodemesh) == nil then warn("GIVEN TABLE IS EMPTY") return {},{} end
     local unabletomeshblocks = {}
     for i,v in tabletodemesh do
         if not v then continue end
         old+=1
-        local x,y,z = i.X,i.Y,i.Z--unpack(i:split(","))
+        local x,y,z =gs.to3D(i)--unpack(i:split(","))
         --x,y,z = tonumber(x),tonumber(y),tonumber(z)
         if startx == nil then
             startx = x
@@ -73,7 +62,8 @@ function  greedy.meshtable(tabletodemesh,libs,c,ce)
             endy = y
             endz = z
         end
-        if reh.GetBlock(v.T) and reh.GetBlock(v.T).Mesh then
+        local d = reh.GetBlock(v.T)
+        if d and d.Mesh then
             unabletomeshblocks[Vector3.new(x,y,z)] = v
         else
             D3[x] = D3[x] or {}
@@ -172,7 +162,8 @@ function  greedy.meshtable(tabletodemesh,libs,c,ce)
         local currentdir = -1
         while true do
             move(currentdir ==-1 and true or nil)
-            local c = new[rx..','..ry..','..rz]
+            local str = `{rx},{ry},{rz}`
+            local c = new[str]
             if c and c.w == w and c.l == l and c.h == h
              and c.data.T == info.data.T
              and c.data.AirBlocks == info.data.AirBlocks  and c.data.O == info.data.O then
@@ -185,7 +176,7 @@ function  greedy.meshtable(tabletodemesh,libs,c,ce)
                     ez = c.endz
                     ey = c.endy
                 end
-                table.insert(involved,rx..','..ry..','..rz)
+                table.insert(involved,str)
             elseif currentdir == -1 then
                 currentdir = 1
                 rx,rz,ry = ox,oz,oy

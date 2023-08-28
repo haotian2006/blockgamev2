@@ -24,7 +24,7 @@ function RandomState.new(settings,seed)
     a.router = NoiseRouter.mapAll(settings.noiseRouter,a:createVisitor(settings.noise,settings.legacyRandomSource))
     a.sample = Climate:GetClass("Sampler").fromRouter(a.router)
     return a
-end
+end 
 function RandomState:getNoise(noise,legacyRandom)
     local key = noise:key()
     if key == nil then

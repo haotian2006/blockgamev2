@@ -165,7 +165,7 @@ function entity:UpdateChunk() -- adds it self to a chunk or remove from one
     if chunk then
         chunk.Entities[self.Id] = self
     end
-    self.Chunk = Vector2int16.new(cx,cz)
+    self.Chunk = Vector2.new(cx,cz)
 end
 function entity:UpdateIdleAni()-- plays idle ani
     local entitydata = resourcehandler.GetEntity(self.Type)
@@ -1208,7 +1208,7 @@ function entity:ENCODE(Changed)
     local c = false
     if Changed.Chunk then
         c = true
-        chunkvector = Vector2int16.new(self.Chunk.X,self.Chunk.Y)
+        chunkvector = self.Chunk
         Changed.Chunk = nil
     end
     if Changed.Position then
@@ -1217,7 +1217,7 @@ function entity:ENCODE(Changed)
         local cx = math.floor(( math.floor(p.X))/settings.ChunkSize.X)
         local cz = math.floor(( math.floor(p.Z))/settings.ChunkSize.X)
         local lx,ly,lz = p.X%settings.ChunkSize.X,p.Y,p.Z%settings.ChunkSize.X
-        local c= Vector2int16.new(cx,cz)
+        local c= Vector2.new(cx,cz)
         if self.Type == "Npc" then
            -- warn(c,Vector3.new(lx,ly,lz),p)
         end
@@ -1225,7 +1225,7 @@ function entity:ENCODE(Changed)
         ly = math.floor(math.clamp(ly,-300,300)*100+0.5)
         lz= math.floor(lz*4050)
         posvector = Vector3int16.new(lx,ly,lz)
-        if true then
+        if self.Chunk ~= c then
             chunkvector = c
 
             Changed.Chunk = nil

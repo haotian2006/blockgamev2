@@ -19,6 +19,6 @@ function mul.test(cx,cz,data)
     return {}
 end
 return setmetatable(mul,{__index = function(self,key)
-    mul[key] = genhandler[key] or terrianhandler[key]
-    return mul[key] or error(key.." Is not a valid generation function")
+    mul[key] = genhandler[key] or terrianhandler[key] or error(key.." Is not a valid generation function")
+    return mul[key] 
 end})

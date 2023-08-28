@@ -75,7 +75,7 @@ function qf.CompareTables(t1,t2)
             end
         end
         for i,v in t2 do
-            if checkedindexs[i] then continue end
+            if checkedindexs[i] then continue end --if it was checked already
             if not qf.CompareTables(v,t1[i]) then
                 return false
             end

@@ -19,7 +19,7 @@ end
 local function fieldParser(obj)
     return DensityFunction:GetClass("HolderHolder").new(Holder.parser(WorldgenRegistries.DENSITY_FUNCTION, DensityFunction.Evaluate)(obj))
 end
-
+ 
 function NoiseRouter.Evaluate(obj)
     local root = obj or {}
     local data = {
@@ -32,11 +32,11 @@ function NoiseRouter.Evaluate(obj)
         veinGap = fieldParser(root.vein_gap),
 
         temperature = fieldParser(root.temperature),
-        vegetation = fieldParser(root.vegetation),
+        humidity  = fieldParser(root.humidity ),
         continents = fieldParser(root.continents),
         erosion = fieldParser(root.erosion),
         depth = fieldParser(root.depth),
-        ridges = fieldParser(root.ridges),
+        weirdness  = fieldParser(root.weirdness ),
         
         initialDensityWithoutJaggedness = fieldParser(root.initial_density_without_jaggedness),
         finalDensity = fieldParser(root.final_density),
@@ -65,11 +65,11 @@ function NoiseRouter.create(router)
         veinGap = DensityFunction.Constant.ZERO,
 
         temperature = DensityFunction.Constant.ZERO,
-        vegetation = DensityFunction.Constant.ZERO,
+        humidity  = DensityFunction.Constant.ZERO,
         continents = DensityFunction.Constant.ZERO,
         erosion = DensityFunction.Constant.ZERO,
         depth = DensityFunction.Constant.ZERO,
-        ridges = DensityFunction.Constant.ZERO,
+        weirdness  = DensityFunction.Constant.ZERO,
 
         initialDensityWithoutJaggedness = DensityFunction.Constant.ZERO,
         finalDensity = DensityFunction.Constant.ZERO,
@@ -94,11 +94,11 @@ function NoiseRouter.mapAll(router, visitor)
         veinGap = DensityFunction.Constant.ZERO,
 
         temperature = router.temperature:mapAll(visitor),
-        vegetation = router.vegetation:mapAll(visitor),
+        humidity  = router.humidity :mapAll(visitor),
         continents = router.continents:mapAll(visitor),
         erosion = router.erosion:mapAll(visitor),
         depth = router.depth:mapAll(visitor),
-        ridges = router.ridges:mapAll(visitor),
+        weirdness  = router.weirdness :mapAll(visitor),
 
         initialDensityWithoutJaggedness = router.initialDensityWithoutJaggedness:mapAll(visitor),
         finalDensity = router.finalDensity:mapAll(visitor),

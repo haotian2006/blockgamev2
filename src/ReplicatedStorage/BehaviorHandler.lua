@@ -36,7 +36,8 @@ function self.AddInstanceChildren(Object,AssetObj)
             Folder[stuff.Name].ISFOLDER = true
             self.AddInstanceChildren(stuff,Folder[stuff.Name])
         elseif stuff:IsA("ModuleScript") then
-            Folder[stuff.Name] = require(stuff)
+            local data = require(stuff)
+            Folder[(type(data) == "table" and data.NameSpace) or stuff.Name] = data
             self.AddInstanceChildren(stuff,Folder[stuff.Name])
         else
             Folder[stuff.Name] = stuff

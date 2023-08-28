@@ -3,10 +3,12 @@ local settings = require(game.ReplicatedStorage.GameSettings)
 local terrian = {}
 local chunksize = settings.ChunkSize
 local sizexn = chunksize.X-1
-local GM = require(ServerStorage.GenerationManager)
-local mathutils = require(ServerStorage.GenerationManager.math.Utils)
+local GM = require(ServerStorage.Deepslate)
+local mathutils = require(ServerStorage.Deepslate.math.Utils)
+local chunk = require(game.ReplicatedStorage.Chunk)
 local RandomState,MappedRouter,finalDensityWithoutInterpolation,Visitor
 local storage =GM.Storage
+local BiomeHandler = require(script.Parent.BiomeHandler)
 function terrian:Init(RS,MR,V)
     RandomState = RS
     MappedRouter = MR
@@ -14,82 +16,120 @@ function terrian:Init(RS,MR,V)
     Visitor = V
 end
 local once = false 
+local w = 4
+local h = 8
 local xsizel = chunksize.X/4
-local ysizel = chunksize.Y/4
+local ysizel = chunksize.Y/h
 local farea = xsizel*ysizel
 local function to1dLocal(x,y,z)
     return x + y * xsizel + z *farea+1
 end
+local farea2 = xsizel*chunksize.Y/4
+local function to1dLocalY4(x,y,z)
+    return x + y * xsizel + z *farea2+1
+end
 function terrian.ComputeChunk(cx,cz)
-    do
-      --  return {}
-    end
     local data = {}
+    local biomedata = {}
     local ox,oz = settings.getoffset(cx,cz)
     for x = 0, chunksize.X-1,4 do
+        local rx = ox +x
         for z = 0, chunksize.X-1,4  do
+            local rz = oz +z
             for _,df in MappedRouter.xzOrder or {} do
-                df:compute(Vector3.new(x+ox,0,z+oz))
+                df:compute(Vector3.new(rx,0,rz))
             end
+            local continents,erosion,weirdness = BiomeHandler.get2DNoiseValues(rx,rz)
+            local yidx = 8
             for y = 0,chunksize.Y-1,4 do
-                local idx = settings.to1D(x,y,z)--to1dLocal(x/4,y/4,z/4)
-                data[idx] = MappedRouter.initalDensity:compute(Vector3.new(x+ox,y,z+oz))
-                data[idx] =  data[idx] >0 and true or false
+                local temperature,humidity,depth = BiomeHandler.get3DNoiseValues(rx,y,rz)
+                local bd = BiomeHandler.newTarget(temperature,humidity,continents,erosion,depth,weirdness)
+                local lx,ly,lz = x/4,y/4,z/4
+                biomedata[to1dLocalY4(lx,ly,lz)] = bd
+                if yidx == h  then
+                yidx = 0
+                local idx = to1dLocal(lx,ly/2,lz)--settings.to1D(x,y,z)--to1dLocal(x/4,y/4,z/4)
+                data[idx] = MappedRouter.initalDensity:compute(Vector3.new(rx,y,rz))
+                end
+                yidx += 4
+               -- data[idx] =  data[idx] >0 and true or false
             end
         end
     end
-    return data
+    return {data,biomedata}
 end
 local sizexnl = xsizel-1
-local function getnearby(x,y,z,cx,cz,data)
-    x,y,z = x/4,y/4,z/4
-	if x <0 then
-		x = xsizel-x
-		cx -= 1
-	elseif x>sizexnl then
-		cx += 1
-		x = x-xsizel
-	end
-	if z <0 then
-		z = xsizel-z
-		cz -= 1
-	elseif z>sizexnl then
-		cz += 1
-		z = z-xsizel
-	end
-	return data[cx..','..cz][to1dLocal(x,y,z)] 
-end
-local w = 8
-local h = 4
 function  terrian.InterpolateDensity(cx,cz,data)
-    local ndata = {}
+    local offset ={
+        { -- x == 1
+        data[`{cx},{cz}`], -- z==1
+        data[ `{cx},{cz+1}`], -- z==2
+        },
+        { -- x == 2
+        data[ `{cx+1},{cz}`], -- z==1
+        data[  `{cx+1},{cz+1}`], -- z==1
+        },
+
+    }
+    local function getnearby(x,y,z)
+        local xx,zz = 1,1
+        x,y,z = x/4,y/h,z/4
+        if y > ysizel-1 then
+            y = ysizel-1
+        end
+        if x>sizexnl then
+            xx += 1
+            x = x-xsizel
+        end
+        if z>sizexnl then
+            zz += 1
+            z = z-xsizel
+        end
+        local loc = offset[xx][zz]
+        return loc[to1dLocal(x,y,z)] 
+    end
+    local ndata = {}    
+    local iter = 0
+    local fx,fy,fz 
+    local noise000
+    local noise001
+    local noise010
+    local noise011
+    local noise100
+    local noise101
+    local noise110
+    local noise111
     for x = 0, chunksize.X-1 do
+        local xx = ((x % w + w) % w) / w
+        local firstX = math.floor(x / w) * w
         for z = 0, chunksize.X-1  do
-            for y = chunksize.Y-1,0,-1 do
-                local xx = ((x % w + w) % w) / w
+            local zz = ((z % w + w) % w) / w
+            local firstZ = math.floor(z / w) * w
+            for y = 0,chunksize.Y-1 do
+                iter +=1
                 local yy = ((y % h + h) % h) / h
-                local zz = ((z % w + w) % w) / w
-                
-                local firstX = math.floor(x / w) * w
                 local firstY = math.floor(y / h) * h
-                local firstZ = math.floor(z / w) * w
-                local noise000 = getnearby(firstX,firstY,firstZ,cx,cz,data)
-                local noise001 = getnearby(firstX,firstY,firstZ+w,cx,cz,data)
-                local noise010 = getnearby(firstX,firstY+h,firstZ,cx,cz,data)
-                local noise011 = getnearby(firstX,firstY+h,firstZ+w,cx,cz,data)
-                local noise100 = getnearby(firstX+w,firstY,firstZ,cx,cz,data)
-                local noise101 = getnearby(firstX+w,firstY,firstZ+w,cx,cz,data)
-                local noise110 = getnearby(firstX+w,firstY+h,firstZ,cx,cz,data)
-                local noise111 = getnearby(firstX+w,firstY+h,firstZ+w,cx,cz,data)
-                --[[
-                if  not pcall(function()
+                if fx ~= firstX or fy ~= firstY or fz ~= fz then
+                    fx = firstX
+                    fy = firstY
+                    fz = firstZ
+                    noise000 = getnearby(firstX,firstY,firstZ)
+                    noise001 = getnearby(firstX,firstY,firstZ+w)
+                    noise010 = getnearby(firstX,firstY+h,firstZ)
+                    noise011 = getnearby(firstX,firstY+h,firstZ+w)
+                    noise100 = getnearby(firstX+w,firstY,firstZ)
+                    noise101 = getnearby(firstX+w,firstY,firstZ+w)
+                    noise110 = getnearby(firstX+w,firstY+h,firstZ)
+                    noise111 = getnearby(firstX+w,firstY+h,firstZ+w)
+                end
+            --[[  if  not pcall(function()
                     mathutils.lerp3(xx, yy, zz, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                 end) then
                     print(data,cx,cz)
                     print(firstX,
                     firstY,
                     firstZ)
-                    print(to1dLocal((firstX+8)/4,firstY/4,firstZ/4))
+                    print(to1dLocal((firstX+4)/4,(firstY+4)/4,(firstZ+4)/4))
                     print(noise000,
                     noise001,
                     noise010,
@@ -104,7 +144,11 @@ function  terrian.InterpolateDensity(cx,cz,data)
                 ndata[settings.to1D(x,y,z)] = density>0 and true or false--density
             end
         end
-     end
-     return ndata
+        end
+     return chunk:CompressVoxels(ndata,true) 
 end
+
+
+
+
 return terrian

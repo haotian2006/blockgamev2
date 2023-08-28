@@ -314,7 +314,7 @@ function Sampler.new(temperature, humidity, continentalness, erosion, depth, wei
 end
 
 function Sampler.fromRouter(router)
-    return Sampler.new(router.temperature, router.vegetation, router.continents, router.erosion, router.depth, router.ridges)
+    return Sampler.new(router.temperature, router.humidity , router.continents, router.erosion, router.depth, router.weirdness )
 end
 
 function Sampler:sample( x, y, z)

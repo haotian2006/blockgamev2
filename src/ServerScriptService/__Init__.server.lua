@@ -80,7 +80,7 @@ game.Players.PlayerRemoving:Connect(function(player)
     PlayersLoaded[player.UserId] = nil
 end)
 for i =1,1 do
-    local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1"..i,Position = Vector3.new(-7.2, 90, 10)}) data.AddEntity(entity)
+    local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1"..i,Position = Vector3.new(-100, 90, -400)}) data.AddEntity(entity)
 end
 game.ReplicatedStorage.Events.Respawn.OnServerEvent:Connect(function(player)
     LEntity.Remove(player)

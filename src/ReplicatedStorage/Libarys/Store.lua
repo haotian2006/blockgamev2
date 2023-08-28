@@ -34,7 +34,7 @@ BS.Predefined = {
 function BS:get(key,time) 
     if key == true then
          error("NO TRUE")
-    end
+    end 
     if self.Predefined[key] then
         return self.Predefined[key]
     end

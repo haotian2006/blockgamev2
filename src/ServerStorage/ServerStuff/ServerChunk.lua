@@ -34,16 +34,16 @@ function Chunk:AddToLoad(stuff,special)
     end
 end
 local v2 = function(x,y)
-    return x..','..y
+    return `{x},{y}`
 end
 local function smoothSurface(cx,cy)
-    local loc  = {v2(cx,cy),v2(cx+1,cy),v2(cx-1,cy),v2(cx,cy+1),v2(cx,cy-1),
-    v2(cx+1,cy+1),v2(cx-1,cy-1),v2(cx-1,cy+1),v2(cx+1,cy-1)
+    local loc  = {v2(cx,cy),v2(cx+1,cy),v2(cx,cy+1),v2(cx+1,cy+1)
     }
     local nd = {}
     local thread =coroutine.running()
     local finished = 0
     for i,v in loc do
+        task.wait(.1)
        task.spawn(function()
         local data = PGC:GetItemData(v)
         if data then
@@ -57,7 +57,7 @@ local function smoothSurface(cx,cy)
             local x,y = v:split(',')
             x,y = x[1],x[2]
             local ndata = multigh:ComputeChunk(x,y)
-            data.Data = ndata
+            data.Data = ndata[1]
             data.Loading = nil
         end
         nd[v] = data.Data
@@ -71,6 +71,7 @@ local function smoothSurface(cx,cy)
         coroutine.yield()
     end
     local data = multigh:InterpolateDensity(cx,cy,nd)
+    data = Chunk.DeCompressVoxels(data,true)
     return data
 end
 -- function Chunk:Surface()
@@ -94,7 +95,7 @@ function Chunk:GenerateTerrian()
     if self:StateIsDone("Terrian") or self:StateIsDone("GTerrian",true) then   return end
     self:SetState("GTerrian",true)
    -- local terrian = smoothNearby(self.Chunk.X,self.Chunk.Y)
-    local terrian = multigh:ComputeChunk(self.Chunk.X,self.Chunk.Y)--smoothSurface(self:GetNTuple())--multigh:ComputeChunk(self.Chunk.X,self.Chunk.Y)--self:Surface()--multigh:CreateTerrain(self.Chunk.X,self.Chunk.Y)
+    local terrian = smoothSurface(self.Chunk.X,self.Chunk.Y)--smoothSurface(self:GetNTuple())--multigh:ComputeChunk(self.Chunk.X,self.Chunk.Y)--self:Surface()--multigh:CreateTerrain(self.Chunk.X,self.Chunk.Y)
     terrian = gh.Color(0,0,terrian) 
     for i:Vector3,v in terrian do 
         self:AddBlock(i,v)

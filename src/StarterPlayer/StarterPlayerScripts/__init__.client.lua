@@ -11,7 +11,7 @@ local EntityBridge = bridge.CreateBridge("EntityBridge")
 --bridge.Start({})
 local GetChunk = bridge.CreateBridge("GetChunk")
 local datahandler = require(game.ReplicatedStorage.DataHandler)
-local mulithandler = require(game.ReplicatedStorage.MultiHandler):Init()
+local mulithandler = require(game.ReplicatedStorage.MultiHandler)
 local toload = {}
 local currentlyloading = {}
 local queued = {}
@@ -398,7 +398,7 @@ game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data
    end
 end)
 local deloaddistance = 14
-local renderdistance = 6
+local renderdistance = 9
 function srender(p)
     for v,i in datahandler.LoadedChunks  do
 		local splited = v:split(",")

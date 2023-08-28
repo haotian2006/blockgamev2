@@ -2,9 +2,10 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local GH = {}
 local Worker = {}
 local Workers = {}
+local InProgress = {}
 local Index = 0
 Worker.__index = Worker
-local deafultAmount = 50
+local deafultAmount = 100
 local Settings = require(game.ReplicatedStorage.GameSettings)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
@@ -27,9 +28,13 @@ function GH:GetWorker()
     if #Workers == 0 then error("TABLE IS EMPTY") end 
     Index +=1
     if Workers[Index] then
-        return Workers[Index]
+        if not InProgress[Index] then
+            return Workers[Index],Index
+        end
+        return self:GetWorker()
     else
         Index = 0
+        task.wait()
         return self:GetWorker()
     end
 end
@@ -58,11 +63,13 @@ local function SharedToNormal(shared,p)
 end
 function GH:DoWork(...)
     local c = self:GetId()
-    local worker:Actor = GH:GetWorker()
+    local worker:Actor,idx = GH:GetWorker()
+    InProgress[idx] = true
     worker:SendMessage("M",c,...)
     worker.DataHandler.Event:Wait()
     local data = st[c]
     st[c] = nil
+    InProgress[idx] = nil
     return SharedToNormal(data)
 end
 function GH:Init(amt)
