@@ -18,6 +18,7 @@ function MultiNoiseBiomeSource.Evaluate(obj)
     obj = obj or {}
    local entries = {}
    for i,b in obj do
+    if type(b) ~= "table" then continue end 
         b = b or {}
         local d = Identifier.parse(i or 'plains')
         table.insert(entries,{climate:GetClass("ParamPoint").Evaluate(b.parameters), function()
