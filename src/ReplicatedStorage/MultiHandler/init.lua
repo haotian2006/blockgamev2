@@ -2,7 +2,7 @@ local self = {}
 local runservice = game:GetService("RunService")
 local IsClient = runservice:IsClient()
 local Workers = require(game.ReplicatedStorage.Libarys.Worker)
-Workers:Init(500)
+Workers:Init(100)
 local compressor = require(game.ReplicatedStorage.Libarys.compressor)
 function self.divide(original,times,destroy)
 	local tables = {}

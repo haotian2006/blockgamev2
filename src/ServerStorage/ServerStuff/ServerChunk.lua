@@ -213,7 +213,7 @@ function Chunk:GenerateNearByChunks()
             continue
         end
         if cx1 == cx and cz1 == cz then continue end
-        task.wait()
+        task.wait(.05)
         task.spawn(function()
             chunk:GenerateTerrian()
             times +=1

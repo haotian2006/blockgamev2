@@ -79,7 +79,7 @@ task.spawn(function()
                     self.InProgress[c] = nil
                 end
                 task.spawn(fun)
-                if i%20 == 0 then task.wait() end
+                if i%20 == 0 then task.wait(.05) end
             end 
             -- for i,v in pairs(self.SendToClient) do
             --     if not self.SendToClient[i] then continue end 
