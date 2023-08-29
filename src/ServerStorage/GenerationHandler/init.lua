@@ -211,6 +211,9 @@ function generation.CreateWorms(cx,cz,special)
 	return worms
 end
 local size = st.ChunkSize.X*st.ChunkSize.X*st.ChunkSize.Y
+function generation.lerpvaluesat()
+	
+end
 function generation.GenerateBlueprint()
 	return table.create(size,false)
 end

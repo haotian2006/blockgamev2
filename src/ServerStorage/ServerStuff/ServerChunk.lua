@@ -13,6 +13,8 @@ local datahandler = require(game.ReplicatedStorage.DataHandler)
 local gh = require(game.ServerStorage.GenerationHandler)
 local multigh = require(game.ServerStorage.GenerationMultiHandler)
 local PGC = debris.CreateFolder("PREGENERATEDCHUNKS")
+local sharedregirsty = game:GetService("SharedTableRegistry")
+local SharedDensitiys = sharedregirsty:GetSharedTable("SharedChunks")
 function Chunk:LoadToLoad()
     for i,v in self.ToLoad do
         self:AddBlock(i,v)
@@ -58,6 +60,7 @@ local function smoothSurface(cx,cy)
             x,y = x[1],x[2]
             local ndata = multigh:ComputeChunk(x,y)
             data.Data = ndata[1]
+            SharedDensitiys[v] = data
             data.Loading = nil
         end
         nd[v] = data.Data
@@ -70,7 +73,7 @@ local function smoothSurface(cx,cy)
     if finished ~= #loc then
         coroutine.yield()
     end
-    local data = multigh:InterpolateDensity(cx,cy,nd)
+    local data = multigh:InterpolateDensity(cx,cy)
     data = Chunk.DeCompressVoxels(data,true)
     return data
 end
