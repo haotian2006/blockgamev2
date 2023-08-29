@@ -142,9 +142,6 @@ function  terrian.InterpolateDensity(cx,cz,data)
                 end]]
                 local density =  mathutils.lerp3(xx, yy, zz, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                 ndata[settings.to1D(x,y,z)] = density>0 and true or false--density
-                if iter%1500 ==0 then
-                    task.wait()
-                end
             end
         end
         end
