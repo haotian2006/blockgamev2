@@ -30,7 +30,7 @@ return {
             key = "depth"
           },
         erosion = "C:overworld/erosion",
-        inital_Density =  {
+        final_density =  {
             type = "C:squeeze",
             argument = {
               type = "C:mul",
@@ -107,56 +107,6 @@ return {
             }
         },
 
-        final_density = {
-            type = "C:squeeze",
-            argument = {
-              type = "C:mul",
-              argument1 = 0.64,
-              argument2 = {
-                type = "C:interpolated",
-                argument = {
-                  type = "C:blend_density",
-                  argument = {
-                    type = "C:add",
-                    argument1 = 0.1171875,
-                    argument2 = {
-                      type = "C:mul",
-                      argument1 = {
-                        type = "C:y_clamped_gradient",
-                        from_value = 0.0,
-                        from_y = -64,
-                        to_value = 1.0,
-                        to_y = -40
-                      },
-                      argument2 = {
-                        type = "C:add",
-                        argument1 = -0.1171875,
-                        argument2 = {
-                          type = "C:add",
-                          argument1 = -0.078125,
-                          argument2 = {
-                            type = "C:mul",
-                            argument1 = {
-                              type = "C:y_clamped_gradient",
-                              from_value = 1.0,
-                              from_y = 240,
-                              to_value = 0.0,
-                              to_y = 256
-                            },
-                            argument2 = {
-                              type = "C:add",
-                              argument1 = 0.078125,
-                              argument2 = "C:overworld/sloped_cheese"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-        },
         initial_density_without_jaggedness = {
             type = "C:add",
             argument1 = 0.1171875,
@@ -199,11 +149,13 @@ return {
                                                 type = "C:quarter_negative",
                                                 argument = {
                                                     type = "C:mul",
-                                                    argument1 = "C:overworld/depth",
+                                                    argument1 = {
+                                                        type = 'reference',
+                                                        key = 'depth'
+                                                    },
                                                     argument2 = {
-                                                        type = "C:cache_2d",
-                                                        argument = "C:overworld/factor",
-                                                        id = 6,
+                                                        type = 'reference',
+                                                        key = 'factor'
                                                     }
                                                 }
                                             }

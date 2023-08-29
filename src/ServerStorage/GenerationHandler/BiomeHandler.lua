@@ -4,6 +4,9 @@ local gamesettings = require(game.ReplicatedStorage.GameSettings)
 local Climate = require(game.ServerStorage.Deepslate.worldgen.biome.Climate)
 local cs = gamesettings.ChunkSize
 local csx,csy = cs.X,cs.Y
+local MultiNoiseHandler = require(game.ServerStorage.Deepslate.worldgen.biome.MultiNoiseBiomeSource)
+local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
+local BiomeGetter 
 export type continents = number
 export type erosion = number
 export type weirdness = number
@@ -14,6 +17,8 @@ function biome:Init(RS,MR,V)
     RandomState = RS
     MappedRouter = MR
     Visitor = V
+    local allbiomes = BehaviorHandler.Biomes or {}
+    BiomeGetter = MultiNoiseHandler.Evaluate(allbiomes)
 end
 function biome.get2DNoiseValues(x,z): (continents,erosion,weirdness)
     local pos = Vector3.new(x,0,z)

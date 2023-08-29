@@ -3,7 +3,7 @@ local size = require(script.Parent.Parent.Parent.math.Utils).Size
 local square = function(x)
     return x*x
 end
-local PARAMETER_SPACE = 7;
+local PARAMETER_SPACE = 6;
 local Climate = {Subtables = {},Children = {}}
 local sub = Climate.Subtables
 Climate.__index = Climate
@@ -110,6 +110,9 @@ local RNodeSub = RNode.Subtables
 function RNode.new(space)
     local o = {}
     setmetatable(o, RNode)
+    for i,v in space do
+        space[i] = Climate.param(v)
+    end
     o.space = space
     return o
 end
@@ -145,19 +148,17 @@ function RSubTree.buildSpace(nodes)
     return space
 end
 
-function RSubTree:search(values, distance)
-    local dist = math.huge
-    local leaf = nil
+function RSubTree:search(values,closest_leaf, distance)
+    local dist = closest_leaf and distance(closest_leaf, values) or math.huge
+    local leaf = closest_leaf 
     for _, node in self.children do
-        local d1 = distance(node, values)
-        if dist <= d1 then
-            continue
-        end
-        local leaf2 = node:search(values, distance)
-        local d2 = node == leaf2 and d1 or distance(leaf2, values)
-        if dist <= d2 then
-            continue
-        end
+        local d1 = distance(node, values)   
+        if dist <= d1 then continue end  
+        local leaf2 = node:search(values, leaf, distance) 
+        if not leaf2 then continue end 
+        local d2 = (node == leaf2) and d1 or distance(leaf2, values)      
+        if d2 == 0 then return leaf2 end  
+        if dist <= d2 then continue end
         dist = d2
         leaf = leaf2
     end
@@ -168,7 +169,7 @@ end
 RNodeSub.RLeaf = {}
 local RLeaf = RNodeSub.RLeaf
 function RLeaf.new(point,thing)
-    local o = RNode.new(point.space())
+    local o = RNode.new(point:space())
     setmetatable(o, RLeaf)
     o.thing = thing
     return o
@@ -179,13 +180,18 @@ end
 
 sub.RTree = {}
 local RTree = sub.RTree
+RTree.CHILDREN_PER_NODE = 10
 function RTree.new(points)
     local o = {}
     setmetatable(o, RTree)
     if size(points) == 0 then
         error('At least one point is required to build search tree')
     end
-    o.root = RTree.build(points)
+    local nep = {}
+    for i,v in points do
+        nep[i] = RLeaf.new(v[1],v[2])
+    end
+    o.root = RTree.build(nep)
     return o
 end
 
@@ -195,7 +201,7 @@ function RTree.build(nodes)
     end
     if size(nodes) <= RTree.CHILDREN_PER_NODE then
         local sortedNodes = {}
-        for _, node in ipairs(nodes) do
+        for _, node in (nodes) do
             local key = 0.0
             for i = 1, PARAMETER_SPACE do
                 local param = node.space[i]
@@ -209,7 +215,7 @@ function RTree.build(nodes)
         end)
     
         local sortedNodeList = {}
-        for a, entry in ipairs(sortedNodes) do
+        for a, entry in (sortedNodes) do
             sortedNodeList[a] = entry[2]
         end
     
@@ -218,11 +224,11 @@ function RTree.build(nodes)
     local f = math.huge
     local n3 = -1
     local result = {}
-    for n2 = 0, PARAMETER_SPACE - 1 do
+    for n2 = 0, PARAMETER_SPACE  do
         nodes = RTree.sort(nodes, n2, false)
         result = RTree.bucketize(nodes)
         local f2 = 0.0
-        for _, subTree2 in ipairs(result) do
+        for _, subTree2 in (result) do
             f2 = f2 + RTree.area(subTree2.space)
         end
         if not (f > f2) then
@@ -236,6 +242,10 @@ function RTree.build(nodes)
     result = RTree.bucketize(nodes)
     result = RTree.sort(result, n3, true)
     result = RTree.map(result, function(subTree) return RTree.build(subTree.children) end)
+    for i, subTree in result do
+        local builtSubTree = RTree.build(subTree.children)
+        result[i] = builtSubTree
+    end
     return RSubTree.new(result)
 end
 
@@ -284,20 +294,22 @@ function RTree.area(params)
 end
 
 function RTree:search(target, distance)
-    local leaf = self.root:search(target, distance)
+    local leaf = self.root:search(target:toArray(),self.last_leaf, distance)
+    self.last_leaf = leaf
     return leaf:thing()
 end
 
 sub.Parameters = {}
 local Parameters = sub.Parameters
 function Parameters.new(things)
-    local data = setmetatable({things = things,index = RTree.new(things)},Parameters)
+    local data = setmetatable({index = RTree.new(things)},Parameters)
     return data
 end
+local dist = function(node, values)
+    return node:distance(values)
+end
 function Parameters:find( target)
-    return self.index:search(target, function(node, values)
-        return node:distance(values)
-    end)
+    return self.index:search(target, dist)
 end
 
 sub.Sampler = {}

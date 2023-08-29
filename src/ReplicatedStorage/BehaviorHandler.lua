@@ -13,7 +13,7 @@ self.Shared = {
     --'WorldGeneration' 
 }
 self.SPECIALLOAD = {
-    'WorldGeneration' 
+    'WorldGeneration' ,"Biomes"
 }
 function self.GetOrCreated(name)
     if not table.find(self.Shared,name)  then
@@ -166,7 +166,11 @@ function self.Getfunction(name)
     return self.Functions and  self.Functions[name]
 end
 function self.GetWorldGeneration(path)
-    local gen = self.WorldGeneration or STR:GetWorldGeneration("WorldGeneration")
+    local gen = self.WorldGeneration or {}
+    return gen[path]
+end
+function self.GetBiome(path)
+    local gen = self.Biomes or {}
     return gen[path]
 end
 return self

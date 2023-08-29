@@ -10,18 +10,20 @@ function MultiNoiseBiomeSource:getBiome(x,y,z,climateSampler)
     local target = climateSampler.sample(x,y,z)
     return self.parameters:find(target)
 end
+function MultiNoiseBiomeSource:getBiomeFromTarget(target)
+    return self.parameters:find(target)
+end
 
 function MultiNoiseBiomeSource.Evaluate(obj)
     obj = obj or {}
    local entries = {}
-   for i,b in obj.biomes do
+   for i,b in obj do
         b = b or {}
-        local d = Identifier.parse(b.biome or 'plains')
+        local d = Identifier.parse(i or 'plains')
         table.insert(entries,{climate:GetClass("ParamPoint").Evaluate(b.parameters), function()
             return  d
         end
     })
-    d = nil
    end
    return MultiNoiseBiomeSource.new(entries)
 end

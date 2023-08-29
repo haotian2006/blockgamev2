@@ -42,17 +42,17 @@ function terrian.ComputeChunk(cx,cz)
             local continents,erosion,weirdness = BiomeHandler.get2DNoiseValues(rx,rz)
             local yidx = 8
             for y = 0,chunksize.Y-1,4 do
-                local temperature,humidity,depth = BiomeHandler.get3DNoiseValues(rx,y,rz)
-                local bd = BiomeHandler.newTarget(temperature,humidity,continents,erosion,depth,weirdness)
                 local lx,ly,lz = x/4,y/4,z/4
-                biomedata[to1dLocalY4(lx,ly,lz)] = bd
                 if yidx == h  then
                 yidx = 0
                 local idx = to1dLocal(lx,ly/2,lz)--settings.to1D(x,y,z)--to1dLocal(x/4,y/4,z/4)
-                data[idx] = MappedRouter.initalDensity:compute(Vector3.new(rx,y,rz))
+                data[idx] = MappedRouter.finalDensity:compute(Vector3.new(rx,y,rz))
                 end
                 yidx += 4
-               -- data[idx] =  data[idx] >0 and true or false
+               
+                local temperature,humidity,depth = BiomeHandler.get3DNoiseValues(rx,y,rz)
+                local bd = BiomeHandler.newTarget(temperature,humidity,continents,erosion,depth,weirdness)
+                biomedata[to1dLocalY4(lx,ly,lz)] = bd
             end
         end
     end
@@ -142,6 +142,9 @@ function  terrian.InterpolateDensity(cx,cz,data)
                 end]]
                 local density =  mathutils.lerp3(xx, yy, zz, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                 ndata[settings.to1D(x,y,z)] = density>0 and true or false--density
+                if iter%1500 ==0 then
+                    task.wait()
+                end
             end
         end
         end
