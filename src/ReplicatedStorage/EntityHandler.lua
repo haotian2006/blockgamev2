@@ -1225,7 +1225,7 @@ function entity:ENCODE(Changed)
         ly = math.floor(math.clamp(ly,-300,300)*100+0.5)
         lz= math.floor(lz*4050)
         posvector = Vector3int16.new(lx,ly,lz)
-        if self.Chunk ~= c then
+        if self.Chunk ~= c or true then
             chunkvector = c
 
             Changed.Chunk = nil

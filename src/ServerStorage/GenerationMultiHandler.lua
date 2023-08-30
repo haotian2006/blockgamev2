@@ -1,3 +1,4 @@
+local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local GH = {}
 local Worker = {}
@@ -5,7 +6,8 @@ local Workers = {}
 local InProgress = {}
 local Index = 0
 Worker.__index = Worker
-local deafultAmount = 100
+local amtofspecial = 10
+local deafultAmount = 80
 local Settings = require(game.ReplicatedStorage.GameSettings)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
@@ -24,18 +26,21 @@ function Worker.new(index)
    return clone
 end
 local inited = false
-function GH:GetWorker()
+function GH:GetWorker(SPEICIAL)
     if #Workers == 0 then error("TABLE IS EMPTY") end 
     Index +=1
     if Workers[Index] then
-        if not InProgress[Index] then
+        if not InProgress[Index] or not SPEICIAL  then
             return Workers[Index],Index
         end
-        return self:GetWorker()
+        if SPEICIAL and Index <amtofspecial then 
+            return Workers[Index],Index
+        end
+        return self:GetWorker(SPEICIAL)
     else
         Index = 0
         task.wait()
-        return self:GetWorker()
+        return self:GetWorker(SPEICIAL)
     end
 end
 local id = 0
@@ -50,6 +55,7 @@ function GH:GetId()
     return id 
 end
 local function SharedToNormal(shared,p)
+    if typeof(shared) ~= "SharedTable" then return shared end 
     p = p or {}
     for i,v in shared do
         if typeof(v) == "SharedTable" then
@@ -61,15 +67,21 @@ local function SharedToNormal(shared,p)
     end
     return p
 end
-function GH:DoWork(...)
+local SPEICALFUNCTIONS = {}
+function GH:DoWork(func,...)
+    local SPEICIAL = table.find(SPEICALFUNCTIONS,func)
     local c = self:GetId()
-    local worker:Actor,idx = GH:GetWorker()
-    InProgress[idx] = true
-    worker:SendMessage("M",c,...)
-    worker.DataHandler.Event:Wait()
-    local data = st[c]
-    st[c] = nil
-    InProgress[idx] = nil
+    local worker:Actor,idx = GH:GetWorker(SPEICIAL)
+    if SPEICIAL then 
+        InProgress[idx] = true
+    end
+    worker:SendMessage("M",c,func,...)
+    local data = worker.DataHandler.Event:Wait()
+    -- local data = st[c]
+    -- st[c] = nil
+    if SPEICIAL then 
+        InProgress[idx] = nil
+    end
     return SharedToNormal(data)
 end
 function GH:Init(amt)
@@ -88,6 +100,37 @@ function GH:Init(amt)
             worker:SendMessage('Init',Settings.Seed)
        end)
     end
+end
+local sizex,sizey = Settings.getChunkSize()
+local lerp = sharedservice:GetSharedTable("LERP")
+function GH:InterpolateDensity(cx,cz,nd)
+    local t = {}
+   -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
+    local tasks,done = 0,0
+    local thread = coroutine.running()
+    local alldata = {}
+    for x =0,1 do
+        for z = 0,1 do
+            tasks +=1
+            local tk = tasks
+            task.spawn(function()
+                alldata[tk]=  GH:DoWork("LerpFinalXZ",cx,cz,x,z,nd)
+                done +=1
+                if tasks == done*2 then
+                    coroutine.resume(thread)
+                end
+            end)
+            tasks +=1
+        end
+    end
+    if tasks ~= done then coroutine.yield() end 
+    for i,v in alldata do
+        for i,v in v do
+            t[v.X] =  v.Y>0 and true or false
+        end
+    end
+  --  lerp[`{cx},{cz}`] = nil
+    return t
 end
 function GH:SmoothTerrian(cx,cz,data)
     return GH:DoWork("SmoothTerrian",cx,cz,data)

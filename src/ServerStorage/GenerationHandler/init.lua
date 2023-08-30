@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local SharedTableRegistry = game:GetService("SharedTableRegistry")
+local SharedChunks = SharedTableRegistry:GetSharedTable("SharedChunks")
 local TerrianHandler = require(script.TerrianHandler)
 local Biome = require(script.BiomeHandler)
 local NoiseRouter = require(ServerStorage.Deepslate.worldgen.NoiseRouter)
@@ -8,6 +9,22 @@ local generation = {}
 local c,qf = pcall(require,game.ReplicatedStorage.QuickFunctions)
 local cs,st = pcall(require,game.ReplicatedStorage.GameSettings)
 local GM = require(ServerStorage.Deepslate)
+local mathutils = require(game.ServerStorage.Deepslate.math.Utils)
+
+local function SharedToNormal(shared,p)
+    if typeof(shared) ~= "SharedTable" then return shared end 
+    p = p or {}
+    for i,v in shared do
+        if typeof(v) == "SharedTable" then
+            p[i] = {}
+            SharedToNormal(v,p[i])
+        else
+            p[i] = v
+        end
+    end
+    return p
+end
+
 local part_scale  = 3
 local noise_scale = 100
 local height_scale = 60/2
@@ -211,8 +228,49 @@ function generation.CreateWorms(cx,cz,special)
 	return worms
 end
 local size = st.ChunkSize.X*st.ChunkSize.X*st.ChunkSize.Y
-function generation.lerpvaluesat()
-	
+local xsize,ysiz = st.getChunkSize()
+local w,h = 4,8
+local lerptable = SharedTableRegistry:GetSharedTable('LERP')
+function generation.LerpFinalXZ(cx,cz,quadx,quadz,nd)
+	debug.profilebegin("lerp")
+	local noise000,noise001,noise010,noise011,noise100,noise101,noise110,noise111
+	local current = (nd[`{cx},{cz}`])
+	local found = {}
+	local t ={}
+	local function get(x,y,z)
+		local id,ofx,ofz = TerrianHandler.GetData(x,y,z)
+		if ofx ==0 and ofz ==0 then return current[id] end
+		local str = `{cx+ofx},{cz+ofz}`
+		return nd[str][id]
+	end
+	local fy
+	for qx =0,w-1 do
+		local x = qx+4*quadx
+		local xx = ((x % w + w) % w) / w
+		for qz  =0,w-1 do
+			local z = qz+4*quadz
+			local zz = ((z % w + w) % w) / w
+			for y =0,ysiz-1 do
+				local yy = ((y % h + h) % h) / h
+                local firstY = math.floor(y / h) 
+				if fy ~= firstY then
+                    fy = firstY
+                    noise000 = get(quadx,firstY,quadz)
+					noise001 = get(quadx,firstY,quadz+1)
+					noise010 = get(quadx,firstY+1,quadz)
+					noise011 = get(quadx,firstY+1,quadz+1)
+					noise100 = get(quadx+1,firstY,quadz)
+					noise101 = get(quadx+1,firstY,quadz+1)
+					noise110 = get(quadx+1,firstY+1,quadz)
+					noise111 = get(quadx+1,firstY+1,quadz+1)
+                end
+				local density =  mathutils.lerp3(xx, yy, zz, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
+				table.insert(t,Vector2.new(st.to1D(x,y,z),density))
+			end
+		end
+	end
+	debug.profileend()
+	return t
 end
 function generation.GenerateBlueprint()
 	return table.create(size,false)

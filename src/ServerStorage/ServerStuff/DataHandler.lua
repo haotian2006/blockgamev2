@@ -42,7 +42,7 @@ function self.GetChunk(cx,cz,create)
 end
 self.SendToClient = {}
 self.InProgress = {}
-
+--[[
 task.spawn(function()
     local times = 0
     if not self.WhileLoop then
@@ -65,6 +65,7 @@ task.spawn(function()
                     --     print("a")
                     -- end
                  -- print(  pcall(function()
+                 
                     chun:Generate() 
                     
                -- end))
@@ -79,25 +80,37 @@ task.spawn(function()
                     self.InProgress[c] = nil
                 end
                 task.spawn(fun)
-                if i%20 == 0 then task.wait(.05) end
+               -- if i%20 == 0 then task.wait() end
             end 
-            -- for i,v in pairs(self.SendToClient) do
-            --     if not self.SendToClient[i] then continue end 
-            --        --task.spawn(function()
-            --        local cx,cz = unpack(string.split(i,","))
-            --        cx,cz = tonumber(cx),tonumber(cz)
-            --         local chun = self.GetChunk(cx,cz,true)
-            --         chun:Generate()     
-            --         for i,v in self.SendToClient[i] do
-            --             game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):GetBlocks() )
-            --         end
-            --         self.SendToClient[i] = nil
-            --       -- end)
-            --        --if i %6 == 0 then task.wait(.05) end 
-            -- end
-            task.wait()
         end
     end
+end)
+]]
+runservice.Heartbeat:Connect(function()
+    for c,v in self.SendToClient do
+        if not self.SendToClient[c] or self.InProgress[c] then continue end 
+        local function fun()
+            local cx,cz = unpack(string.split(c,","))
+            cx,cz = tonumber(cx),tonumber(cz)
+            local a = self.SendToClient[c]
+            self.SendToClient[c] = nil
+            self.InProgress[c] = true
+            --task.spawn(function()
+            local chun = self.GetChunk(cx,cz,true)
+            -- if cx == -7 and cz ==7 then
+            --     print("a")
+            -- end
+         -- print(  pcall(function()
+         
+            chun:Generate() 
+            for i,v in a do 
+                game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):CompressVoxels())
+            end
+            self.InProgress[c] = nil
+        end
+        task.spawn(fun)
+       -- if i%20 == 0 then task.wait() end
+    end 
 end)
 -- self.EntityLoop = false
 -- if not self.EntityLoop then

@@ -15,6 +15,7 @@ function mul.SmoothTerrian(cx,cz,data)
     local data = genhandler.SmoothTerrian(cx,cz,data)
     return data
 end
+mul.LerpFinalXZ = genhandler.LerpFinalXZ
 function mul.test(cx,cz,data)
     return {}
 end

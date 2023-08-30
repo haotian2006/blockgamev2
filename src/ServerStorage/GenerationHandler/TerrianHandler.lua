@@ -9,6 +9,8 @@ local chunk = require(game.ReplicatedStorage.Chunk)
 local RandomState,MappedRouter,finalDensityWithoutInterpolation,Visitor
 local storage =GM.Storage
 local BiomeHandler = require(script.Parent.BiomeHandler)
+local SharedTableRegistry = game:GetService("SharedTableRegistry")
+local SharedChunks = SharedTableRegistry:GetSharedTable("SharedChunks")
 function terrian:Init(RS,MR,V)
     RandomState = RS
     MappedRouter = MR
@@ -28,7 +30,9 @@ local farea2 = xsizel*chunksize.Y/4
 local function to1dLocalY4(x,y,z)
     return x + y * xsizel + z *farea2+1
 end
+terrian.to1d = to1dLocal
 function terrian.ComputeChunk(cx,cz)
+    debug.profilebegin("ComputeChunk")
     local data = {}
     local biomedata = {}
     local ox,oz = settings.getoffset(cx,cz)
@@ -56,9 +60,25 @@ function terrian.ComputeChunk(cx,cz)
             end
         end
     end
+    debug.profileend()
     return {data,biomedata}
 end
 local sizexnl = xsizel-1
+function  terrian.GetData(x,y,z)
+    local xx,zz = 0,0
+    if y > ysizel-1 then
+        y = ysizel-1
+    end
+    if x>sizexnl then
+        xx += 1
+        x = x-xsizel
+    end
+    if z>sizexnl then
+        zz += 1
+        z = z-xsizel
+    end
+    return to1dLocal(x,y,z),xx,zz
+end
 function  terrian.InterpolateDensity(cx,cz,data)
     local offset ={
         { -- x == 1

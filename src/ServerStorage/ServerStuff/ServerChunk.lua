@@ -45,13 +45,13 @@ local function smoothSurface(cx,cy)
     local thread =coroutine.running()
     local finished = 0
     for i,v in loc do
-        task.wait(.1)
+        task.wait(.05)
        task.spawn(function()
         local data = PGC:GetItemData(v)
         if data then
             if data.Loading then
                 repeat task.wait(.1)
-                until not data.Loading
+                until not data.Loading and data.Data
             end
         else
             data = {Loading = true}
@@ -60,7 +60,7 @@ local function smoothSurface(cx,cy)
             x,y = x[1],x[2]
             local ndata = multigh:ComputeChunk(x,y)
             data.Data = ndata[1]
-            SharedDensitiys[v] = data
+            --SharedDensitiys[v] = ndata[1]
             data.Loading = nil
         end
         nd[v] = data.Data
@@ -73,8 +73,8 @@ local function smoothSurface(cx,cy)
     if finished ~= #loc then
         coroutine.yield()
     end
-    local data = multigh:InterpolateDensity(cx,cy)
-    data = Chunk.DeCompressVoxels(data,true)
+    local data = multigh:InterpolateDensity(cx,cy,nd)
+  --  data = Chunk.DeCompressVoxels(data,true)
     return data
 end
 -- function Chunk:Surface()
@@ -216,7 +216,7 @@ function Chunk:GenerateNearByChunks()
             continue
         end
         if cx1 == cx and cz1 == cz then continue end
-        task.wait(.05)
+        task.wait()
         task.spawn(function()
             chunk:GenerateTerrian()
             times +=1

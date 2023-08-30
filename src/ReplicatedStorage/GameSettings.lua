@@ -12,6 +12,9 @@ settings.MaxEntityRunDistance = 5--Chunks
 settings.Seed = 1234567
 local chsizex = settings.ChunkSize.X
 local chsizey = settings.ChunkSize.Y
+function settings.getChunkSize()
+    return settings.ChunkSize.X,settings.ChunkSize.Y
+end
 function settings.GetDistFormChunks(chunk)
     return settings.ChunkSize.X*chunk
 end
@@ -49,6 +52,7 @@ end
 function settings.getoffset(cx,cz):Vector3
     return (chsizex*cx),(chsizex*cz)
 end
+settings.maxChunkSize =  (settings.ChunkSize.X)*(settings.ChunkSize.Y) *(settings.ChunkSize.X)
 meta.__index = settings
 meta.__metatable = "No Metatable for you hahahaha"
 return settings 
