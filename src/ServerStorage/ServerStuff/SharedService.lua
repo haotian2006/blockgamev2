@@ -53,19 +53,13 @@ end
 function SS:Upload(key,value)
     SharedT[key] = value
     Downloads[key] = value
-    event:Fire(true,key,value)
+    event:Fire(key,value)
 end
 
-function SS:Init()
-    event.Event:Connect(function(UPLOAD,keys,values)
-        if UPLOAD then
-            if  Downloads[keys] then return end 
-            Downloads[keys] = SharedToNormal(values)
-        else
-            for i,b in keys do
-                Downloads[b] = nil
-            end
-        end
+function SS:Listen()
+    event.Event:Connect(function(key,value)
+        if  Downloads[key] then return end 
+        Downloads[key] = SharedToNormal(value)
     end)
     return SS
 end

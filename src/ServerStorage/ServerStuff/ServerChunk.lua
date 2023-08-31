@@ -16,7 +16,7 @@ local Signal = require(game.ReplicatedStorage.Libarys.Signal)
 PGC.__remove = function(key)
     SharedT[key] = nil
 end
-local sharedservice = require(ServerStorage.ServerStuff.SharedService):Init()
+local sharedservice = require(ServerStorage.ServerStuff.SharedService):Listen()
 function Chunk:LoadToLoad()
     for i,v in self.ToLoad do
         self:AddBlock(i,v)
