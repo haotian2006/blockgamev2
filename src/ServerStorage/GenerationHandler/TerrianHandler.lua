@@ -9,8 +9,7 @@ local chunk = require(game.ReplicatedStorage.Chunk)
 local RandomState,MappedRouter,finalDensityWithoutInterpolation,Visitor
 local storage =GM.Storage
 local BiomeHandler = require(script.Parent.BiomeHandler)
-local SharedTableRegistry = game:GetService("SharedTableRegistry")
-local SharedChunks = SharedTableRegistry:GetSharedTable("SharedChunks")
+local SharedService = require(game.ServerStorage.ServerStuff.SharedService)
 function terrian:Init(RS,MR,V)
     RandomState = RS
     MappedRouter = MR
@@ -20,6 +19,7 @@ end
 local once = false 
 local w = 4
 local h = 8
+local ysize =chunksize.Y
 local xsizel = chunksize.X/4
 local ysizel = chunksize.Y/h
 local farea = xsizel*ysizel
@@ -63,8 +63,59 @@ function terrian.ComputeChunk(cx,cz)
     debug.profileend()
     return {data,biomedata}
 end
+function terrian.LerpSurface(x,z,nd)
+    local level00 
+    local level10
+    local level01
+    local level11
+end
+function terrian.LerpFinalDXZ(cx,cz,quadx,quadz)
+    debug.profilebegin("lerping final")
+	local noise000,noise001,noise010,noise011,noise100,noise101,noise110,noise111
+	local current = (SharedService:Get(`{cx},{cz}`))
+	local found = {}
+	local t ={}
+	local function get(x,y,z)
+		local id,ofx,ofz = GetData(x,y,z)
+		if ofx ==0 and ofz ==0 then return current[id] end
+		local str = `{cx+ofx},{cz+ofz}`
+        if not found[str] then
+            found[str] = SharedService:Get(str)
+        end
+		return found[str][id]
+	end
+	local fy
+	for qx =0,w-1 do
+		local x = qx+4*quadx
+		local xx = ((x % w + w) % w) / w
+		for qz  =0,w-1 do
+			local z = qz+4*quadz
+			local zz = ((z % w + w) % w) / w
+			for y =0,ysize-1 do
+				local yy = ((y % h + h) % h) / h
+                local firstY = math.floor(y / h) 
+				if fy ~= firstY then
+                    fy = firstY
+                    noise000 = get(quadx,firstY,quadz)
+					noise001 = get(quadx,firstY,quadz+1)
+					noise010 = get(quadx,firstY+1,quadz)
+					noise011 = get(quadx,firstY+1,quadz+1)
+					noise100 = get(quadx+1,firstY,quadz)
+					noise101 = get(quadx+1,firstY,quadz+1)
+					noise110 = get(quadx+1,firstY+1,quadz)
+					noise111 = get(quadx+1,firstY+1,quadz+1)
+                end
+				local density =  mathutils.lerp3(xx, yy, zz, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
+				table.insert(t,Vector2.new(settings.to1D(x,y,z),density))
+			end
+		end
+	end
+    debug.profileend()
+	return t
+end
+
 local sizexnl = xsizel-1
-function  terrian.GetData(x,y,z)
+function  GetData(x,y,z)
     local xx,zz = 0,0
     if y > ysizel-1 then
         y = ysizel-1

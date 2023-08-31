@@ -10,6 +10,9 @@ function debris:AddItem(name,data,duration)
 end
 function debris:Remove(name)
     self.items[name] = nil
+    if self.__remove then
+        self.__remove(name)
+    end
 end
 function debris:GetItem(name)
     return self.items[name] 

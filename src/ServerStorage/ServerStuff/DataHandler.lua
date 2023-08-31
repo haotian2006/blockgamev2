@@ -10,6 +10,7 @@ local EntityBridge = bridge.CreateBridge("EntityBridge")
 local GetChunk = bridge.CreateBridge("GetChunk")
 local isserver = runservice:IsServer()
 local lualzw = require(game.ReplicatedStorage.Libarys.lualzw)
+local sing = require(game.ReplicatedStorage.Libarys.Signal)
 function self.AddToLoad(cx,cz,stuff,op2)
     local c = self.GetChunk(cx,cz,'2')
     c:AddToLoad(stuff,op2)
@@ -29,14 +30,13 @@ local InProgress = {}
 function self.GetChunk(cx,cz,create)
     if not self.LoadedChunks[cx..','..cz] and create then
         if InProgress[cx..','..cz] then
-            repeat
-                task.wait()
-            until not InProgress[cx..','..cz]
+            InProgress[cx..','..cz]:Wait()
             return self.LoadedChunks[cx..','..cz] 
         end
-        InProgress[cx..','..cz] = true
+        InProgress[cx..','..cz] = sing.new()
         self.CreateChunk(nil,cx,cz)
-        InProgress[cx..','..cz] = false
+        InProgress[cx..','..cz]:DisconnectAll()
+        InProgress[cx..','..cz] = nil
     end
     return self.LoadedChunks[cx..','..cz] 
 end
@@ -87,8 +87,10 @@ task.spawn(function()
 end)
 ]]
 runservice.Heartbeat:Connect(function()
+    local i = 0
     for c,v in self.SendToClient do
         if not self.SendToClient[c] or self.InProgress[c] then continue end 
+        i += 1
         local function fun()
             local cx,cz = unpack(string.split(c,","))
             cx,cz = tonumber(cx),tonumber(cz)
@@ -109,7 +111,7 @@ runservice.Heartbeat:Connect(function()
             self.InProgress[c] = nil
         end
         task.spawn(fun)
-       -- if i%20 == 0 then task.wait() end
+        if i%5 == 0 then return end
     end 
 end)
 -- self.EntityLoop = false

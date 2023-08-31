@@ -2,19 +2,21 @@ local terrainh = require(game.ServerStorage.GenerationHandler)
 local qF = require(game.ReplicatedStorage.QuickFunctions)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local debris = require(game.ReplicatedStorage.Libarys.Debris)
-local chunksize = settings.ChunkSize
-local Players = game:GetService("Players")
-local runservice = game:GetService("RunService")
 local multihandler = require(game.ReplicatedStorage.MultiHandler)
-local compresser = require(game.ReplicatedStorage.Libarys.compressor)
 local Chunk = require(game.ReplicatedStorage.Chunk)
 local BlockSaver = require(game.ServerStorage.DataStores.BlockSaver)
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local gh = require(game.ServerStorage.GenerationHandler)
 local multigh = require(game.ServerStorage.GenerationMultiHandler)
 local PGC = debris.CreateFolder("PREGENERATEDCHUNKS")
+local ServerStorage = game:GetService("ServerStorage")
 local sharedregirsty = game:GetService("SharedTableRegistry")
-local SharedDensitiys = sharedregirsty:GetSharedTable("SharedChunks")
+local SharedT = sharedregirsty:GetSharedTable("SharedT")
+local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+PGC.__remove = function(key)
+    SharedT[key] = nil
+end
+local sharedservice = require(ServerStorage.ServerStuff.SharedService):Init()
 function Chunk:LoadToLoad()
     for i,v in self.ToLoad do
         self:AddBlock(i,v)
@@ -45,23 +47,26 @@ local function smoothSurface(cx,cy)
     local thread =coroutine.running()
     local finished = 0
     for i,v in loc do
-        task.wait(.05)
        task.spawn(function()
         local data = PGC:GetItemData(v)
         if data then
             if data.Loading then
-                repeat task.wait(.1)
-                until not data.Loading and data.Data
+                data.Event:Wait()
             end
         else
             data = {Loading = true}
-            PGC:AddItem(v,data,60)
+            data.Event = Signal.new()
+            PGC:AddItem(v,data,15)
             local x,y = v:split(',')
             x,y = x[1],x[2]
             local ndata = multigh:ComputeChunk(x,y)
             data.Data = ndata[1]
             --SharedDensitiys[v] = ndata[1]
             data.Loading = nil
+            sharedservice:Upload(v,ndata[1])
+            data.Event:Fire()
+            data.Event:DisconnectAll()
+            data.Event = nil
         end
         nd[v] = data.Data
         finished +=1
@@ -73,9 +78,9 @@ local function smoothSurface(cx,cy)
     if finished ~= #loc then
         coroutine.yield()
     end
-    local data = multigh:InterpolateDensity(cx,cy,nd)
+    local data = multigh:InterpolateDensity(cx,cy)
   --  data = Chunk.DeCompressVoxels(data,true)
-    return data
+    return data--data
 end
 -- function Chunk:Surface()
 --     local x = smoothSurface(self:GetNTuple())
@@ -112,7 +117,7 @@ function Chunk:DoCaves()
     if self:StateIsDone("Caves") or self:StateIsDone("GCaves",true) then return end
     self:SetState("GCaves",true)
 
-    local stuff = multigh:GenerateCaves(self:GetNTuple())
+    local stuff  --multigh:GenerateCaves(self:GetNTuple())
     for i,v in stuff or {} do
         if i  == self:GetNString() then
             self:AddToLoad(v)
@@ -189,21 +194,21 @@ end
 
 local GenerationOrder = {"DoCaves","GenerateStructures"}
 function Chunk:GenerateOthers(x)
-    if self:WaitForOther() then return end 
+    if  self:StateIsDone("GeneratingOther",true) or self.Settings.GeneratedOthers  then return end 
     self.Changed = true
-    self.GeneratingOther = true 
+    self:SetState("GeneratingOther",true) 
     self.Settings.GeneratedOthers = true
 
     self:DoCaves()
     self:GenerateStructures()
 
-    self.GeneratingOther = false
+    self:SetState("GeneratingOther",false) 
 end
 local once = false
 function Chunk:GenerateNearByChunks()
     local cx,cz =self:GetNTuple()
     local a = qF.GetSurroundingChunk(cx,cz,3)
-    local times = 1
+    local times,count = 1,0
     local stuff = {}
     local thread = coroutine.running()
     for ci,chunk in pairs(a) do
@@ -216,16 +221,16 @@ function Chunk:GenerateNearByChunks()
             continue
         end
         if cx1 == cx and cz1 == cz then continue end
-        task.wait()
         task.spawn(function()
             chunk:GenerateTerrian()
-            times +=1
-            if times == #stuff then
+            times +=2
+            if times == #stuff+count then
                 coroutine.resume(thread)
             end
         end)
+        count+=1
     end
-    if times ~= #stuff then 
+    if times ~= #stuff+count then 
         coroutine.yield(thread)
     end
    for i,v in GenerationOrder do
@@ -235,12 +240,12 @@ function Chunk:GenerateNearByChunks()
         if cx1 == cx and cz1 == cz then continue end
         task.spawn(function()
             local chunk = datahandler.GetChunk(cx1,cz1,true)
-            if i == 1 and chunk.GeneratingOther then chunk:WaitForOther() end 
+            if i == 1  then chunk:StateIsDone("GeneratingOther",true)  end 
             if not chunk.Settings.GeneratedOthers then
-                if i == 1 then chunk.GeneratingOther = true end 
+                if i == 1 then chunk:SetState("GeneratingOther",true)  end 
                 chunk[v](chunk)
                 if i == #GenerationOrder then
-                    chunk.GeneratingOther = false
+                    chunk:SetState("GeneratingOther",false) 
                     chunk.Settings.GeneratedOthers = true
                 end
             end
@@ -255,35 +260,25 @@ function Chunk:GenerateNearByChunks()
     end
    end
 end
-function Chunk:WaitForOther()
-    if self.GeneratingOther then
-        repeat
-            task.wait()
-        until not self.GeneratingOther
-        return true
-    end
-    if self.Settings.GeneratedOthers then
-        return true
-    end
-    return false
-end
+
 function Chunk:IsGenerating()
     if self.Generating then
-        repeat task.wait()until self.Generating == false
+        self.GeneratingEvent:Wait()
     end
     return self.Generating or self.Settings.Generated
 end
-function Chunk:WaitForGeneration()
-    if self.Generating or self.GeneratingOther then
-        repeat task.wait()until not self.Generating  and not self.GeneratingOther 
-    end
-end
 function Chunk:SetState(state,value)
+    self.Settings.States = self.Settings.States or {}
+    self.Settings.States[state] = self.Settings.States[state] or Signal.new()
     self.Settings.GeneratedStates = self.Settings.GeneratedStates or {}
     if state then
         self.Settings.GeneratedStates[state] = value
+        if not value then 
+            self.Settings.States[state]:Fire(value)     
+        end
     else
         self.Settings.GeneratedStates[state] = nil
+        self.Settings.States[state]:Fire(false)
     end
 end
 function Chunk:StateIsDone(state,wait)
@@ -291,9 +286,8 @@ function Chunk:StateIsDone(state,wait)
     local states = ( self.Settings.GeneratedStates or {})
     if not wait then return states[state] end
     if states[state] then 
-        while states[state] do
-            task.wait()
-        end
+       repeat
+       until not self.Settings.States[state]:Wait()
         return true
     end
     return false
@@ -305,26 +299,34 @@ function Chunk:Generate()
         until not self.Saving 
     end
     if self.Settings.Generated then return end
+    self.Settings.States = self.Settings.States or {}
     if self.Generating then
-        repeat task.wait()until self.Generating == false
-        return
+        return self.GeneratingEvent:Wait()
     end
     self.Generating = true
+    self.GeneratingEvent = Signal.new()
     self:GenerateTerrian()
     self:GenerateOthers()
     self:GenerateNearByChunks()
     self:LoadToLoad()
-    task.wait()
     for i,v in terrainh.CreateBedrock(self.Chunk.X,self.Chunk.Y,{}) do
         self:InsertBlock(i.X,i.Y,i.Z,v)
     end
     self.Generating = false
     self.Changed = true
     self.Settings.Generated = true
+    self.GeneratingEvent:Fire()
+    for i,v in  self.Settings.States or {} do
+        v:Fire(false)
+        v:DisconnectAll()
+    end
+    self.GeneratingEvent:DisconnectAll()
+    self.GeneratingEvent = nil
+    self.Settings.States = nil
 end
 
 function Chunk.Create(x,y,ndata)
-    local data = BlockSaver.GetChunk(x,y)
+    local data = nil--BlockSaver.GetChunk(x,y)
     if data then
         data = multihandler.DeCompress({data})[1]
         local newdata = {Settings = {}}

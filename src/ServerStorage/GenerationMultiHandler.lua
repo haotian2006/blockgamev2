@@ -3,11 +3,12 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local GH = {}
 local Worker = {}
 local Workers = {}
+local SPEICALWorkers = {}
 local InProgress = {}
 local Index = 0
 Worker.__index = Worker
-local amtofspecial = 10
-local deafultAmount = 80
+local amtofspecial = 4
+local deafultAmount = 3
 local Settings = require(game.ReplicatedStorage.GameSettings)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
@@ -27,6 +28,7 @@ function Worker.new(index)
 end
 local inited = false
 function GH:GetWorker(SPEICIAL)
+    local Workers = not SPEICIAL and Workers or SPEICALWorkers
     if #Workers == 0 then error("TABLE IS EMPTY") end 
     Index +=1
     if Workers[Index] then
@@ -67,7 +69,8 @@ local function SharedToNormal(shared,p)
     end
     return p
 end
-local SPEICALFUNCTIONS = {}
+local SPEICALFUNCTIONS = {"ComputeChunk"}
+local pdata = {}
 function GH:DoWork(func,...)
     local SPEICIAL = table.find(SPEICALFUNCTIONS,func)
     local c = self:GetId()
@@ -76,9 +79,14 @@ function GH:DoWork(func,...)
         InProgress[idx] = true
     end
     worker:SendMessage("M",c,func,...)
-    local data = worker.DataHandler.Event:Wait()
-    -- local data = st[c]
-    -- st[c] = nil
+    local id,d = worker.DataHandler.Event:Wait()
+    pdata[id] = d
+    while id ~= c and not pdata[c]do
+        id,d = worker.DataHandler.Event:Wait()
+        pdata[id] = d
+    end
+     local data = pdata[c]
+     pdata[c] = nil
     if SPEICIAL then 
         InProgress[idx] = nil
     end
@@ -100,9 +108,18 @@ function GH:Init(amt)
             worker:SendMessage('Init',Settings.Seed)
        end)
     end
+    for i =1,amtofspecial do
+        local worker = Worker.new(i)
+        table.insert(SPEICALWorkers,worker)
+        task.spawn(function()
+            repeat
+                task.wait()
+            until worker.Init.Value == true
+            worker:SendMessage('Init',Settings.Seed,true)
+       end)
+    end
 end
 local sizex,sizey = Settings.getChunkSize()
-local lerp = sharedservice:GetSharedTable("LERP")
 function GH:InterpolateDensity(cx,cz,nd)
     local t = {}
    -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
@@ -114,7 +131,7 @@ function GH:InterpolateDensity(cx,cz,nd)
             tasks +=1
             local tk = tasks
             task.spawn(function()
-                alldata[tk]=  GH:DoWork("LerpFinalXZ",cx,cz,x,z,nd)
+                alldata[tk]=  GH:DoWork("LerpFinalXZ",cx,cz,x,z)
                 done +=1
                 if tasks == done*2 then
                     coroutine.resume(thread)
@@ -130,7 +147,7 @@ function GH:InterpolateDensity(cx,cz,nd)
         end
     end
   --  lerp[`{cx},{cz}`] = nil
-    return t
+    return t--t
 end
 function GH:SmoothTerrian(cx,cz,data)
     return GH:DoWork("SmoothTerrian",cx,cz,data)
