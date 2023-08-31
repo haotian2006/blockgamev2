@@ -18,7 +18,7 @@ local function SharedToNormal(shared,p)
     end
     return p
 end
-local timeout = 15
+local LifeSpan = 15
 local clear_Intervals = 2
 local last_Cleared = time()
 function SS:GetEvent()
@@ -26,12 +26,12 @@ function SS:GetEvent()
 end
 function SS:DownloadData(key)
     local value = SharedToNormal(SharedT[key])
-    timer[key] = time() +timeout
+    timer[key] = time() +LifeSpan
     Downloads[key] = value
     return  value
 end
 function SS:Get(key)
-    timer[key] = time()+timeout
+    timer[key] = time()+LifeSpan
     return Downloads[key]
 end
 function SS:Clear()
