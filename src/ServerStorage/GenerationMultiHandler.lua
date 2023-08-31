@@ -23,7 +23,7 @@ function Worker.new(index)
    local clone = script.Parent.Actor:Clone()
    clone.Name = index
    clone.Parent = mhworkers
-   clone.Main.Enabled = true
+   clone.MainG.Enabled = true
    return clone
 end
 local inited = false

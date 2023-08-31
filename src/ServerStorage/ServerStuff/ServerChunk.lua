@@ -13,9 +13,9 @@ local ServerStorage = game:GetService("ServerStorage")
 local sharedregirsty = game:GetService("SharedTableRegistry")
 local SharedT = sharedregirsty:GetSharedTable("SharedT")
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
-PGC.__remove = function(key)
-    SharedT[key] = nil
-end
+-- PGC.__remove = function(key)
+--     SharedT[key] = nil
+-- end
 local sharedservice = require(ServerStorage.ServerStuff.SharedService):Listen()
 function Chunk:LoadToLoad()
     for i,v in self.ToLoad do
