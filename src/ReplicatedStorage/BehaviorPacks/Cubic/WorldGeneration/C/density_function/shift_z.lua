@@ -1,10 +1,10 @@
 return {
-    type = "C:flat_cache",
+    type = "c:flat_cache",
     argument = {
-        type = "C:cache_2d",
+        type = "c:cache_2d",
         argument = {
-            type = "C:shift_b",
-            argument = "C:offset"
+            type = "c:shift_b",
+            argument = "c:offset"
         }
     }
 }

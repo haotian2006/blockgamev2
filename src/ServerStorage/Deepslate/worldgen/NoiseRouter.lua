@@ -37,7 +37,8 @@ function NoiseRouter.Evaluate(obj)
         erosion = fieldParser(root.erosion),
         depth = fieldParser(root.depth),
         weirdness  = fieldParser(root.weirdness ),
-         
+        depthDebug = fieldParser(root.depth_Debug) ,
+
         initialDensityWithoutJaggedness = fieldParser(root.initial_density_without_jaggedness),
         finalDensity = fieldParser(root.final_density),
 
@@ -69,6 +70,7 @@ function NoiseRouter.create(router)
         erosion = DensityFunction.Constant.ZERO,
         depth = DensityFunction.Constant.ZERO,
         weirdness  = DensityFunction.Constant.ZERO,
+        depthDebug= DensityFunction.Constant.ZERO,
 
         initialDensityWithoutJaggedness = DensityFunction.Constant.ZERO,
         finalDensity = DensityFunction.Constant.ZERO,
@@ -97,6 +99,7 @@ function NoiseRouter.mapAll(router, visitor)
         erosion = router.erosion:mapAll(visitor),
         depth = router.depth:mapAll(visitor),
         weirdness  = router.weirdness :mapAll(visitor),
+        depthDebug = router.depthDebug:mapAll(visitor),
 
         initialDensityWithoutJaggedness = router.initialDensityWithoutJaggedness:mapAll(visitor),
         finalDensity = router.finalDensity:mapAll(visitor),

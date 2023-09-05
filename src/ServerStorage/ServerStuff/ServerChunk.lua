@@ -43,9 +43,10 @@ end
 local function smoothSurface(cx,cy)
     local loc  = {v2(cx,cy),v2(cx+1,cy),v2(cx,cy+1),v2(cx+1,cy+1)
     }
-    local nd = {}
     local thread =coroutine.running()
     local finished = 0
+    local climate 
+    local s 
     for i,v in loc do
        task.spawn(function()
         local data = PGC:GetItemData(v)
@@ -56,19 +57,26 @@ local function smoothSurface(cx,cy)
         else
             data = {Loading = true}
             data.Event = Signal.new()
-            PGC:AddItem(v,data,15)
+            PGC:AddItem(v,data,5)
             local x,y = v:split(',')
             x,y = x[1],x[2]
             local ndata = multigh:ComputeChunk(x,y)
-            data.Data = ndata[1]
+            data.Data = ndata[3]
+            --ndata[3] = type( ndata[3]) == "table" and i or  ndata[3]
             --SharedDensitiys[v] = ndata[1]
             data.Loading = nil
-            sharedservice:Upload(v,ndata[1])
+            sharedservice:Upload(v,ndata)
             data.Event:Fire()
             data.Event:DisconnectAll()
             data.Event = nil
         end
-        nd[v] = data.Data
+        if i == 1 then
+            climate = data.Data
+        end
+        if s == nil then s = data.Data end
+        if s and s ~= data.Data then
+            s = false
+        end
         finished +=1
         if finished == #loc then
             coroutine.resume(thread)
@@ -78,9 +86,21 @@ local function smoothSurface(cx,cy)
     if finished ~= #loc then
         coroutine.yield()
     end
-    local data = multigh:InterpolateDensity(cx,cy)
+    local data,surface = multigh:InterpolateDensity(cx,cy)
+    local newb 
+    if not s then
+        newb = {}
+        local d = multigh:LerpBiomes(cx,cy,surface)
+        local key = d[2]
+        for i,v in d[1] do
+            local idx = v.X
+            local numb = v.Y
+            newb[idx] = key[numb]
+        end
+    end
+    
   --  data = Chunk.DeCompressVoxels(data,true)
-    return data--data
+    return data,surface,climate,newb--data
 end
 -- function Chunk:Surface()
 --     local x = smoothSurface(self:GetNTuple())
@@ -95,19 +115,17 @@ end
 --    -- local n = multigh:GenerateSurfaceDensity(self:GetNTuple())
 --    return bp
 -- end
-function Chunk:Surface()
-    local n =multigh:test()
-   return {}
-end
+
 function Chunk:GenerateTerrian()
     if self:StateIsDone("Terrian") or self:StateIsDone("GTerrian",true) then   return end
     self:SetState("GTerrian",true)
    -- local terrian = smoothNearby(self.Chunk.X,self.Chunk.Y)
-    local terrian = smoothSurface(self.Chunk.X,self.Chunk.Y)--smoothSurface(self:GetNTuple())--multigh:ComputeChunk(self.Chunk.X,self.Chunk.Y)--self:Surface()--multigh:CreateTerrain(self.Chunk.X,self.Chunk.Y)
-    terrian = gh.Color(0,0,terrian) 
-    for i:Vector3,v in terrian do 
-        self:AddBlock(i,v)
-    end
+    local terrian,surface,climate,newb = smoothSurface(self.Chunk.X,self.Chunk.Y)--smoothSurface(self:GetNTuple())--multigh:ComputeChunk(self.Chunk.X,self.Chunk.Y)--self:Surface()--multigh:CreateTerrain(self.Chunk.X,self.Chunk.Y)
+    self.Biome = climate
+    -- terrian = gh.Color(self,terrian,surface,newb) 
+    -- for i:Vector3,v in terrian do 
+    --     self:AddBlock(i,v)
+    -- end
     self.Changed = true
     self:SetState("GTerrian")
     self:SetState("Terrian",true)
@@ -143,25 +161,26 @@ function Chunk:GenerateStructures()
     local z = start.Y
     local xhastree = 1
     local zhastree = 1 
+    --[[
     while  x <= endd.X do
         z = start.Y
         while z <= endd.Y do
             for y = settings.ChunkSize.Y-1,0,-1 do
                 local b = self:GetBlockGrid(x,y,z)
-                if type(b) == "table" and b:IsA("C:Grass") then
+                if type(b) == "table" and b:IsA("c:Grass") then
 
                     local noise = Random.new((x*y*z*settings.Seed+settings.Seed+self.Chunk.X+self.Chunk.Y+x+y+z)/100):NextNumber()
                     if noise <= .2 and false then
                         local t = {
-                            [Vector3.new(x,y+1,z)] = "T|s%C:Wood/O|s%1,0,0",
-                            [Vector3.new(x,y+2,z)] ="T|s%C:Wood/O|s%1,0,0",
-                            [Vector3.new(x,y+3,z)] = "T|s%C:Wood/O|s%1,0,0",
-                            [Vector3.new(x,y+4,z)] = "T|s%C:Leaf",
-                            [Vector3.new(x+1,y+4,z)] = "T|s%C:Leaf",
-                            [Vector3.new(x-1,y+4,z)] = "T|s%C:Leaf",
-                            [Vector3.new(x,y+4,z+1)] = "T|s%C:Leaf",
-                            [Vector3.new(x,y+4,z-1)] = "T|s%C:Leaf",
-                            [Vector3.new(x,y+5,z)] = "T|s%C:Leaf",
+                            [Vector3.new(x,y+1,z)] = "T|s%c:Wood/O|s%1,0,0",
+                            [Vector3.new(x,y+2,z)] ="T|s%c:Wood/O|s%1,0,0",
+                            [Vector3.new(x,y+3,z)] = "T|s%c:Wood/O|s%1,0,0",
+                            [Vector3.new(x,y+4,z)] = "T|s%c:Leaf",
+                            [Vector3.new(x+1,y+4,z)] = "T|s%c:Leaf",
+                            [Vector3.new(x-1,y+4,z)] = "T|s%c:Leaf",
+                            [Vector3.new(x,y+4,z+1)] = "T|s%c:Leaf",
+                            [Vector3.new(x,y+4,z-1)] = "T|s%c:Leaf",
+                            [Vector3.new(x,y+5,z)] = "T|s%c:Leaf",
                         }
                         local a = {}
                         for v,i in t do
@@ -186,7 +205,7 @@ function Chunk:GenerateStructures()
         x += xhastree
         xhastree = 1
     end
-
+]]
     self.Changed = true
     self:SetState("GStructures")
     self:SetState("Structures",true)

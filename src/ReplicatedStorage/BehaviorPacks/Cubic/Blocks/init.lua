@@ -2,7 +2,7 @@ local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local crt = behhandler.CreateComponent
 local Blocks = {
     
-    ['C:Grass'] = {
+    ['c:Grass'] = {
         components = crt({
 
         }
@@ -13,7 +13,17 @@ local Blocks = {
             end
         }
     },
-    ['C:Dirt'] = {
+    ['c:Dirt'] = {
+        components = crt({
+        } 
+        ,'BlockComp'),
+        events ={
+            OnTouched = function(self,entity,side)
+                
+            end
+        }
+    },
+    ['c:Sand'] = {
         components = crt({
         }
         ,'BlockComp'),
@@ -23,7 +33,7 @@ local Blocks = {
             end
         }
     },
-    ['C:Sand'] = {
+    ['c:Stone'] = {
         components = crt({
         }
         ,'BlockComp'),
@@ -33,17 +43,7 @@ local Blocks = {
             end
         }
     },
-    ['C:Stone'] = {
-        components = crt({
-        }
-        ,'BlockComp'),
-        events ={
-            OnTouched = function(self,entity,side)
-                
-            end
-        }
-    },
-    ['C:Wood'] = {
+    ['c:Wood'] = {
         components = crt({
             RotateX = true,
             RotateY = true,
@@ -56,7 +56,7 @@ local Blocks = {
             end
         }
     },
-    ['C:Leaf'] = {
+    ['c:Leaf'] = {
         components = crt({
   
         }
@@ -67,7 +67,7 @@ local Blocks = {
             end
         }
     },
-    ['C:Water'] = {
+    ['c:Water'] = {
         components = crt({
   
         }
@@ -78,7 +78,7 @@ local Blocks = {
             end
         }
     },
-    ['C:Stair'] = {
+    ['c:Stair'] = {
         components = crt({
             Hitbox = "Stair",
             Transparency = true,
@@ -92,7 +92,7 @@ local Blocks = {
             end
         }
     },
-    ['C:Slab'] = {
+    ['c:Slab'] = {
         components = crt({
             Hitbox = "Slab",
             Transparency = true,
@@ -106,7 +106,7 @@ local Blocks = {
             end
         }
     },
-    ['C:Bedrock'] = {
+    ['c:Bedrock'] = {
         components = crt({
 
         }

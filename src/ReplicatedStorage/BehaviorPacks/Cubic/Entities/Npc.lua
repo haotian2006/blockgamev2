@@ -8,6 +8,7 @@ local entity = {
         EyeLevel = 1.5,
         Hitbox = Vector2.new(0.6,1.8),
         JumpHeight = 1.25,
+        JumpV = 5;
         Speed = 2,
         CanCollideWithEntities = true,
         AutoJump = true,
@@ -16,18 +17,18 @@ local entity = {
         MaxHealth = 20,
         inventory = 36,
         ok = "deafult",
-        -- ['behavior.Random_Stroll'] ={
-        --     priority = 1,
-        --     maxXZ = 6,
-        --     maxy = 0,
-        --     interval = 120,  
-        -- },
+        ['behavior.Random_Stroll'] ={
+            priority = 1,
+            maxXZ = 6,
+            maxy = 0,
+            interval = 120,  
+        },
         ['behavior.LookAtPlayer'] ={
             priority = 20,
-            MaxRange = 10,
+            MaxRange = 30,
         },
-         ['behavior.GoToPlayer'] = {MaxRange = 20,priority = 2,interval = 1,},
-        --  ['behavior.AttackPlayer'] = {MaxRange = 3,priority = 2,},
+         ['behavior.GoToPlayer'] = {MaxRange = 6,priority = 2,interval = 1,},
+         ['behavior.AttackPlayer'] = {MaxRange = 3,priority = 2,},
     },
     component_groups = {
         A = {
@@ -43,6 +44,7 @@ local entity = {
     },
     events ={
         OnDeath = function(self)
+            local entity = require(game.ReplicatedStorage.EntityHandler).Create("Npc",{Name = "Npc1",Position = Vector3.new(-100, 90, -400)}) self:GetData().AddEntity(entity)
             local entity = require(game.ReplicatedStorage.EntityHandler).Create("Npc",{Name = "Npc1",Position = Vector3.new(-100, 90, -400)}) self:GetData().AddEntity(entity)
         end
     },

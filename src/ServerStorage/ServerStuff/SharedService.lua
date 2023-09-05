@@ -5,7 +5,7 @@ local event = (script:FindFirstChild("Event") or Instance.new("BindableEvent",sc
 local Downloads = {}
 local timer = {}
 
-local life_Span = 15 -- how long should data be cached for
+local life_Span = 5 -- how long should data be cached for
 local clear_Intervals = 2 -- how often should it be checked 
 local last_Cleared = time()
 function SS:GetEvent()

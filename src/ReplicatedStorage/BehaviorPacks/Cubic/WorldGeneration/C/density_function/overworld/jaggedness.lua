@@ -1,22 +1,22 @@
 return{
-    type = "C:flat_cache",
+    type = "c:flat_cache",
     argument = {
-        type = "C:cache_2d",
+        type = "c:cache_2d",
         argument = {
-            type = "C:add",
+            type = "c:add",
             argument1 = 0.0,
             argument2 = {
-                type = "C:mul",
+                type = "c:mul",
                 argument1 = {
-                    type = "C:blend_alpha"
+                    type = "c:blend_alpha"
                 },
                 argument2 = {
-                    type = "C:add",
+                    type = "c:add",
                     argument1 = -0.0, 
                     argument2 = {
-                        type = "C:spline",
+                        type = "c:spline",
                         spline = {
-                            coordinate = "C:overworld/continents",
+                            coordinate = "c:overworld/continents",
                             points = { {
                                 derivative = 0.0,
                                 location = -0.11,
@@ -25,12 +25,12 @@ return{
                                 derivative = 0.0,
                                 location = 0.03,
                                 value = {
-                                    coordinate = "C:overworld/erosion",
+                                    coordinate = "c:overworld/erosion",
                                     points = { {
                                         derivative = 0.0,
                                         location = -1.0,
                                         value = {
-                                            coordinate = "C:overworld/ridges_folded",
+                                            coordinate = "c:overworld/ridges_folded",
                                             points = { {
                                                 derivative = 0.0,
                                                 location = 0.19999999,
@@ -43,7 +43,7 @@ return{
                                                 derivative = 0.0,
                                                 location = 1.0,
                                                 value = {
-                                                    coordinate = "C:overworld/ridges",
+                                                    coordinate = "c:overworld/ridges",
                                                     points = { {
                                                         derivative = 0.0,
                                                         location = -0.01,
@@ -60,7 +60,7 @@ return{
                                         derivative = 0.0,
                                         location = -0.78,
                                         value = {
-                                            coordinate = "C:overworld/ridges_folded",
+                                            coordinate = "c:overworld/ridges_folded",
                                             points = { {
                                                 derivative = 0.0,
                                                 location = 0.19999999,
@@ -73,7 +73,7 @@ return{
                                                 derivative = 0.0,
                                                 location = 1.0,
                                                 value = {
-                                                    coordinate = "C:overworld/ridges",
+                                                    coordinate = "c:overworld/ridges",
                                                     points = { {
                                                         derivative = 0.0,
                                                         location = -0.01,
@@ -90,7 +90,7 @@ return{
                                         derivative = 0.0,
                                         location = -0.5775,
                                         value = {
-                                            coordinate = "C:overworld/ridges_folded",
+                                            coordinate = "c:overworld/ridges_folded",
                                             points = { {
                                                 derivative = 0.0,
                                                 location = 0.19999999,
@@ -103,7 +103,7 @@ return{
                                                 derivative = 0.0,
                                                 location = 1.0,
                                                 value = {
-                                                    coordinate = "C:overworld/ridges",
+                                                    coordinate = "c:overworld/ridges",
                                                     points = { {
                                                         derivative = 0.0,
                                                         location = -0.01,
@@ -126,12 +126,12 @@ return{
                                 derivative = 0.0,
                                 location = 0.65,
                                 value = {
-                                    coordinate = "C:overworld/erosion",
+                                    coordinate = "c:overworld/erosion",
                                     points = { {
                                         derivative = 0.0,
                                         location = -1.0,
                                         value = {
-                                            coordinate = "C:overworld/ridges_folded",
+                                            coordinate = "c:overworld/ridges_folded",
                                             points = { {
                                                 derivative = 0.0,
                                                 location = 0.19999999,
@@ -140,7 +140,7 @@ return{
                                                 derivative = 0.0,
                                                 location = 0.44999996,
                                                 value = {
-                                                    coordinate = "C:overworld/ridges",
+                                                    coordinate = "c:overworld/ridges",
                                                     points = { {
                                                         derivative = 0.0,
                                                         location = -0.01,
@@ -155,7 +155,7 @@ return{
                                                 derivative = 0.0,
                                                 location = 1.0,
                                                 value = {
-                                                    coordinate = "C:overworld/ridges",
+                                                    coordinate = "c:overworld/ridges",
                                                     points = { {
                                                         derivative = 0.0,
                                                         location = -0.01,
@@ -172,7 +172,7 @@ return{
                                         derivative = 0.0,
                                         location = -0.78,
                                         value = {
-                                            coordinate = "C:overworld/ridges_folded",
+                                            coordinate = "c:overworld/ridges_folded",
                                             points = { {
                                                 derivative = 0.0,
                                                 location = 0.19999999,
@@ -185,7 +185,7 @@ return{
                                                 derivative = 0.0,
                                                 location = 1.0,
                                                 value = {
-                                                    coordinate = "C:overworld/ridges",
+                                                    coordinate = "c:overworld/ridges",
                                                     points = { {
                                                         derivative = 0.0,
                                                         location = -0.01,
@@ -202,7 +202,7 @@ return{
                                         derivative = 0.0,
                                         location = -0.5775,
                                         value = {
-                                            coordinate = "C:overworld/ridges_folded",
+                                            coordinate = "c:overworld/ridges_folded",
                                             points = { {
                                                 derivative = 0.0,
                                                 location = 0.19999999,
@@ -215,7 +215,7 @@ return{
                                                 derivative = 0.0,
                                                 location = 1.0,
                                                 value = {
-                                                    coordinate = "C:overworld/ridges",
+                                                    coordinate = "c:overworld/ridges",
                                                     points = { {
                                                         derivative = 0.0,
                                                         location = -0.01,

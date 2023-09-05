@@ -64,6 +64,18 @@ function Chunk:to3DBlocks(special,refrence)
     end
     return new,refrence
 end
+local xsizel = settings.ChunkSize.X/4
+local ysizel = settings.ChunkSize.Y/8
+local farea = xsizel*ysizel
+local function to1dLocal4x4(x,y,z)
+    return x + y * xsizel + z *farea+1
+end
+function Chunk:GetBiomeAt(x,y,z)
+    x = math.floor(x/4)
+    y = math.floor(y/8)
+    z = math.floor(x/4)
+    return type(self.Biome) == "string" and self.Biome or  self.Biome[to1dLocal4x4(x,y,z)]
+end
 function  Chunk:GetBlock(x,y,z)
     local at = self.Blocks[self.to1D(x,y,z)]
     return  at and at 

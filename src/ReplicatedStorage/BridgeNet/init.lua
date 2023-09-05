@@ -5,9 +5,14 @@ local ServerBridge = require(script.ServerBridge)
 local ClientBridge = require(script.ClientBridge)
 local CreateBridgeTree = require(script.CreateBridgeTree)
 local Bridge = require(script.Bridge)
-
+local s = game:GetService("SharedTableRegistry"):GetSharedTable("BRIDGENET")
 local isServer = RunService:IsServer()
-
+if s.START then
+	warn("BRIDGE NET WAS INIT ALREADY")
+	return
+else
+	s.START = true
+end
 --[=[
 	@class BridgeNet
 	

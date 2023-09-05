@@ -1,4 +1,3 @@
-local bridge = require(game.ReplicatedStorage.BridgeNet)
 local Components = {}
 Components.BlockComp = {
     CanFloat = true,

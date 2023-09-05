@@ -3,6 +3,7 @@ local chunk = require(game.ReplicatedStorage.Chunk)
 local settings = require(game.ReplicatedStorage.GameSettings)
 local terrianhandler = require(script.Parent.TerrianHandler)
 local genhandler = require(script.Parent)
+local biomehandler = require(script.Parent.BiomeHandler)
 function mul.GenerateCaves(cx,cz)
     local data = genhandler.CreateWorms(cx,cz,true)
     return data

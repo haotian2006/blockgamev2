@@ -1,10 +1,10 @@
 return {
     aquifers_enabled = true,
     default_block = {
-        Name = "C:stone"
+        Name = "c:stone"
     },
     default_fluid = {
-        Name = "C:water",
+        Name = "c:water",
         Properties = {
             level = "0"
         }
@@ -19,68 +19,79 @@ return {
     },
     noise_Router = {
         barrier = {
-            type = "C:noise",
-            noise = "C:aquifer_barrier",
+            type = "c:noise",
+            noise = "c:aquifer_barrier",
             xz_scale = 1.0,
             y_scale = 0.5
         },
-        continents = "C:overworld/continents",
+        continents = "c:overworld/continents",
         depth = {
             type = "reference",
             key = "depth"
+          }, 
+        depth_Debug =  {
+          type = "c:add",
+          argument1 = {
+              type = "c:y_clamped_gradient",
+              from_value = 1.5,
+              from_y = -64,
+              to_value = -1.5,
+              to_y = 320
           },
-        erosion = "C:overworld/erosion",
+          argument2 =  "c:overworld/offset"
+      },
+        erosion = "c:overworld/erosion",
         final_density =  {
-            type = "C:squeeze",
+            type = "c:squeeze",
             argument = {
-              type = "C:mul",
+              type = "c:mul",
               argument1 = 0.64,
               argument2 = {
-                type = "C:blend_density",
+                type = "c:blend_density",
                 argument = {
-                  type = "C:add",
+                  type = "c:add",
                   argument1 = 0.1171875,
                   argument2 = {
-                    type = "C:mul",
+                    type = "c:mul",
                     argument1 = {
-                      type = "C:y_clamped_gradient",
+                      type = "c:y_clamped_gradient",
                       from_y = 0,
                       to_y = 1,
                       from_value = 0,
                       to_value = 1
                     },
                     argument2 = {
-                      type = "C:add",
+                      type = "c:add",
                       argument1 = -0.1171875,
                       argument2 = {
-                        type = "C:add",
+                        type = "c:add",
                         argument1 = -0.078125,
                         argument2 = {
-                          type = "C:mul",
+                          type = "c:mul",
                           argument1 = {
-                            type = "C:y_clamped_gradient",
+                            type = "c:y_clamped_gradient",
                             from_y = 240,
                             to_y = 256,
                             from_value = 1,
                             to_value = 0
                           },
                           argument2 = {
-                            type = "C:add",
+                            type = "c:add",
                             argument1 = 0.078125,
                             argument2 = {
-                                type = "C:add",
+                                type = "c:add",
                                 argument1 = {
-                                    type = "C:mul",
+                                    type = "c:mul",
                                     argument1 = 4.0,
                                     argument2 = {
-                                      type = "C:quarter_negative",
+                                      type = "c:quarter_negative",
                                       argument = {
-                                        type = "C:mul",
+                                        type = "c:mul",
                                         argument1 = {
-                                          type = "C:add",
+                                          type = "c:add",
                                           argument1 ={
-                                            type = "C:add",
-                                            argument1 = "C:overworld/depth"
+                                            type = "c:add",
+                                            argument1 = "c:overworld/depth"
                                             },
                                           argument2 = {
                                             type = "reference",
@@ -95,7 +106,7 @@ return {
                                       }
                                     }
                                   },
-                                argument2 = "C:overworld/base_3d_noise"
+                                argument2 = "c:overworld/base_3d_noise"
                             }
                           }
                         }
@@ -108,51 +119,48 @@ return {
         },
 
         initial_density_without_jaggedness = {
-            type = "C:add",
+            type = "c:add",
             argument1 = 0.1171875,
             argument2 = {
-                type = "C:mul",
+                type = "c:mul",
                 argument1 = {
-                    type = "C:y_clamped_gradient",
+                    type = "c:y_clamped_gradient",
                     from_value = 0.0,
                     from_y = -64,
                     to_value = 1.0,
                     to_y = -40
                 },
                 argument2 = {
-                    type = "C:add",
+                    type = "c:add",
                     argument1 = -0.1171875,
                     argument2 = {
-                        type = "C:add",
+                        type = "c:add",
                         argument1 = -0.078125,
                         argument2 = {
-                            type = "C:mul",
+                            type = "c:mul",
                             argument1 = {
-                                type = "C:y_clamped_gradient",
+                                type = "c:y_clamped_gradient",
                                 from_value = 1.0,
                                 from_y = 240,
                                 to_value = 0.0,
                                 to_y = 256
                             },
                             argument2 = {
-                                type = "C:add",
+                                type = "c:add",
                                 argument1 = 0.078125,
                                 argument2 = {
-                                    type = "C:clamp",
+                                    type = "c:clamp",
                                     input = {
-                                        type = "C:add",
+                                        type = "c:add",
                                         argument1 = -0.703125,
                                         argument2 = {
-                                            type = "C:mul",
+                                            type = "c:mul",
                                             argument1 = 4.0,
                                             argument2 = {
-                                                type = "C:quarter_negative",
+                                                type = "c:quarter_negative",
                                                 argument = {
-                                                    type = "C:mul",
-                                                    argument1 = {
-                                                        type = 'reference',
-                                                        key = 'depth'
-                                                    },
+                                                    type = "c:mul",
+                                                    argument1 = "c:overworld/depth",
                                                     argument2 = {
                                                         type = 'reference',
                                                         key = 'factor'
@@ -170,22 +178,22 @@ return {
                 }
             }
         },
-        weirdness  = "C:overworld/ridges",
+        weirdness  = "c:overworld/ridges",
         temperature = {
-            type = "C:shifted_noise",
-            noise = "C:temperature",
-            shift_x = "C:shift_x",
+            type = "c:shifted_noise",
+            noise = "c:temperature",
+            shift_x = "c:shift_x",
             shift_y = 0.0,
-            shift_z = "C:shift_z",
+            shift_z = "c:shift_z",
             xz_scale = 0.25,
             y_scale = 0.0
         },
         humidity = {
-            type = "C:shifted_noise",
-            noise = "C:vegetation",
-            shift_x = "C:shift_x",
+            type = "c:shifted_noise",
+            noise = "c:vegetation",
+            shift_x = "c:shift_x",
             shift_y = 0.0,
-            shift_z = "C:shift_z",
+            shift_z = "c:shift_z",
             xz_scale = 0.25,
             y_scale = 0.0
         },
@@ -193,13 +201,13 @@ return {
             {
                type = 'set',
                argument  = {
-                type = "C:mul",
-                argument1 = "C:overworld/jaggedness",
+                type = "c:mul",
+                argument1 = "c:overworld/jaggedness",
                 argument2 = {
-                    type = "C:half_negative",
+                    type = "c:half_negative",
                     argument = {
-                    type = "C:noise",
-                    noise = "C:jagged",
+                    type = "c:noise",
+                    noise = "c:jagged",
                     xz_scale = 1500.0,
                     y_scale = 0.0
                     }
@@ -209,19 +217,45 @@ return {
              },-- calculate the jaggedness
              {
                 type = 'set',
-                argument = "C:overworld/offset",
+                argument = "c:overworld/offset",
                 key = 'offset'
              },
              
              {
                 type = 'set',
-                argument = "C:overworld/factor",
+                argument = "c:overworld/factor",
                 key = 'factor'
              }
         }
     },
     ore_veins_enabled = true,
     sea_level = 63,
+    biome_source = { 
+  {
+    biome = "c:plains",
+    parameters = {
+        depth = 0,
+        offset = 0.1,
+        weirdness =0,
+        erosion = 0,
+        temperature =0,
+        humidity =0,
+        continentalness =0
+    }
+},
+{
+  biome = "c:desert",
+  parameters = { 
+      depth = 0,
+      offset = 0.0,
+      weirdness =.2,
+      erosion = -.1,
+      temperature =0,
+      humidity =-0,
+      continentalness =0
+  }
+}
+},
     spawn_target = { {
         continentalness = { -0.11, 1.0 },
         depth = 0.0,

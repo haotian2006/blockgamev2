@@ -27,11 +27,15 @@ return {
             local pos = entity.Position
             entity.NotSaved["behaviors"]["behavior.GoToPlayer"] = true
             for i,v in entity:GetData().EntitiesinR(pos.X,pos.Y,pos.Z,range) do
-                if v.Type == "Player" then
+                if v.Type == "Player" and v.Health >0 then
+                    if (entity.Position-v.Position).Magnitude >= 20 then 
+                        entity.Speed= 70
+                    end
                     entity:MoveTo(v.Position.X,v.Position.Y,v.Position.Z)
                     break
                 end
             end
+            entity.Speed= 2
             entity.NotSaved["behaviors"]["behavior.GoToPlayer"] = false
         end,
         bhtype = {"Movement"},
@@ -46,10 +50,11 @@ return {
             local pos = entity.Position
             entity.NotSaved["behaviors"]["behavior.AttackPlayer"] = true
             for i,v in entity:GetData().EntitiesinR(pos.X,pos.Y,pos.Z,range) do
-                if v.Type == "Player" then
+                if v.Type == "Player" and v.Health >0 then
                     local dir = (v.Position-entity.Position).Unit
                     local velocity = Vector3.new(dir.X*2,.6,dir.Z*2)
                     entity:PlayAnimation("Attack",true)
+                    v:Damage(1)
                     require(game.ReplicatedStorage.BridgeNet).CreateBridge("DoMover"):FireTo(game.Players:GetPlayerByUserId(tonumber(i)),i,"Curve",velocity,.2)
                     break
                 end

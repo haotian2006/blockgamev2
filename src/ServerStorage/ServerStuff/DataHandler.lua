@@ -97,13 +97,7 @@ runservice.Heartbeat:Connect(function()
             local a = self.SendToClient[c]
             self.SendToClient[c] = nil
             self.InProgress[c] = true
-            --task.spawn(function()
             local chun = self.GetChunk(cx,cz,true)
-            -- if cx == -7 and cz ==7 then
-            --     print("a")
-            -- end
-         -- print(  pcall(function()
-         
             chun:Generate() 
             for i,v in a do 
                 game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):CompressVoxels())
@@ -111,7 +105,7 @@ runservice.Heartbeat:Connect(function()
             self.InProgress[c] = nil
         end
         task.spawn(fun)
-        if i%5 == 0 then return end
+        if i%3 == 0 then return end
     end 
 end)
 -- self.EntityLoop = false

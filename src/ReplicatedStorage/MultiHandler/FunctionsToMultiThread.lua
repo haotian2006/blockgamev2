@@ -2,9 +2,8 @@ local stuff = {}
 local HttpService = game:GetService("HttpService")
 local runservice = game:GetService("RunService")
 local IsClient = runservice:IsClient()
-local QuickFunctions = require(game.ReplicatedStorage.QuickFunctions)
 local compressor = require(game.ReplicatedStorage.Libarys.compressor)
-local culling = require(game.ReplicatedStorage.RenderStuff.Culling)
+
 
 function stuff.Compress(data)
 	local functions =compressor.compress

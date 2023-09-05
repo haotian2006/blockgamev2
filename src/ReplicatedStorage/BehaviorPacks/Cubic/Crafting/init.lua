@@ -3,7 +3,7 @@ recipes.Test = {
     type = "Crafting",
     key = {
         d = {
-            Item ='C:Dirt',
+            Item ='c:Dirt',
             }
     },
     shape = {
@@ -11,7 +11,7 @@ recipes.Test = {
         "dd",
     },
     result = {
-        Item = 'C:Grass',
+        Item = 'c:Grass',
         Count = 2
     }
 
@@ -22,7 +22,7 @@ recipes.KBStick = {
     type = "Crafting",
     key = {
         d = {
-            Item ='C:Dirt',
+            Item ='c:Dirt',
             }
     },
     shape = {
@@ -30,7 +30,7 @@ recipes.KBStick = {
         "d"
     },
     result = {
-        Item = 'C:GodStick',
+        Item = 'c:GodStick',
         Count = 1
     }
 
@@ -39,7 +39,7 @@ recipes.LongStick = {
     type = "Crafting",
     key = {
         d = {
-            Item ='C:Stone',
+            Item ='c:Stone',
             }
     },
     shape = {
@@ -47,7 +47,7 @@ recipes.LongStick = {
         "d"
     },
     result = {
-        Item = 'C:LongStick',
+        Item = 'c:LongStick',
         Count = 1
     }
 

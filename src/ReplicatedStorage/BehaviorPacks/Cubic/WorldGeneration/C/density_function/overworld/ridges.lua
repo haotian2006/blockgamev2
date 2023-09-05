@@ -1,11 +1,11 @@
 return {
-    type = "C:flat_cache",
+    type = "c:flat_cache",
     argument = {
-        type = "C:shifted_noise",
-        noise = "C:ridge",
-        shift_x = "C:shift_x",
+        type = "c:shifted_noise",
+        noise = "c:ridge",
+        shift_x = "c:shift_x",
         shift_y = 0.0,
-        shift_z = "C:shift_z",
+        shift_z = "c:shift_z",
         xz_scale = 0.25,
         y_scale = 0.0
     },

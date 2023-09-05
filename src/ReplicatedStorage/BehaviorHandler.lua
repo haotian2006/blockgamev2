@@ -13,7 +13,7 @@ self.Shared = {
     --'WorldGeneration' 
 }
 self.SPECIALLOAD = {
-    'WorldGeneration' ,"Biomes"
+    'WorldGeneration'
 }
 function self.GetOrCreated(name)
     if not table.find(self.Shared,name)  then
@@ -28,6 +28,16 @@ function self.GetOrCreated(name)
         return t
     end
 end
+function self.FormatTable(x,p)
+    local p = p or {}
+    for i,v in x do
+        if type(v) == "table" and v.NameSpace then
+            i = v.NameSpace
+        end
+        p[i] = v
+    end
+    return p
+end
 function self.AddInstanceChildren(Object,AssetObj)
     local Folder = AssetObj
     for i,stuff in Object:GetChildren() do
@@ -37,7 +47,7 @@ function self.AddInstanceChildren(Object,AssetObj)
             self.AddInstanceChildren(stuff,Folder[stuff.Name])
         elseif stuff:IsA("ModuleScript") then
             local data = require(stuff)
-            Folder[(type(data) == "table" and data.NameSpace) or stuff.Name] = data
+            Folder[(type(data) == "table" and data.NameSpace) or stuff.Name] = type(data) =="table" and self.FormatTable(data) or data
             self.AddInstanceChildren(stuff,Folder[stuff.Name])
         else
             Folder[stuff.Name] = stuff
@@ -65,9 +75,8 @@ function self.LoadPack(PackName:string,loadComponet,SPECIAL)
                     return
                 end
                 self[v.Name] = self.GetOrCreated(v.Name)
-                for i,data in require(v)do
-                    self[v.Name][i] = data
-                end
+                local data = require(v)
+                self[v.Name] = type(data) =="table" and self.FormatTable(data) or data
                 self.AddInstanceChildren(v, self[v.Name])
             end
         end

@@ -7,7 +7,7 @@ local SPEICALWorkers = {}
 local InProgress = {}
 local Index = 0
 Worker.__index = Worker
-local amtofspecial = 4
+local amtofspecial = 5
 local deafultAmount = 3
 local Settings = require(game.ReplicatedStorage.GameSettings)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
@@ -15,18 +15,39 @@ local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local GenHandler = require(game.ServerStorage.GenerationHandler)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local sharedservice = game:GetService("SharedTableRegistry")
-local st 
+local sharedtable = sharedservice:GetSharedTable("Generation")
+local st ={}
 local mhworkers = Instance.new("Folder")
 mhworkers.Name = "idk"
 mhworkers.Parent = game.ServerScriptService
+local function SharedToNormal(shared,p)
+    if typeof(shared) ~= "SharedTable" then return shared end 
+    p = p or {}
+    for i,v in shared do
+        if typeof(v) == "SharedTable" then
+            p[i] = {}
+            SharedToNormal(v,p[i])
+        else
+            p[i] = v
+        end
+    end
+    return p
+end
+local pdata = {}
 function Worker.new(index)
    local clone = script.Parent.Actor:Clone()
    clone.Name = index
    clone.Parent = mhworkers
    clone.MainG.Enabled = true
+   clone.DataHandler.Event:connect(function(id,data)
+        pdata[id] = data--SharedToNormal(sharedtable[id])
+        coroutine.resume(st[id])
+        sharedtable[id] = nil
+   end)
    return clone
 end
 local inited = false
+
 function GH:GetWorker(SPEICIAL)
     local Workers = not SPEICIAL and Workers or SPEICALWorkers
     if #Workers == 0 then error("TABLE IS EMPTY") end 
@@ -48,7 +69,7 @@ end
 local id = 0
 function GH:GetId()
     id += 1
-    if st[id] then
+    if st[id] ~= nil then
         return self:GetId()
     elseif id >= 32768 then
         id = 0
@@ -56,21 +77,7 @@ function GH:GetId()
     end
     return id 
 end
-local function SharedToNormal(shared,p)
-    if typeof(shared) ~= "SharedTable" then return shared end 
-    p = p or {}
-    for i,v in shared do
-        if typeof(v) == "SharedTable" then
-            p[i] = {}
-            SharedToNormal(v,p[i])
-        else
-            p[i] = v
-        end
-    end
-    return p
-end
-local SPEICALFUNCTIONS = {"ComputeChunk"}
-local pdata = {}
+local SPEICALFUNCTIONS = {"ComputeChunk","GetBiomesstuffidkdebug"}
 function GH:DoWork(func,...)
     local SPEICIAL = table.find(SPEICALFUNCTIONS,func)
     local c = self:GetId()
@@ -79,24 +86,19 @@ function GH:DoWork(func,...)
         InProgress[idx] = true
     end
     worker:SendMessage("M",c,func,...)
-    local id,d = worker.DataHandler.Event:Wait()
-    pdata[id] = d
-    while id ~= c and not pdata[c]do
-        id,d = worker.DataHandler.Event:Wait()
-        pdata[id] = d
-    end
-     local data = pdata[c]
+    st[c] = coroutine.running()
+    coroutine.yield()
+    local data = pdata[c]
+     st[c] = nil
      pdata[c] = nil
     if SPEICIAL then 
         InProgress[idx] = nil
     end
-    return SharedToNormal(data)
+    return data
 end
 function GH:Init(amt)
     amt = amt or deafultAmount
     if inited then warn("GENERATION WAS INITEDED TWICE") return end 
-    st = SharedTable.new()
-    sharedservice:SetSharedTable("Generation",st)
     inited = true
     for i = 1,amt do
         local worker = Worker.new(i)
@@ -118,10 +120,11 @@ function GH:Init(amt)
             worker:SendMessage('Init',Settings.Seed,true)
        end)
     end
+    return GH
 end
 local sizex,sizey = Settings.getChunkSize()
-function GH:InterpolateDensity(cx,cz,nd)
-    local t = {}
+function GH:InterpolateDensity(cx,cz)
+    local t ,s= {},{}
    -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
     local tasks,done = 0,0
     local thread = coroutine.running()
@@ -142,12 +145,19 @@ function GH:InterpolateDensity(cx,cz,nd)
     end
     if tasks ~= done then coroutine.yield() end 
     for i,v in alldata do
-        for i,v in v do
+        for i,v in v[1] do
             t[v.X] =  v.Y>0 and true or false
+        end
+        for i,v in v[2] do
+            s[v.X] = v.Y
         end
     end
   --  lerp[`{cx},{cz}`] = nil
-    return t--t
+    return t,s--t
+end
+function GH:ComputeChunk(cx,cz)
+    local data = GH:DoWork("ComputeChunk",cx,cz)
+    return data
 end
 function GH:SmoothTerrian(cx,cz,data)
     return GH:DoWork("SmoothTerrian",cx,cz,data)
@@ -160,6 +170,9 @@ function GH:GenerateSurfaceDensity(cx,cz)
 end
 function GH:SmoothDensity(cx,cz,data)
     return GH:DoWork("SmoothDensity",cx,cz,data)
+end
+function GH:GetBiomeValues(x,y,z)
+    return GH:DoWork("GetBiomesstuffidkdebug",x,y,z)
 end
 function GH:GenerateCaves(cx,cz)
     local sx,sy,sz,ammount,Resolution = GenHandler.GetWormData(cx,cz)

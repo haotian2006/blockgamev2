@@ -1,5 +1,5 @@
 return {
-    type = "C:old_blended_noise",
+    type = "c:old_blended_noise",
     smear_scale_multiplier = 8.0,
     xz_factor = 80.0,
     xz_scale = 0.25,

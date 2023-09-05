@@ -5,7 +5,6 @@ local qf = require(game.ReplicatedStorage.QuickFunctions)
 local runservice = game:GetService("RunService")
 local dataHandler = require(game.ReplicatedStorage.DataHandler)
 local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
-local bridge = require(game.ReplicatedStorage.BridgeNet)
 local PEntity = dataHandler.GetLocalPlayer
 local mouse = player and player:GetMouse()
 local UserInput = game:GetService('UserInputService')
@@ -132,7 +131,7 @@ Test = {
     type = "Crafting",
     key = {
         d = {
-            Item ='C:Dirt',
+            Item ='c:Dirt',
             Id = "same" -- any,same
             }
     },
@@ -141,7 +140,7 @@ Test = {
         "d"
     },
     result = {
-        Item = 'C:Grass'
+        Item = 'c:Grass'
         Id = "d" -- this will have the id of d
     }
 

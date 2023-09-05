@@ -1,32 +1,32 @@
 return{
-    type = "C:add",
+    type = "c:add",
     argument1 = {
-      type = "C:mul",
+      type = "c:mul",
       argument1 = 4.0,
       argument2 = {
-        type = "C:quarter_negative",
+        type = "c:quarter_negative",
         argument = {
-          type = "C:mul",
+          type = "c:mul",
           argument1 = {
-            type = "C:add",
-            argument1 = "C:overworld/depth",
+            type = "c:add",
+            argument1 = "c:overworld/depth",
             argument2 = {
-              type = "C:mul",
-              argument1 = "C:overworld/jaggedness",
+              type = "c:mul",
+              argument1 = "c:overworld/jaggedness",
               argument2 = {
-                type = "C:half_negative",
+                type = "c:half_negative",
                 argument = {
-                  type = "C:noise",
-                  noise = "C:jagged",
+                  type = "c:noise",
+                  noise = "c:jagged",
                   xz_scale = 1500.0, 
                   y_scale = 0.0
                 }
               }
             }
           },
-          argument2 = "C:overworld/factor"
+          argument2 = "c:overworld/factor"
         }
       }
     },
-    argument2 = 0--"C:overworld/base_3d_noise"
+    argument2 = 0--"c:overworld/base_3d_noise"
   }

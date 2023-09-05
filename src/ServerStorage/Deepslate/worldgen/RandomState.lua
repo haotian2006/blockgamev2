@@ -22,6 +22,7 @@ function RandomState.new(settings,seed)
     a.random = randomobj.new(seed):Fork()
     a.SurfaceSystem = SurfaceSystem --//TODO
     a.router = NoiseRouter.mapAll(settings.noiseRouter,a:createVisitor(settings.noise,settings.legacyRandomSource))
+    a.biomes = settings.biome_source or {}
     a.sample = Climate:GetClass("Sampler").fromRouter(a.router)
     return a
 end 

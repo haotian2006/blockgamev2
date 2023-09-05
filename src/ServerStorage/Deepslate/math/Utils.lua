@@ -2,9 +2,14 @@ local Utils = {}
 function Utils.lerp(a, b, c)
     return b + a * (c - b)
 end
-
+--[[
 function Utils.lerp2(a, b, c, d, e, f)
     return Utils.lerp(b, Utils.lerp(a, c, d), Utils.lerp(a, e, f))
+end
+]]
+function Utils.lerp2(a, b, c, d, e, f)
+    local x = c + a * (d - c)
+	return x+ b* (e + a * (f- e)- x)
 end
 --[[
 function Utils.lerp3(a, b, c, d, e, f, g, h, i, j, k)
@@ -12,11 +17,11 @@ function Utils.lerp3(a, b, c, d, e, f, g, h, i, j, k)
 end
 ]]
 
-function Utils.lerp3(x, y, z,xm_ym_zm, xp_ym_zm, xm_yp_zm, xp_yp_zm,
-    xm_ym_zp, xp_ym_zp, xm_yp_zp, xp_yp_zp
-    )
-    return (xm_ym_zm * (1 - x) * (1 - y) * (1 - z)) + (xp_ym_zm * x * (1 - y) * (1 - z)) + (xm_yp_zm * (1 - x) * y * (1 - z)) + (xp_yp_zm * x * y * (1 - z)) +
-        (xm_ym_zp * (1 - x) * (1 - y) * z) + (xp_ym_zp * x * (1 - y) * z) + (xm_yp_zp * (1 - x) * y * z) + (xp_yp_zp * x * y * z)
+function Utils.lerp3(a, b, c, d, e, f, g, h, i, j, k)
+    local x1 =  d + a * (e - d)
+    local x =   x1 + b * ((f + a * (g - f)) - x1)
+    local y1 =  h + a * (i -h)
+    return    x + c * (( y1 + b * ((j + a * (k - j)) - y1)) - x)
 end
 
 function Utils.lazyLerp(a, b, c)

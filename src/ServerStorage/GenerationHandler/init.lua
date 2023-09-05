@@ -11,6 +11,7 @@ local cs,st = pcall(require,game.ReplicatedStorage.GameSettings)
 local GM = require(ServerStorage.Deepslate)
 local mathutils = require(game.ServerStorage.Deepslate.math.Utils)
 local SharedService = require(game.ServerStorage.ServerStuff.SharedService)
+local behaviorhandler =  require(ReplicatedStorage.BehaviorHandler)
 local function SharedToNormal(shared,p)
     if typeof(shared) ~= "SharedTable" then return shared end 
     p = p or {}
@@ -89,15 +90,9 @@ function generation:Init(seed)
 			regisertstuff(dir,ii,pf)
 		end
 	end
-	NoiseSettings = GM.WorldgenRegistries.NOISE_SETTINGS:get(GM.Identifier.parse("C:overworld"))
+	NoiseSettings = GM.WorldgenRegistries.NOISE_SETTINGS:get(GM.Identifier.parse("c:overworld"))
 	RandomState = GM.RandomState.new(NoiseSettings,seed)
-	Router = RandomState.router
-	Sampler = GM.Climate.fromRouter
 	Visitor = RandomState:createVisitor(NoiseSettings.noise)
-	local sD =  GM.WorldgenRegistries.DENSITY_FUNCTION:get(GM.Identifier.parse("C:overworld/CubicalSurface"))--CubicalSurface
-	local fD =  GM.WorldgenRegistries.DENSITY_FUNCTION:get(GM.Identifier.parse("C:overworld/factor"))
-	SurfaceNoise = sD:mapAll(Visitor)
-	FactorNoise = fD:mapAll(Visitor)
 	MappedRouter = RandomState.router--NoiseRouter.mapAll(Router,Visitor)
 	TerrianHandler:Init(RandomState,MappedRouter,Visitor)
 	Biome:Init(RandomState,MappedRouter,Visitor)
@@ -134,36 +129,46 @@ function generation.CreateBedrock(cx,cz,gtable):table
 	for x = 0,st.ChunkSize.X-1 do
 		for z = 0,st.ChunkSize.X-1 do
 			local combine = vector3int(x,0,z)
-			gtable[combine] = 'T|s%C:Bedrock' 
+			gtable[combine] = 'T|s%c:Bedrock' 
 		end
 	end	
 	return gtable
 end
-local function getColor(x,y,z,gtable)
-	local self = gtable[st.to1D(x,y,z)]
-	local above = gtable[st.to1D(x,y+1,z)]
-	if  y <57 and (not above or above == 'T|s%C:Sand') and self  then
-		return 'T|s%C:Sand'
+local once = false
+function generation.Color(chunk,gtable,surface,custom):{}
+	local function GetBiomeAt(x,y,z)
+		if not custom then return chunk:GetBiomeAt(x,y,z)  end 
+		local yy = math.floor(y/8)*8
+		local s = custom[st.to1D(x,yy,z)]
+		return s or chunk:GetBiomeAt(x,y,z) 
 	end
-	if y == 62 and not above then 
-		return "T|C:Water"
+	local function getColor(x,y,z)
+		local hy= surface[st.to1DXZ(x,z)]
+		local self = gtable[st.to1D(x,y,z)]
+		local above = gtable[st.to1D(x,y+1,z)]
+		local biome = GetBiomeAt(x,y,z)
+		local biomedata = behaviorhandler.GetBiome(biome or "") or {}
+		if  y <57 and (not above or above == 'T|s%c:Sand') and self  then
+			return 'T|s%c:Sand'
+		end
+		if y == 62 and not above then 
+			return "T|c:Water"
+		end
+		if not above and self then
+			return 'T|'..(biomedata.SurfaceBlock or 'c:Grass')
+		elseif ( not gtable[st.to1D(x,y+3,z)] or ( y>=hy) )and self  then
+			return 'T|'..(biomedata.MiddleBlock or 'c:Dirt')
+		elseif self then
+			return'T|s%c:Stone'
+		else 
+			return false 
+		end
 	end
-	if not above and self then
-		return 'T|s%C:Grass'
-	elseif (above == 'T|s%C:Grass' or not gtable[st.to1D(x,y+3,z)]  ) and self  then
-		return 'T|s%C:Dirt'
-	elseif self then
-		return'T|s%C:Stone'
-	else 
-		return false 
-	end
-end
-function generation.Color(cx,cz,gtable):{}
 	for y = st.ChunkSize.Y-1,0,-1 do
 		for z = 0,st.ChunkSize.X-1 do
 			for x = 0,st.ChunkSize.X-1 do
 				 local combine =st.to1D(x,y,z)
-				 gtable[combine] = getColor(x,y,z,gtable)
+				 gtable[combine] = getColor(x,y,z)
 			end
 		end	
 	end
@@ -232,7 +237,14 @@ local xsize,ysiz = st.getChunkSize()
 local w,h = 4,8
 function generation.LerpFinalXZ(cx,cz,quadx,quadz)
 	local density = TerrianHandler.LerpFinalDXZ(cx,cz,quadx,quadz)
-	return density--density
+	local surface = TerrianHandler.LerpXZ2D(cx,cz,quadx,quadz)
+	--local biomesmap = Biome.generateBiomes(biome2d,biome,quadx,quadz)
+	return {density,surface}
+end
+function generation.GetBiomesstuffidkdebug(x,y,z)
+	local x = Vector3.new(Biome.get2DNoiseValues(x,z))
+    local y = Vector3.new(Biome.get3DNoiseValues(x,y,z,true))
+    return {x,y}
 end
 function generation.GenerateBlueprint()
 	return table.create(size,false)

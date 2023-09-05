@@ -24,6 +24,7 @@ function NoiseGeneratorSettings.Evaluate(obj)
         aquifersEnabled = root.aquifers_enabled or false,
         oreVeinsEnabled = root.ore_veins_enabled or false,
         legacyRandomSource = root.legacy_random_source or false,
+        biome_source = root.biome_source or {}
     }
 end
 
@@ -33,6 +34,7 @@ function NoiseGeneratorSettings.create(settings)
         noise = NoiseSettings.create({}),
         -- defaultBlock = BlockState.STONE,
         -- defaultFluid = BlockState.WATER,
+        biome_source = {},
         noiseRouter = NoiseRouter.create({}),
         seaLevel = 0,
         disableMobGeneration = false,

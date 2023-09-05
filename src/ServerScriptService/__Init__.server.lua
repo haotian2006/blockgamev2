@@ -1,4 +1,5 @@
 local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 --bridge.Start({})
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
@@ -38,7 +39,7 @@ local Cfig = require(game.ReplicatedStorage.GameSettings)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local CraftingManager =   Manager.CraftingManager:Init()
 local LEntity = data.GetLoadedEntitys()
-require(game.ServerStorage.GenerationMultiHandler):Init()
+local gmh = require(game.ServerStorage.GenerationMultiHandler):Init()
 --<TESTING MODE>
 local MR = require(game.ReplicatedStorage.Libarys.ModingRemote)
 local Damage = MR.GetRemote("Damage")
@@ -56,6 +57,15 @@ end)
 game.ReplicatedStorage.Events.DoSmt.OnServerEvent:Connect(function(player,stuff)
     require(game.ServerStorage.DataStores.BlockSaver).Save()
 end)
+local cri = game.ReplicatedStorage.climate::RemoteEvent
+cri.OnServerEvent:Connect(function(plr,xx,yy,z)
+    local x,y = unpack(gmh:GetBiomeValues(xx,yy,z))
+    local biome =  data.GetBiome(xx,yy,z)
+    --local str = `c:{x.X} | e:{x.Y} | d:{y.Z} | t:{y.X} | h:{y.Y} | w:{x.Z}`
+    local str = string.format('c: %.3f | e: %.3f | d: %.3f | t: %.3f | h: %.3f | w: %.3f | biome: %s',x.X,x.Y,y.Z,y.X,y.Y,x.Z,biome or "")
+ --   return str
+ cri:FireClient(plr,str)
+end)
 local function CreatePlayer(player)
     PlayerIsLoaded(player,true)
     if   data.PlayerControl[player] then
@@ -63,7 +73,7 @@ local function CreatePlayer(player)
     else
         data.PlayerControl[player] = playercontrol.new()
     end
-    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%C:Dirt",64},[2] = {"T|s%C:Leaf",64},[11] = {"T|s%C:Wood",64},[12] = {"T|s%C:Grass",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%C:Slab",1},[6] = {"T|s%C:Stair",1},[3] = {"T|s%C:Stick",1},[5] = {"T|s%C:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(-100, 90, -400),ClientControl = tostring(player.UserId)})
+    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%c:Dirt",64},[2] = {"T|s%c:Leaf",64},[4] = {"T|s%c:Sand",64},[11] = {"T|s%c:Wood",64},[12] = {"T|s%c:Grass",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%c:Slab",1},[6] = {"T|s%c:Stair",1},[3] = {"T|s%c:Stick",1},[5] = {"T|s%c:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(342, 90, -77),ClientControl = tostring(player.UserId)})
     task.wait(.2 )
     data.AddEntity(entity)
 end
@@ -79,8 +89,11 @@ game.Players.PlayerRemoving:Connect(function(player)
     data.RemoveEntity(player.UserId)
     PlayersLoaded[player.UserId] = nil
 end)
-for i =1,1 do
-    local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1"..i,Position = Vector3.new(-100, 90, -400)}) data.AddEntity(entity)
+if not RunService:IsServer() and false then
+    for i =1,2 do
+        local entityahndler = require(game.ReplicatedStorage.EntityHandler)  local entity = entityahndler.Create("Npc",{Health = 10000000,Speed= 20, ['behavior.AttackPlayer'] = {MaxRange = 10,priority = 2,} , ['behavior.Random_Stroll'] = nil, ['behavior.GoToPlayer'] = {MaxRange = 1000,priority = 2,interval = 1,},Name = "BOSS: MAN FACE MAN",Id = "BOSS: MAN FACE MAN"..i,Position = Vector3.new(-100, 90, -400)})   require(game.ReplicatedStorage.DataHandler).AddEntity(entity)
+       -- local entity = entityahndler.Create("Npc",{Name = "Npc1",Id = "Npc1"..i,Position = Vector3.new(-100, 90, -400)}) data.AddEntity(entity)
+    end
 end
 game.ReplicatedStorage.Events.Respawn.OnServerEvent:Connect(function(player)
     LEntity.Remove(player)
@@ -128,7 +141,7 @@ local ublock = bridge.CreateBridge("UpdateBlocks")
 bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:Vector3)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end 
     local blocktr = data.GetBlock(block.X,block.Y,block.Z)
-    if (blocktr and blocktr[2].T == "C:Bedrock") or not blocktr then return end 
+    if (blocktr and blocktr[2].T == "c:Bedrock") or not blocktr then return end 
     data.RemoveBlock(block.X,block.Y,block.Z)
     ublock:FireAll({Remove = {block}})
 end)
@@ -178,7 +191,7 @@ Damage.OnServerEvent:Connect(function(plr,id,lookvector)
 end)
 game.ReplicatedStorage.Events.KB.OnServerEvent:Connect(function(plr,id,lookvector)
     local plre = data.GetEntityFromPlayer(plr)
-    --plre:DropItem('C:Dirt',1)
+    --plre:DropItem('c:Dirt',1)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end 
     local entity = data.GetEntity(id)
     if not entity or entity:GetState('Dead') then return end 

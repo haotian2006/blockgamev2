@@ -1,5 +1,5 @@
 --[[
-['C:x'] = { --Name
+['c:x'] = { --Name
         components= {
             maxCount = 64, -- max count
 
@@ -10,64 +10,64 @@ local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local crt = behhandler.CreateComponent
 local cit = behhandler.CreateItemType
 return{
-    ['C:Dirt'] = cit(
+    ['c:Dirt'] = cit(
     { 
         type = 'Block',
-        Block = 'C:Dirt'
+        Block = 'c:Dirt'
     }),
-    ['C:Grass'] = cit(
+    ['c:Grass'] = cit(
     {
         type = 'Block',
-        Block = 'C:Grass'
+        Block = 'c:Grass'
     }),
-    ['C:Wood'] = cit(
+    ['c:Wood'] = cit(
     {
         type = 'Block',
-        Block = 'C:Wood'
+        Block = 'c:Wood'
     }),
-    ['C:Sand'] = cit(
+    ['c:Sand'] = cit(
         {
             type = 'Block',
-            Block = 'C:Sand'
+            Block = 'c:Sand'
         }),
-    ['C:Leaf'] = cit(
+    ['c:Leaf'] = cit(
     {
         type = 'Block',
-        Block = 'C:Leaf'
+        Block = 'c:Leaf'
     }),
-    ['C:Stone'] = cit(
+    ['c:Stone'] = cit(
     { 
         type = 'Block',
-        Block = 'C:Stone',
+        Block = 'c:Stone',
     }),
-    ['C:Bedrock'] = cit(
+    ['c:Bedrock'] = cit(
     {
         type = 'Block',
-        Block = 'C:Bedrock'
+        Block = 'c:Bedrock'
     }),
-    ['C:Stair'] = cit(
+    ['c:Stair'] = cit(
     {
         type = 'Block',
-        Block = 'C:Stair'
+        Block = 'c:Stair'
     }),
-    ['C:Slab'] = cit(
+    ['c:Slab'] = cit(
     {
         type = 'Block',
-        Block = 'C:Stair'
+        Block = 'c:Stair'
     }),
     ['DebugPart'] = cit(
     {
         type = 'Block',
-        Block = 'C:Stair'
+        Block = 'c:Stair'
     }),
 
-    ['C:Stick'] = cit(
+    ['c:Stick'] = cit(
     {
         type = 'Sword',
         Damage = 5,
         
     }),
-    ['C:LongStick'] = cit(
+    ['c:LongStick'] = cit(
     {
         type = 'Sword',
         Range = 120,
@@ -75,7 +75,7 @@ return{
         Damage = 0,
         
     }),
-    ['C:GodStick'] = cit(
+    ['c:GodStick'] = cit(
     {
         type = 'Sword',
         Range = 3,

@@ -248,7 +248,7 @@ function func.Attack()
             if  v.Type == "Block" then
                 local block = v.BlockPosition
                 local blocktr =data.GetBlock(block.X,block.Y,block.Z)
-                if (blocktr and blocktr[2].T == "C:Bedrock") or not blocktr then return end 
+                if (blocktr and blocktr[2].T == "c:Bedrock") or not blocktr then return end 
                 data.RemoveBlock(block.X,block.Y,block.Z)
                 destroyblockEvent:Fire(block)
             elseif v.Type == "Entity"  then

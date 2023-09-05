@@ -15,6 +15,9 @@ local ChunkObj = require(game.ReplicatedStorage.Chunk)
 local compresser = require(game.ReplicatedStorage.Libarys.compressor) 
 local settings = require(game.ReplicatedStorage.GameSettings)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
+if bridge == 1 then
+    return 
+end
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local GetChunk = bridge.CreateBridge("GetChunk")
 local isserver = runservice:IsServer()
@@ -127,6 +130,13 @@ function self.InsertBlock(x,y,z,block)
     return chunk
 end
 function c(x,y,z) local a = workspace.IDK:Clone() a.Parent = workspace a.Size = Vector3.new(3,3,3) a.Position = Vector3.new(x,y,z)*3 a.Anchored = true game:GetService("Debris"):AddItem(a,1) end 
+function self.GetBiome(x,y,z)
+    local cx,cz,lx,ly,lz = qf.GetChunkAndLocal(x,y,z)
+    local chunk = self.GetChunk(cx,cz)
+    if chunk then
+        return chunk:GetBiomeAt(lx,ly,lz)
+    end
+end
 function self.GetBlock(x,y,z)
     local cx,cz = qf.GetChunkfromReal((x),(y),(z),true)
     local chunk = self.GetChunk(cx,cz)

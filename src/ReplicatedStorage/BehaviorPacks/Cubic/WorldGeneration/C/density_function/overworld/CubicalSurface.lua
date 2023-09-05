@@ -6,7 +6,7 @@ return {
             type = 'mul',
             argument1 = {
                 type = 'interpolated',
-                argument = 'C:overworld/offset',
+                argument = 'c:overworld/offset',
             },
             argument2 = 80
         },

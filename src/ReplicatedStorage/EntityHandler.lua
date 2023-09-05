@@ -1045,7 +1045,7 @@ function entity:Jump(override)
     local jumpedamount =0 
     local jumpheight = (self.JumpHeight or 0) --1.25
     local muti = 1
-    local velocity = 0.42
+    local velocity = self.JumpV or 0.42
     local start = os.clock()
     local tickspast = 0
     self:SetBodyVelocity("Gravity",Vector3.new(0,velocity*20,0) )

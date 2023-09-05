@@ -63,7 +63,7 @@ function Param.Evaluate(obj)
     if typeof(obj) == "number" then
         return Param.new(obj,obj)
     end
-    return Param.new(obj.min,obj.max) 
+    return Param.new(obj[1],obj[2]) 
 end
 
 
@@ -86,7 +86,8 @@ function ParamPoint:space()
       return {self.temperature, self.humidity, self.continentalness, self.erosion, self.depth, self.weirdness,  Param.new(self.offset, self.offset)};
 end
 function ParamPoint.Evaluate(obj)
-    return ParamPoint.new(obj.temperature,obj.humidity,obj.continentalness,obj.erosion,obj.depth,obj.weirdness,obj.offset or 0)
+    return ParamPoint.new(Param.Evaluate(obj.temperature),Param.Evaluate(obj.humidity),Param.Evaluate(obj.continentalness),Param.Evaluate(obj.erosion),
+        Param.Evaluate(obj.depth),Param.Evaluate(obj.weirdness),obj.offset or 0)
 end
 
 
@@ -224,7 +225,7 @@ function RTree.build(nodes)
     local f = math.huge
     local n3 = -1
     local result = {}
-    for n2 = 0, PARAMETER_SPACE  do
+    for n2 = 1, PARAMETER_SPACE  do
         nodes = RTree.sort(nodes, n2, false)
         result = RTree.bucketize(nodes)
         local f2 = 0.0
@@ -241,7 +242,7 @@ function RTree.build(nodes)
     nodes = RTree.sort(nodes, n3, false)
     result = RTree.bucketize(nodes)
     result = RTree.sort(result, n3, true)
-    result = RTree.map(result, function(subTree) return RTree.build(subTree.children) end)
+ --   result = RTree.map(result, function(subTree) return RTree.build(subTree.children) end)
     for i, subTree in result do
         local builtSubTree = RTree.build(subTree.children)
         result[i] = builtSubTree
