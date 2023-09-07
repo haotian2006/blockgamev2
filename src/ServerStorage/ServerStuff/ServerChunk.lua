@@ -60,15 +60,17 @@ local function smoothSurface(cx,cy)
             PGC:AddItem(v,data,5)
             local x,y = v:split(',')
             x,y = x[1],x[2]
-            local ndata = multigh:ComputeChunk(x,y)
+            local ndata = multigh:ComputeChunkS(x,y)
             data.Data = ndata[3]
             --ndata[3] = type( ndata[3]) == "table" and i or  ndata[3]
             --SharedDensitiys[v] = ndata[1]
+            debug.profilebegin("Upload")
             data.Loading = nil
             sharedservice:Upload(v,ndata)
             data.Event:Fire()
             data.Event:DisconnectAll()
             data.Event = nil
+            debug.profileend()
         end
         if i == 1 then
             climate = data.Data
@@ -89,14 +91,14 @@ local function smoothSurface(cx,cy)
     local data,surface = multigh:InterpolateDensity(cx,cy)
     local newb 
     if not s then
-        newb = {}
-        local d = multigh:LerpBiomes(cx,cy,surface)
-        local key = d[2]
-        for i,v in d[1] do
-            local idx = v.X
-            local numb = v.Y
-            newb[idx] = key[numb]
-        end
+        newb = multigh:LerpBiomes(cx,cy,surface)--{}
+        -- local d = multigh:LerpBiomes(cx,cy,surface)
+        -- local key = d[2]
+        -- for i,v in d[1] do
+        --     local idx = v.X
+        --     local numb = v.Y
+        --     newb[idx] = key[numb]
+        -- end
     end
     
   --  data = Chunk.DeCompressVoxels(data,true)
@@ -121,11 +123,15 @@ function Chunk:GenerateTerrian()
     self:SetState("GTerrian",true)
    -- local terrian = smoothNearby(self.Chunk.X,self.Chunk.Y)
     local terrian,surface,climate,newb = smoothSurface(self.Chunk.X,self.Chunk.Y)--smoothSurface(self:GetNTuple())--multigh:ComputeChunk(self.Chunk.X,self.Chunk.Y)--self:Surface()--multigh:CreateTerrain(self.Chunk.X,self.Chunk.Y)
+    local terrian = multigh:Color(terrian,surface,climate,newb)
     self.Biome = climate
-    -- terrian = gh.Color(self,terrian,surface,newb) 
+--  terrian = gh.Color(self,terrian,surface,newb) 
+  debug.profilebegin("addblock")
+  self:BulkAdd(terrian)
     -- for i:Vector3,v in terrian do 
     --     self:AddBlock(i,v)
     -- end
+    debug.profileend()
     self.Changed = true
     self:SetState("GTerrian")
     self:SetState("Terrian",true)
@@ -218,8 +224,8 @@ function Chunk:GenerateOthers(x)
     self:SetState("GeneratingOther",true) 
     self.Settings.GeneratedOthers = true
 
-    self:DoCaves()
-    self:GenerateStructures()
+    -- self:DoCaves()
+    -- self:GenerateStructures()
 
     self:SetState("GeneratingOther",false) 
 end
@@ -325,12 +331,14 @@ function Chunk:Generate()
     self.Generating = true
     self.GeneratingEvent = Signal.new()
     self:GenerateTerrian()
-    self:GenerateOthers()
-    self:GenerateNearByChunks()
+    --self:GenerateOthers()
+ --   self:GenerateNearByChunks()
     self:LoadToLoad()
+    debug.profilebegin("createbd")
     for i,v in terrainh.CreateBedrock(self.Chunk.X,self.Chunk.Y,{}) do
         self:InsertBlock(i.X,i.Y,i.Z,v)
     end
+    debug.profileend()
     self.Generating = false
     self.Changed = true
     self.Settings.Generated = true

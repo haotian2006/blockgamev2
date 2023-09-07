@@ -142,12 +142,12 @@ function generation.Color(chunk,gtable,surface,custom):{}
 		local s = custom[st.to1D(x,yy,z)]
 		return s or chunk:GetBiomeAt(x,y,z) 
 	end
+	local biome,biomedata = {}
 	local function getColor(x,y,z)
+		local idx = st.to1D(x,y,z)
 		local hy= surface[st.to1DXZ(x,z)]
 		local self = gtable[st.to1D(x,y,z)]
-		local above = gtable[st.to1D(x,y+1,z)]
-		local biome = GetBiomeAt(x,y,z)
-		local biomedata = behaviorhandler.GetBiome(biome or "") or {}
+		local above = gtable[idx+8]
 		if  y <57 and (not above or above == 'T|s%c:Sand') and self  then
 			return 'T|s%c:Sand'
 		end
@@ -155,20 +155,29 @@ function generation.Color(chunk,gtable,surface,custom):{}
 			return "T|c:Water"
 		end
 		if not above and self then
-			return 'T|'..(biomedata.SurfaceBlock or 'c:Grass')
-		elseif ( not gtable[st.to1D(x,y+3,z)] or ( y>=hy) )and self  then
-			return 'T|'..(biomedata.MiddleBlock or 'c:Dirt')
+			return (biomedata.SurfaceBlock or 'c:Grass')
+		elseif ( not gtable[idx+24] or ( y>=hy) )and self  then
+			return (biomedata.MiddleBlock or 'c:Dirt')
 		elseif self then
 			return'T|s%c:Stone'
 		else 
 			return false 
 		end
 	end
-	for y = st.ChunkSize.Y-1,0,-1 do
-		for z = 0,st.ChunkSize.X-1 do
-			for x = 0,st.ChunkSize.X-1 do
+	for z = 0,st.ChunkSize.X-1 do
+		for x = 0,st.ChunkSize.X-1 do
+			for y = st.ChunkSize.Y-1,0,-1 do
+				--debug.profilebegin("getbiome")
+					local biome1 = GetBiomeAt(x,y,z)
+					if biome ~= biome1 then
+					biomedata = behaviorhandler.GetBiome(biome1 or "") or {}
+						biome = biome1
+				--	debug.profileend()
+				end
 				 local combine =st.to1D(x,y,z)
+				-- debug.profilebegin("getcolor")
 				 gtable[combine] = getColor(x,y,z)
+				-- debug.profileend()
 			end
 		end	
 	end

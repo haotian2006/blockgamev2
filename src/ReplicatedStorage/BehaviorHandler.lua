@@ -13,7 +13,7 @@ self.Shared = {
     --'WorldGeneration' 
 }
 self.SPECIALLOAD = {
-    'WorldGeneration'
+    'WorldGeneration',"Biomes"
 }
 function self.GetOrCreated(name)
     if not table.find(self.Shared,name)  then
@@ -28,6 +28,7 @@ function self.GetOrCreated(name)
         return t
     end
 end
+local SPECIAL 
 function self.FormatTable(x,p)
     local p = p or {}
     for i,v in x do
@@ -58,11 +59,11 @@ local Scripts = {
     [true] ={},
     [false] = {}
 }
-function self.LoadPack(PackName:string,loadComponet,SPECIAL)
+function self.LoadPack(PackName:string,loadComponet)
     local pack = BehaviorPacks:FindFirstChild(PackName)
     if pack then
         local function x(v)
-            if not table.find(self.SPECIALLOAD,v.Name) and SPECIAL then
+            if not table.find(type(SPECIAL) == "table" and SPECIAL or self.SPECIALLOAD,v.Name) and SPECIAL then
                 return 
             end
             if v:IsA("Folder") then
@@ -91,14 +92,15 @@ function self.LoadPack(PackName:string,loadComponet,SPECIAL)
         end
     end
 end
-function self:Init(SPECIAL) 
+function self:Init(SPECIAL_) 
+    SPECIAL = SPECIAL_
     for i,name in self.LoadOrder do
         for i,v in BehaviorPacks:GetChildren()do
-            self.LoadPack(v.Name,name,SPECIAL)
+            self.LoadPack(v.Name,name)
         end
     end
     for i,v in BehaviorPacks:GetChildren()do
-        self.LoadPack(v.Name,nil,SPECIAL)
+        self.LoadPack(v.Name,nil)
     end
     if SPECIAL then return end 
     for ii,v in Scripts do

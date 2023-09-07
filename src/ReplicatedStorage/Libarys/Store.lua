@@ -1,3 +1,4 @@
+local RunService = game:GetService("RunService")
 local BS = {}
 local Block = {}
 local debirs = require(game.ReplicatedStorage.Libarys.Debris)
@@ -38,9 +39,13 @@ function BS:get(key,time)
     if self.Predefined[key] then
         return self.Predefined[key]
     end
-    if BSD:GetItem(key) then
-        BSD:SetTime(key,BSD:GetItem(key)[3] or 60)
+    local it = BSD:GetItem(key)
+    if it then
+        BSD:SetTime(key,it[3] or 60)
     else
+        if RunService:IsServer() then
+            print(key)
+        end
         local d = qf.DecompressItemData(key)
         d.Data = reh.GetBlock(d.T)
         BS:store(key,d,time)

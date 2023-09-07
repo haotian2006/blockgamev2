@@ -100,6 +100,17 @@ function Chunk:InsertBlockGrid(x,y,z,data)
     return self:InsertBlock(x,y,z,data)
 end
 local maxsize = chunksize.X^2*chunksize.Y
+function Chunk:BulkAdd(table)
+    local found = {}
+    for i,v in table do
+        if not found[v] then
+            local x = bs:get(v)
+            found[v] = x--v
+        end
+       self.Blocks[i] = found[v]
+    end
+    self.Changed = true
+end
 function  Chunk:AddBlock(index,data)
     if type(data)=="string" or type(data) == "boolean" then
         data = bs:get(data)
@@ -145,33 +156,45 @@ end
 function Chunk:ConvertLocalToGrid(x,y,z)
     return Vector3(x,y,z) + Vector3(self.Chunk.X,0,self.Chunk.Y)*settings.ChunkSize.X
 end
-function Chunk:CompressVoxels(data,special)
-    local blocks = data or self:GetAllBlocks()
+
+function Chunk:CompressVoxels(keytable)
+    local blocks =  self:GetAllBlocks() 
     local compressed = {}
+    local key = {}
+    local index = keytable or {}
     local last = blocks[1]
     local count = 1
     local total = 0
+    local function get(id)
+        local idx = table.find(index,id)
+        if idx then return idx end
+        local len = #index+1
+        index[len] = id
+        return len
+    end
     for i =2, #blocks do
         local current = blocks[i]
         if current == last then
             count +=1
         else
-            table.insert(compressed,{if special then last else last:getKey(),count})
+            table.insert(compressed,Vector2int16.new(get(last:getKey()),count))
+         --   table.insert(key,count)
             last = current 
             total+= count
             count = 1
             
         end
     end
-    table.insert(compressed,{if special then last else last:getKey(),count})
-    return compressed
+    table.insert(compressed,Vector2int16.new(get(last:getKey()),count))
+ --   table.insert(key,count)
+    return {compressed,not keytable and index}
 end
-function Chunk.DeCompressVoxels(data,notbs)
+function Chunk.DeCompressVoxels(comp,key)
     local decompressed = {}
     local current = 1
-    for i,v in data do
-        for _ = 1,v[2] do
-            decompressed[tonumber(current)] = if notbs then v[1] else bs:get(v[1])
+    for i,v in comp do
+        for _ = 1,v.Y do
+            decompressed[tonumber(current)] =  bs:get(key[v.X])
             current +=1
         end
     end

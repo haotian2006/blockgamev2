@@ -28,17 +28,18 @@ function self.DoCaves(cx,cz,from)
 end
 local InProgress = {}
 function self.GetChunk(cx,cz,create)
-    if not self.LoadedChunks[cx..','..cz] and create then
-        if InProgress[cx..','..cz] then
-            InProgress[cx..','..cz]:Wait()
-            return self.LoadedChunks[cx..','..cz] 
+    local str = cx..','..cz
+    if not self.LoadedChunks[str] and create then
+        if InProgress[str] then
+            InProgress[str]:Wait()
+            return self.LoadedChunks[str] 
         end
-        InProgress[cx..','..cz] = sing.new()
+        InProgress[str] = sing.new()
         self.CreateChunk(nil,cx,cz)
-        InProgress[cx..','..cz]:DisconnectAll()
-        InProgress[cx..','..cz] = nil
+        InProgress[str]:DisconnectAll()
+        InProgress[str] = nil
     end
-    return self.LoadedChunks[cx..','..cz] 
+    return self.LoadedChunks[str] 
 end
 self.SendToClient = {}
 self.InProgress = {}
@@ -86,7 +87,10 @@ task.spawn(function()
     end
 end)
 ]]
-runservice.Heartbeat:Connect(function()
+local t = 0
+local tick = 0
+local ReadyToSend = {}
+runservice.Heartbeat:Connect(function(dt)
     local i = 0
     for c,v in self.SendToClient do
         if not self.SendToClient[c] or self.InProgress[c] then continue end 
@@ -100,13 +104,33 @@ runservice.Heartbeat:Connect(function()
             local chun = self.GetChunk(cx,cz,true)
             chun:Generate() 
             for i,v in a do 
-                game.ReplicatedStorage.Events.GetChunk:FireClient(v,cx,cz,self.GetChunk(cx,cz):CompressVoxels())
+                ReadyToSend[v] = ReadyToSend[v] or {}
+                table.insert(ReadyToSend[v],c)
             end
             self.InProgress[c] = nil
         end
         task.spawn(fun)
-        if i%3 == 0 then return end
+        if i%10 == 0 then break end
     end 
+    if t >= tick then
+        local compressed = {}
+        local key = {}
+        for player,data in ReadyToSend do
+            if not game.Players:FindFirstChild(player.Name) then ReadyToSend[player] = nil continue end 
+            local tosend = {}
+            for _,v in data do
+                if not compressed[v] then 
+                    local cx,cz = unpack(string.split(v,","))
+                    compressed[v] = self.GetChunk(cx,cz):CompressVoxels(key)
+                end
+                tosend[v] = compressed[v]
+            end
+            table.clear(data)
+            game.ReplicatedStorage.Events.GetChunk:FireClient(player,tosend,key)
+        end
+        t = 0
+    end
+    t+=dt
 end)
 -- self.EntityLoop = false
 -- if not self.EntityLoop then
@@ -136,7 +160,9 @@ game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,
     -- local position = player.Character.PrimaryPart.Position
     local new = self.GetChunk(cx,cz)
     if new and new:IsGenerating() then
-        game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,new:CompressVoxels())
+        ReadyToSend[player] = ReadyToSend[player] or {}
+        table.insert(ReadyToSend[player],`{cx},{cz}`)
+     --   game.ReplicatedStorage.Events.GetChunk:FireClient(player,cx,cz,new:CompressVoxels())
         return 
     end
      --new:Generate()

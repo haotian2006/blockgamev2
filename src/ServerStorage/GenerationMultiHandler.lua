@@ -16,6 +16,7 @@ local GenHandler = require(game.ServerStorage.GenerationHandler)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local sharedservice = game:GetService("SharedTableRegistry")
 local sharedtable = sharedservice:GetSharedTable("Generation")
+local terrian = require(game.ServerStorage.GenerationHandler.TerrianHandler)
 local st ={}
 local mhworkers = Instance.new("Folder")
 mhworkers.Name = "idk"
@@ -135,15 +136,15 @@ function GH:InterpolateDensity(cx,cz)
             local tk = tasks
             task.spawn(function()
                 alldata[tk]=  GH:DoWork("LerpFinalXZ",cx,cz,x,z)
-                done +=1
-                if tasks == done*2 then
+                done+=1
+                if done == 4 then
                     coroutine.resume(thread)
                 end
             end)
-            tasks +=1
+
         end
     end
-    if tasks ~= done then coroutine.yield() end 
+    if 4 ~= done then coroutine.yield() end 
     for i,v in alldata do
         for i,v in v[1] do
             t[v.X] =  v.Y>0 and true or false
@@ -154,6 +155,191 @@ function GH:InterpolateDensity(cx,cz)
     end
   --  lerp[`{cx},{cz}`] = nil
     return t,s--t
+end
+function to3D4x256(index)
+    index = tonumber(index) - 1
+	local x = index % 4
+	index = math.floor(index / 4)
+	local y = index % 256
+	index = math.floor(index / 256)
+	local z = index % 4
+	return x, y, z
+end
+local aa = 4*256
+local function to1d4x256(x,y,z)
+    return x + y * 4 + z *aa+1
+end
+local function to1DXZ4x(x,z)
+    return x + z *4 + 1
+end
+local farea3 = (sizex)*(sizey) 
+local once = false
+function GH:Color(holes,surface,d1,d2)
+    local t = table.create(farea3*8)
+   -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
+    local tasks,done = 0,0
+    local thread = coroutine.running()
+    local alldata = {}
+    for x =0,1 do
+        for z = 0,1 do
+            tasks +=1
+            local i = tasks
+            local s = {}
+            local holes2 = {}
+          --  local d22 = d2 and {}
+            for xx =0,3 do
+                local x = xx+4*x
+                for zz = 0,3 do
+                    local z = zz+4*z
+                    local xz1 = to1DXZ4x(xx,zz)
+                    local xz2 = Settings.to1DXZ(x,z)
+                    s[xz1] = surface[xz2]
+                    for y = 0,255 do
+                        local idx1 = to1d4x256(xx,y,zz)
+                        local idx2 = Settings.to1D(x,y,z)
+                        holes2[idx1] = holes[idx2]
+                        if d2 then
+                          --  d22[idx1] = d2[idx2]
+                        end
+                    end
+                end
+            end
+            local tk = Vector2.new(x,z)
+            local newhol = {}
+            task.spawn(function()
+                alldata[i]= terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,s,d1,type(d2) == "table" and d2[i] or d2))) --terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,surface,d1,d22)))
+                done +=1
+                if 4 == done then
+                    coroutine.resume(thread)
+                end
+            end)
+        end
+    end
+    if 4 ~= done then coroutine.yield() end 
+    local t1 = alldata[1]
+    local t2 = alldata[2]
+    local t3 = alldata[3]
+    local t4 = alldata[4]
+    for x = 0,3 do
+        local fx1 = (x)
+        local fx2 = (x+4)
+
+        for z = 0,3 do
+            local fz1 = (z)
+            local fz2 = (z+4)
+    
+            local idx  =  x  + z *aa+1
+            local ide1 =  fx1  + fz1 *farea3+1
+            local ide2 =  fx1  + fz2 *farea3+1
+            local ide3 =  fx2  + fz1 *farea3+1
+            local ide4 =  fx2  + fz2 *farea3+1
+
+            debug.profilebegin("y stuff")
+            for y = 0,255 do
+                local idx255 = idx + y * 4
+                local yof = y * 8
+                 t[ide1+yof] = t1[idx255]
+                 t[ide2+yof] = t2[idx255]
+                 t[ide3+yof] = t3[idx255]
+                 t[ide4+yof] = t4[idx255]
+            end
+            debug.profileend()
+        end
+    end
+    --[[
+    for tk,d in alldata do
+        local qx,qz = tk.X,tk.Y
+        for x = 0,3 do
+            local fx =  (x+qx*4)
+            for z = 0,3 do
+                local idx  =  x  + z *aa+1
+                local idx2 =     fx  + (z+qz*4) *farea3+1
+                for y = 0,255 do
+                    t[idx2+ y * 8] =d[idx + y * 4]
+                end
+            end
+        end
+        -- for index,block in  d do
+        --     local x,y,z = to3D4x256(index)
+        --     t[Settings.to1D(x+qx*4,y,z+qz*4)] = block
+        -- end
+    end]]
+    return t
+end
+function GH:ComputeChunkS(cx,cz)
+    local t = {}
+   -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
+    local tasks,done = 0,0
+    local thread = coroutine.running()
+    local alldata = {}
+    for x =0,1 do
+        for z = 0,1 do
+            tasks +=1
+            local tk = Vector2.new(x,z)
+            task.spawn(function()
+                alldata[tk]= GH:DoWork("ComputeChunkSection",cx,cz,x,z)
+                done +=1
+                if 4 == done then
+                    coroutine.resume(thread)
+                end
+            end)
+            tasks +=1
+        end
+    end
+    if 4 ~= done then coroutine.yield() end 
+    local data = {}
+    local base = {}
+    local biomes ={}
+    local bi 
+    local climate2d = {}
+    local climate3d = {}
+    -- {data,base,bi or biomes,climate2d,climate3d}
+    for tk,d in alldata do
+        local qx,qz = tk.X,tk.Y
+        local x,z = 4*qx,4*qz
+        local lx,lz = x/4,z/4
+        local to1dxz = terrian.to1dLocalXZ(lx,lz)
+        climate2d[to1dxz] = d[4]
+        base[to1dxz] = d[2]
+        if bi == nil then
+            bi = d[3]
+        elseif bi ~= d[3] then
+            bi = false
+        end
+        for y = 0,255,8 do
+            local ly = y/8
+            local idx = terrian.to1dLocal(lx,ly,lz)
+            ly +=1
+            data[idx] = d[1][ly]
+            climate3d[idx] = d[5][ly]
+            biomes[idx] = type(d[3]) == "string" and d[3] or d[3][ly]
+        end
+    end
+    return {data,base,bi or biomes,climate2d,climate3d}
+end
+function GH:LerpBiomes(cx,cz,height)
+    local t = {}
+    -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
+     local tasks,done = 0,0
+     local thread = coroutine.running()
+     local alldata = {}
+     for x =0,1 do
+         for z = 0,1 do
+             tasks +=1
+             local tk = Vector2.new(x,z)
+             task.spawn(function()
+                 alldata[tasks]= GH:DoWork("LerpBiomesSection",cx,cz,height,x,z)
+                 done +=1
+                 if 4 == done then
+                     coroutine.resume(thread)
+                 end
+             end)
+         end
+     end
+     if 4 ~= done then coroutine.yield() end 
+
+
+     return alldata
 end
 function GH:ComputeChunk(cx,cz)
     local data = GH:DoWork("ComputeChunk",cx,cz)

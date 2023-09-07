@@ -377,6 +377,15 @@ bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
     end
 end)
 local a = false
+game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(chunks,key)
+    for str,data in chunks do
+        toload[str] = true
+        queued[str] = false
+        data = require(game.ReplicatedStorage.Chunk).DeCompressVoxels(data[1],key)
+        datahandler.CreateChunk({Blocks = data},unpack((str::string):split(',')))
+    end
+end)
+--[[
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
     toload[cx..','..cz] = true
     queued[cx..','..cz] = false
@@ -397,7 +406,8 @@ game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data
     p.Position = Vector3.new(cx*8*3,180,cz*8*3)
    end
 end)
-local deloaddistance = 14
+]]
+local deloaddistance = 12
 local renderdistance = 9
 function srender(p)
     for v,i in datahandler.LoadedChunks  do
@@ -426,7 +436,7 @@ function srender(p)
         end
         if not datahandler.GetChunk(cx,cz) and not queued[cx..','..cz] then
             GetChunks(cx,cz)
-            task.wait(.08)
+            task.wait(.02)
         end
     end
 end

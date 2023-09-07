@@ -337,7 +337,7 @@ function self.UpdateChunk(cx,cz,debug)
         if index%2000 == 0 then task.wait() end
         local pi,pb = next(blockstodel)
         if pi then blockstodel[pi] = nil else newb +=1 end 
-        v.data = qf.DecompressItemData(v.data)
+     --   v.data = qf.DecompressItemData(v.data)
         local p = self.CreateBlock(v,pb,v.data.O,CFrame.new(Vector3.new(v.real.X+cx*csize,v.real.Y,v.real.Z+cz*csize)*gridS)*(v.data.O and collisions.ConvertToCFrame(v.data.O) or CFrame.new()).Position)
         p.Name = tostring(i)
         p.Size = Vector3.one
@@ -349,7 +349,7 @@ function self.UpdateChunk(cx,cz,debug)
         chunkobj.RenderedBlocks[i] = v
         if nonchangedblocks[i] then continue end
         index +=1
-        v = qf.DecompressItemData(v)
+      --  v = qf.DecompressItemData(v)
         if index%2000 == 0 then task.wait() end
         local dat= ResourceHandler.GetBlock(v.T)
         local p =dat.Mesh:Clone()

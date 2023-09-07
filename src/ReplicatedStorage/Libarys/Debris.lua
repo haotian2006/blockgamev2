@@ -18,7 +18,8 @@ function debris:GetItem(name)
     return self.items[name] 
 end
 function debris:GetItemData(name)
-    return self.items[name] and self.items[name][1]
+    local d = self.items[name]
+    return d and d[1]
 end
 function debris:SetTime(name,duration)
     if not self.items[name] then return end 
