@@ -90,8 +90,10 @@ end)
 local t = 0
 local tick = 0
 local ReadyToSend = {}
+local inqueue = 0
 runservice.Heartbeat:Connect(function(dt)
     local i = 0
+    if inqueue < 5 then   
     for c,v in self.SendToClient do
         if not self.SendToClient[c] or self.InProgress[c] then continue end 
         i += 1
@@ -102,7 +104,9 @@ runservice.Heartbeat:Connect(function(dt)
             self.SendToClient[c] = nil
             self.InProgress[c] = true
             local chun = self.GetChunk(cx,cz,true)
+            inqueue +=1
             chun:Generate() 
+            inqueue -=1
             for i,v in a do 
                 ReadyToSend[v] = ReadyToSend[v] or {}
                 table.insert(ReadyToSend[v],c)
@@ -110,8 +114,9 @@ runservice.Heartbeat:Connect(function(dt)
             self.InProgress[c] = nil
         end
         task.spawn(fun)
-        if i%10 == 0 then break end
+        if i%2 == 0 then break end
     end 
+end
     if t >= tick then
         local compressed = {}
         local key = {}

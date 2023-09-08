@@ -107,12 +107,12 @@ function terrian.ComputeChunk(cx,cz)
 end
 function terrian.ComputeChunkSection(cx,cz,quadx,quadz)
     debug.profilebegin("ComputeChunk Section")
-    local data = {}
-    local other = {}
+    local data = table.create(256)
+   -- local other = {}
     local ox,oz = settings.getoffset(cx,cz)
     local base 
-    local biomes = {}
-    local climate3d = {}
+    local biomes = table.create(256)
+    local climate3d = table.create(256)
     local x,z = 4*quadx,4*quadz
     local rx,rz = x+ox,z+oz
     local c,e,w = BiomeHandler.get2DNoiseValues(rx,rz)
@@ -163,7 +163,7 @@ function terrian.LerpXZ2D(cx,cz,quadx,quadz)
     local cs = current[2]
    -- local cc = current[2]
 	local found = {}
-	local t ={}
+	local t = table.create(4*4)
     local ccc = {}
 	local function get(x,z)
         local id,ofx,ofz = GetData2(x,z)
@@ -175,6 +175,7 @@ function terrian.LerpXZ2D(cx,cz,quadx,quadz)
 		return found[str][id]
 	end
     local w = 8
+    local key = 0
 	for qx =0,4-1 do
 		local x = qx+4*quadx
 		local xx = ((x % w + w) % w) / w
@@ -186,7 +187,8 @@ function terrian.LerpXZ2D(cx,cz,quadx,quadz)
             local level01 = get(quadx,quadz+1)
             local level11 = get(quadx+1,quadz+1)
             local level = math.floor(lerp2(xx,zz,level00,level10,level01,level11))
-            table.insert(t,Vector2int16.new(settings.to1DXZ(x,z),level))
+            local idx =  qx + qz *4 + 1--to1dLocalXZ(qx,qz)
+            t[idx] = level
 
 		end
 	end
@@ -203,7 +205,7 @@ function terrian.LerpFinalDXZ(cx,cz,quadx,quadz)
 	local noise000,noise001,noise010,noise011,noise100,noise101,noise110,noise111
 	local current = (SharedService:Get(`{cx},{cz}`)[1])
 	local found = {}
-	local t ={}
+	local t = table.create(4*4*256)
     local store = {}
     local preofx = {
         [0] = {
@@ -227,6 +229,7 @@ function terrian.LerpFinalDXZ(cx,cz,quadx,quadz)
         store[abc] = f[id]
 		return f[id]
 	end
+    local key = 0
 	local fy
 	for qx =0,w-1 do
 		local x = qx+4*quadx
@@ -251,8 +254,9 @@ function terrian.LerpFinalDXZ(cx,cz,quadx,quadz)
                 end
 				local density =  lerp3(xx, yy, zz, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                -- local biomevalues = lerp3(xx,yy,zz,b000,b001,b010,b011,b100,b101,b110,b111)
-                local a = settings.to1D(x,y,z)
-				table.insert(t,Vector2.new(a,density))
+                local idx =  to1d4x256(qx,y,qz)
+               -- key+=1
+                t[idx] = density
               --  t2[a] = biomevalues
 			end
 		end
@@ -342,12 +346,14 @@ function terrian.ColorSection(quadx,quadz,holes,surface,d1,d2)
         local numb = v.Y
         data[idx] = key[numb]
     end
-    local blocks = {}
+    local blocks = table.create(4*4*256)
     local d1istalbe = type(d1) == "table"
+    local lasty 
     local function GetBiomeAt(x,y,z)
         local xx = math.floor(x/4)
         local yy = math.floor(y/8)
         local zz = math.floor(x/4)
+        lasty = yy
 		if not d2 then return  d1istalbe and d1[ to1dLocal(xx,yy,zz)] or d1  end 
         y = yy*8
 		local s = data[to1DXYZO(x,y,z)]
@@ -358,10 +364,12 @@ function terrian.ColorSection(quadx,quadz,holes,surface,d1,d2)
 		for qz  =0,4-1 do
 			local z = qz+4*quadz
             for y = 0,255 do
-                local biome = GetBiomeAt(x,y,z)
-                if biome ~= currentb then
-                    biomedata = bh.GetBiome(biome)
-                    currentb= biome
+                if lasty ~=  math.floor(y/8) then
+                    local biome = GetBiomeAt(x,y,z)
+                    if biome ~= currentb then
+                        biomedata = bh.GetBiome(biome)
+                        currentb= biome
+                    end
                 end
                 local idx =  to1d4x256(qx,y,qz)
                 blocks[idx] = Color(qx,y,qz)
@@ -520,6 +528,7 @@ function terrian.LerpBiomesSection(cx,cz,height,quadx,quadz)
         local f =  found[str]
 		return f[4][id]
     end
+    local bs = {}
     local function getbiome(lx,ly,lz)
         local id,ofx,ofz = GetData(lx,ly,lz)
 		if ofx ==0 and ofz ==0 then return type(current[3]) == "table" and current[3][id] or current[3]end
@@ -537,8 +546,8 @@ function terrian.LerpBiomesSection(cx,cz,height,quadx,quadz)
     end
     local fx,fy,fz
     local noise000,noise001,noise010,noise011,noise100,noise101,noise110,noise111
-    local newbiomes = {}
-    
+    local newbiomes = table.create(4*4*32+3)
+    local count = 0
     for qx =0,4-1 do
 		local x = qx+4*quadx
         local firstX = quadx
@@ -559,7 +568,8 @@ function terrian.LerpBiomesSection(cx,cz,height,quadx,quadz)
                 if not t then return end 
                 layouts[str] = layouts[str] or {}
                 local b = layouts[str][settings.to1DXZ(x,z)] 
-                if   b  then table.insert(newbiomes,Vector2int16.new(settings.to1D(x,firstY*8,z),b)) return end 
+                count +=1
+                if   b  then  newbiomes[count] =  Vector2int16.new(settings.to1D(x,firstY*8,z),b) return end 
                 if fx ~= firstX or fy ~= firstY or fz ~= fz then
                     fx = firstX
                     fy = firstY
@@ -592,7 +602,8 @@ function terrian.LerpBiomesSection(cx,cz,height,quadx,quadz)
                 end
                 local idx = table.find(biomekey,biome)
                 layouts[str][settings.to1DXZ(x,z)] = idx
-                table.insert(newbiomes,Vector2int16.new(settings.to1D(x,firstY*8,z),idx))
+                newbiomes[count] = Vector2int16.new(settings.to1D(x,firstY*8,z),idx)
+              --  table.insert(newbiomes,Vector2int16.new(settings.to1D(x,firstY*8,z),idx))
             end
             calcy(height[settings.to1DXZ(x,z)]+4)
             for y =0,255,8 do

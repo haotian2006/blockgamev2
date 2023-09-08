@@ -91,32 +91,10 @@ local function smoothSurface(cx,cy)
     local data,surface = multigh:InterpolateDensity(cx,cy)
     local newb 
     if not s then
-        newb = multigh:LerpBiomes(cx,cy,surface)--{}
-        -- local d = multigh:LerpBiomes(cx,cy,surface)
-        -- local key = d[2]
-        -- for i,v in d[1] do
-        --     local idx = v.X
-        --     local numb = v.Y
-        --     newb[idx] = key[numb]
-        -- end
+        newb = multigh:LerpBiomes(cx,cy,surface)
     end
-    
-  --  data = Chunk.DeCompressVoxels(data,true)
-    return data,surface,climate,newb--data
+    return data,surface,climate,newb
 end
--- function Chunk:Surface()
---     local x = smoothSurface(self:GetNTuple())
---     local bp = {}
---     for i,v in x do
---         local x,z = settings.to2D(i)
---         local height = math.clamp(math.round(v*80+100),40,100)
---         for y = settings.ChunkSize.Y-1,0,-1 do
---             bp[settings.to1D(x,y,z)] =  (height and y <= height and true) or false
---         end
---     end
---    -- local n = multigh:GenerateSurfaceDensity(self:GetNTuple())
---    return bp
--- end
 
 function Chunk:GenerateTerrian()
     if self:StateIsDone("Terrian") or self:StateIsDone("GTerrian",true) then   return end

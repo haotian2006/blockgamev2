@@ -124,38 +124,7 @@ function GH:Init(amt)
     return GH
 end
 local sizex,sizey = Settings.getChunkSize()
-function GH:InterpolateDensity(cx,cz)
-    local t ,s= {},{}
-   -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
-    local tasks,done = 0,0
-    local thread = coroutine.running()
-    local alldata = {}
-    for x =0,1 do
-        for z = 0,1 do
-            tasks +=1
-            local tk = tasks
-            task.spawn(function()
-                alldata[tk]=  GH:DoWork("LerpFinalXZ",cx,cz,x,z)
-                done+=1
-                if done == 4 then
-                    coroutine.resume(thread)
-                end
-            end)
-
-        end
-    end
-    if 4 ~= done then coroutine.yield() end 
-    for i,v in alldata do
-        for i,v in v[1] do
-            t[v.X] =  v.Y>0 and true or false
-        end
-        for i,v in v[2] do
-            s[v.X] = v.Y
-        end
-    end
-  --  lerp[`{cx},{cz}`] = nil
-    return t,s--t
-end
+local farea3 = (sizex)*(sizey) 
 function to3D4x256(index)
     index = tonumber(index) - 1
 	local x = index % 4
@@ -172,8 +141,95 @@ end
 local function to1DXZ4x(x,z)
     return x + z *4 + 1
 end
-local farea3 = (sizex)*(sizey) 
 local once = false
+function GH:InterpolateDensity(cx,cz)
+    -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
+     local tasks,done = 0,0
+     local thread = coroutine.running()
+     local alldata = {}
+     for x =0,1 do
+         for z = 0,1 do
+             tasks +=1
+             local tk = tasks
+             task.spawn(function()
+                 alldata[tk]=  GH:DoWork("LerpFinalXZ",cx,cz,x,z)
+                 done+=1
+                 if done == 4 then
+                     coroutine.resume(thread)
+                 end
+             end)
+ 
+         end
+     end
+     if 4 ~= done then coroutine.yield() end 
+     local t ,s=  table.create(farea3*8),table.create(8*8)
+     debug.profilebegin("InterpolateDensity")
+     local t1 = alldata[1]
+     local t2 = alldata[2]
+     local t3 = alldata[3]
+     local t4 = alldata[4]
+
+     local d1 = t1[1]
+     local d2 = t2[1]
+     local d3 = t3[1]
+     local d4 = t4[1]
+
+     local s1 = t1[2]
+     local s2 = t2[2]
+     local s3 = t3[2]
+     local s4 = t4[2]
+     for x = 0,3 do
+         local fx1 = (x)
+         local fx2 = (x+4)
+ 
+         for z = 0,3 do
+            local fz1 = (z)
+            local fz2 = (z+4)
+
+            local xzidx = x + z *4 + 1
+            local xzidx1 = fx1 + fz1 *8 + 1
+            local xzidx2 = fx1 + fz2 *8 + 1
+            local xzidx3 = fx2 + fz1 *8 + 1
+            local xzidx4 = fx2 + fz2 *8 + 1
+            
+            s[xzidx1] = s1[xzidx]
+            s[xzidx2] = s2[xzidx]
+            s[xzidx3] = s3[xzidx]
+            s[xzidx4] = s4[xzidx]
+            -- if  s2[xzidx] == nil then
+            --     print(x,z,xzidx,xzidx2)
+            -- end
+
+             local idx  =  x  + z *aa+1
+             local ide1 =  fx1  + fz1 *farea3+1
+             local ide2 =  fx1  + fz2 *farea3+1
+             local ide3 =  fx2  + fz1 *farea3+1
+             local ide4 =  fx2  + fz2 *farea3+1
+ 
+             for y = 0,255 do
+                 local idx255 = idx + y * 4
+                 local yof = y * 8
+                  t[ide1+yof] = d1[idx255] >0 
+                  t[ide2+yof] = d2[idx255]>0 
+                  t[ide3+yof] = d3[idx255]>0 
+                  t[ide4+yof] = d4[idx255]>0 
+             end
+         end
+     end
+    --  for i,v in alldata do
+    --      for i,v in v[1] do
+    --          t[v.X] =  v.Y>0 and true or false
+    --      end
+    --      for i,v in v[2] do
+    --          s[v.X] = v.Y
+    --      end
+    --  end
+     debug.profileend()
+    -- print(s1,s2,s3,s4)
+   --  print(s)
+   --  lerp[`{cx},{cz}`] = nil
+     return t,s--t
+ end
 function GH:Color(holes,surface,d1,d2)
     local t = table.create(farea3*8)
    -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
@@ -220,6 +276,7 @@ function GH:Color(holes,surface,d1,d2)
     local t2 = alldata[2]
     local t3 = alldata[3]
     local t4 = alldata[4]
+    debug.profilebegin("y stuff")
     for x = 0,3 do
         local fx1 = (x)
         local fx2 = (x+4)
@@ -234,7 +291,6 @@ function GH:Color(holes,surface,d1,d2)
             local ide3 =  fx2  + fz1 *farea3+1
             local ide4 =  fx2  + fz2 *farea3+1
 
-            debug.profilebegin("y stuff")
             for y = 0,255 do
                 local idx255 = idx + y * 4
                 local yof = y * 8
@@ -243,9 +299,9 @@ function GH:Color(holes,surface,d1,d2)
                  t[ide3+yof] = t3[idx255]
                  t[ide4+yof] = t4[idx255]
             end
-            debug.profileend()
         end
     end
+    debug.profileend()
     --[[
     for tk,d in alldata do
         local qx,qz = tk.X,tk.Y
@@ -294,6 +350,7 @@ function GH:ComputeChunkS(cx,cz)
     local climate2d = {}
     local climate3d = {}
     -- {data,base,bi or biomes,climate2d,climate3d}
+    debug.profilebegin("Chunk Data")
     for tk,d in alldata do
         local qx,qz = tk.X,tk.Y
         local x,z = 4*qx,4*qz
@@ -315,6 +372,7 @@ function GH:ComputeChunkS(cx,cz)
             biomes[idx] = type(d[3]) == "string" and d[3] or d[3][ly]
         end
     end
+    debug.profileend()
     return {data,base,bi or biomes,climate2d,climate3d}
 end
 function GH:LerpBiomes(cx,cz,height)

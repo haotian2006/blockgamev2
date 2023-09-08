@@ -23,7 +23,7 @@ function Identifier:__eq(other)
 end
 
 function Identifier:__tostring()
-    return self.namespace .. Identifier.SEPARATOR .. self.path
+    return `{self.namespace}{Identifier.SEPARATOR}{self.path}`
 end
 
 function Identifier:withPrefix(prefix)
