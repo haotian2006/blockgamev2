@@ -74,6 +74,7 @@ func.PlaceBlockServer = function(entity,Block,id)
 end
 
 end
+local rotation = require(game.ReplicatedStorage.Libarys.RotationData)
 func.PlaceBlockClient = function(entity,Data:InputData)
 	local ModingMods:ModingMod.AutoFill = ModingMod
 	local lookvector = workspace.CurrentCamera.CFrame.LookVector
@@ -133,8 +134,11 @@ func.PlaceBlockClient = function(entity,Data:InputData)
             end
           --  print(angle)
         end
+        do
+            return  
+        end
         if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z,data)  then 
-            local b= item[1]..(orientation and '/O|s%'..orientation or "")
+            local b= item[1]..(orientation and '_'..rotation.keyPairs[orientation] or "")
            -- print(orientation)
        --     data.InsertBlock(coords.X,coords.Y,coords.Z,b)
             entity:PlayAnimation("Place",true)

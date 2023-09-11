@@ -34,7 +34,7 @@ local pos = Vector3.new(x,y,z)
   local temperature = MappedRouter.temperature
   local humidity = MappedRouter.humidity
   local depth =  not debug and MappedRouter.depth or MappedRouter.depthDebug
-  return temperature and temperature:compute(pos), humidity and humidity:compute(pos), depth and depth:compute(pos)
+  return temperature and temperature:compute(pos), humidity and humidity:compute(pos)--, depth and depth:compute(pos)
 end
 function biome.newTable(temperature,humidity,continents,erosion,depth,weirdness)
     return {temperature,humidity,continents,erosion,depth,weirdness}
@@ -44,7 +44,7 @@ function biome.fromTable(t)
 end
 biome.newTarget = Climate.target
 function biome.getBiomeFromParams(c,e,w,t,h,d)
-    return BiomeGetter:getBiomeFromTarget(biome.newTarget(t,h,c,e,d,w))
+    return BiomeGetter:getBiomeFromTarget(biome.newTarget(t,h,c,e,d or 0,w))
 end
 function biome.generateBiomes(b2D,b3D,quadx,quadz)
     

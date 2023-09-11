@@ -230,7 +230,7 @@ function GH:InterpolateDensity(cx,cz)
    --  lerp[`{cx},{cz}`] = nil
      return t,s--t
  end
-function GH:Color(holes,surface,d1,d2)
+function GH:Color(holes,surface,biome)
     local t = table.create(farea3*8)
    -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
     local tasks,done = 0,0
@@ -254,16 +254,13 @@ function GH:Color(holes,surface,d1,d2)
                         local idx1 = to1d4x256(xx,y,zz)
                         local idx2 = Settings.to1D(x,y,z)
                         holes2[idx1] = holes[idx2]
-                        if d2 then
-                          --  d22[idx1] = d2[idx2]
-                        end
                     end
                 end
             end
             local tk = Vector2.new(x,z)
             local newhol = {}
             task.spawn(function()
-                alldata[i]= terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,s,d1,type(d2) == "table" and d2[i] or d2))) --terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,surface,d1,d22)))
+                alldata[i]= terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,s,biome))) --terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,surface,d1,d22)))
                 done +=1
                 if 4 == done then
                     coroutine.resume(thread)
@@ -302,24 +299,6 @@ function GH:Color(holes,surface,d1,d2)
         end
     end
     debug.profileend()
-    --[[
-    for tk,d in alldata do
-        local qx,qz = tk.X,tk.Y
-        for x = 0,3 do
-            local fx =  (x+qx*4)
-            for z = 0,3 do
-                local idx  =  x  + z *aa+1
-                local idx2 =     fx  + (z+qz*4) *farea3+1
-                for y = 0,255 do
-                    t[idx2+ y * 8] =d[idx + y * 4]
-                end
-            end
-        end
-        -- for index,block in  d do
-        --     local x,y,z = to3D4x256(index)
-        --     t[Settings.to1D(x+qx*4,y,z+qz*4)] = block
-        -- end
-    end]]
     return t
 end
 function GH:ComputeChunkS(cx,cz)
@@ -357,6 +336,8 @@ function GH:ComputeChunkS(cx,cz)
         local lx,lz = x/4,z/4
         local to1dxz = terrian.to1dLocalXZ(lx,lz)
         climate2d[to1dxz] = d[4]
+        climate3d[to1dxz] = d[5]
+        biomes = d[3]
         base[to1dxz] = d[2]
         if bi == nil then
             bi = d[3]
@@ -368,25 +349,26 @@ function GH:ComputeChunkS(cx,cz)
             local idx = terrian.to1dLocal(lx,ly,lz)
             ly +=1
             data[idx] = d[1][ly]
-            climate3d[idx] = d[5][ly]
-            biomes[idx] = type(d[3]) == "string" and d[3] or d[3][ly]
         end
     end
     debug.profileend()
     return {data,base,bi or biomes,climate2d,climate3d}
 end
+local farea4 = 4*32
+local function to1d4x32(x,y,z)
+    return x + y * 4 + z *farea4+1
+end
 function GH:LerpBiomes(cx,cz,height)
-    local t = {}
     -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
      local tasks,done = 0,0
      local thread = coroutine.running()
-     local alldata = {}
+     local alldata = table.create(4)
      for x =0,1 do
          for z = 0,1 do
              tasks +=1
              local tk = Vector2.new(x,z)
              task.spawn(function()
-                 alldata[tasks]= GH:DoWork("LerpBiomesSection",cx,cz,height,x,z)
+                 alldata[tasks]= GH:DoWork("LerpBiomesSection",cx,cz,x,z)
                  done +=1
                  if 4 == done then
                      coroutine.resume(thread)
@@ -395,9 +377,42 @@ function GH:LerpBiomes(cx,cz,height)
          end
      end
      if 4 ~= done then coroutine.yield() end 
+     local b = table.create(8*8)
+     local s1 = alldata[1]
+     local s2 = alldata[2]
+     local s3 = alldata[3]
+     local s4 = alldata[4]
 
+     for x = 0,3 do
+         local fx1 = (x)
+         local fx2 = (x+4)
+ 
+         for z = 0,3 do
+            local fz1 = (z)
+            local fz2 = (z+4)
 
-     return alldata
+            local xzidx = x + z *4 + 1
+            local xzidx1 = fx1 + fz1 *8 + 1
+            local xzidx2 = fx1 + fz2 *8 + 1
+            local xzidx3 = fx2 + fz1 *8 + 1
+            local xzidx4 = fx2 + fz2 *8 + 1
+            
+            b[xzidx1] = s1[xzidx]
+            b[xzidx2] = s2[xzidx]
+            b[xzidx3] = s3[xzidx]
+            b[xzidx4] = s4[xzidx]
+
+         end
+     end
+     local d 
+     for i,v in b do
+        if d == nil then
+            d = v
+        elseif d and d ~= v then
+            d = false
+        end
+     end
+    return d or b
 end
 function GH:ComputeChunk(cx,cz)
     local data = GH:DoWork("ComputeChunk",cx,cz)

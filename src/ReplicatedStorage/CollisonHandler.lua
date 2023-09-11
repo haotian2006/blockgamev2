@@ -5,6 +5,7 @@ local maindata = require(game.ReplicatedStorage.DataHandler)
 local behavior = require(game.ReplicatedStorage.BehaviorHandler)
 local vector3 = Vector3.new--function(x,y,z)return {X = x or 0 , Y= y or 0,Z= z or 0} end
 local debris = require(game.ReplicatedStorage.Libarys.Debris).CreateFolder("Collision")
+local rotationLib = require(game.ReplicatedStorage.Libarys.RotationData)
 local function getincreased(min,goal2,increased2)
 	local direaction = min - goal2
 	return goal2 +increased2*-math.sign(direaction)
@@ -43,7 +44,7 @@ function  collisions.GetBlocksInBounds(loc,size,Setting)
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z,true)
                 if whitelist and whitelist[coords] then continue end
-                if block and block:getKey() then
+                if block and not block:isFalse() then
                     whitelist[coords] = true
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
                     local bx,by,bz = unpack(coords:split(","))
@@ -89,7 +90,7 @@ function  collisions.IsGrounded(entity,CheckForBlockAboveInstead)
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z,true)
                 if whitelist and whitelist[coords] then continue end
-                if block and block:getKey() then
+                if block and not block:isFalse() then
                     whitelist[coords] = true
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
                     local bx,by,bz = unpack(coords:split(","))
@@ -214,10 +215,10 @@ function collisions.AABBvsTerrain(position,hitbox,CanCollideMatters)
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z,true)
                 if whitelist and whitelist[coords] then continue end
-                if block and block:getKey() ~= "NULL" and block:getKey()  then
+                if block and tostring(block) ~= "NULL" and not block:isFalse()  then
                     whitelist[coords] = true
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
-                    local bx,by,bz = unpack(coords:split(","))
+                    local bx,by,bz =  coords:match("([^,]*),?([^,]*),?([^,]*)")
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
                     bx,by,bz = a.X,a.Y,a.Z
                    local newpos ,newsize = vector3(bx,by,bz),vector3(1,1,1)--collisions.DealWithRotation(block)
@@ -271,57 +272,18 @@ end
 makeallrhitboxs()
 makeallrhitboxs()
 makeallrhitboxs()
-function collisions.ConvertToTable(str:string)
-    local function convert(x)
-        if x == '0' then
-            x = 0
-        elseif x == '-0' then
-            x = 180
-        elseif x == '1' then
-            x = 90
-        elseif x == '-1' then
-            x = -90
-        else 
-            x = 0
-        end
-        return (tonumber(x) or 0)
-    end
-    local x,y,z = unpack(str:split(','))
-    return {convert(x),convert(y),convert(z)}
 
-end
-function collisions.ConvertToCFrame(str:string)
-    local function convert(x)
-        if x == '0' then
-            x = 0
-        elseif x == '-0' then
-            x = 180
-        elseif x == '1' then
-            x = 90
-        elseif x == '-1' then
-            x = -90
-        else 
-            x = 0
-        end
-        return math.rad(tonumber(x) or 0)
-    end
-    local x,y,z = unpack(str:split(','))
-    return CFrame.fromOrientation(convert(x),convert(y),convert(z))
-
-end
 function collisions.RotateHitBoxs(rotation,hitboxinfo)
     if not rotation  then return hitboxinfo end 
     local new = {}
-    local crotation = collisions.ConvertToCFrame(rotation)
+    local crotation = rotationLib.convertToCFrame(rotation)
     for i,v in hitboxinfo do
         if i == 'CanCollide' then continue end 
-        if rotationHitboxs[rotation] == nil then print(rotation) end 
         new[i] = {Size = rotationHitboxs[rotation](v.Size),
         Offset = (crotation*
         CFrame.new(v.Offset or Vector3.zero)).
         Position
     }
-
     end
     return new
 end
@@ -329,11 +291,9 @@ function collisions.GetBlockHitBox(data)
     local hitboxinfo = {}
     local cancollide = true
     --print(data)
-    data = data:getData()
-    local Type,Ori = data.T,data.O
-    Type = Type or nil
+    local Type,Ori = data:getName(),data:getFullRotation()
 
-    local bdata = behavior.GetBCFD(Type,data.S)
+    local bdata = data:getComponentData()
     local hb = behavior.GetBlockHb(bdata.Hitbox)
     if hb then
         if type(hb) == "table" then
@@ -351,7 +311,7 @@ function collisions.GetBlockHitBox(data)
     return hitboxinfo,cancollide
 end
 function collisions.GenerateHitboxes(data,position)
-    if data:getKey() == 'NULL' then
+    if data:isNULL() then
         return {{Vector3.one,position}},true
     end
     local hb = collisions.GetBlockHitBox(data)
@@ -491,9 +451,9 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
             for z = min.Z,getincreased(min.Z,max.Z,gridsize),gridsize do
                 local block,coords = maindata.GetBlock(x,y,z)
                 if whitelist and whitelist[coords] then continue end
-                if block and block:getKey()  then
+                if block and tostring(block)  then
                     local cx,cz =  qf.GetChunkfromReal(x,y,z,true)
-                    local bx,by,bz = unpack(coords:split(","))
+                    local bx,by,bz =  coords:match("([^,]*),?([^,]*),?([^,]*)")
                     local a = qf.cbt("chgrid",'grid',cx,cz,bx,by,bz)
                     bx,by,bz = a.X,a.Y,a.Z
                    local typejump, needed,maxheight

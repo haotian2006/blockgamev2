@@ -62,7 +62,7 @@ cri.OnServerEvent:Connect(function(plr,xx,yy,z)
     local x,y = unpack(gmh:GetBiomeValues(xx,yy,z))
     local biome =  data.GetBiome(xx,yy,z)
     --local str = `c:{x.X} | e:{x.Y} | d:{y.Z} | t:{y.X} | h:{y.Y} | w:{x.Z}`
-    local str = string.format('c: %.3f | e: %.3f | d: %.3f | t: %.3f | h: %.3f | w: %.3f | biome: %s',x.X,x.Y,y.Z,y.X,y.Y,x.Z,biome or "")
+    local str = ''--string.format('c: %.3f | e: %.3f | d: %.3f | t: %.3f | h: %.3f | w: %.3f | biome: %s',x.X,x.Y,y.Z,y.X,y.Y,x.Z,biome or "")
  --   return str
  cri:FireClient(plr,str)
 end)

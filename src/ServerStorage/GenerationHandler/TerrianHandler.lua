@@ -111,8 +111,6 @@ function terrian.ComputeChunkSection(cx,cz,quadx,quadz)
    -- local other = {}
     local ox,oz = settings.getoffset(cx,cz)
     local base 
-    local biomes = table.create(256)
-    local climate3d = table.create(256)
     local x,z = 4*quadx,4*quadz
     local rx,rz = x+ox,z+oz
     local c,e,w = BiomeHandler.get2DNoiseValues(rx,rz)
@@ -121,26 +119,20 @@ function terrian.ComputeChunkSection(cx,cz,quadx,quadz)
     for _,df in MappedRouter.xzOrder or {} do
         df:compute(Vector3.new(rx,0,rz))
     end
+
+    local temperature,humidity,depth = BiomeHandler.get3DNoiseValues(rx,0,rz)
+    local climate3d = Vector2.new(temperature,humidity) 
+    local biome = BiomeHandler.getBiomeFromParams(c,e,w,temperature,humidity,0)
+
+
     local lx,lz = x/4,z/4
     for y = 0,chunksize.Y-1,h do
         local ly = y/8
         local idx = ly+1
         data[idx] = MappedRouter.finalDensity:compute(Vector3.new(rx,y,rz))
-        local temperature,humidity,depth = BiomeHandler.get3DNoiseValues(rx,y,rz)
-       climate3d[idx] = Vector3.new(temperature,humidity,depth) 
-       local biome = BiomeHandler.getBiomeFromParams(c,e,w,temperature,humidity,depth)
-       biome = tostring(biome)
-       if bi == nil then
-        bi = biome
-       elseif bi then
-        if bi ~= biome then
-            bi = false
-        end
-       end
-       biomes[idx] =biome
     end  
     if not base then
-        for y= chunksize.Y-1,0,-2 do
+        for y= chunksize.Y-1,0,-8 do
             if not base then
                 local y = y
                 local sd = terrian.ComputeBaseHeight(ox,y,oz)
@@ -154,7 +146,7 @@ function terrian.ComputeChunkSection(cx,cz,quadx,quadz)
     
     base = base or 60
     debug.profileend()
-    return {data,base,bi or biomes,climate2d,climate3d}
+    return {data,base,biome,climate2d,climate3d}
 end
 local lerp2 = mathutils.lerp2
 function terrian.LerpXZ2D(cx,cz,quadx,quadz)
@@ -206,7 +198,7 @@ function terrian.LerpFinalDXZ(cx,cz,quadx,quadz)
 	local current = (SharedService:Get(`{cx},{cz}`)[1])
 	local found = {}
 	local t = table.create(4*4*256)
-    local store = {}
+    local store =  table.create(4*4*256)
     local preofx = {
         [0] = {
             [1] = `{cx+0},{cz+1}`
@@ -313,7 +305,7 @@ local function to1DXZ4x(x,z)
     return x + z *4 + 1
 end
 local once = false
-function terrian.ColorSection(quadx,quadz,holes,surface,d1,d2)
+function terrian.ColorSection(quadx,quadz,holes,surface,biome)
     local biomedata = {}
     local currentb 
     debug.profilebegin("color")
@@ -322,55 +314,46 @@ function terrian.ColorSection(quadx,quadz,holes,surface,d1,d2)
         local hy= surface[to1DXZ4x(x,z)]
         local self = holes[idx]
         local above = holes[idx+4]
-        if  y <57 and (not above or above == 'T|s%c:Sand') and self  then
-            return 'T|s%c:Sand'
+        if  y <57 and (not above or above == 'c:Sand') and self  then
+            return 'c:Sand'
         end
         if y == 62 and not above then 
-            return "T|c:Water"
+            return "c:Water"
         end
         if not above and self then
-            return `T|{biomedata.SurfaceBlock or 'c:Grass'}`
+            return biomedata.SurfaceBlock or 'c:Grass'
         elseif ( not holes[idx+12] or ( y>=hy) )and self  then
-            return `T|{(biomedata.MiddleBlock or 'c:Dirt')}`
+            return (biomedata.MiddleBlock or 'c:Dirt')
         elseif self then
-            return'T|s%c:Stone'
+            return'c:Stone'
         else 
             return false 
         end
     end
-    local data = {}
-    local d = d2 or {}
-    local key = d[2]
-    for i,v in d[1] or {} do
-        local idx = v.X
-        local numb = v.Y
-        data[idx] = key[numb]
-    end
+
     local blocks = table.create(4*4*256)
-    local d1istalbe = type(d1) == "table"
-    local lasty 
-    local function GetBiomeAt(x,y,z)
-        local xx = math.floor(x/4)
-        local yy = math.floor(y/8)
-        local zz = math.floor(x/4)
-        lasty = yy
-		if not d2 then return  d1istalbe and d1[ to1dLocal(xx,yy,zz)] or d1  end 
-        y = yy*8
-		local s = data[to1DXYZO(x,y,z)]
-		return s or (d1istalbe and d1[ to1dLocal(xx,yy,zz)] or d1)
+    local function GetBiomeAt(x,z)
+		if typeof(biome) == "string" then
+            return biome
+        elseif biome[15] then
+            return biome[to1DXZ(x,z)]
+        else
+            local xx = math.floor(x/4)
+            local zz = math.floor(x/4)
+            return biome[to1dLocalXZ(x,z)]
+        end
+        
 	end
     for qx =0,4-1 do
 		local x = qx+4*quadx
 		for qz  =0,4-1 do
 			local z = qz+4*quadz
+            local biome = GetBiomeAt(x,z)
+            if biome ~= currentb then
+                biomedata = bh.GetBiome(biome)
+                currentb= biome
+            end
             for y = 0,255 do
-                if lasty ~=  math.floor(y/8) then
-                    local biome = GetBiomeAt(x,y,z)
-                    if biome ~= currentb then
-                        biomedata = bh.GetBiome(biome)
-                        currentb= biome
-                    end
-                end
                 local idx =  to1d4x256(qx,y,qz)
                 blocks[idx] = Color(qx,y,qz)
             end
@@ -493,11 +476,10 @@ function terrian.LerpBiomes(cx,cz,height)
     debug.profileend()
     return {newbiomes,biomekey}
 end
-function terrian.LerpBiomesSection(cx,cz,height,quadx,quadz)
+
+function terrian.LerpBiomesSection(cx,cz,quadx,quadz)
     debug.profilebegin("BIOME LERP")
-    local ofx,ofz = settings.getoffset(cx,cz)
     local found = {}
-    local biomekey = {}
     local current = SharedService:Get(`{cx},{cz}`)
     local preofx = {
         [0] = {
@@ -508,29 +490,19 @@ function terrian.LerpBiomesSection(cx,cz,height,quadx,quadz)
             [1] = `{cx+1},{cz+1}`
         }
     }
-    local function getnearby(lx,ly,lz)
-        local id,ofx,ofz = GetData(lx,ly,lz)
-		if ofx ==0 and ofz ==0 then return current[5][id] end
-		local str = preofx[ofx][ofz]
-        if not found[str] then
-            found[str] = SharedService:Get(str)
-        end
-        local f =  found[str]
-		return current[5][id]
-    end
-    local function getnearby2(lx,lz)
+
+    local function getnearby(lx,lz)
         local id,ofx,ofz = GetData2(lx,lz)
-		if ofx ==0 and ofz ==0 then return current[4][id] end
+		if ofx ==0 and ofz ==0 then return current[4][id],current[5][id] end
 		local str = preofx[ofx][ofz]
         if not found[str] then
             found[str] = SharedService:Get(str)
         end
         local f =  found[str]
-		return f[4][id]
+		return f[4][id], f[5][id]
     end
-    local bs = {}
-    local function getbiome(lx,ly,lz)
-        local id,ofx,ofz = GetData(lx,ly,lz)
+    local function getbiome(lx,lz)
+        local id,ofx,ofz = GetData2(lx,lz)
 		if ofx ==0 and ofz ==0 then return type(current[3]) == "table" and current[3][id] or current[3]end
 		local str = preofx[ofx][ofz]
         if not found[str] then
@@ -539,15 +511,11 @@ function terrian.LerpBiomesSection(cx,cz,height,quadx,quadz)
         local f =  found[str][3]
 		return type(f) == "table" and f[id] or f
     end
-    local layouts = {}
-    local function canLerp(lx,ly,lz)
-        local m,l,r,t,b = getbiome(lx,ly,lz) , getbiome(lx+1,ly,lz),getbiome(lx,ly,lz+1), getbiome(lx+1,ly,lz+1) 
-        return m ~=l~=r~=t~=b, `{m}{l}{r}{t}{b}`
+    local function canLerp(lx,lz)
+        local m,l,r,t,b = getbiome(lx,lz) , getbiome(lx+1,lz),getbiome(lx,lz+1), getbiome(lx+1,lz+1) 
+        return m ~=l~=r~=t~=b,m
     end
-    local fx,fy,fz
-    local noise000,noise001,noise010,noise011,noise100,noise101,noise110,noise111
-    local newbiomes = table.create(4*4*32+3)
-    local count = 0
+    local newbiomes = table.create(4*4)
     for qx =0,4-1 do
 		local x = qx+4*quadx
         local firstX = quadx
@@ -556,63 +524,21 @@ function terrian.LerpBiomesSection(cx,cz,height,quadx,quadz)
             local firstZ = quadz
 			local z = qz+4*quadz
 			local zz = ((z % w + w) % w) / w
-            local level00 
-            local level10
-            local level01 
-            local level11 
-            local lerp 
-            local function calcy(y)
-                local yy = ((y % h + h) % h) / h
-                local firstY = math.floor(y / h) 
-                local t,str = canLerp(firstX,firstY,firstZ)
-                if not t then return end 
-                layouts[str] = layouts[str] or {}
-                local b = layouts[str][settings.to1DXZ(x,z)] 
-                count +=1
-                if   b  then  newbiomes[count] =  Vector2int16.new(settings.to1D(x,firstY*8,z),b) return end 
-                if fx ~= firstX or fy ~= firstY or fz ~= fz then
-                    fx = firstX
-                    fy = firstY
-                    fz = firstZ
-                    noise000 = getnearby(firstX,firstY,firstZ)
-                    noise001 = getnearby(firstX,firstY,firstZ+1)
-                    --noise010 = getnearby(firstX,firstY+1,firstZ)
-                   -- noise011 = getnearby(firstX,firstY+1,firstZ+1)
-                    noise100 = getnearby(firstX+1,firstY,firstZ)
-                    noise101 = getnearby(firstX+1,firstY,firstZ+1)
-                  --  noise110 = getnearby(firstX+1,firstY+1,firstZ)
-                   -- noise111 = getnearby(firstX+1,firstY+1,firstZ+1)
-                end
-                if not lerp then 
-                    level00 = getnearby2(firstX,firstZ)
-                    level10 = getnearby2(firstX+1,firstZ)
-
-                    level01 = getnearby2(firstX,firstZ+1)
-
-                    level11 = getnearby2(firstX+1,firstZ+1)
-
-                    lerp = lerp2(xx,zz,level00,level10,level01,level11) 
-                end  
-              --  local climate3dv =  lerp3(xx, yy, zz, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)--thd
-              local climate3dv =  lerp2(xx, zz, noise000, noise100, noise001, noise101)--thd
-                local biome = BiomeHandler.getBiomeFromParams(lerp.X,lerp.Y,lerp.Z,climate3dv.X,climate3dv.Y,climate3dv.Z)
-                biome = tostring(biome)
-                if not table.find(biomekey,biome) then
-                    table.insert(biomekey,biome)
-                end
-                local idx = table.find(biomekey,biome)
-                layouts[str][settings.to1DXZ(x,z)] = idx
-                newbiomes[count] = Vector2int16.new(settings.to1D(x,firstY*8,z),idx)
-              --  table.insert(newbiomes,Vector2int16.new(settings.to1D(x,firstY*8,z),idx))
-            end
-            calcy(height[settings.to1DXZ(x,z)]+4)
-            for y =0,255,8 do
-                calcy(y)
-            end
+            local t,b = canLerp(firstX,firstZ)
+            if not t then newbiomes[to1DXZ4x(qx,qz)] = b continue end 
+            local level00,noise000 = getnearby(firstX,firstZ)
+            local  level01,noise001 = getnearby(firstX,firstZ+1)
+            local  level10,noise100 = getnearby(firstX+1,firstZ)
+            local level11,noise101 = getnearby(firstX+1,firstZ+1)
+            local climate3dv =  lerp2(xx, zz, noise000, noise100, noise001, noise101)
+            local lerp = lerp2(xx,zz,level00,level10,level01,level11)        
+            local biome = BiomeHandler.getBiomeFromParams(lerp.X,lerp.Y,lerp.Z,climate3dv.X,climate3dv.Y,0)
+            biome = tostring(biome)
+            newbiomes[to1DXZ4x(qx,qz)] = biome
         end
     end
     debug.profileend()
-    return {newbiomes,biomekey}
+    return newbiomes
 end
 local sizexnl = xsizel-1
 function  GetData(x,y,z)

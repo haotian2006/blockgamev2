@@ -381,8 +381,8 @@ game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(chunks,key
     for str,data in chunks do
         toload[str] = true
         queued[str] = false
-        data = require(game.ReplicatedStorage.Chunk).DeCompressVoxels(data[1],key)
-        datahandler.CreateChunk({Blocks = data},unpack((str::string):split(',')))
+        local c = datahandler.CreateChunk({},str:match("([^,]*),?([^,]*),?([^,]*)"))
+        c:DeCompresAndInsert(data[1],key)
     end
 end)
 --[[

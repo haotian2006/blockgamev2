@@ -8,6 +8,7 @@ local Behaviors = MH.Behaviors
 local resource = MH.Resources
 local data = MH.DataHandler
 local qf = MH.Functions
+local rotation = require(game.ReplicatedStorage.Libarys.RotationData)
 BlockPlace.OnServerEvent:Connect(function(plr,coords1,ori)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end  
     
@@ -26,7 +27,7 @@ BlockPlace.OnServerEvent:Connect(function(plr,coords1,ori)
             z = block.RotateZ and z or 0
             ori = x..','..y..','..z
         end
-        item[1] ..= '/O|s%'..ori
+        item[1] ..= ','..rotation.keyPairs[ori]
     end
     --print(item)
     if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z) and item[1] and resource.IsBlock(item[1]) and not data.GetBlock(coords.X,coords.Y,coords.Z) then 

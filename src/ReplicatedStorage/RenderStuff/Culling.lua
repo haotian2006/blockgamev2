@@ -46,7 +46,7 @@ function self.HideBlocks(chunks)
         local combined = to1d(x,y,z)
         local a = chunks[wt][combined]
         local transparency = false
-        if not a or not a:getKey() then return false end 
+        if not a or not tostring(a) then return false end 
         local d = a:getData()
         local cb = d.Data
         if  d and cb then
@@ -92,12 +92,12 @@ function self.HideBlocks(chunks)
             for y = 0,chy-1 do
                 local idx = to1d(x,y,z)
                 local data = current[idx] 
-                if not data or not data:getKey() then continue end
+                if not data or not tostring(data) then continue end
                 i+=1
                 if i%1500 == 0 then task.wait() end 
                 local cann,newstr = checksurroundingblocks(x,y,z)
                 if not cann then
-                    local newd = bs:get(data:getKey().."/AirBlocks|n%"..newstr,15)[2]
+                    local newd = tostring(data)..","..newstr
                     new[idx] = newd
                 else
                     new[idx] = nil

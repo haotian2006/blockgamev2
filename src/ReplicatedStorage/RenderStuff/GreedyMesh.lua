@@ -100,6 +100,9 @@ function  greedy.meshtable(tabletodemesh)
             local d2 = findintable(D3,xx,yy,zz)
             -- if cx ==-1 and cz == -1  and Vector3.new(x,y,z) ==  Vector3.new(5,59,7) then
             --     print(tabletodemesh[ Vector3.new(5,59,7)])
+            do
+                return d1 == d2
+            end
             -- end
             if d1 and d2 then
                 if d1.T ~= d2.T or d1.AirBlocks ~= d2.AirBlocks or d1.O ~= d2.O then
@@ -164,9 +167,9 @@ function  greedy.meshtable(tabletodemesh)
             move(currentdir ==-1 and true or nil)
             local str = `{rx},{ry},{rz}`
             local c = new[str]
-            if c and c.w == w and c.l == l and c.h == h
-             and c.data.T == info.data.T
-             and c.data.AirBlocks == info.data.AirBlocks  and c.data.O == info.data.O then
+            if c and c.w == w and c.l == l and c.h == h and c.Data == info.Data then 
+            --  and c.data.T == info.data.T
+            --  and c.data.AirBlocks == info.data.AirBlocks  and c.data.O == info.data.O then
                 if currentdir == -1 then
                     sx = c.startx
                     sz = c.startz

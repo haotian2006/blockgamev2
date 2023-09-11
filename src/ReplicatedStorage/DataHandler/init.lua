@@ -24,7 +24,7 @@ local isserver = runservice:IsServer()
 local bS = require(game.ReplicatedStorage.Libarys.Store)
 function self.AddEntity(uuid:string,address:table)
     self.AmmountOfEntities += 1
-    if type(uuid) == "table" then
+    if type(uuid) == "table" then 
         self.LoadedEntities[uuid.Id] = uuid
     else
         self.LoadedEntities[uuid] = address or warn(uuid,"Does not have data")
@@ -79,8 +79,9 @@ function self.GetChunk(cx,cz,create)
     return self.LoadedChunks[cx..','..cz] 
 end
 function self.CreateChunk(cdata,cx,cz)
-    self.LoadedChunks[cx..','..cz] = ChunkObj.new(cx,cz,cdata)
-    return self.LoadedChunks[cx..','..cz] 
+    local str = cx..','..cz
+    self.LoadedChunks[str] = ChunkObj.new(cx,cz,cdata)
+    return self.LoadedChunks[str] 
 end
 function self.DestroyChunk(cx,cz)
     local c = self.GetChunk(cx,cz)
@@ -137,6 +138,7 @@ function self.GetBiome(x,y,z)
         return chunk:GetBiomeAt(lx,ly,lz)
     end
 end
+local blockpool = require(game.ReplicatedStorage.Libarys.BlockPool)
 function self.GetBlock(x,y,z)
     local cx,cz = qf.GetChunkfromReal((x),(y),(z),true)
     local chunk = self.GetChunk(cx,cz)
@@ -147,10 +149,10 @@ function self.GetBlock(x,y,z)
             return false,localgrid.X..','..localgrid.Y..','..localgrid.Z
         end
         local b = chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z)
-        if b and not b:getKey() then b = false  end 
+        if b and b:isFalse() then b = false  end 
        return b,localgrid.X..','..localgrid.Y..','..localgrid.Z
     else
-       return bS:get("NULL"),localgrid.X..','..localgrid.Y..','..localgrid.Z
+       return blockpool.CONST_NULL, localgrid.X..','..localgrid.Y..','..localgrid.Z
     end
 end
 local le = require(script.LoadedEntities)

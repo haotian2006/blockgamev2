@@ -5,13 +5,15 @@ local chunksize = settings.ChunkSize
 local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
 local bs = require(game.ReplicatedStorage.Libarys.Store)
+local blockPool = require(game.ReplicatedStorage.Libarys.BlockPool)
 Chunk.EdgeIndexs ={
     x = {},["-x"] = {},z = {},["-z"] = {},init = false
 }
 
 Chunk.__index = Chunk
 Chunk.__tostring = function(self)
-    return self:GetNString()
+    if not self.String then self.String = self.Chunk.X..","..self.Chunk.Y end 
+    return self.String
 end
 Chunk.__call = function(self)
     return self:GetNTuple()
@@ -38,7 +40,7 @@ function  Chunk.new(x,z,data)
 end
 local Vector3 = Vector3.new
 function Chunk.newBluePrint(deafult)
-    return  table.create(dsize,deafult or bs:get(false))
+    return  table.create(dsize,deafult or blockPool:get(false))
 end
 local function specialidk(data,refrence)
     local key = data:getKey()
@@ -89,7 +91,13 @@ function Chunk:RemoveBlockGrid(x,y,z)
     return self:RemoveBlock(x,y,z)
 end
 function Chunk:RemoveBlock(x,y,z)
-    self:InsertBlock(x,y,z,false)
+    self:RemoveBlockIndex(self.to1D(x,y,z),false)
+end
+function Chunk:RemoveBlockIndex(id)
+    local current =  self.Blocks[id]
+    if not current or current[2] == false then return end 
+    current:release()
+    self.Blocks[id] = blockPool.CONST_FALSE
     self.Changed = true
 end
 function Chunk:InsertBlock(x,y,z,data)
@@ -102,24 +110,32 @@ end
 local maxsize = chunksize.X^2*chunksize.Y
 function Chunk:BulkAdd(table)
     local found = {}
+    local modified = {}
     for i,v in table do
+        if v == false then continue end 
         if not found[v] then
-            local x = bs:get(v)
+            local x = blockPool:get(v)
             found[v] = x--v
+            modified[v] = -1
         end
        self.Blocks[i] = found[v]
+       modified[v] +=1
+    end
+    for i,v in  modified  do
+        if not i then continue end 
+        blockPool:doesExsist(i)[3] += v
     end
     self.Changed = true
 end
 function  Chunk:AddBlock(index,data)
-    if type(data)=="string" or type(data) == "boolean" then
-        data = bs:get(data)
-    end
     index = tonumber(index)
     if index >maxsize or index <1 then 
         error("OUT OF BOUNDS") 
     end 
-    self.Blocks[index] = data
+    local current = self.Blocks[index]
+    if current[2] == data then return end 
+    self.Blocks[index] = blockPool:get(data)
+    current:release()  
     self.Changed = true
 end
 function Chunk:GetAllBlocks()
@@ -177,7 +193,7 @@ function Chunk:CompressVoxels(keytable)
         if current == last then
             count +=1
         else
-            table.insert(compressed,Vector2int16.new(get(last:getKey()),count))
+            table.insert(compressed,Vector2int16.new(get(tostring(last)),count))
          --   table.insert(key,count)
             last = current 
             total+= count
@@ -185,23 +201,40 @@ function Chunk:CompressVoxels(keytable)
             
         end
     end
-    table.insert(compressed,Vector2int16.new(get(last:getKey()),count))
+    table.insert(compressed,Vector2int16.new(get(tostring(last)),count))
  --   table.insert(key,count)
     return {compressed,not keytable and index}
+end
+function Chunk:DeCompresAndInsert(comp,key)
+    local decompressed = {}
+    local current = 1
+    for i,v in comp do
+        local block
+        for _ = 1,v.Y do
+            if not block then
+                block = blockPool:get(key[v.X])
+            else
+                block:increase()
+            end
+            self.Blocks[current] = block
+            current +=1
+        end
+    end
+    return decompressed
 end
 function Chunk.DeCompressVoxels(comp,key)
     local decompressed = {}
     local current = 1
     for i,v in comp do
         for _ = 1,v.Y do
-            decompressed[tonumber(current)] =  bs:get(key[v.X])
+            decompressed[tonumber(current)] = key[v.X]
             current +=1
         end
     end
     return decompressed
 end
 function Chunk:GetNString():string 
-    return self.Chunk.X..","..self.Chunk.Y
+   return tostring(self)
 end
 function Chunk:GetNTuple():IntValue|IntValue
     return self.Chunk.X,self.Chunk.Y
@@ -231,6 +264,10 @@ function  Chunk.GetEdgeIndexs(edge)
 end
  
 function Chunk:Destroy()
+    for i,v in self.Blocks do
+        v:release()
+    end
+    self.Blocks = nil
     setmetatable(self, nil) self = nil
 end
 return Chunk 
