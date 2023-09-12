@@ -45,6 +45,7 @@ self.TempChunks = {}
 local TempChunks = self.TempChunks
 local NoiseQueue = {}
 local LerpQueue = {}
+local ColorQueue = {}
 local FeatureQueue = {}
 local ReadyToSend = {}
 local Requested = {}
@@ -61,7 +62,9 @@ local function SendToClients()
             local str = tostring(v)
             if not compressed[str] then 
                 local cx,cz = v()
+                debug.profilebegin("compress")
                 compressed[str] = v:CompressVoxels(key)
+                debug.profileend()
             end
             tosend[str] = compressed[str]
         end
@@ -100,6 +103,14 @@ local function GenerateNoise(chunkStr)
     sharedservice:Upload(chunkStr,data)
 end
 local once = false
+local function Color(chunk)
+    local cx,cz = chunk:GetNTuple()
+    chunk:Color()
+    game.ReplicatedStorage.ServerInfo.ChunksLoaded.Value +=1
+    chunk.Generated = true 
+    AddToTable(tostring(chunk))
+    return true
+end
 local function Lerp(chunk)
     local cx,cz = chunk:GetNTuple()
     local c10,c01,c11 = GILQ(cx+1,cz),GILQ(cx,cz+1),GILQ(cx+1,cz+1)
@@ -112,25 +123,13 @@ local function Lerp(chunk)
    if chunk.PreValues[3] ~= c10.PreValues[3]  ~= c01.PreValues[3] ~=c11.PreValues[3]  then
     chunk:LerpBiome()
    end
-   chunk:Color()
-   game.ReplicatedStorage.ServerInfo.ChunksLoaded.Value +=1
-   chunk.Generated = true
-   if not once then once = true
-   local a = table.clone(chunk)
-   for i,v in a.Blocks do
-    a.Blocks[i] = tostring(v)
-   end
-   print(HttpService:JSONEncode(a))
-end
-   AddToTable(tostring(chunk))
-   return true
+   ColorQueue[tostring(chunk)] = chunk
 end
 local function HandleLerpQueue()
     for i,v in LerpQueue do
+        if  v.Lerping  then continue end 
         task.spawn(function()
-            if not v.Lerping  then
-                Lerp(v)
-            end
+            Lerp(v)
         end)
     end
 end
@@ -140,8 +139,15 @@ local function HandleNoiseQueue()
         table.remove(NoiseQueue,i)
     end
 end
+local function HandleColorQueue()
+    for i,v in ColorQueue do
+        task.spawn(Color,v)
+        ColorQueue[i] = nil
+    end
+end
 runservice.Heartbeat:Connect(function(dt)
     SendToClients()
+    HandleColorQueue()
     HandleLerpQueue()
     HandleNoiseQueue()
 end)

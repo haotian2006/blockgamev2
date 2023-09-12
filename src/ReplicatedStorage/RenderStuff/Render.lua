@@ -22,7 +22,7 @@ local debugmode = true
 self.Blocks ={}
 self.storage = self.storage or Instance.new("Folder")
 self.storage2 = self.storage2 or Instance.new("Folder")
-local vector3 = Vector3.new
+local vector3 = Vector3.new 
 function self.CreateTexture(texture,face,size)
     local new
     if texture:IsA("Decal") or texture:IsA("Texture") or type(texture) == "string" then
@@ -139,14 +139,6 @@ function self.GetTextures(Id,walls,Orientation,part,loc)
     local stuff ={}
     local sidesnumbers = self.GetOrderOfSide(Orientation)
     local sides = {Right = true,Left = true,Top = true,Bottom = true,Back = true,Front =true}
-    -- local t = {}
-    -- for i,v in sidesnumbers do
-    --     t[v] = directions[i]
-    -- end
-    -- if once <= 10 then 
-    -- print(mappings2[tonumber(walls)],loc)
-    -- once += 1
-    -- end
     for i,v in mappings2[tonumber(walls)] do
         if  not tonumber(v) then continue end
         sides[sidesnumbers[tonumber(v)]] = nil
@@ -167,12 +159,6 @@ function self.GetTextures(Id,walls,Orientation,part,loc)
                     table.insert(stuff,self.CreateTexture(texture,v))
                 end
             end
-
-            -- table.insert(stuff,self.CreateTexture(texture,"Back"))
-            -- table.insert(stuff,self.CreateTexture(texture,"Left"))
-            -- table.insert(stuff,self.CreateTexture(texture,"Right"))
-            -- table.insert(stuff,self.CreateTexture(texture,"Top"))
-            -- table.insert(stuff,self.CreateTexture(texture,"Bottom"))
         end
     else
     end
@@ -193,7 +179,6 @@ function self.DeLoad(cx,cz)
         c.Parent = nil
         for i,v in c:GetChildren() do
             v:Destroy()
-           -- v.Parent = self.storage
             if i%500 == 0 then
                 task.wait(.2)
             end

@@ -309,6 +309,9 @@ function terrian.ColorSection(quadx,quadz,holes,surface,biome)
     local biomedata = {}
     local currentb 
     debug.profilebegin("color")
+    for i,v in holes do
+        holes[i] = v>0
+    end
     local function Color(x,y,z)
         local idx = to1d4x256(x,y,z)
         local hy= surface[to1DXZ4x(x,z)]

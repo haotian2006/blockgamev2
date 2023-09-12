@@ -10,9 +10,8 @@ local gh = require(game.ServerStorage.GenerationHandler)
 local multigh = require(game.ServerStorage.GenerationMultiHandler)
 local PGC = debris.CreateFolder("PREGENERATEDCHUNKS")
 local ServerStorage = game:GetService("ServerStorage")
-local sharedregirsty = game:GetService("SharedTableRegistry")
-local SharedT = sharedregirsty:GetSharedTable("SharedT")
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+local blockPool = require(game.ReplicatedStorage.Libarys.BlockPool)
 -- PGC.__remove = function(key)
 --     SharedT[key] = nil
 -- end
@@ -30,31 +29,51 @@ function Chunk:AddToLoad(stuff,special)
         for i,v in stuff do
             if tonumber(i) <=0 then continue end  
             self:AddBlock(i,v)
-        end
+        end 
     else
         for i,v in stuff do
             self.ToLoad[i] = v
         end
     end
 end
+function Chunk:BulkAdd(table)
+    local found = {}
+    local modified = {}
+    for i,v in table do
+        if v == false then continue end 
+        if not found[v] then
+            local x = blockPool:get(v)
+            found[v] = x--v
+            modified[v] = -1
+        end
+       self.Blocks[i] = found[v]
+       modified[v] +=1
+    end
+    for i,v in  modified  do
+        if not i then continue end 
+        blockPool:doesExsist(i)[3] += v
+    end
+    self.Changed = true
+end
 local v2 = function(x,y)
     return `{x},{y}`
 end
 
 function Chunk:LerpValues()
-    local data,surface = multigh:InterpolateDensity(self())
-    self.Holes = data
-    self.Surface = surface
+    local alldata = multigh:InterpolateDensity(self())
+    -- self.Holes = data
+    -- self.Surface = surface
+    self.alldata = alldata
 end
 function Chunk:LerpBiome()
     local cx,cz = self()
-    local secondarybiomes = multigh:LerpBiomes(cx,cz,self.Surface)
+    local secondarybiomes = multigh:LerpBiomes(cx,cz)
     self.Biome = secondarybiomes
 end
 function Chunk:Color()
-    local colors = multigh:Color( self.Holes,self.Surface,self.Biome)
+    local colors = multigh:Color( self.alldata,self.Biome)
     debug.profilebegin("BulkAdd")
-    self.Holes = nil
+    self.alldata = nil
     self:BulkAdd(colors)
     debug.profileend()
     debug.profilebegin("bedrock")

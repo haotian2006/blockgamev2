@@ -21,7 +21,7 @@ end
 local farea = (chunksize.X)*(chunksize.Y)
 Chunk.to1D = settings.to1D
 local ym = chunksize.Y-1
-Chunk.to3D = settings.to3D
+Chunk.to3D = settings.to3D 
 local function round(x)
     return math.floor(x+.5)
 end
@@ -108,25 +108,6 @@ function Chunk:InsertBlockGrid(x,y,z,data)
     return self:InsertBlock(x,y,z,data)
 end
 local maxsize = chunksize.X^2*chunksize.Y
-function Chunk:BulkAdd(table)
-    local found = {}
-    local modified = {}
-    for i,v in table do
-        if v == false then continue end 
-        if not found[v] then
-            local x = blockPool:get(v)
-            found[v] = x--v
-            modified[v] = -1
-        end
-       self.Blocks[i] = found[v]
-       modified[v] +=1
-    end
-    for i,v in  modified  do
-        if not i then continue end 
-        blockPool:doesExsist(i)[3] += v
-    end
-    self.Changed = true
-end
 function  Chunk:AddBlock(index,data)
     index = tonumber(index)
     if index >maxsize or index <1 then 
@@ -174,35 +155,42 @@ function Chunk:ConvertLocalToGrid(x,y,z)
 end
 
 function Chunk:CompressVoxels(keytable)
-    local blocks =  self:GetAllBlocks() 
+    local blocks =  self.Blocks
+    local newvector = Vector2int16.new
     local compressed = {}
     local key = {}
     local index = keytable or {}
+    local secondarykey = {}
+    for i,v in index do
+        secondarykey[v] = i
+    end
     local last = blocks[1]
     local count = 1
     local total = 0
+    local size = 0
     local function get(id)
-        local idx = table.find(index,id)
+        local idx = secondarykey[id]
         if idx then return idx end
         local len = #index+1
         index[len] = id
+        secondarykey[id] = len
         return len
     end
     for i =2, #blocks do
         local current = blocks[i]
-        if current == last then
+        if current[2] == last[2] then
             count +=1
         else
-            table.insert(compressed,Vector2int16.new(get(tostring(last)),count))
-         --   table.insert(key,count)
+            size+=1
+            compressed[size] = newvector(get(last[2]),count)
             last = current 
             total+= count
             count = 1
             
         end
     end
-    table.insert(compressed,Vector2int16.new(get(tostring(last)),count))
- --   table.insert(key,count)
+    size+=1
+    compressed[size] = newvector(get(last[2]),count)
     return {compressed,not keytable and index}
 end
 function Chunk:DeCompresAndInsert(comp,key)

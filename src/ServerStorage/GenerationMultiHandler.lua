@@ -21,6 +21,7 @@ local st ={}
 local mhworkers = Instance.new("Folder")
 mhworkers.Name = "idk"
 mhworkers.Parent = game.ServerScriptService
+
 local function SharedToNormal(shared,p)
     if typeof(shared) ~= "SharedTable" then return shared end 
     p = p or {}
@@ -162,6 +163,7 @@ function GH:InterpolateDensity(cx,cz)
          end
      end
      if 4 ~= done then coroutine.yield() end 
+          --[[
      local t ,s=  table.create(farea3*8),table.create(8*8)
      debug.profilebegin("InterpolateDensity")
      local t1 = alldata[1]
@@ -227,10 +229,10 @@ function GH:InterpolateDensity(cx,cz)
      debug.profileend()
     -- print(s1,s2,s3,s4)
    --  print(s)
-   --  lerp[`{cx},{cz}`] = nil
-     return t,s--t
+   --  lerp[`{cx},{cz}`] = nil]]
+     return alldata--t
  end
-function GH:Color(holes,surface,biome)
+function GH:Color(alldata2,biome)
     local t = table.create(farea3*8)
    -- lerp[`{cx},{cz}`] = table.create(Settings.maxChunkSize)
     local tasks,done = 0,0
@@ -243,24 +245,29 @@ function GH:Color(holes,surface,biome)
             local s = {}
             local holes2 = {}
           --  local d22 = d2 and {}
+          --[[
+          debug.profilebegin("calculate values")
             for xx =0,3 do
                 local x = xx+4*x
                 for zz = 0,3 do
                     local z = zz+4*z
                     local xz1 = to1DXZ4x(xx,zz)
                     local xz2 = Settings.to1DXZ(x,z)
+                    local d1256 = x + 0 + z *aa+1
+                    local to1d = x  + z *farea3+1
                     s[xz1] = surface[xz2]
                     for y = 0,255 do
-                        local idx1 = to1d4x256(xx,y,zz)
-                        local idx2 = Settings.to1D(x,y,z)
+                        local idx1 =  d1256 +y * 4--to1d4x256(xx,y,zz)
+                        local idx2 = to1d+y*8
                         holes2[idx1] = holes[idx2]
                     end
                 end
             end
-            local tk = Vector2.new(x,z)
+            debug.profileend()]]
+            local t = alldata2[i]
             local newhol = {}
             task.spawn(function()
-                alldata[i]= terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,s,biome))) --terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,surface,d1,d22)))
+                alldata[i]= terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,t[1],t[2],biome))) --terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,surface,d1,d22)))
                 done +=1
                 if 4 == done then
                     coroutine.resume(thread)
@@ -378,6 +385,7 @@ function GH:LerpBiomes(cx,cz,height)
      end
      if 4 ~= done then coroutine.yield() end 
      local b = table.create(8*8)
+     debug.profilebegin("biome convert")
      local s1 = alldata[1]
      local s2 = alldata[2]
      local s3 = alldata[3]
@@ -412,6 +420,7 @@ function GH:LerpBiomes(cx,cz,height)
             d = false
         end
      end
+     debug.profileend()
     return d or b
 end
 function GH:ComputeChunk(cx,cz)
@@ -432,7 +441,7 @@ function GH:SmoothDensity(cx,cz,data)
 end
 function GH:GetBiomeValues(x,y,z)
     return GH:DoWork("GetBiomesstuffidkdebug",x,y,z)
-end
+end 
 function GH:GenerateCaves(cx,cz)
     local sx,sy,sz,ammount,Resolution = GenHandler.GetWormData(cx,cz)
     if sx == nil then return end 
