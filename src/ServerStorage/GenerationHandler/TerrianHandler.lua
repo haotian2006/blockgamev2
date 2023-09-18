@@ -146,7 +146,7 @@ function terrian.ComputeChunkSection(cx,cz,quadx,quadz)
     
     base = base or 60
     debug.profileend()
-    return {data,base,biome,climate2d,climate3d}
+    return {data,base,tostring(biome),climate2d,climate3d}
 end
 local lerp2 = mathutils.lerp2
 function terrian.LerpXZ2D(cx,cz,quadx,quadz)
@@ -263,13 +263,16 @@ function terrian.CompressVoxels(data)
     local compressed = {}
     local key = {}
     local index = {}
+    local keyedindex = {}
     local last = blocks[1]
     local count = 1
     local total = 0
+    local id = 0
     local function get(id)
-        local idx = table.find(index,id)
+        local idx =  keyedindex[id]
         if idx then return idx end
         local len = #index+1
+        keyedindex[id] = len
         index[len] = id
         return len
     end
@@ -279,7 +282,8 @@ function terrian.CompressVoxels(data)
         if current == last then
             count +=1
         else
-            table.insert(compressed,Vector2int16.new(get(last),count))
+            id +=1
+            compressed[id] = Vector2int16.new(get(last),count)
           --  table.insert(key,count)
             last = current 
             total+= count
@@ -287,15 +291,17 @@ function terrian.CompressVoxels(data)
             
         end
     end
-    table.insert(compressed,Vector2int16.new(get(last),count))
+    id +=1
+    compressed[id] = Vector2int16.new(get(last),count)
     return {compressed,key,index}
 end
 function terrian.DeCompressVoxels(comp,amt,key)
-    local decompressed = {}
+    local decompressed = table.create(4*256*4)
     local current = 1
     for i,v in comp do
+        local b = key[v.X]
         for _ = 1,v.Y do
-            decompressed[tonumber(current)] = key[v.X]
+            decompressed[current] = b
             current +=1
         end
     end
@@ -314,7 +320,8 @@ function terrian.ColorSection(quadx,quadz,holes,surface,biome)
     end
     local function Color(x,y,z)
         local idx = to1d4x256(x,y,z)
-        local hy= surface[to1DXZ4x(x,z)]
+        local xz = to1DXZ4x(x,z)
+        local hy= surface[xz]
         local self = holes[idx]
         local above = holes[idx+4]
         if  y <57 and (not above or above == 'c:Sand') and self  then
@@ -340,12 +347,8 @@ function terrian.ColorSection(quadx,quadz,holes,surface,biome)
             return biome
         elseif biome[15] then
             return biome[to1DXZ(x,z)]
-        else
-            local xx = math.floor(x/4)
-            local zz = math.floor(x/4)
-            return biome[to1dLocalXZ(x,z)]
         end
-        
+        return ''
 	end
     for qx =0,4-1 do
 		local x = qx+4*quadx

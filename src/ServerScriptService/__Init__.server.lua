@@ -61,8 +61,8 @@ local cri = game.ReplicatedStorage.climate::RemoteEvent
 cri.OnServerEvent:Connect(function(plr,xx,yy,z)
     local x,y = unpack(gmh:GetBiomeValues(xx,yy,z))
     local biome =  data.GetBiome(xx,yy,z)
-    --local str = `c:{x.X} | e:{x.Y} | d:{y.Z} | t:{y.X} | h:{y.Y} | w:{x.Z}`
-    local str = ''--string.format('c: %.3f | e: %.3f | d: %.3f | t: %.3f | h: %.3f | w: %.3f | biome: %s',x.X,x.Y,y.Z,y.X,y.Y,x.Z,biome or "")
+   -- local str = `c:{x.X} | e:{x.Y} | d:{y.Z} | t:{y.X} | h:{y.Y} | w:{x.Z}`
+    local str = string.format('c: %.3f | e: %.3f | t: %.3f | h: %.3f | w: %.3f | biome: %s',x.X,x.Y,y.X,y.Y,x.Z,biome or "")
  --   return str
  cri:FireClient(plr,str)
 end)
@@ -141,9 +141,10 @@ local ublock = bridge.CreateBridge("UpdateBlocks")
 bridge.CreateBridge("BlockBreak"):Connect(function(plr,block:Vector3)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end 
     local blocktr = data.GetBlock(block.X,block.Y,block.Z)
-    if (blocktr and blocktr[2].T == "c:Bedrock") or not blocktr then return end 
+    if (blocktr and blocktr:getName() == "c:Bedrock") or not blocktr then return end 
     data.RemoveBlock(block.X,block.Y,block.Z)
-    ublock:FireAll({Remove = {block}})
+
+    ublock:FireToAllExcept(plr,nil,block.X,block.Y,block.Z)
 end)
 bridge.CreateBridge("BlockPlace"):Connect(function(plr,coords1,ori)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end  

@@ -17,10 +17,13 @@ function self.AddInstanceChildren(Object,AssetObj)
         end
     end
 end 
+local SPECIAL
 function self.LoadPack(PackName:string)
     local pack = ResourcePacks:FindFirstChild(PackName)
     if pack then
         for i,v in pack:GetChildren() do
+            if SPECIAL and not table.find(SPECIAL ,v.Name)  then continue end 
+                
             if v:IsA("Folder") then
                  self[v.Name] = self[v.Name] or {}
                  self.AddInstanceChildren(v, self[v.Name])
@@ -39,7 +42,8 @@ function self.LoadPack(PackName:string)
         -- if Info then Info.Parent = pack end
     end
 end
-function self:Init()
+function self:Init(special)
+    SPECIAL = special
     for i,v in ResourcePacks:GetChildren()do
         self.LoadPack(v.Name)
     end
@@ -47,7 +51,7 @@ function self:Init()
 end
 function self.IsBlock(data)
     local type =  qf.DecompressItemData(data,"T")
-    return self.GetBlock(type) and type  or false   
+    return self.GetBlock(type) and type  or false  ,type 
 end
 function self.GetAsset(id)
     return self.Assets and self.Assets[id]

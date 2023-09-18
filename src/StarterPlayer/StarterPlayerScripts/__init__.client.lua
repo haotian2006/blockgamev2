@@ -13,7 +13,7 @@ local GetChunk = bridge.CreateBridge("GetChunk")
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local mulithandler = require(game.ReplicatedStorage.MultiHandler)
 local toload = {}
-local currentlyloading = {}
+local currentlyloading = {} 
 local queued = {}
 local debirs = require(game.ReplicatedStorage.Libarys.Debris):Init()
 local anihandler = require(game.ReplicatedStorage.AnimationController)
@@ -29,6 +29,12 @@ local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 local runservicer = game:GetService("RunService")
 local HarmEvent = bridge.CreateBridge('OnEntityHarmed')
+
+local RenderHandler = require(script.Parent.Render):Init()
+
+for i,v in script.Parent.ClientStuff:GetChildren() do
+    require(v)
+end
 local function createAselectionBox(parent,color) local sb = Instance.new("SelectionBox",parent) sb.Visible = datahandler.HitBoxEnabled sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) sb.Adornee = parent sb.LineThickness = 0.025 return sb end
 local function createEye(offset,hitbox)
     local eye = Instance.new("Part",hitbox.Parent)
@@ -377,14 +383,15 @@ bridge.CreateBridge("UpdateBlocks"):Connect(function(data)
     end
 end)
 local a = false
-game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(chunks,key)
-    for str,data in chunks do
-        toload[str] = true
-        queued[str] = false
-        local c = datahandler.CreateChunk({},str:match("([^,]*),?([^,]*),?([^,]*)"))
-        c:DeCompresAndInsert(data[1],key)
-    end
-end)
+-- game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(chunks,key)
+--     for str,data in chunks do
+--         toload[str] = true
+--         queued[str] = false
+--         local c = datahandler.CreateChunk({},str:match("([^,]*),?([^,]*),?([^,]*)"))
+--         c:DeCompresAndInsert(data[1],key)
+--     end
+-- end)
+
 --[[
 game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data)
     toload[cx..','..cz] = true

@@ -1,4 +1,5 @@
 local r = {}
+local mathUtil = require(game.ReplicatedStorage.Libarys.MathFunctions)
 r.indexPairs = {
     "0,0,0",
     "-0,-0,-1",
@@ -134,5 +135,45 @@ function r.convertToCFrame(str:string)
     end
     local x,y,z = str:match("([^,]*),?([^,]*),?([^,]*)")
     return CFrame.fromOrientation(convert(x),convert(y),convert(z))
+end
+function r.calculateRotationFromData(block,blockHitData,rayData)
+    local coords = blockHitData.BlockPosition+blockHitData.Normal
+    local hitpos = blockHitData.PointOfInt
+    local orientation
+    if block and block.components then
+        block = block.components
+        orientation = {0,0,0}
+        local Direction = rayData.Direction
+        local angle = mathUtil.GetAngleDL(Direction) 
+        local dx = math.abs(Direction.X)
+        local dz = math.abs(Direction.Z)
+        if dx < dz then
+            dx = 0
+            dz = Direction.Z / dz
+        else
+            dz = 0
+            dx = Direction.X/dx
+        end
+        if (dx == -1 or dx == 1) and block.RotateY then orientation[2] = dx end
+        if dz == -1 and block.RotateY then
+                orientation[2] = '-0'
+        elseif  dz == 1 then
+            orientation[3] = 0
+        end
+        if hitpos.Y >  coords.Y and block.RotateZ then  
+            orientation[3] = '-0'
+        else
+        end
+        if angle >=-41 and angle <= - 39 and block.RotateX then
+            orientation[1] = 1
+        elseif angle >= 39 and angle <=  41 and block.RotateX then
+            orientation[1] = -1
+        end
+        orientation = (orientation[1]..','..orientation[2]..','..orientation[3])
+        if orientation == '0,0,0' then 
+            orientation =nil
+        end
+    end
+    return orientation
 end
 return r

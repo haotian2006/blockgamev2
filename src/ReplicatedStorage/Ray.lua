@@ -25,6 +25,7 @@ function ray.newData()
     return {
         Objects = {},
         Origin = Vector3.zero,
+        Direction = nil,
         RayInfo = {},
     }
 end
@@ -42,7 +43,7 @@ function ray.Cast(Origin: Vector3, Direction: Vector3,rayinfo)
     local raydata = ray.newData()
     raydata.RayInfo = rayinfo
     raydata.Origin = Origin
-    raydata.direaction = Direction
+    raydata.Direction = Direction
     local hitname = {}
     local debugfolder = rayinfo.Debug and Instance.new("Folder",workspace)
     if debugfolder then

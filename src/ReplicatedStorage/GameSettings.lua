@@ -22,20 +22,34 @@ function settings.gridToreal(x:Vector3|number)
     return x*settings.GridSize
 end
 local farea = (settings.ChunkSize.X)*(settings.ChunkSize.Y) 
-function settings.to1D(x,y,z,t)
-    if t then
-        return tostring(x + y * chsizex + z *farea+1)
+settings.CONST_XYZ1D = {}
+settings.CONST_3D = {}
+local CONSTXYZ = settings.CONST_XYZ1D
+function settings.to1D(x,y,z)
+    return CONSTXYZ[x][z][y]
+   -- return x + y * chsizex + z *farea+1
+end
+do
+    for x = 0,chsizex-1 do
+        CONSTXYZ[x] = CONSTXYZ[x] or {}
+        for z = 0,chsizex-1 do
+            CONSTXYZ[x][z] = CONSTXYZ[x][z] or {}
+            for y = 0,chsizey-1 do
+                CONSTXYZ[x][z][y] =  x + y * chsizex + z *farea+1
+                settings.CONST_3D[CONSTXYZ[x][z][y]] = {x,y,z}
+            end
+        end
     end
-    return x + y * chsizex + z *farea+1
 end
 function settings.to3D(index)
-    index = tonumber(index) - 1
-	local x = index % chsizex
-	index = math.floor(index / chsizex)
-	local y = index % chsizey
-	index = math.floor(index / chsizey)
-	local z = index % chsizex
-	return x, y, z
+    return unpack( settings.CONST_3D[tonumber(index)])
+    -- index = tonumber(index) - 1
+	-- local x = index % chsizex
+	-- index = math.floor(index / chsizex)
+	-- local y = index % chsizey
+	-- index = math.floor(index / chsizey)
+	-- local z = index % chsizex
+	-- return x, y, z
 end
 function settings.to1DXZ(x,z)
     return x + z *chsizex + 1

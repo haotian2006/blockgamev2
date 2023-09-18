@@ -125,45 +125,7 @@ function self.GetOrderOfSide(Orientation)
     return new_directions
 end
 local once =0 
-function self.GetTextures(Id,walls,Orientation,part,loc)
-   -- print(walls[2])
-    local info = ResourceHandler.GetBlock(Id)
-    local texture = info["Texture"]
-    if typeof(texture) == "BrickColor" then
-        part.BrickColor = info["Texture"]
-        return {}
-    elseif typeof(texture) == "Color3" then
-        part.Color = info["Texture"]  
-        return {}
-    end
-    local stuff ={}
-    local sidesnumbers = self.GetOrderOfSide(Orientation)
-    local sides = {Right = true,Left = true,Top = true,Bottom = true,Back = true,Front =true}
-    for i,v in mappings2[tonumber(walls)] do
-        if  not tonumber(v) then continue end
-        sides[sidesnumbers[tonumber(v)]] = nil
-    end
-    if texture then
-        if type(texture) == "table" then
-            for i,v in texture do
-                if sides[i] then
-                    -- i = t[i]
-                    table.insert(stuff,self.CreateTexture(v,i))
-                end
-            end
-        elseif type(texture) == "userdata" then
-            local d = false  if not once then once = true d= true end
-            for v in sides do
-                if  v ~= "" then
-                    --v = t[v]
-                    table.insert(stuff,self.CreateTexture(texture,v))
-                end
-            end
-        end
-    else
-    end
-    return stuff
-end
+
 function self.GetModel(Id)
     local info = ResourceHandler.GetBlock(Id)
     local Model = info["Model"]

@@ -129,7 +129,7 @@ function generation.CreateBedrock(cx,cz,gtable):table
 	for x = 0,st.ChunkSize.X-1 do
 		for z = 0,st.ChunkSize.X-1 do
 			local combine = vector3int(x,0,z)
-			gtable[combine] = 'T|s%c:Bedrock' 
+			gtable[combine] = 'c:Bedrock' 
 		end
 	end	
 	return gtable
@@ -252,7 +252,7 @@ function generation.LerpFinalXZ(cx,cz,quadx,quadz)
 end
 function generation.GetBiomesstuffidkdebug(x,y,z)
 	local x = Vector3.new(Biome.get2DNoiseValues(x,z))
-    local y = Vector3.new(Biome.get3DNoiseValues(x,y,z,true))
+    local y = Vector2.new(Biome.get3DNoiseValues(x,y,z))
     return {x,y}
 end
 function generation.GenerateBlueprint()

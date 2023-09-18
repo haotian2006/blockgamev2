@@ -8,7 +8,7 @@ local InProgress = {}
 local Index = 0
 Worker.__index = Worker
 local amtofspecial = 5
-local deafultAmount = 3
+local deafultAmount = 6
 local Settings = require(game.ReplicatedStorage.GameSettings)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
@@ -244,30 +244,13 @@ function GH:Color(alldata2,biome)
             local i = tasks
             local s = {}
             local holes2 = {}
-          --  local d22 = d2 and {}
-          --[[
-          debug.profilebegin("calculate values")
-            for xx =0,3 do
-                local x = xx+4*x
-                for zz = 0,3 do
-                    local z = zz+4*z
-                    local xz1 = to1DXZ4x(xx,zz)
-                    local xz2 = Settings.to1DXZ(x,z)
-                    local d1256 = x + 0 + z *aa+1
-                    local to1d = x  + z *farea3+1
-                    s[xz1] = surface[xz2]
-                    for y = 0,255 do
-                        local idx1 =  d1256 +y * 4--to1d4x256(xx,y,zz)
-                        local idx2 = to1d+y*8
-                        holes2[idx1] = holes[idx2]
-                    end
-                end
-            end
-            debug.profileend()]]
             local t = alldata2[i]
             local newhol = {}
             task.spawn(function()
-                alldata[i]= terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,t[1],t[2],biome))) --terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,surface,d1,d22)))
+                local da = GH:DoWork("ColorSection",x,z,t[1],t[2],biome) --terrian.DeCompressVoxels(unpack(GH:DoWork("ColorSection",x,z,holes2,surface,d1,d22)))
+                debug.profilebegin("decompress")
+                alldata[i] = terrian.DeCompressVoxels(unpack(da))
+                debug.profileend()
                 done +=1
                 if 4 == done then
                     coroutine.resume(thread)
@@ -275,12 +258,13 @@ function GH:Color(alldata2,biome)
             end)
         end
     end
+
     if 4 ~= done then coroutine.yield() end 
+    debug.profilebegin("color convert")
     local t1 = alldata[1]
     local t2 = alldata[2]
     local t3 = alldata[3]
     local t4 = alldata[4]
-    debug.profilebegin("y stuff")
     for x = 0,3 do
         local fx1 = (x)
         local fx2 = (x+4)
@@ -373,7 +357,6 @@ function GH:LerpBiomes(cx,cz,height)
      for x =0,1 do
          for z = 0,1 do
              tasks +=1
-             local tk = Vector2.new(x,z)
              task.spawn(function()
                  alldata[tasks]= GH:DoWork("LerpBiomesSection",cx,cz,x,z)
                  done +=1

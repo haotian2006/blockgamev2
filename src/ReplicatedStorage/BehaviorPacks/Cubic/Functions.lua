@@ -1,5 +1,6 @@
 local func = {}
 local ModingMod = require(game.ReplicatedStorage.ModHandler)
+local rotationUtil = require(game.ReplicatedStorage.Libarys.RotationData)
 local MH:ModingMod.AutoFill = ModingMod
 type InputData = ModingMod.InputData
 func.PlaceBlockServer = function(entity,Block,id)
@@ -75,7 +76,7 @@ end
 
 end
 local rotation = require(game.ReplicatedStorage.Libarys.RotationData)
-func.PlaceBlockClient = function(entity,Data:InputData)
+func.PlaceBlockClientO = function(entity,Data:InputData) 
 	local ModingMods:ModingMod.AutoFill = ModingMod
 	local lookvector = workspace.CurrentCamera.CFrame.LookVector
     local ResourceHandler = ModingMods.Resources 
@@ -144,6 +145,41 @@ func.PlaceBlockClient = function(entity,Data:InputData)
             entity:PlayAnimation("Place",true)
             ArmsHandler.PlayAnimation('Attack',true)
             MH.Remote.GetRemote("BlockPlace"):FireServer(coords,orientation)
+        end
+    end
+end
+func.PlaceBlockClient = function(entity,Data:InputData)
+    local ModingMods:ModingMod.AutoFill = ModingMod
+	local lookvector = workspace.CurrentCamera.CFrame.LookVector
+    local ResourceHandler = ModingMods.Resources 
+    local behaviorhandler = ModingMods.Behaviors
+    local data = ModingMods.DataHandler
+    local ArmsHandler = ModingMods.Manager.ArmsManager
+    local math = ModingMods.Math
+    local Ray = ModingMods.Ray
+    local rayinfo = Ray.newInfo()
+	local placeBlockEvent = ModingMods.Remote.GetRemote("BlockPlace")
+    rayinfo.BreakOnFirstHit = true
+    rayinfo.BlackList = {entity.Id}
+    rayinfo.GetNormal = true
+    rayinfo.RaySize = Vector3.new(.025,.025,.025)
+    local raystuff = Ray.Cast(entity.Entity.Eye.Position/3,lookvector*5.1,rayinfo)
+    local v = raystuff.Objects[1]
+    local item = entity.HoldingItem or {}
+    if  v and v.Type == "Block" and item[1] and ResourceHandler.IsBlock(item[1]) then
+        local coords = v.BlockPosition+v.Normal
+        local hitpos = v.PointOfInt
+        local block,type = ResourceHandler.IsBlock(item[1])
+        block = behaviorhandler.GetBlock(block)
+        local orientation = rotationUtil.calculateRotationFromData(block,v,raystuff)
+        if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z,data)  then 
+            local b= type..(orientation and '_'..rotation.keyPairs[orientation] or "")
+           -- print(orientation)
+       --     data.InsertBlock(coords.X,coords.Y,coords.Z,b)  
+            require(game.Players.LocalPlayer.PlayerScripts.Render).updateBlocks(b,coords.X,coords.Y,coords.Z)
+            -- entity:PlayAnimation("Place",true)
+            -- ArmsHandler.PlayAnimation('Attack',true)
+            -- MH.Remote.GetRemote("BlockPlace"):FireServer(coords,b)
         end
     end
 end

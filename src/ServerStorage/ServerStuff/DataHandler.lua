@@ -78,11 +78,9 @@ local function AddToTable(idx)
         table.insert(ReadyToSend[v],TempChunks[idx])
     end
 end
-local TempString = {}
+
 local function GetTempString(x,y)
-    TempString[x] = TempString[x] or {}
-    if not TempString[x][y] then  TempString[x][y] = `{x},{y}`  end
-    return TempString[x][y]
+    return `{x},{y}`
 end
 local function GILQ(x,y)
     return LerpQueue[GetTempString(x,y)]
@@ -100,7 +98,6 @@ local function GenerateNoise(chunkStr)
     TempChunks[chunkStr] = chunkObj
     local data = chunkObj:GenerateNoiseValues()
     LerpQueue[chunkStr] = chunkObj
-    sharedservice:Upload(chunkStr,data)
 end
 local once = false
 local function Color(chunk)
@@ -109,13 +106,18 @@ local function Color(chunk)
     game.ReplicatedStorage.ServerInfo.ChunksLoaded.Value +=1
     chunk.Generated = true 
     AddToTable(tostring(chunk))
+    self.insertChunk(chunk)
     return true
+end
+local function AddFoilage()
+    
 end
 local function Lerp(chunk)
     local cx,cz = chunk:GetNTuple()
     local c10,c01,c11 = GILQ(cx+1,cz),GILQ(cx,cz+1),GILQ(cx+1,cz+1)
     if not (c10 and c01 and c11 ) then return end
     chunk.Lerping = true
+    sharedservice:Upload(chunk:GetUploadData())
    sharedservice:Upload(c10:GetUploadData())
    sharedservice:Upload(c01:GetUploadData())
    sharedservice:Upload(c11:GetUploadData())

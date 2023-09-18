@@ -30,6 +30,9 @@ function self.AddEntity(uuid:string,address:table)
         self.LoadedEntities[uuid] = address or warn(uuid,"Does not have data")
     end
 end
+function self.insertChunk(chunk)
+    self.LoadedChunks[tostring(chunk)] = chunk
+end
 script.DoFunc.OnInvoke = function(func,...)
     if self[func] then
         return self[func](...)
@@ -73,10 +76,11 @@ function self.loadEntitys(chunk)
     end
 end 
 function self.GetChunk(cx,cz,create)
-    if not self.LoadedChunks[cx..','..cz] and create then
+    local str = `{cx},{cz}`
+    if not self.LoadedChunks[str] and create then
         self.CreateChunk(nil,cx,cz)
     end
-    return self.LoadedChunks[cx..','..cz] 
+    return self.LoadedChunks[str] 
 end
 function self.CreateChunk(cdata,cx,cz)
     local str = cx..','..cz

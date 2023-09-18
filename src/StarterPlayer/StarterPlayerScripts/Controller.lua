@@ -233,6 +233,7 @@ function func.Interact()
         end
     end
 end
+local render = require(script.Parent.Render)
 function func.Attack()
     if not localentity() or localentity():GetState('Dead') or localentity().Ingui then    return end 
     local lookvector = CameraCFrame.LookVector
@@ -249,7 +250,8 @@ function func.Attack()
                 local block = v.BlockPosition
                 local blocktr =data.GetBlock(block.X,block.Y,block.Z)
                 if (blocktr and blocktr[2].T == "c:Bedrock") or not blocktr then return end 
-                data.RemoveBlock(block.X,block.Y,block.Z)
+                --data.RemoveBlock(block.X,block.Y,block.Z)
+                render.updateBlocks(nil,block.X,block.Y,block.Z)
                 destroyblockEvent:Fire(block)
             elseif v.Type == "Entity"  then
                 game.ReplicatedStorage.Events.KB:FireServer(v.EntityId,CameraCFrame.LookVector)

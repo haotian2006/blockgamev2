@@ -34,10 +34,12 @@ function  Chunk.new(x,z,data)
     self.Entities = data.Entities or {}
     self.Settings = data.Settings or {}
     self.RenderedBlocks = {}
+    self.LVersion = 0 
     self.ToLoad = data.ToLoad or {}
     self.Changed = data and  (data.Changed ~= false and true or false)
     return self
 end
+
 local Vector3 = Vector3.new
 function Chunk.newBluePrint(deafult)
     return  table.create(dsize,deafult or blockPool:get(false))
@@ -73,10 +75,12 @@ local function to1dLocal4x4(x,y,z)
     return x + y * xsizel + z *farea+1
 end
 function Chunk:GetBiomeAt(x,y,z)
-    x = math.floor(x/4)
-    y = math.floor(y/8)
-    z = math.floor(x/4)
-    return type(self.Biome) == "string" and self.Biome or  self.Biome[to1dLocal4x4(x,y,z)]
+    local biome = self.Biome
+    if typeof(biome) == "string" then
+        return biome
+    else 
+        return biome[settings.to1DXZ(x,z)]
+    end
 end
 function  Chunk:GetBlock(x,y,z)
     local at = self.Blocks[self.to1D(x,y,z)]
@@ -214,8 +218,9 @@ function Chunk.DeCompressVoxels(comp,key)
     local decompressed = {}
     local current = 1
     for i,v in comp do
+        local value = key[v.X] 
         for _ = 1,v.Y do
-            decompressed[tonumber(current)] = key[v.X]
+            decompressed[current] = value
             current +=1
         end
     end
@@ -255,6 +260,7 @@ function Chunk:Destroy()
     for i,v in self.Blocks do
         v:release()
     end
+    self.Destroyed = true
     self.Blocks = nil
     setmetatable(self, nil) self = nil
 end

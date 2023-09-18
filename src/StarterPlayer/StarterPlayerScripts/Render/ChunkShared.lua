@@ -11,7 +11,7 @@ local clear_Intervals = 2 -- how often should it be checked
 local last_Cleared = time()
 
 function SS:Get(key)
-    timer[key] = time()+life_Span
+    timer[key] = time()+life_Span+8
     return Downloads[key]
 end
 --removes data thats not needed anymore to avoid using too much memory 
@@ -19,6 +19,8 @@ function SS:Clear()
     local ctime = time()
     if last_Cleared<ctime then
         last_Cleared = ctime+clear_Intervals
+    else
+        return
     end
     for i,v in timer do
         if v >= ctime then continue end
@@ -27,19 +29,30 @@ function SS:Clear()
     end
 end
 function SS:Upload(key,value)
-    if Downloads[key] then return end 
     self:Clear()
-    Downloads[key] = value
+    if Downloads[key] then 
+        if Downloads[key][2] == value[3] then
+                event:Fire(key,-1)
+            return 
+        end
+    end 
+    Downloads[key] = {chunk.DeCompressVoxels(value[1],value[2]),value[3]}
     timer[key] = time() +life_Span
     event:Fire(key,value)
 end
 
 function SS:Listen()
     event.Event:Connect(function(key,value)
+        if value == -1 then  timer[key] = time() +life_Span+8 return end 
+        if Downloads[key] then 
+            if Downloads[key][2] == value[3] then
+                timer[key] = time() +life_Span+8
+                return 
+            end
+        end 
+        Downloads[key] = {chunk.DeCompressVoxels(value[1],value[2]),value[3]}
+        timer[key] = time() +life_Span+8
         self:Clear()
-        if  Downloads[key] then return end 
-        Downloads[key] = value
-        timer[key] = time() +life_Span
     end)
     destroyEvent.Event:Connect(function(key)
         Downloads[key] = nil

@@ -70,7 +70,9 @@ function Chunk:LerpBiome()
     local secondarybiomes = multigh:LerpBiomes(cx,cz)
     self.Biome = secondarybiomes
 end
-function Chunk:Color()
+function Chunk:Color() 
+    debug.profilebegin("Before Color")
+    debug.profileend()
     local colors = multigh:Color( self.alldata,self.Biome)
     debug.profilebegin("BulkAdd")
     self.alldata = nil
