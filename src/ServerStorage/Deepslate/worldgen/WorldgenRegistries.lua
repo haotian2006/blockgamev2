@@ -21,11 +21,10 @@ end
 WorldgenRegistries.NOISE = WorldgenRegistries.register('worldgen/noise', NoiseParameters.Evaluate)
 WorldgenRegistries.DENSITY_FUNCTION = WorldgenRegistries.register('worldgen/density_function',  DensityFunction.Evaluate)
 WorldgenRegistries.NOISE_SETTINGS = WorldgenRegistries.register('worldgen/noise_settings', NoiseGeneratorSettings.Evaluate)
-
 function WorldgenRegistries.createNoise(name, firstOctave, amplitudes)
     local noise = WorldgenRegistries.NOISE:register(Identifier.create(name), NoiseParameters.create(firstOctave, amplitudes), true)
     return noise
 end
 WorldgenRegistries.SURFACE_NOISE = WorldgenRegistries.createNoise('surface', -6, {1, 1, 1})
 WorldgenRegistries.SURFACE_SECONDARY_NOISE = WorldgenRegistries.createNoise('surface_secondary', -6, {1, 1, 0, 1})
-return WorldgenRegistries
+return WorldgenRegistries 

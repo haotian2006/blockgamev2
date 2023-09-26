@@ -150,6 +150,14 @@ function Chunk:GetEdge(dir,refrence)
     end
     return newtable
 end
+function Chunk:GetHighestBlock(x,z,higest,lowest,ignore)
+    for y = higest or chunksize.Y-1,lowest or 0,-1 do
+        local block = self.Blocks[settings.to1D(x,y,z)] 
+        if  (not ignore and not block:isFalse()) or  (ignore and block[1][1] ~= ignore and not block:isFalse())  then
+            return y
+        end
+    end
+end
 function Chunk:GetCorners2D()
     local min,max = self:ConvertLocalToGrid(0,0,0),self:ConvertLocalToGrid(settings.ChunkSize.X-1,0,settings.ChunkSize.X-1)
     return Vector2.new(min.X,min.Z),Vector2.new(max.X,max.Z)

@@ -42,7 +42,7 @@ end
 terrian.to1d = to1dLocal
 terrian.to1dLocal = to1dLocal
 terrian.to1dLocalXZ = to1dLocalXZ
-local baseheight = 0.25 ---.558
+local baseheight = .8 ---.558
 function terrian.ComputeBaseHeight(x,y,z)
     return MappedRouter.initialDensityWithoutJaggedness:compute(Vector3.new(x,y,z))
 end
@@ -135,8 +135,9 @@ function terrian.ComputeChunkSection(cx,cz,quadx,quadz)
         for y= chunksize.Y-1,0,-8 do
             if not base then
                 local y = y
-                local sd = terrian.ComputeBaseHeight(ox,y,oz)
-                base = baseheight<sd and y+5
+                local sd = terrian.ComputeBaseHeight(rx,y,rz)
+                base = baseheight<sd and  y+5
+               -- if base then print(sd,y) end 
             else
                 break
             end
@@ -147,7 +148,7 @@ function terrian.ComputeChunkSection(cx,cz,quadx,quadz)
     base = base or 60
     debug.profileend()
     return {data,base,tostring(biome),climate2d,climate3d}
-end
+end 
 local lerp2 = mathutils.lerp2
 function terrian.LerpXZ2D(cx,cz,quadx,quadz)
     debug.profilebegin("lerping base")
@@ -166,7 +167,6 @@ function terrian.LerpXZ2D(cx,cz,quadx,quadz)
         end
 		return found[str][id]
 	end
-    local w = 8
     local key = 0
 	for qx =0,4-1 do
 		local x = qx+4*quadx
@@ -258,12 +258,12 @@ function terrian.LerpFinalDXZ(cx,cz,quadx,quadz)
 end
 local to1DXZ = settings.to1DXZ
 local to1DXYZO = settings.to1D
-function terrian.CompressVoxels(data)
+function terrian.CompressVoxels(data,keytable,indexT)
     local blocks = data 
     local compressed = {}
     local key = {}
-    local index = {}
-    local keyedindex = {}
+    local index = indexT or {}
+    local keyedindex = keytable or {}
     local last = blocks[1]
     local count = 1
     local total = 0
@@ -318,6 +318,16 @@ function terrian.ColorSection(quadx,quadz,holes,surface,biome)
     for i,v in holes do
         holes[i] = v>0
     end
+    local keyTable = {}
+    local indexTable = {}
+    local function get(id)
+        local idx =  keyTable[id]
+        if idx then return idx end
+        local len = #indexTable+1
+        keyTable[id] = len
+        indexTable[len] = id
+        return len
+    end
     local function Color(x,y,z)
         local idx = to1d4x256(x,y,z)
         local xz = to1DXZ4x(x,z)
@@ -366,7 +376,7 @@ function terrian.ColorSection(quadx,quadz,holes,surface,biome)
         end
      end
      debug.profileend()
-     return terrian.CompressVoxels(blocks)
+     return terrian.CompressVoxels(blocks,keyTable,indexTable)
 end
 function terrian.LerpBiomes(cx,cz,height)
     debug.profilebegin("BIOME LERP")

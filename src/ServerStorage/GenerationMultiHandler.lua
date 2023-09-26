@@ -345,6 +345,161 @@ function GH:ComputeChunkS(cx,cz)
     debug.profileend()
     return {data,base,bi or biomes,climate2d,climate3d}
 end
+function GH:ComputeFeaturesNoise(cx,cz,biomes)
+    local tasks,done = 0,0
+    local thread = coroutine.running()
+    local alldata = table.create(4)
+    local noise00 = {}
+    local noise10 = {}
+    local noise01 = {}
+    local noise11 = {}
+    local noise02 = {}
+    local noise20 = {}
+    local noise12 = {}
+    local noise21 = {}
+    local noise22 = {}
+    for x =0,1 do
+        for z = 0,1 do
+            tasks +=1
+            task.spawn(function()
+                local d = GH:DoWork("getNoiseValues",cx,cz,biomes,x,z)
+                if x == 0 and z == 0 then
+                    for name,noise in d do
+                        noise00[name] = noise.X
+                        noise22[name] = noise.Y
+                    end
+                elseif x == 1 and z == 0 then
+                    for name,noise in d do
+                        noise10[name] = noise.X
+                        noise20[name] = noise.Y
+                    end
+                elseif x == 0 and z == 1 then
+                    for name,noise in d do
+                        noise01[name] = noise.X
+                        noise02[name] = noise.Y
+                    end
+                elseif x ==1 and z == 1 then
+                    for name,noise in d do
+                        noise11[name] = noise.X
+                        noise21[name] = noise.Y
+                        noise12[name] = noise.Z
+                    end
+                end
+                done +=1
+                if 4 == done then
+                    coroutine.resume(thread)
+                end
+            end)
+        end
+    end
+    if 4 ~= done then coroutine.yield() end 
+    return {noise00,noise10,noise01,noise11,noise20,noise02,noise21,noise12,noise22}
+end
+function GH:LerpFeatureNoise(noiseValues)
+    local tasks,done = 0,0
+    local thread = coroutine.running()
+    local alldata = {}
+    local key = {}
+    local holderkey = {}
+    local idx = 0
+    local function get(x)
+        if holderkey[x] then return holderkey[x] end
+        idx +=1
+        key[idx],holderkey[x] = x,idx
+        return idx 
+    end
+    local newValues = {}
+    for noise,values in noiseValues do
+        newValues[noise] = {}
+        for name,data in values do
+            newValues[noise][get(name)] = data 
+        end
+    end
+    noiseValues = newValues
+    for x =0,1 do
+        for z = 0,1 do
+            tasks +=1
+            local tk = tasks
+            task.spawn(function()
+                -- 1 = 0,0
+                -- 2= 0,1
+                -- 3 = 1,0
+                -- 4 = 1,1
+                local noise00
+                local noise10
+                local noise01
+                local noise11
+                if tk == 1 then
+                    noise00 = noiseValues[1]
+                    noise10 = noiseValues[2]
+                    noise01 = noiseValues[3]
+                    noise11 = noiseValues[4]
+                elseif tk == 3 then
+                    noise00 = noiseValues[2]
+                    noise10 = noiseValues[5]
+                    noise01 = noiseValues[4]
+                    noise11 = noiseValues[7]
+                elseif tk == 2 then
+                    noise00 = noiseValues[3]
+                    noise10 = noiseValues[4]
+                    noise01 = noiseValues[6]
+                    noise11 = noiseValues[8]
+                elseif tk == 4 then
+                    noise00 = noiseValues[4]
+                    noise10 = noiseValues[7]
+                    noise01 = noiseValues[8]
+                    noise11 = noiseValues[9]
+                end
+                alldata[tk]= GH:DoWork("lerpFNoise",x,z,noise00,noise10,noise01,noise11,key)
+                done +=1
+                if 4 == done then
+                    coroutine.resume(thread)
+                end
+            end)
+        end
+    end
+    if 4 ~= done then coroutine.yield() end 
+    local length  = #key
+    debug.profilebegin("convert FNoise")
+    local b = {}
+    local data2 ={}
+    local s1 = alldata[1]
+    local s2 = alldata[2]
+    local s3 = alldata[3]
+    local s4 = alldata[4]
+
+    for i,data in alldata do
+        local iter = 0
+        local realIdx = 1
+        b[i] = {}
+        for idx,value in data do
+            iter +=1
+            local x = key[iter]
+            b[i][x] = b[i][x] or {}
+            b[i][x][realIdx] = value
+            if iter == length then realIdx +=1 iter = 0 end 
+        end
+    end
+    local s1 = b[1]
+    local s2 = b[2]
+    local s3 = b[3]
+    local s4 = b[4]
+    local data2 = {}
+    for x = 0,3 do
+        for z = 0,3 do
+            local idx = x + z *4 + 1
+            for i,v in key do
+                data2[v] = data2[v] or {}
+                data2[v][Settings.to1DXZ(x,z)] = s1[v][idx]
+                data2[v][Settings.to1DXZ(x,z+4)] = s2[v][idx]
+                data2[v][Settings.to1DXZ(x+4,z)] = s3[v][idx]
+                data2[v][Settings.to1DXZ(x+4,z+4)] = s4[v][idx]
+            end 
+        end
+    end
+    debug.profileend()
+    return data2
+end
 local farea4 = 4*32
 local function to1d4x32(x,y,z)
     return x + y * 4 + z *farea4+1

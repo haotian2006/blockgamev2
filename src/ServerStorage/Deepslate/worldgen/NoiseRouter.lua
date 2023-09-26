@@ -19,7 +19,7 @@ end
 local function fieldParser(obj)
     return DensityFunction:GetClass("HolderHolder").new(Holder.parser(WorldgenRegistries.DENSITY_FUNCTION, DensityFunction.Evaluate)(obj))
 end
- 
+ NoiseRouter.fieldParser = fieldParser
 function NoiseRouter.Evaluate(obj)
     local root = obj or {}
     local data = {

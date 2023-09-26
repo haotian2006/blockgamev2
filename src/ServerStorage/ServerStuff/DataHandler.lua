@@ -43,10 +43,13 @@ end
 
 self.TempChunks = {}
 local TempChunks = self.TempChunks
+
 local NoiseQueue = {}
 local LerpQueue = {}
 local ColorQueue = {}
 local FeatureQueue = {}
+local FeatureNoiseQueue = {}
+local FeatureLerpQueue = {}
 local ReadyToSend = {}
 local Requested = {}
 debug.setmemorycategory("DataHandler Server")
@@ -85,32 +88,31 @@ end
 local function GILQ(x,y)
     return LerpQueue[GetTempString(x,y)]
 end
-local function GenerateNoise(chunkStr)
-    if TempChunks[chunkStr] then 
-        if TempChunks[chunkStr].Generated then
-            AddToTable(chunkStr)
-        end
-        return
-    end 
-    local cx,cz = unpack(string.split(chunkStr,","))
-    cx,cz = tonumber(cx),tonumber(cz)
-    local chunkObj = ChunkObj.new(cx,cz)
-    TempChunks[chunkStr] = chunkObj
-    local data = chunkObj:GenerateNoiseValues()
-    LerpQueue[chunkStr] = chunkObj
-end
+
 local once = false
+local function FeatureAdd(chunk)
+    chunk:InsertFeatures()
+    AddToTable(tostring(chunk))
+    self.insertChunk(chunk)
+end
+local function FeatureLerp(chunk)
+    chunk:LerpFeatureNoise()
+    FeatureQueue[tostring(chunk)] = chunk
+end
+local function FeatureNoise(chunk)
+    if chunk.generatingStructure then return end
+    chunk.generatingStructure = true 
+    chunk:ComputeFeatureNoises()
+    FeatureLerpQueue[tostring(chunk)] = chunk
+end
+
 local function Color(chunk)
     local cx,cz = chunk:GetNTuple()
     chunk:Color()
     game.ReplicatedStorage.ServerInfo.ChunksLoaded.Value +=1
     chunk.Generated = true 
-    AddToTable(tostring(chunk))
-    self.insertChunk(chunk)
+    FeatureNoiseQueue[tostring(chunk)] = chunk
     return true
-end
-local function AddFoilage()
-    
 end
 local function Lerp(chunk)
     local cx,cz = chunk:GetNTuple()
@@ -127,6 +129,41 @@ local function Lerp(chunk)
    end
    ColorQueue[tostring(chunk)] = chunk
 end
+local function GenerateNoise(chunkStr)
+    if TempChunks[chunkStr] then 
+        if TempChunks[chunkStr].Generated then
+            AddToTable(chunkStr)
+        end
+        return
+    end 
+    local cx,cz = unpack(string.split(chunkStr,","))
+    cx,cz = tonumber(cx),tonumber(cz)
+    local chunkObj = ChunkObj.new(cx,cz)
+    TempChunks[chunkStr] = chunkObj
+    local data = chunkObj:GenerateNoiseValues()
+    LerpQueue[chunkStr] = chunkObj
+end
+local function HandleFeatures()
+    for i,v in FeatureQueue do
+        task.spawn(FeatureAdd,v)
+        FeatureQueue[i] = nil
+    end
+end
+
+local function HandleFeatureLerpQueue()
+    for i,v in FeatureLerpQueue do
+        task.spawn(FeatureLerp,v)
+        FeatureLerpQueue[i] = nil
+    end
+end
+
+local function HandleFeatureNoiseQueue()
+    for i,v in FeatureNoiseQueue do
+        task.spawn(FeatureNoise,v)
+        FeatureNoiseQueue[i] = nil
+    end
+end
+
 local function HandleLerpQueue()
     for i,v in LerpQueue do
         if  v.Lerping  then continue end 
@@ -149,6 +186,9 @@ local function HandleColorQueue()
 end
 runservice.Heartbeat:Connect(function(dt)
     SendToClients()
+    HandleFeatures()
+    HandleFeatureLerpQueue()
+    HandleFeatureNoiseQueue()
     HandleColorQueue()
     HandleLerpQueue()
     HandleNoiseQueue()

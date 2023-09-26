@@ -23,7 +23,7 @@ local function SharedToNormal(shared,p)
             p[i] = v
         end
     end
-    return p
+    return p 
 end
 
 local part_scale  = 3
@@ -92,6 +92,8 @@ function generation:Init(seed)
 	end
 	NoiseSettings = GM.WorldgenRegistries.NOISE_SETTINGS:get(GM.Identifier.parse("c:overworld"))
 	RandomState = GM.RandomState.new(NoiseSettings,seed)
+	GM.FeatureParser.Evaluate(behaviorhandler.Features or {},RandomState.random)
+	GM.BiomeParser.Evaluate(behaviorhandler.Biomes or {})
 	Visitor = RandomState:createVisitor(NoiseSettings.noise)
 	MappedRouter = RandomState.router--NoiseRouter.mapAll(Router,Visitor)
 	TerrianHandler:Init(RandomState,MappedRouter,Visitor)

@@ -12,6 +12,7 @@ local PGC = debris.CreateFolder("PREGENERATEDCHUNKS")
 local ServerStorage = game:GetService("ServerStorage")
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
 local blockPool = require(game.ReplicatedStorage.Libarys.BlockPool)
+local bh = require(game.ReplicatedStorage.BehaviorHandler)
 -- PGC.__remove = function(key)
 --     SharedT[key] = nil
 -- end
@@ -69,6 +70,79 @@ function Chunk:LerpBiome()
     local cx,cz = self()
     local secondarybiomes = multigh:LerpBiomes(cx,cz)
     self.Biome = secondarybiomes
+end 
+function Chunk:ComputeFeatureNoises()
+    local cx,cz = self()
+    self.Fnoise = multigh:ComputeFeaturesNoise(cx,cz,self.Biome)
+end
+local function createidk(data,cx,cz)
+    local model = Instance.new("Model")
+    for x = 0,7 do
+        model.Name = "123"
+        for y = 0, 7 do
+            local noiseValue = data[settings.to1DXZ(x,y)]
+            local colorValue = noiseValue
+            local color = Color3.new(colorValue, colorValue, colorValue)
+
+            -- if noiseValue*multi >=min and noiseValue*multi <= max then
+            --     color = Color3.new(0, 1, 0)
+            -- end
+            local part = Instance.new("Part")
+            part.Reflectance = 0
+            part.Size = Vector3.new(1, 1, 1)
+            part.Position = Vector3.new(x + cx*8, noiseValue*30, y +cz*8) * 1
+            part.Anchored = true
+            part.BrickColor = BrickColor.White()
+            part.Reflectance = 0
+            part.Material = Enum.Material.SmoothPlastic
+            part.Color = color
+            part.Parent = model
+        end
+        task.wait()
+    end
+    model.Parent = workspace
+end
+function Chunk:LerpFeatureNoise()
+    self.Fnoise = multigh:LerpFeatureNoise(self.Fnoise)
+end
+game.Workspace.Baseplate:Destroy()
+
+function Chunk:InsertFeatures()
+    local once = false
+    local biome,bd 
+    debug.profilebegin("Insert Features")
+    for x = 0,7 do
+        for z = 0,7 do
+            local idx = settings.to1DXZ(x,z)
+            local biomea = type(self.Biome) == "string" and self.Biome or self.Biome[idx]
+            if biome ~= biomea then
+                biome = biomea
+                bd = bh.GetBiome(biomea)
+            end
+            if not bd.Features then continue end 
+            for _,data in bd.Features do
+                -- if not once then
+                --     createidk(self.Fnoise[data.noiseSettings],self())
+                --     once = true
+                -- end
+                local noise = self.Fnoise[data.noiseSettings][idx]
+                local Range = data.noise_Range or {}
+                local flag = true 
+                for i,v in Range do
+                    local value = noise * (v.multiplier or 1)
+                    if v.min > value or v.max < value then
+                        flag = false 
+                        break
+                    end
+                end
+                if flag then
+                    self:InsertBlock(x,70,z,'c:Leaf')
+                end
+            end
+        end
+    end
+    debug.profileend()
+    self.Fnoise = nil
 end
 function Chunk:Color() 
     debug.profilebegin("Before Color")

@@ -10,6 +10,7 @@ function ImprovedNoise.new(random)
     instance.xo = random:NextNumber() * 256
     instance.yo = random:NextNumber() * 256
     instance.zo = random:NextNumber() * 256
+    --[[
     instance.p = {}
 
     for i = 1, 256 do
@@ -22,6 +23,7 @@ function ImprovedNoise.new(random)
         instance.p[i] = instance.p[i + j]
         instance.p[i + j] = b
     end
+    ]]
     return instance
 end
 
@@ -49,7 +51,7 @@ function ImprovedNoise:sample(x, y, z, yScale, yLimit)
     local noiseValue = math.noise(x2, y2 - y6, z2) 
     return noiseValue
 end
-
+--[[
 function ImprovedNoise:sampleAndLerp(a, b, c, d, e, f, g)
     local h = self:P(a)
     local i = self:P(a + 1)
@@ -75,7 +77,8 @@ function ImprovedNoise:sampleAndLerp(a, b, c, d, e, f, g)
 end
 
 function ImprovedNoise:P(i)
+    print("used")
     return bit32.band(self.p[bit32.band(i, 0xFF)+1], 0xFF)--+1
 end
-
+]]
 return ImprovedNoise

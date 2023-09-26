@@ -8,6 +8,9 @@ function mul.GenerateCaves(cx,cz)
     local data = genhandler.CreateWorms(cx,cz,true)
     return data
 end
+function mul.getFeatures(...)
+    return biomehandler.getFeatures(...)
+end
 function mul.GenerateTerrain(cx,cz)
     local data = genhandler.GenerateTerrain(cx,cz,true)
     return data
@@ -21,6 +24,6 @@ function mul.test(cx,cz,data)
     return {}
 end
 return setmetatable(mul,{__index = function(self,key)
-    mul[key] = genhandler[key] or terrianhandler[key] or error(key.." Is not a valid generation function")
+    mul[key] = genhandler[key] or terrianhandler[key] or biomehandler[key] or error(key.." Is not a valid generation function")
     return mul[key] 
 end})

@@ -22,6 +22,8 @@ end)
 local resourcehandler = require(game.ReplicatedStorage.ResourceHandler)
 resourcehandler:Init()
 local beh = require(game.ReplicatedStorage.BehaviorHandler):Init()
+require(game.ServerStorage.Deepslate.worldgen.biome.BiomeParser).Evaluate(beh.Biomes or {})
+print(beh.Biomes)
 local Manager = require(game.ReplicatedStorage.Managers):Init()
 local itemhand = require(game.ReplicatedStorage.ItemHandler):Init()
 local EntityBridge = bridge.CreateBridge("EntityBridge")
@@ -66,6 +68,8 @@ cri.OnServerEvent:Connect(function(plr,xx,yy,z)
  --   return str
  cri:FireClient(plr,str)
 end)
+local spawnp = Vector3.new(342, 90, -77)
+--local spawnp = Vector3.new(219, 2.108, 214)
 local function CreatePlayer(player)
     PlayerIsLoaded(player,true)
     if   data.PlayerControl[player] then
@@ -73,7 +77,7 @@ local function CreatePlayer(player)
     else
         data.PlayerControl[player] = playercontrol.new()
     end
-    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%c:Dirt",64},[2] = {"T|s%c:Leaf",64},[4] = {"T|s%c:Sand",64},[11] = {"T|s%c:Wood",64},[12] = {"T|s%c:Grass",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%c:Slab",1},[6] = {"T|s%c:Stair",1},[3] = {"T|s%c:Stick",1},[5] = {"T|s%c:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = Vector3.new(342, 90, -77),ClientControl = tostring(player.UserId)})
+    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%c:Dirt",64},[2] = {"T|s%c:Leaf",64},[4] = {"T|s%c:Sand",64},[11] = {"T|s%c:Wood",64},[12] = {"T|s%c:Grass",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%c:Slab",1},[6] = {"T|s%c:Stair",1},[3] = {"T|s%c:Stick",1},[5] = {"T|s%c:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = spawnp,ClientControl = tostring(player.UserId)})
     task.wait(.2 )
     data.AddEntity(entity)
 end

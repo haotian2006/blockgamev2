@@ -24,12 +24,10 @@ end
 local farea = (settings.ChunkSize.X)*(settings.ChunkSize.Y) 
 settings.CONST_XYZ1D = {}
 settings.CONST_3D = {}
+local init = false
 local CONSTXYZ = settings.CONST_XYZ1D
-function settings.to1D(x,y,z)
-    return CONSTXYZ[x][z][y]
-   -- return x + y * chsizex + z *farea+1
-end
-do
+local function createxyz()
+    init = true
     for x = 0,chsizex-1 do
         CONSTXYZ[x] = CONSTXYZ[x] or {}
         for z = 0,chsizex-1 do
@@ -41,7 +39,13 @@ do
         end
     end
 end
+function settings.to1D(x,y,z)
+    if not init then createxyz() end 
+    return CONSTXYZ[x][z][y]
+   -- return x + y * chsizex + z *farea+1
+end
 function settings.to3D(index)
+    if not init then createxyz() end 
     return unpack( settings.CONST_3D[tonumber(index)])
     -- index = tonumber(index) - 1
 	-- local x = index % chsizex
