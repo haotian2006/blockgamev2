@@ -16,7 +16,7 @@ local queued = {}
 local toLoad = {}
 local toCull = {}
 local DELOAD_DISTANCE = 12
-local RENDER_DISTANCE = 3
+local RENDER_DISTANCE = 9
 function Render.deLoad(cx,cz)
     dataHandler.DestroyChunk(cx,cz)
     if game.Workspace.Chunks:FindFirstChild(cx..","..cz) then

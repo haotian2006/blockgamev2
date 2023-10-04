@@ -414,8 +414,8 @@ game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(function(cx,cz,data
    end
 end)
 ]]
-local deloaddistance = 12
-local renderdistance = 9
+local deloaddistance = 14
+local renderdistance = 11
 function srender(p)
     for v,i in datahandler.LoadedChunks  do
 		local splited = v:split(",")

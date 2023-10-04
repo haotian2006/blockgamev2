@@ -7,7 +7,7 @@ return {
          offset = 12,   -- offsets seed
         },
         isFoilage = false, -- structure will only change on the y-axis (better performance)
-        override = true, --deafult true, if false then would not override blocks 
+        override = false, --deafult true, if false then would not override blocks 
 
         noise_Range = {
             multiplier  = 200, 
