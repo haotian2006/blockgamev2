@@ -10,6 +10,7 @@ local qf = require(game.ReplicatedStorage.QuickFunctions)
 local blockHandler = require(script.BlockHandler)
 local rotationData = require(game.ReplicatedStorage.Libarys.RotationData)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
+local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local Render = {}
 local queued = {}
 local toLoad = {}
@@ -60,13 +61,13 @@ local function renderChunk(str,chunk,meshed,unmeshed)
     local index = 0
     chunk.RenderedBlocks = {}
     local folder = qf.GetFolder(cx,cz) or Instance.new("Model")
-        for name,data in meshed do
+    for name,data in meshed do
         chunk.RenderedBlocks[name] = data
         if loadedBlocks[name] then continue end
         index +=1
         if index%2000 == 0 then task.wait() end
-        local tt,oo,ss = unpack(data.data[1])
-        if oo and ss then
+        local tt,oo,ss = unpack(data.data[1][1])
+        if oo then
             oo = rotationData.indexPairs[tonumber(oo)]
         end
         local p = blockHandler.CreateBlock(data,nil,oo,CFrame.new(Vector3.new(data.real.X+cx*csize,data.real.Y,data.real.Z+cz*csize)*gridS)*(oo and rotationData.convertToCFrame(oo) or CFrame.new()).Position)
@@ -76,6 +77,29 @@ local function renderChunk(str,chunk,meshed,unmeshed)
         p.Size = blockHandler.RotateStuff[oo or '0,0,0'](Vector3.new(data.l*gridS,data.h*gridS,data.w*gridS))
         p.Parent = folder
     end
+        for i:Vector3,data in unmeshed do
+            chunk.RenderedBlocks[i] = data[1]
+            if loadedBlocks[i] then continue end
+            index +=1
+          --  v = qf.DecompressItemData(v)
+            if index%2000 == 0 then task.wait() end
+            local tt,oo,ss = unpack(data[1][1])
+            if oo  then
+                oo = rotationData.indexPairs[tonumber(oo)]
+            end
+            local dat= ResourceHandler.GetBlock(tt)
+            local p =dat.Mesh:Clone()
+            for i,v in  blockHandler.GetTextures(tt,data[2],oo) do
+                v.Parent = p
+            end
+           -- p.Transparency = dat.Transparency
+            p.Name = tostring(i)
+            p.Anchored = true
+            local x,y,z = i.X,i.Y,i.Z
+            local offset = ResourceHandler.GetBlock(tt).Offset or Vector3.zero
+            p.CFrame = CFrame.new(Vector3.new(x+cx*csize,y,z+cz*csize)*gridS)*(oo and rotationData.convertToCFrame(oo) or CFrame.new())*CFrame.new(offset*gridS)
+            p.Parent = folder
+        end
     folder.Parent = workspace.Chunks
     folder.Name = str
 end
@@ -104,7 +128,7 @@ local function cull(str,chunk)
 end
 function HandleCull()
     for i,v in toCull do
-        task.spawn(cull,i,v)
+        task.defer(cull,i,v)
     end
 end
 function Render.checkForDeload(p)

@@ -6,6 +6,7 @@ local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
 local bs = require(game.ReplicatedStorage.Libarys.Store)
 local blockPool = require(game.ReplicatedStorage.Libarys.BlockPool)
+local IsServer =runservice:IsServer()
 Chunk.EdgeIndexs ={
     x = {},["-x"] = {},z = {},["-z"] = {},init = false
 }
@@ -35,7 +36,8 @@ function  Chunk.new(x,z,data)
     self.Settings = data.Settings or {}
     self.RenderedBlocks = {}
     self.LVersion = 0 
-    self.ToLoad = data.ToLoad or {}
+    self.toLoad = data.toLoad or {{},{}}--overrid,non
+    self.Loaded = IsServer and 0
     self.Changed = data and  (data.Changed ~= false and true or false)
     return self
 end
@@ -126,7 +128,7 @@ end
 function Chunk:GetAllBlocks()
     return self.Blocks
 end
-function Chunk:InBounds(x,y,z,GetChunkCoord)
+function Chunk:InBounds(x,z,GetChunkCoord)
     local min,max = self:GetCorners2D()
     if (x >= min.X and x <= max.X and z >= min.Y and z <= max.Y) then
         return true,self.Chunk.X,self.Chunk.Y
@@ -159,8 +161,10 @@ function Chunk:GetHighestBlock(x,z,higest,lowest,ignore)
     end
 end
 function Chunk:GetCorners2D()
+    if self.Corners then return unpack(self.Corners) end 
     local min,max = self:ConvertLocalToGrid(0,0,0),self:ConvertLocalToGrid(settings.ChunkSize.X-1,0,settings.ChunkSize.X-1)
-    return Vector2.new(min.X,min.Z),Vector2.new(max.X,max.Z)
+    self.Corners = {Vector2.new(min.X,min.Z),Vector2.new(max.X,max.Z)}
+    return self.Corners
 end
 function Chunk:ConvertLocalToGrid(x,y,z)
     return Vector3(x,y,z) + Vector3(self.Chunk.X,0,self.Chunk.Y)*settings.ChunkSize.X
@@ -265,11 +269,15 @@ function  Chunk.GetEdgeIndexs(edge)
 end
  
 function Chunk:Destroy()
+    setmetatable(self, nil) 
+    local amtOfEach = {}
     for i,v in self.Blocks do
-        v:release()
+        amtOfEach[v[2]] = amtOfEach[v[2]] and  amtOfEach[v[2]]+1 or 1
+    end
+    for i,v in amtOfEach do
+        blockPool:bulkRelease(i,v)
     end
     self.Destroyed = true
     self.Blocks = nil
-    setmetatable(self, nil) self = nil
 end
 return Chunk 

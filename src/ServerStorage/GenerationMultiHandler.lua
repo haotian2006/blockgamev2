@@ -64,7 +64,6 @@ function GH:GetWorker(SPEICIAL)
         return self:GetWorker(SPEICIAL)
     else
         Index = 0
-        task.wait()
         return self:GetWorker(SPEICIAL)
     end
 end
@@ -101,6 +100,7 @@ end
 function GH:Init(amt)
     amt = amt or deafultAmount
     if inited then warn("GENERATION WAS INITEDED TWICE") return end 
+    require(game.ServerStorage.GenerationHandler):Init(Settings.Seed)
     inited = true
     for i = 1,amt do
         local worker = Worker.new(i)
@@ -122,6 +122,7 @@ function GH:Init(amt)
             worker:SendMessage('Init',Settings.Seed,true)
        end)
     end
+    print(BehaviorHandler.Biomes)
     return GH
 end
 local sizex,sizey = Settings.getChunkSize()

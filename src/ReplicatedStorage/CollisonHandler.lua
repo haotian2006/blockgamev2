@@ -292,7 +292,6 @@ function collisions.GetBlockHitBox(data)
     local cancollide = true
     --print(data)
     local Type,Ori = data:getName(),data:getFullRotation()
-
     local bdata = data:getComponentData()
     local hb = behavior.GetBlockHb(bdata.Hitbox)
     if hb then

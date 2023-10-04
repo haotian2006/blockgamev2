@@ -62,9 +62,9 @@ function  greedy.meshtable(meshtable,sides)
             endy = y
             endz = z
         end
-        local d = reh.GetBlock(v.T)
+        local d = reh.GetBlock(v[1][1])
         if d and d.Mesh then
-            unabletomeshblocks[Vector3.new(x,y,z)] = v
+            unabletomeshblocks[Vector3.new(x,y,z)] = {v,sides[i]}
         else
             D3[x] = D3[x] or {}
             D3[x][y] = D3[x][y] or {}

@@ -14,9 +14,6 @@ function Biome.parseBiome(info,SPECIAL)
           v = FeatureParaser.EvaluateOne(v)  
         end
         Features[i] = v
-        if type(v.noiseSettings) == "table" then
-            v.noiseSettings = `{v.name}-{i}`
-        end
         info.noiseFunctions[v.noiseSettings] = not SPECIAL and v.noiseFunction or true
     end
 end

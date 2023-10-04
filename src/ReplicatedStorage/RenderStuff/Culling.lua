@@ -55,7 +55,7 @@ function self.HideBlocks(chunks)
             else
                 transparency = false
             end 
-        end
+        end 
         if transparency then
             a = false
         end

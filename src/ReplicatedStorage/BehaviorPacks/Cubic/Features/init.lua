@@ -1,40 +1,53 @@
 return {
-    ["c:Grass"] =  {
-        name = "c:grass",
-        noiseSettings = "c:treeNoise",
-        isFoilage = true,
+    ["c:Tree"] =  {
+        name = "c:Tree",
+       -- noiseSettings = "c:treeNoise",
+        noiseSettings = {
+         noiseSettings = "c:treeNoise",
+         offset = 12,   -- offsets seed
+        },
+        isFoilage = false, -- structure will only change on the y-axis (better performance)
+        override = true, --deafult true, if false then would not override blocks 
+
         noise_Range = {
+            multiplier  = 200, 
             {  
-                multiplier  = 200,
                 min = -0.24,
                 max =  -0.235,
-            }
+            },
+            {  
+                min = 1.55,
+                max =  1.58,
+            },
+            {  
+                min = -1.407,
+                max =  -1.40,
+            },
+            {  
+                min = -1.99,
+                max =  -1.97,
+            },
         },
         structure = {
-           key = {"c:Grass"},
+           key = {{
+            "c:Wood",
+            "1,0,0"
+           },
+           "c:Leaf"
+         },
            layout = {
-              Vector2int16.new(1,1)
-           }
-        }
-     },
-     ["c:Drass"] =  {
-        name = "c:drass",
-        noiseSettings = {
-            amplitudes = { 1.0, 1.0, 0.0, 1.0, 1.0 },
-            firstOctave = -9
-        },
-        isFoilage = true,
-        noise_Range = {
-          { 
-            multiplier  = 1,
-           min = 0,
-           max = 1,
-            }
-        },
-        structure = {
-           key = {"c:Grass"},
-           layout = {
-              Vector2int16.new(1,1)
+              {0,1,0,1},
+              {0,2,0,1},
+              {0,3,0,1},
+              {0,4,0,1},  
+                {-1,4,0,2},{-2,4,0,2}, {-1,4,1,2},{-2,4,1,2}, {-1,4,-1,2},{-2,4,-1,2}, {-1,4,2,2},{-1,4,-2,2}, {1,4,0,2},{2,4,0,2}, {1,4,1,2},{2,4,1,2}, {1,4,-1,2},{2,4,-1,2}, {1,4,2,2},{1,4,-2,2}, 
+                 {0,4,1,2},  {0,4,2,2},{0,4,-1,2},  {0,4,-2,2}, 
+              {0,5,0,1},
+                {-1,5,0,2},{-2,5,0,2}, {-1,5,1,2},{-2,5,1,2}, {-1,5,-1,2},{-2,5,-1,2}, {-1,5,2,2},{-1,5,-2,2}, {1,5,0,2},{2,5,0,2}, {1,5,1,2},{2,5,1,2}, {1,5,-1,2},{2,5,-1,2}, {1,5,2,2},{1,5,-2,2}, 
+                {0,5,1,2},  {0,5,2,2},{0,5,-1,2},  {0,5,-2,2}, 
+              {0,6,0,2},
+                  {-1,6,0,2},{-1,6,1,2},{-1,6,-1,2},    {1,6,0,2},{1,6,1,2},{1,6,-1,2},    {0,6,-1,2},{0,6,1,2},
+              {0,7,0,2},
            }
         }
      },

@@ -36,7 +36,7 @@ function Worker.new(index)
    local clone = script.Parent.Parent.Actor:Clone()
    clone.Name = index
    clone.Parent = mhworkers
-   clone.MainG.Enabled = true
+   clone.MainR.Enabled = true
    clone.DataHandler.Event:connect(function(id,data)
         pdata[id] = data--SharedToNormal(sharedtable[id])
         coroutine.resume(st[id])
@@ -53,7 +53,6 @@ function MH:GetWorker(SPEICIAL)
         return Workers[Index],Index
     else
         Index = 0
-        task.wait()
         return self:GetWorker()
     end
 end
@@ -68,7 +67,6 @@ function MH:GetId()
     end
     return id 
 end
-local SPEICALFUNCTIONS = {"ComputeChunk","GetBiomesstuffidkdebug"}
 function MH:DoWork(func,...)
     local c = self:GetId()
     local worker:Actor,idx = MH:GetWorker()

@@ -42,15 +42,14 @@ function funcs.cullSection(cx,cz,quadx,quadz)
         local id = gamesettings.to1D(x,y,z)
         if not id then return end 
         local g = foundidx[id]
-        if g then return g end 
+        if g ~= nil then return g end 
         local ch = chunk and found[chunk] or current
         local data = ch[id]
         if not data then   foundidx[id] = false return false end 
-        if not resource[data] then
+        if resource[data] == nil then
             local type,ori,id2 = data:match("([^,]*),?([^,]*),?([^,]*)")
             local d = ResourcePacks.Blocks[type]
-            local flag = false
-            flag = d.Transparency
+            local flag = d.Transparency
             if flag and flag ~= 0 then else flag = false  end
             resource[data] = d and not flag
         end

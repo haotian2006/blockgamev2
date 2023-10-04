@@ -115,7 +115,7 @@ do
 end
 function module.GetOrderOfSide(Orientation)
     if not Orientation then return directions end 
-    local orientation = rotationData.convertToCFrame(Orientation)
+    local orientation = rotationData.convertToTable(Orientation)
    -- print(table.concat(orientation,','))
     local mapping = mappings[orientation[1]..','..orientation[2]..','..orientation[3]]
     if not mapping then return directions end 
@@ -124,7 +124,7 @@ function module.GetOrderOfSide(Orientation)
         new_directions[i] = directions[mapping[i]]
     end
     return new_directions
-end
+end 
 function module.CreateTexture(texture,face,size)
     local new
     if texture:IsA("Decal") or texture:IsA("Texture") or type(texture) == "string" then

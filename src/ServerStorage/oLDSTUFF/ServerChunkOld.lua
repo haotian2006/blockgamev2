@@ -144,7 +144,7 @@ function Chunk:GenerateStructures()
     self:StateIsDone("GCaves",true)
     if self:StateIsDone("Structures") or self:StateIsDone("GStructures",true) then return end
     self:LoadToLoad()
-    self:SetState("GStructures",true)
+    self:SetState("GStructures",true) 
     local start,endd = self:GetCorners2D()
     local x = start.X
     local z = start.Y

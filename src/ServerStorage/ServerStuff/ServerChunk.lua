@@ -17,13 +17,6 @@ local bh = require(game.ReplicatedStorage.BehaviorHandler)
 --     SharedT[key] = nil
 -- end
 local sharedservice = require(ServerStorage.ServerStuff.SharedService)
-function Chunk:LoadToLoad()
-    for i,v in self.ToLoad do
-        self:AddBlock(i,v)
-        self.Changed = true
-    end
-    
-end
 function Chunk:AddToLoad(stuff,special)
     self.Changed = true
     if  self:StateIsDone("Terrian") and not special then
@@ -106,13 +99,59 @@ function Chunk:LerpFeatureNoise()
     self.Fnoise = multigh:LerpFeatureNoise(self.Fnoise)
 end
 game.Workspace.Baseplate:Destroy()
-
+local r = 1
+local rqamt = 0
+do
+    for ofx_ = -r,r do
+        for ofz_ = -r,r do
+            rqamt+=1
+        end
+    end
+end
+local once = false
+function Chunk:loadToLoad()
+   -- if tostring(self) == "-40,-6" then print(self.toLoad)  end 
+   debug.profilebegin("load to load")
+    local pool = {}
+    local blocks = {}
+    for i,v in self.toLoad[1] do
+        local current = self.Blocks[i]
+        pool[current] = pool[current] or 0
+        pool[current] -=1
+        if not blocks[v] then blocks[v] = blockPool:getOrCreate(v) end
+        local newB = blocks[v] 
+        pool[newB] = pool[newB] or 0
+        pool[newB] +=1
+        self.Blocks[i] = newB
+    end
+    for i,v in self.toLoad[2] do
+        if not self.Blocks[i]:isFalse() then continue end 
+        if not blocks[v] then blocks[v] = blockPool:getOrCreate(v) end
+        local newB = blocks[v] 
+        pool[newB] = pool[newB] or 0
+        pool[newB] +=1
+        self.Blocks[i] = newB
+    end
+    for i,v in pool do
+        i:bulkAdd(v)
+    end
+    debug.profileend()
+    self.Changed = true
+end
+function Chunk:canLoadToLoad()
+ return self.Loaded >=rqamt
+end
+local onsce = false
 function Chunk:InsertFeatures()
     local once = false
     local biome,bd 
     debug.profilebegin("Insert Features")
+    local cx,cz = self:GetNTuple()
+    local xoff,yoff = settings.getoffset(cx,cz)
     for x = 0,7 do
+        local rx = xoff +x
         for z = 0,7 do
+            local rz = yoff +z
             local idx = settings.to1DXZ(x,z)
             local biomea = type(self.Biome) == "string" and self.Biome or self.Biome[idx]
             if biome ~= biomea then
@@ -127,18 +166,43 @@ function Chunk:InsertFeatures()
                 -- end
                 local noise = self.Fnoise[data.noiseSettings][idx]
                 local Range = data.noise_Range or {}
-                local flag = true 
+                local flag = false 
                 for i,v in Range do
                     local value = noise * (v.multiplier or 1)
-                    if v.min > value or v.max < value then
-                        flag = false 
+                    if v.min <= value and v.max >= value then
+                        flag = true 
                         break
                     end
                 end
                 if flag then
-                    self:InsertBlock(x,70,z,'c:Leaf')
+                    local y= self:GetHighestBlock(x,z)
+                    for i,v in data.structure.layout do
+                        if data.isFoilage then
+                            local toLoad =  if(data.override ==false) then self.toLoad[2] else self.toLoad[1]
+                           toLoad[settings.to1D(x,y+v[2],z)] = data.structure.key[v[4]]
+                        else
+                           -- self:InsertBlockGrid(rx+v[1],y+v[2],rz+v[3],data.structure.key[v[4]])
+                            local ccx,ccz,lx,ly,lz  =qF.GetChunkAndLocal(rx+v[1],y+v[2],rz+v[3])
+                            if ccx == cx and ccz == cz then
+                                local toLoad =  if(data.override ==false) then self.toLoad[2] else self.toLoad[1]
+                               toLoad[settings.to1D(lx,ly,lz)] = data.structure.key[v[4]]
+                            else
+                                local chunk = datahandler.GetChunk(ccx,ccz,true)
+                                local toLoad =  if(data.override ==false) then chunk.toLoad[2] else chunk.toLoad[1]
+                              toLoad[settings.to1D(lx,ly,lz)] = data.structure.key[v[4]]
+                            end
+                        end
+                    end
                 end
             end
+        end
+    end
+    for ofx_ = -r,r do
+        for ofz_ = -r,r do
+           -- if ofx_ == ofz_ and ofx_ == 0 then continue end 
+          --  local str = `{cx+ ofx_},{cz+ofz_}`
+            local chunk = datahandler.GetChunk(cx+ ofx_,cz+ofz_,true)
+            chunk.Loaded +=1
         end
     end
     debug.profileend()
@@ -159,7 +223,7 @@ function Chunk:Color()
     debug.profileend()
 end
 function Chunk:GenerateNoiseValues()
-    if self.PreValues then return end 
+    if self.PreValues then return self.PreValues end 
     self.PreValues =  multigh:ComputeChunkS(self:GetNTuple())
     self.States = {}
     self.Biome =  self.PreValues[3]
@@ -180,7 +244,7 @@ function Chunk.Create(x,y,ndata)
         settings.GeneratedOthers = (not c) and true 
         settings.Generated = (not g) and true
         settings.GeneratedStates = cl 
-        newdata.ToLoad = l and l
+        newdata.toLoad = l and l
         newdata.Blocks = b and Chunk.DeCompressVoxels(b)
         newdata.Changed = false
         return Chunk.new(x,y,newdata)

@@ -1,5 +1,5 @@
-local SharedTableRegistry = game:GetService("SharedTableRegistry")
-local SharedT = SharedTableRegistry:GetSharedTable("SharedT")
+-- local SharedTableRegistry = game:GetService("SharedTableRegistry")
+-- local SharedT = SharedTableRegistry:GetSharedTable("SharedT")
 local SS = {}
 local event = (script:FindFirstChild("Event") or Instance.new("BindableEvent",script)) -- creates a bindable to tell if a new table is added
 local Downloads = {}
@@ -34,7 +34,7 @@ function SS:Upload(key,value)
     self:Clear()
     if Downloads[key] then  
         if timer[key]-5 <= time() then
-            event:Fire(key,-1)
+            event:Fire(key,-1) -- Updates timer
         end
         return 
     end 

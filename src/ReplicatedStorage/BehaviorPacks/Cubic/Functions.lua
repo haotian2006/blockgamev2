@@ -173,7 +173,7 @@ func.PlaceBlockClient = function(entity,Data:InputData)
         block = behaviorhandler.GetBlock(block)
         local orientation = rotationUtil.calculateRotationFromData(block,v,raystuff)
         if data.canPlaceBlockAt(coords.X,coords.Y,coords.Z,data)  then 
-            local b= type..(orientation and '_'..rotation.keyPairs[orientation] or "")
+            local b= type..(orientation and ','..rotation.keyPairs[orientation] or "")
            -- print(orientation)
        --     data.InsertBlock(coords.X,coords.Y,coords.Z,b)  
             require(game.Players.LocalPlayer.PlayerScripts.Render).updateBlocks(b,coords.X,coords.Y,coords.Z)

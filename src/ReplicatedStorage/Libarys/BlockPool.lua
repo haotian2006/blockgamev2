@@ -40,6 +40,12 @@ function BlockState:release()
         Pool[self[2]] = nil
     end
 end
+function BlockState:bulkAdd(amt)
+    self[3] += amt
+    if self[3] <=0 then
+        Pool[self[2]] = nil
+    end
+end
 function BlockState:getRotation()
     return self[1][2] or 1
 end
@@ -53,7 +59,7 @@ function BlockState:getComponentData()
     return self[4].components
 end
 function BlockState:getFullRotation()
-    return rotationData.indexPairs[self[1][3] or 1]
+    return rotationData.indexPairs[self[1][2] or 1]
 end
 function BlockState:getState()
     return self[1][3] or 1
@@ -64,9 +70,10 @@ end
 function BlockState:isNULL()
     return  self[2] == "NULL"
 end
-function BlockState:isA(str)
+function BlockState:equal(str)
     return self:getName() == str
 end
+
 BlockPool.CONST_FALSE = setmetatable({{"false"},false,0},BlockState)
 BlockPool.CONST_NULL = setmetatable({{"NULL"},"NULL",0},BlockState)
 function BlockPool:bulkAdd(str,amt)
@@ -90,6 +97,17 @@ function BlockPool:get(str)
     Pool[str] = new
     return new 
 end
+
+--WARNING: THIS SHOULD ONLY BE USED WHEN YOU ARE GOING TO INCREASE MANUALLY 
+function BlockPool:getOrCreate(str)
+    if not str or str == "false" then return BlockPool.CONST_FALSE end 
+    if Pool[str] then
+        return Pool[str]
+    end
+    local new = BlockState.new(str)
+    Pool[str] = new
+    return new 
+end
 function BlockPool:release(str)
     if not  Pool[str] then return end 
     Pool[str][3] -= 1
@@ -99,6 +117,12 @@ function BlockPool:doesExsist(str)
     return Pool[str]
 end
 function BlockPool.createStr(fullname,r,p)
-    return `{fullname},{r},{p}`
+    return `{fullname},{rotationData.keyPairs[r]},{p}`
+end
+function BlockPool.createStrFromTable(tab)
+    if tab[2] then
+        tab[2] = rotationData.keyPairs[tab[2]]
+    end
+    return table.concat(tab,',')
 end
 return BlockPool

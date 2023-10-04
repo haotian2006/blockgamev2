@@ -53,7 +53,7 @@ local registryfunc = {
 	noise_settings = function(d,p)
 		GM.WorldgenRegistries.NOISE_SETTINGS:register(GM.Identifier.parse(p),GM.NoiseGeneratorSettings.Evaluate(d))
 	end
-}
+} 
 local function ISATU(t)
 	return type(t) == 'table' or type(t) =="userdata"
 end

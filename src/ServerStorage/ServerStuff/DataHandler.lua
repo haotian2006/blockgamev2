@@ -15,17 +15,24 @@ function self.AddToLoad(cx,cz,stuff,op2)
     c:AddToLoad(stuff,op2)
 end
 local InProgress = {}
+-- function self.GetChunk(cx,cz,create)
+--     local str = cx..','..cz
+--     if not self.LoadedChunks[str] and create then
+--         if InProgress[str] then
+--             InProgress[str]:Wait()
+--             return self.LoadedChunks[str] 
+--         end
+--         InProgress[str] = sing.new()
+--         self.CreateChunk(nil,cx,cz)
+--         InProgress[str]:DisconnectAll()
+--         InProgress[str] = nil
+--     end
+--     return self.LoadedChunks[str] 
+-- end
 function self.GetChunk(cx,cz,create)
     local str = cx..','..cz
     if not self.LoadedChunks[str] and create then
-        if InProgress[str] then
-            InProgress[str]:Wait()
-            return self.LoadedChunks[str] 
-        end
-        InProgress[str] = sing.new()
-        self.CreateChunk(nil,cx,cz)
-        InProgress[str]:DisconnectAll()
-        InProgress[str] = nil
+        self.LoadedChunks[str]  = self.CreateChunk(nil,cx,cz)
     end
     return self.LoadedChunks[str] 
 end
@@ -47,6 +54,7 @@ local TempChunks = self.TempChunks
 local NoiseQueue = {}
 local LerpQueue = {}
 local ColorQueue = {}
+local LoadQueue = {}
 local FeatureQueue = {}
 local FeatureNoiseQueue = {}
 local FeatureLerpQueue = {}
@@ -90,10 +98,18 @@ local function GILQ(x,y)
 end
 
 local once = false
+local function LoadToLoad(chunk)
+    if chunk:canLoadToLoad() then
+        LoadQueue[chunk] = nil
+        chunk:loadToLoad()
+        AddToTable(tostring(chunk))
+        self.insertChunk(chunk)
+        chunk.Generated = true 
+    end
+end
 local function FeatureAdd(chunk)
     chunk:InsertFeatures()
-    AddToTable(tostring(chunk))
-    self.insertChunk(chunk)
+    LoadQueue[chunk] = true
 end
 local function FeatureLerp(chunk)
     chunk:LerpFeatureNoise()
@@ -110,7 +126,6 @@ local function Color(chunk)
     local cx,cz = chunk:GetNTuple()
     chunk:Color()
     game.ReplicatedStorage.ServerInfo.ChunksLoaded.Value +=1
-    chunk.Generated = true 
     FeatureNoiseQueue[tostring(chunk)] = chunk
     return true
 end
@@ -138,10 +153,15 @@ local function GenerateNoise(chunkStr)
     end 
     local cx,cz = unpack(string.split(chunkStr,","))
     cx,cz = tonumber(cx),tonumber(cz)
-    local chunkObj = ChunkObj.new(cx,cz)
+    local chunkObj = self.GetChunk(cx,cz,true)
     TempChunks[chunkStr] = chunkObj
-    local data = chunkObj:GenerateNoiseValues()
+    chunkObj:GenerateNoiseValues()
     LerpQueue[chunkStr] = chunkObj
+end
+local function HandleLoads()
+    for i,v in LoadQueue do
+        task.spawn(LoadToLoad,i)
+    end
 end
 local function HandleFeatures()
     for i,v in FeatureQueue do
@@ -186,6 +206,7 @@ local function HandleColorQueue()
 end
 runservice.Heartbeat:Connect(function(dt)
     SendToClients()
+    HandleLoads()
     HandleFeatures()
     HandleFeatureLerpQueue()
     HandleFeatureNoiseQueue()
@@ -196,7 +217,6 @@ end)
 
 game.ReplicatedStorage.Events.GetChunk.OnServerEvent:Connect(function(player,cx,cz)
     if cx > 32767 or cx < -32768 or cz > 32767 or cz < -32768 then warn("REACHED BORDER") return end 
-    local new = self.GetChunk(cx,cz)
     local idx = `{cx},{cz}`
     Requested[idx] = Requested[idx] or {}
     table.insert( Requested[idx] ,player)
