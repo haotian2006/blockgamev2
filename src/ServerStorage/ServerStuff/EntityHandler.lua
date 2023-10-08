@@ -20,7 +20,7 @@ local function deepCopy(original)
         if type(v) == "table" then
             v = deepCopy(v)
         end
-    copy[k] = v
+    copy[k] = v 
     end
     return copy
 end
@@ -52,7 +52,7 @@ function entity:CheckIfBehaviorIsSame(b1,b2)
     for i,v1 in b1 do
         for i,v2 in b2 do
             if v2 == v1 then return true end 
-        end
+        end 
     end
 end
 function entity:BehaviorCanRun(behavior,bhdata,Stop,CanNotBeSelf)

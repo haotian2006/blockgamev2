@@ -42,9 +42,7 @@ function Worker.new(index)
    clone.Parent = mhworkers
    clone.MainG.Enabled = true
    clone.DataHandler.Event:connect(function(id,data)
-        pdata[id] = data--SharedToNormal(sharedtable[id])
-        coroutine.resume(st[id])
-        sharedtable[id] = nil
+        coroutine.resume(st[id],data)
    end)
    return clone
 end
@@ -88,10 +86,8 @@ function GH:DoWork(func,...)
     end
     worker:SendMessage("M",c,func,...)
     st[c] = coroutine.running()
-    coroutine.yield()
-    local data = pdata[c]
+    local data = coroutine.yield()
      st[c] = nil
-     pdata[c] = nil
     if SPEICIAL then 
         InProgress[idx] = nil
     end

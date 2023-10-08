@@ -175,7 +175,8 @@ function Chunk:InsertFeatures()
                     end
                 end
                 if flag then
-                    local y= self:GetHighestBlock(x,z)
+                    local y,block= self:GetHighestBlock(x,z)
+                    if block:getName() == "c:Water" then continue end 
                     for i,v in data.structure.layout do
                         if data.isFoilage then
                             local toLoad =  if(data.override ==false) then self.toLoad[2] else self.toLoad[1]
@@ -223,17 +224,20 @@ function Chunk:Color()
     debug.profileend()
 end
 function Chunk:GenerateNoiseValues()
+    if  self.preGen then return false end 
     if self.PreValues then return self.PreValues end 
+    self.preGen = true
     self.PreValues =  multigh:ComputeChunkS(self:GetNTuple())
-    self.States = {}
-    self.Biome =  self.PreValues[3]
-    self.States.PreCompute = true
+    self.preGen  = nil
+    self.Biome =  self.Biome or self.PreValues[3]
     return self.PreValues
 end
 function Chunk:GetUploadData()
     return tostring(self),self.PreValues
 end
-
+function Chunk:Finish()
+    self.generated = true
+end 
 function Chunk.Create(x,y,ndata)
     local data = nil--BlockSaver.GetChunk(x,y)
     if data then

@@ -11,7 +11,7 @@ recipes.Test = {
         "dd",
     },
     result = {
-        Item = 'c:Grass',
+        Item = 'c:GrassBlock',
         Count = 2
     }
 

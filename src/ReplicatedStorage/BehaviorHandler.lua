@@ -89,7 +89,7 @@ function self.LoadPack(PackName:string,loadComponet)
         end
         for i,v in pack:GetChildren() do
             x(v)
-        end
+        end 
     end
 end
 function self:Init(SPECIAL_) 

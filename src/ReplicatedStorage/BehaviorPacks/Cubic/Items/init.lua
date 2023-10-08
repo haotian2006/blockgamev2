@@ -15,10 +15,10 @@ return{
         type = 'Block',
         Block = 'c:Dirt'
     }),
-    ['c:Grass'] = cit(
+    ['c:GrassBlock'] = cit(
     {
         type = 'Block',
-        Block = 'c:Grass'
+        Block = 'c:GrassBlock'
     }),
     ['c:Wood'] = cit(
     {

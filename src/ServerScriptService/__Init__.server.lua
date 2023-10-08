@@ -75,7 +75,7 @@ local function CreatePlayer(player)
     else
         data.PlayerControl[player] = playercontrol.new()
     end
-    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%c:Dirt",64},[2] = {"T|s%c:Leaf",64},[4] = {"T|s%c:Sand",64},[11] = {"T|s%c:Wood",64},[12] = {"T|s%c:Grass",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%c:Slab",1},[6] = {"T|s%c:Stair",1},[3] = {"T|s%c:Stick",1},[5] = {"T|s%c:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = spawnp,ClientControl = tostring(player.UserId)})
+    local entity = entityahndler.Create("Player",{Died = false,inventory = {AddTo = true,[1] = {"T|s%c:Dirt",64},[2] = {"T|s%c:Leaf",64},[4] = {"T|s%c:Sand",64},[11] = {"T|s%c:Wood",64},[12] = {"T|s%c:GrassBlock",64},[9] ={"T|s%DebugPart",64}, [7] = {"T|s%c:Slab",1},[6] = {"T|s%c:Stair",1},[3] = {"T|s%c:Stick",1},[5] = {"T|s%c:Stone",64}},Name = player.Name,Id = tostring(player.UserId),Position = spawnp,ClientControl = tostring(player.UserId)})
     task.wait(.2 )
     data.AddEntity(entity)
 end

@@ -156,7 +156,7 @@ function Chunk:GetHighestBlock(x,z,higest,lowest,ignore)
     for y = higest or chunksize.Y-1,lowest or 0,-1 do
         local block = self.Blocks[settings.to1D(x,y,z)] 
         if  (not ignore and not block:isFalse()) or  (ignore and block[1][1] ~= ignore and not block:isFalse())  then
-            return y
+            return y,block
         end
     end
 end

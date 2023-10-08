@@ -38,8 +38,7 @@ function Worker.new(index)
    clone.Parent = mhworkers
    clone.MainR.Enabled = true
    clone.DataHandler.Event:connect(function(id,data)
-        pdata[id] = data--SharedToNormal(sharedtable[id])
-        coroutine.resume(st[id])
+        coroutine.resume(st[id],data)
        -- sharedtable[id] = nil
    end)
    return clone
@@ -72,10 +71,8 @@ function MH:DoWork(func,...)
     local worker:Actor,idx = MH:GetWorker()
     worker:SendMessage("M",c,func,...)
     st[c] = coroutine.running()
-    coroutine.yield()
-    local data = pdata[c]
+    local data =     coroutine.yield()
      st[c] = nil
-     pdata[c] = nil
     return data
 end
 function MH:Init(amt)

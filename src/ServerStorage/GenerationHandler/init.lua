@@ -157,7 +157,7 @@ function generation.Color(chunk,gtable,surface,custom):{}
 			return "T|c:Water"
 		end
 		if not above and self then
-			return (biomedata.SurfaceBlock or 'c:Grass')
+			return (biomedata.SurfaceBlock or 'c:GrassBlock')
 		elseif ( not gtable[idx+24] or ( y>=hy) )and self  then
 			return (biomedata.MiddleBlock or 'c:Dirt')
 		elseif self then

@@ -76,7 +76,7 @@ end
 function self.GetEntityFromData(Data)
     local Type,model,ModelId,TextureId = Data.Type,Data.Model,Data.ModelId or 0,Data.TextureId or 0
     if model and self.Models.Entities[model] then
-        return self.Models.Entities[model]
+        return self.Models.Entities[model] 
     else
         local entity = self.GetEntity(Type)
         return entity

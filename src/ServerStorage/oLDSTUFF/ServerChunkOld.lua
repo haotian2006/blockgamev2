@@ -156,7 +156,7 @@ function Chunk:GenerateStructures()
         while z <= endd.Y do
             for y = settings.ChunkSize.Y-1,0,-1 do
                 local b = self:GetBlockGrid(x,y,z)
-                if type(b) == "table" and b:IsA("c:Grass") then
+                if type(b) == "table" and b:IsA("c:GrassBlock") then
 
                     local noise = Random.new((x*y*z*settings.Seed+settings.Seed+self.Chunk.X+self.Chunk.Y+x+y+z)/100):NextNumber()
                     if noise <= .2 and false then

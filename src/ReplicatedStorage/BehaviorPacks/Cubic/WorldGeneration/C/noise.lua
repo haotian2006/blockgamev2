@@ -12,7 +12,7 @@ return  {
         amplitudes = { 1.0, 2.0, 1.0, 0.0, 0.0, 0.0 },
         firstOctave = -7,
     },
-    treeNoise = {
+    foliageNoise = {
         amplitudes = {.03 },
         firstOctave = -1,
         useNormal = nil, -- 2x the performance

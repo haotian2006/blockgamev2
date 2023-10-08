@@ -298,7 +298,7 @@ function collisions.GetBlockHitBox(data)
         if type(hb) == "table" then
             hitboxinfo = hb
         else
-            hitboxinfo = {{Size = hb}}
+            hitboxinfo = {{Size = hb}} 
         end
     end
     if Ori then

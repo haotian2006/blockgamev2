@@ -55,6 +55,8 @@ local function renderChunk(str,chunk,meshed,unmeshed)
             if not chunk.RenderedBlocks[i] then continue end  
             if qf.CompareTables(v,chunk.RenderedBlocks[i]) then
                 loadedBlocks[i] = v
+            else
+                chunkFolder:FindFirstChild(i):Destroy()
             end
         end	
     end

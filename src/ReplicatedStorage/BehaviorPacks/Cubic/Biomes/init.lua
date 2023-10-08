@@ -1,10 +1,11 @@
 return {
    {
     NameSpace = 'c:plains',
-    SurfaceBlock = 'c:Grass',
+    SurfaceBlock = 'c:GrassBlock',
     MiddleBlock = 'c:Dirt',
    
     Features = {
+      "c:Grass",
     "c:Tree",
     }
    },

@@ -1,8 +1,18 @@
 local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local crt = behhandler.CreateComponent
 local Blocks = {
-    
     ['c:Grass'] = {
+        components = crt({
+            CanCollide = false,
+        } 
+        ,'BlockComp'),
+        events ={
+            OnTouched = function(self,entity,side)
+                
+            end
+        }
+    },
+    ['c:GrassBlock'] = {
         components = crt({
 
         }

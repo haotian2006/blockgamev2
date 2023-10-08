@@ -42,21 +42,9 @@ entity.__index = function(self,key)
     if data then
         return data,path
     end
-    return entity[key]
+    return entity[key] 
 end
-entity.__newindex= function(self,key,v)
-    if self.__P[key] ~= v then
-        rawget(self,"__Update")[key] = true
-   end
-    self.__P[key] = v
-end
-entity.__iter = function(self)
-    return next,self.__P
-end
-function entity:rawGet(key)
-    return rawget(self,"__P") and rawget(self,"__P")[key]
-end
-function entity:IndexFromComponets(key:any,ignore:{}|nil) : (any,boolean|string)
+function entity:IndexFromComponets(key,ignore) 
     local comp = entity.rawGet(self,"Componets")
     if key == "Type" then return entity.rawGet(self,"Type") end 
     local entitybeh = behhandler.GetEntity(self.Type)
@@ -71,6 +59,18 @@ function entity:IndexFromComponets(key:any,ignore:{}|nil) : (any,boolean|string)
     if entitybeh and entitybeh.components and entitybeh.components[key] ~= nil then
         return entitybeh.components[key],true
     end
+end
+entity.__newindex= function(self,key,v)
+    if self.__P[key] ~= v then
+        rawget(self,"__Update")[key] = true
+   end
+    self.__P[key] = v
+end
+entity.__iter = function(self)
+    return next,self.__P
+end
+function entity:rawGet(key)
+    return rawget(self,"__P") and rawget(self,"__P")[key]
 end
 function entity:GetAllData(SPECIAL:boolean) : {}
     local comp = self.Componets
