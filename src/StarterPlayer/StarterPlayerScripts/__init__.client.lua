@@ -11,6 +11,7 @@ local EntityBridge = bridge.CreateBridge("EntityBridge")
 --bridge.Start({})
 local GetChunk = bridge.CreateBridge("GetChunk")
 local datahandler = require(game.ReplicatedStorage.DataHandler)
+local ErrorHandler = require(game.ReplicatedStorage.Libarys.ErrorHandler)
 local mulithandler = require(game.ReplicatedStorage.MultiHandler)
 local toload = {}
 local currentlyloading = {} 

@@ -57,7 +57,7 @@ end
 
 sub.Transformer = {}
 local Transformer = sub.Transformer
-Transformer.Subtables = {}
+Transformer.Subtables = {} 
 local Transformersub = Transformer.Subtables 
 function Transformer.new(input)
     local data = setmetatable({input = input},Transformer)

@@ -217,7 +217,7 @@ local tick = 0
 local t = .02
 function Render:Init()
     game.ReplicatedStorage.Events.GetChunk.OnClientEvent:Connect(Render.onRecieve)
-    RunService.Heartbeat:Connect(function(deltaTime)
+    RunService.RenderStepped:Connect(function(deltaTime)
         tick += deltaTime
         --if tick  >= t then
             HandleCull()

@@ -54,8 +54,8 @@ function MultiPoint.new(coordinate, locations, values, derivatives)
 end
 function MultiPoint:compute(c)
     local coordinate = self.coordinate:compute(c)
-    local i = binarySearch(1, size(self.locations), function(n) return coordinate < self.locations[n] end) - 1
-    local n = size(self.locations)
+    local i = binarySearch(1, #(self.locations), function(n) return coordinate < self.locations[n] end) - 1
+    local n = #(self.locations)
     if i < 1 then
         return self.values[1]:compute(c) + self.derivatives[1] * (coordinate - self.locations[1])
     end
@@ -83,7 +83,7 @@ end
 function MultiPoint:mapAll(visitor)
     local newCoordinate = visitor(self.coordinate)
     local newValues = {}
-    for i, value in ipairs(self.values) do
+    for i, value in (self.values) do
         newValues[i] = value:mapAll(visitor)
     end
     local newObj = MultiPoint.new(newCoordinate, self.locations, newValues, self.derivatives)
@@ -102,7 +102,7 @@ function MultiPoint:calculateMinMax()
     if not MinMaxNumberFunction.is(self.coordinate) then
         return
     end
-    local lastIdx = size(self.locations)-1
+    local lastIdx = #(self.locations)-1
     local splineMin = math.huge
     local splineMax = -math.huge
     local coordinateMin = self.coordinate:minValue()
@@ -172,7 +172,7 @@ function CubicSpline.Evaluate(obj, extractor)
     for i,v in root.points do
        table.insert(points,v or {}) 
     end
-    if size(points) == 0 then
+    if #(points) == 0 then
         return Constant.new(0)
     end
     

@@ -6,10 +6,12 @@ local behavior = require(game.ReplicatedStorage.BehaviorHandler)
 local vector3 = Vector3.new--function(x,y,z)return {X = x or 0 , Y= y or 0,Z= z or 0} end
 local debris = require(game.ReplicatedStorage.Libarys.Debris).CreateFolder("Collision")
 local rotationLib = require(game.ReplicatedStorage.Libarys.RotationData)
+
 local function getincreased(min,goal2,increased2)
 	local direaction = min - goal2
 	return goal2 +increased2*-math.sign(direaction)
 end
+collisions.calculateAdjustedGoal = getincreased
 local function round(x)
     return math.floor(x+.5)
 end
@@ -422,7 +424,7 @@ function  collisions.entityvsterrain(entity,velocity,IsRay)
 end
 local a = false
 function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop,old)
-    local j = false
+    local shouldJump = false
     local hitbox = entity.Hitbox
     local min = vector3(
         position.X-hitbox.X/2+(velocity.X <0 and velocity.X or 0)   ,
@@ -535,8 +537,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                                 if looop then
                                     return .1
                                 end
-                                j = true
-                               -- print(z2,zack)
+                                shouldJump = true
                                else
                                end
                            end
@@ -615,6 +616,7 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
         Exit.Z = math.huge
     end
     local entrytime = math.max(math.max(Entry.X,Entry.Z),Entry.Y)
+    --[[ debugging
     if entrytime == Entry.X then
         a = "a"
     elseif entrytime == Entry.Y then
@@ -625,6 +627,7 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
     if entrytime == Entry.X and entrytime == Entry.Z then
         a = "d"
     end
+    ]]
     if entrytime >= mintime then return 1.0,1 end
     if entrytime < 0 then return 1.0,entrytime end
 
@@ -645,26 +648,18 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
             return 1,6
         end
     end
-    local normal = {X =0,Y=0,Z=0}
+    local normal 
     if Entry.X > Entry.Z then
         if Entry.X > Entry.Y then
-            normal.X = -math.sign(velocity.X)
-            normal.Y = 0
-            normal.Z = 0
+            normal = vector3(-math.sign(velocity.X),0,0)
         else
-            normal.X = 0
-            normal.Y = -math.sign(velocity.Y)
-            normal.Z = 0
+            normal = vector3(0,-math.sign(velocity.Y),0)
         end
     else
         if Entry.Z > Entry.Y then
-            normal.X = 0
-            normal.Y = 0
-            normal.Z = -math.sign(velocity.Z)
+            normal = vector3(0,0, -math.sign(velocity.Z))
         else
-            normal.X = 0
-            normal.Y = -math.sign(velocity.Y)
-            normal.Z = 0
+            normal = vector3(0,-math.sign(velocity.Y,0))
         end 
     end
     return entrytime,normal

@@ -1,8 +1,14 @@
 local Animator = {}
 local Utils = require(script.Parent.Utils)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
+local BridgeNet = require(game.ReplicatedStorage.BridgeNet)
+local AnimationBridge = BridgeNet.CreateBridge("AnimationBridge")
 local Runservice = game:GetService("RunService")
+local IS_CLIENT = Runservice:IsClient()
+
+
 function Animator.loadAnimation(self,animationName)
+    if not IS_CLIENT then return warn("[METHOD] loadAnimation cannot be called from the server") end
     local model = self.__model 
     if not model then return end 
     local animator:Animator = model:FindFirstChild("AnimationController",true):FindFirstChildOfClass("Animator")
@@ -32,5 +38,14 @@ function Animator.play(self,animation,...)
 end
 function Animator.clear(self)
     table.clear(self.__animations)
+end
+if IS_CLIENT then
+    AnimationBridge:Connect(function(uuid,animation,play)
+    
+    end)
+else
+    AnimationBridge:Connect(function(player,uuid,animation,play)
+        
+    end)
 end
 return Animator

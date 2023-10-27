@@ -25,7 +25,7 @@ local farea = (settings.ChunkSize.X)*(settings.ChunkSize.Y)
 settings.CONST_XYZ1D = {}
 settings.CONST_3D = {}
 local init = false
-local CONSTXYZ = settings.CONST_XYZ1D
+local CONSTXYZ = settings.CONST_XYZ1D 
 local function createxyz()
     init = true
     for x = 0,chsizex-1 do
@@ -64,7 +64,7 @@ function settings.to2D(index)
     local y = math.floor(index /chsizex)
     return x, y
 end
-function settings.convertchgridtoreal(cx,cz,x,y,z):Vector3
+function settings.convertchgridtogrid(cx,cz,x,y,z):Vector3
     return (x+chsizex*cx),y,(z+chsizex*cz)
 end
 function settings.getoffset(cx,cz):Vector3

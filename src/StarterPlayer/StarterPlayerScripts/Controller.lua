@@ -24,7 +24,7 @@ local UIContainerManager = managers.UIContainerManager
 hotbarhandler:Init()
 local lp = game.Players.LocalPlayer
 local localentity = data.GetLocalPlayer
-local controls = {func = {},RenderStepped = {}}
+local controls = {func = {},RenderStepped = {}} 
 local newKeyBinds = require(game.ReplicatedStorage.Libarys.PlayerControls).new()
 controls.downtimer = {}
 local downtimer = controls.downtimer 
@@ -320,6 +320,8 @@ function Render.Update(dt)
     anihandler.UpdateEntity(self)
     end
 end
+local entityhandlerv2 = require(game.ReplicatedStorage.EntityHandlerV2)
+local entityv2 = require(script.Parent.Test.EntityHandlerV2)
 function Render.Move(dt)
     if not localentity() or localentity():GetState('Dead') or not localentity().Entity or localentity().Ingui then return end 
     local LookVector = CameraCFrame.LookVector
@@ -338,8 +340,13 @@ function Render.Move(dt)
     else
         localentity():SetState('Stopping',false)
     end
+ --   entityhandlerv2.setMoveDireaction(entityv2,velocity) 
     data.LocalPlayer.Velocity["Movement"] = velocity* (localentity():GPWM('Speed') or 0 )
-    if FD["Jump"] then data.LocalPlayer:Jump() end 
+    if FD["Jump"] then data.LocalPlayer:Jump() entityhandlerv2.jump(entityv2) end 
+    if uis:IsKeyDown(Enum.KeyCode.T) then
+        entityv2.t = not entityv2.t
+     --   entityhandlerv2.setVelocity(entityv2,"Physics",(velocity+Vector3.new(0,.5,0)).Unit * 50)
+    end
 end
 local second 
 local outline = game.Workspace.Outline

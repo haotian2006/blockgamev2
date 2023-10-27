@@ -1,5 +1,5 @@
 local deb = {}
-local highlight = Instance.new("Highlight",workspace.Part)
+--local highlight = Instance.new("Highlight",workspace.Part)
 function deb.HighLightEntity(id,remove)
     -- local e =game.Workspace.Entities:FindFirstChild(id)
     -- if e then

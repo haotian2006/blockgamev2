@@ -150,13 +150,13 @@ function self.GetBlock(x,y,z)
     localgrid = Vector3.new((localgrid.X),(localgrid.Y),(localgrid.Z))
     if chunk and (not isserver or chunk.Settings["Generated"]) then
         if localgrid.Y >= settings.ChunkSize.Y then
-            return false,localgrid.X..','..localgrid.Y..','..localgrid.Z
+            return false,tostring(localgrid),localgrid
         end
         local b = chunk:GetBlock(localgrid.X,localgrid.Y,localgrid.Z)
         if b and b:isFalse() then b = false  end 
-       return b,localgrid.X..','..localgrid.Y..','..localgrid.Z
+       return b,tostring(localgrid),localgrid
     else
-       return blockpool.CONST_NULL, localgrid.X..','..localgrid.Y..','..localgrid.Z
+       return blockpool.CONST_NULL,tostring(localgrid),localgrid
     end
 end
 local le = require(script.LoadedEntities)

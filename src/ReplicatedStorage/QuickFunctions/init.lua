@@ -75,7 +75,7 @@ function qf.CompareTables(t1,t2)
             end
         end
         for i,v in t2 do
-            if checkedindexs[i] then continue end --if it was checked already
+            if checkedindexs[i] then continue end 
             if not qf.CompareTables(v,t1[i]) then
                 return false
             end
@@ -169,7 +169,7 @@ function qf.GridToLocal(coords)
     return Vector3.new(coords.X%chunkS.X,coords.Y,coords.Z%chunkS.X)
 end
 function qf.GetChunkAndLocal(x,y,z)
-    local cx,cz = qf.GetChunkfromReal(x,y,z,true)
+    local cx,cz = qf.GetChunkfromReal(x,y,z,true) 
     local lx,ly,lz = x%chunkS.X,y,z%chunkS.X
     return cx,cz,lx,ly,lz
 end

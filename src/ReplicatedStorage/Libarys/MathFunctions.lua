@@ -85,6 +85,38 @@ end
 function maths.inverselerp(start:number,goal:number,value:number):number
     return (value - start) / (goal - start)
 end
+local part 
+function maths.calculateLookAt(xRot,yRot,Position)
+    part = part or Instance.new("Part",workspace)
+    part.Size = Vector3.new(1,1,1)
+    part.Anchored = true
+    part.Name = "11"
+ --   print(yRot,xRot)
+    yRot = math.rad(yRot)
+    xRot = math.rad(xRot)
+    local directionX = math.cos(yRot) * math.sin(xRot)
+    local directionY = math.sin(yRot)
+    local directionZ = math.cos(yRot) * math.cos(xRot)
+    part.Position = Position*3 + Vector3.new(directionX,directionY,directionZ).Unit 
+    return Vector3.new(directionX,directionY,directionZ).Unit 
+end
+function maths.normalizeAngle(angle)
+    if angle >= 0 and angle < 360 then
+        return angle
+    end
+    angle = angle % 360
+    if angle < 0 then
+        angle = angle + 360
+    end
+
+    return angle
+end
+function maths.convertCWToCCW(angle)
+    if angle > 180 then
+        angle = angle - 360
+    end
+    return angle
+end
 function maths.lerp_angle(a:number, b:number, t:number)--needs fixing
     local gcframe = CFrame.Angles(0,math.rad(a),0)
     local scframe = CFrame.Angles(0,math.rad(b),0)
@@ -92,6 +124,7 @@ function maths.lerp_angle(a:number, b:number, t:number)--needs fixing
 	local _,y,_ = c:ToEulerAnglesXYZ()
     return math.deg(y)
 end
+
 function maths.GetXYfromangle(angle:number,radius:number,center:number):number
     local x = radius * math.sin(math.pi * 2 * angle / 360)
     local y = radius * math.cos(math.pi * 2 * angle / 360)
@@ -101,6 +134,12 @@ end
 function maths.AngleDifference(angle1:number,angle2:number ):number
     local diff = ( angle2 - angle1 + 180 ) % 360 - 180
     return diff < -180 and diff + 360 or diff
+end
+function maths.fullToHalf(angle)
+    if angle<0 then
+        return(angle + 180) 
+    end
+    return angle
 end
 function maths.ReflectAngleAcrossY(dt:number):number
     return (360-dt+180)%360
