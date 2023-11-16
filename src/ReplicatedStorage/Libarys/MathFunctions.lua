@@ -79,25 +79,12 @@ function maths.GetClosestNumber(num:number,tab:{number}):number
     end
     return n
 end
-function maths.lerp(start:number,goal:number,value:number):number
-    return start + (goal - start) *value
-end
-function maths.inverselerp(start:number,goal:number,value:number):number
-    return (value - start) / (goal - start)
-end
-local part 
 function maths.calculateLookAt(xRot,yRot,Position)
-    part = part or Instance.new("Part",workspace)
-    part.Size = Vector3.new(1,1,1)
-    part.Anchored = true
-    part.Name = "11"
- --   print(yRot,xRot)
     yRot = math.rad(yRot)
     xRot = math.rad(xRot)
     local directionX = math.cos(yRot) * math.sin(xRot)
     local directionY = math.sin(yRot)
     local directionZ = math.cos(yRot) * math.cos(xRot)
-    part.Position = Position*3 + Vector3.new(directionX,directionY,directionZ).Unit 
     return Vector3.new(directionX,directionY,directionZ).Unit 
 end
 function maths.normalizeAngle(angle)
@@ -109,6 +96,18 @@ function maths.normalizeAngle(angle)
         angle = angle + 360
     end
 
+    return angle
+end
+function maths.normalizeAngle2(angle)
+    if angle >= -180 and angle <= 180 then
+        return angle
+    end
+
+    angle = angle % 360
+
+    if angle >= 180 then
+        angle = angle - 360 
+    end
     return angle
 end
 function maths.convertCWToCCW(angle)
@@ -124,7 +123,38 @@ function maths.lerp_angle(a:number, b:number, t:number)--needs fixing
 	local _,y,_ = c:ToEulerAnglesXYZ()
     return math.deg(y)
 end
+function maths.GetP_YawFromVector3(vector:Vector3)
+    local x,y,z = vector.X,vector.Y,vector.Z
+    local yRot = math.asin(y)
+    local xRot = math.atan2(x, z)
 
+    -- Convert radians to degrees if needed
+    xRot = math.deg(xRot)
+    yRot = math.deg(yRot)
+
+    return xRot, yRot
+end
+local EPSILON  = .01
+function maths.slerpAngle(angle1, angle2, t)
+    if math.abs(angle1-angle2) <=EPSILON then return angle1,true end 
+    angle1 = ((angle1 + 180) % 360) - 180
+    angle2 = ((angle2 + 180) % 360) - 180
+    local angle = angle2 - angle1
+    if angle > 180 then
+        angle = angle - 360
+    elseif angle < -180 then
+        angle = angle + 360
+    end
+    local resultAngle = angle1 + angle * t
+
+    return resultAngle
+end
+function maths.lerp(start:number,goal:number,value:number):number
+    return start + (goal - start) *value
+end
+function maths.inverselerp(start:number,goal:number,value:number):number
+    return (value - start) / (goal - start)
+end
 function maths.GetXYfromangle(angle:number,radius:number,center:number):number
     local x = radius * math.sin(math.pi * 2 * angle / 360)
     local y = radius * math.cos(math.pi * 2 * angle / 360)

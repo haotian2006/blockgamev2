@@ -4,7 +4,7 @@ local CSIZE_X,CSIZE_Y = GameSettings.getChunkSize()
 local GRID_SIZE = GameSettings.GridSize
 --//Assume x,y,z will be grid unless told in the name
 function Utils.getChunkAndLocal(x,y,z)
-    local cx,cz = Utils.getChunkfromReal(x,y,z) 
+    local cx,cz = Utils.getChunk(x,y,z) 
     local lx,ly,lz = x%CSIZE_X,y,z%CSIZE_Y
     return cx,cz,lx,ly,lz
 end

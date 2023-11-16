@@ -1,6 +1,5 @@
 local Curve = {}
 Curve.__index = Curve
-local bezier = require(game.ReplicatedStorage.Libarys.Bezier)
 local ch = require(game.ReplicatedStorage.CollisonHandler)
 local runservice = game:GetService("RunService")
 function Curve.new(entity,Direaction,TimeToTake,CustomName,NoInit,UserBezierInstead)

@@ -85,6 +85,9 @@ end
 function self.GetAnimationFromName(name)
     return self.Animations[name] or self.AnimationFolder[name] or nil
 end
+function self.GetEntityModel(name)
+    return (self.EntityModels or {})[name]
+end
 function self.GetEntityModelFromData(Data)
     local Type,model,ModelId,TextureId = Data.Type,Data.Model,Data.ModelId or 0,Data.TextureId or 0
     if model and self.Models.Entities[model] then

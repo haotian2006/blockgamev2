@@ -25,6 +25,7 @@ hotbarhandler:Init()
 local lp = game.Players.LocalPlayer
 local localentity = data.GetLocalPlayer
 local controls = {func = {},RenderStepped = {}} 
+local Math = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local newKeyBinds = require(game.ReplicatedStorage.Libarys.PlayerControls).new()
 controls.downtimer = {}
 local downtimer = controls.downtimer 
@@ -322,6 +323,7 @@ function Render.Update(dt)
 end
 local entityhandlerv2 = require(game.ReplicatedStorage.EntityHandlerV2)
 local entityv2 = require(script.Parent.Test.EntityHandlerV2)
+local utils = require(game.ReplicatedStorage.EntityHandlerV2.Utils)
 function Render.Move(dt)
     if not localentity() or localentity():GetState('Dead') or not localentity().Entity or localentity().Ingui then return end 
     local LookVector = CameraCFrame.LookVector
@@ -333,19 +335,24 @@ function Render.Move(dt)
     local Left = -RightVector*(FD["Left"]and 1 or 0)
     local Right = RightVector*(FD["Right"]and 1 or 0)
     local velocity = foward + Back + Left+ Right
+    local v2 = foward + Back*-1 + (FD["Back"] and -1 or 1)*(Left+ Right)
     data.LocalPlayer.Bodydir = velocity
     velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit)
+    v2 = ((v2.Unit ~= v2.Unit) and Vector3.new(0,0,0) or v2.Unit)
     if velocity:FuzzyEq(Vector3.zero,0.01) then
         localentity():SetState('Stopping',true)
     else
         localentity():SetState('Stopping',false)
     end
- --   entityhandlerv2.setMoveDireaction(entityv2,velocity) 
+   entityhandlerv2.setMoveDireaction(entityv2,velocity) 
     data.LocalPlayer.Velocity["Movement"] = velocity* (localentity():GPWM('Speed') or 0 )
+    local pitch,yaw = Math.GetP_YawFromVector3((CameraCFrame.LookVector))
+    utils.rotateHeadTo(entityv2,Vector2.new(pitch,yaw))
+    utils.followMovement(entityv2,Vector2.new(v2.X,v2.Z).Unit)
     if FD["Jump"] then data.LocalPlayer:Jump() entityhandlerv2.jump(entityv2) end 
     if uis:IsKeyDown(Enum.KeyCode.T) then
         entityv2.t = not entityv2.t
-     --   entityhandlerv2.setVelocity(entityv2,"Physics",(velocity+Vector3.new(0,.5,0)).Unit * 50)
+       -- entityhandlerv2.setVelocity(entityv2,"Physics",(velocity+Vector3.new(0,.5,0)).Unit * 50)
     end
 end
 local second 

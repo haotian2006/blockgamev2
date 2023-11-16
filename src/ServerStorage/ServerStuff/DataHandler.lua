@@ -129,6 +129,7 @@ local function FeatureNoise(chunk)
 end
 
 local function Color(chunk)
+    
     local cx,cz = chunk:GetNTuple()
     chunk:Color()
     game.ReplicatedStorage.ServerInfo.ChunksLoaded.Value +=1
@@ -145,12 +146,16 @@ local function Lerp(chunk)
    sharedservice:Upload(c01:GetUploadData())
    sharedservice:Upload(c11:GetUploadData())
    chunk:LerpValues()
-   if chunk.PreValues[3] ~= c10.PreValues[3]  ~= c01.PreValues[3] ~=c11.PreValues[3]  then
+   if chunk.PreValues[3] ~= c10.PreValues[3] and
+    chunk.PreValues[3] ~= c01.PreValues[3] and
+    chunk.PreValues[3] ~= c11.PreValues[3] then
+
     chunk:LerpBiome()
    end
    ColorQueue[tostring(chunk)] = chunk
 end
 local function GenerateNoise(chunk)
+    
     chunk:GenerateNoiseValues() 
     if not chunk.generated then 
         LerpQueue[tostring(chunk)] = chunk

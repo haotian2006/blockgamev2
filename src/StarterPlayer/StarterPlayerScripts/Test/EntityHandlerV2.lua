@@ -21,33 +21,50 @@ local function CreateModel(Data,ParentModel)
     end
 end
 
- 
+local Render = require(game.ReplicatedStorage.EntityHandlerV2.Render)
+local Animator = require(game.ReplicatedStorage.EntityHandlerV2.Animator)
 local Handler = require(game.ReplicatedStorage.EntityHandlerV2)
+local Client = require(game.ReplicatedStorage.EntityHandlerV2.EntityReplicator.Client)
+Client.Init()
 local entity = Handler.new("Player")
-
 entity.Position = Vector3.new(340,64,-80)
 local part = Instance.new("Part")
-part.Anchored = true
+do
+    part.Anchored = true
 part.Size = Vector3.new(0.6,1.79,.6)*3
 part.Parent = workspace
 entity.__ownership = game.Players.LocalPlayer.UserId
+end
 local M = Instance.new("Model",workspace)
-part.Parent = M
+do
+    part.Parent = M
 part.Transparency = .7
 part.Name = "HitBox"
 M.PrimaryPart = part
+end
 CreateModel(entity,M)
 entity.__model = M
-local Render = require(game.ReplicatedStorage.EntityHandlerV2.Render)
 local fixedTick = 0
 local FixedTime = 1/20
-RunService.Heartbeat:Connect(function(deltaTime)
+Animator.play(entity,"Roll")
+local holder = require(game.ReplicatedStorage.EntityHandlerV2.EntityHolder)
+holder.addEntity(entity)
+RunService.Stepped:Connect(function(p,deltaTime)
     fixedTick += deltaTime
     Handler.update(entity,deltaTime,fixedTick)
-    Render.updateRotation(entity)
-    part.CFrame = CFrame.new( entity.Position*3)
+   -- part.CFrame = CFrame.new( entity.Position*3)
     if fixedTick > FixedTime then
         fixedTick = 0
     end
+end)
+Render.createModel(entity)
+Render.Init()
+-- RunService.RenderStepped:Connect(function(deltaTime)
+--     Render.updateRotation(entity)
+-- end)
+task.spawn(function()
+    task.wait(10)
+    Animator.stop(entity,"Roll")
+    print(entity)
 end)
 return entity

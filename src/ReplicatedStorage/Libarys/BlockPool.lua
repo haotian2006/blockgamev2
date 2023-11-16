@@ -17,14 +17,6 @@ end
 
 function  BlockState.new(str:string)
     local name,r,state = str:match("([^,]*),?([^,]*),?([^,]*)")
-    --[[
-    local loc = name:find(':')
-    local ns,n = "d"
-    if loc then
-        ns,n =  name:sub(0,loc-1), name:sub(loc+1,#name)
-    else
-        n= name
-    end]]
     local block = setmetatable({{name,tonumber(r),tonumber(state)},str,1,behaviorhandler.GetBlock(name)},BlockState)
     return block
 end
@@ -113,7 +105,7 @@ function BlockPool:release(str)
     Pool[str][3] -= 1
     if Pool[str][3] <= 0 then Pool[str] = nil end 
 end
-function BlockPool:doesExsist(str)
+function BlockPool:doesExist(str)
     return Pool[str]
 end
 function BlockPool.createStr(fullname,r,p)

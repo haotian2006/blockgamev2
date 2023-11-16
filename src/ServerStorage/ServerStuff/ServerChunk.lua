@@ -45,7 +45,7 @@ function Chunk:BulkAdd(table)
     end
     for i,v in  modified  do
         if not i then continue end 
-        blockPool:doesExsist(i)[3] += v
+        blockPool:doesExist(i)[3] += v
     end
     self.Changed = true
 end

@@ -197,8 +197,8 @@ EntityBridge:Connect(function(entitys,ClientIndex)
      datahandler.ClientEntityIndex  = ClientIndex 
     end
     i =i and i + 1 
-    if i == 200 then  print(entitys,i )  end 
-   if i == 700 then  print(entitys,i ) i = nil end 
+  --  if i == 200 then  print(entitys,i )  end 
+ --  if i == 700 then  print(entitys,i ) i = nil end 
     for i,v in entitys do
         local id = v.Id or v[5]
         if type(id) == "string" then

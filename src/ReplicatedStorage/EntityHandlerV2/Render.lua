@@ -1,80 +1,158 @@
+local RunService = game:GetService("RunService")
 local Entity = require(script.Parent)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local Maths = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local Settings = require(game.ReplicatedStorage.GameSettings)
 local utils = require(script.Parent.Utils)
+local DataHandler = require(game.ReplicatedStorage.DataHandler)
+local EntityHolder = require(script.Parent.EntityHolder)
 local Render = {}
 local DEFAULT_ROTATION = Vector2.new(360,360)
-function Render.updateModel(self)
-    local model = self.__model
-end 
-function convert_and_clamp_angle(angle, new_min, new_max)
-    -- Convert the angle to the range [-180, 180]
-    local converted_angle = (angle - 180) % 360 - 180
-
-    -- Clamp the converted angle to the new range [-50, 50]
-    if converted_angle < new_min then
-        return new_min
-    elseif converted_angle > new_max then
-        return new_max
-    else
-        return converted_angle
-    end
+local function createAselectionBox(parent,color) 
+    local sb = Instance.new("SelectionBox",parent) 
+    sb.Visible = DataHandler.HitBoxEnabled 
+    sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) 
+    sb.Adornee = parent sb.LineThickness = 0.025 
+    return sb 
 end
-local xX = 0
+local Humanoid
+local function CreateHumanoid(model)
+    if Humanoid then 
+        local Humanoidc = Humanoid:Clone() 
+        Humanoidc.Parent = model
+        return Humanoidc
+    end
+    local h = Instance.new("Humanoid")
+    for i,v in Enum.HumanoidStateType:GetEnumItems() do
+        if v ~= Enum.HumanoidStateType.None then
+            h:SetStateEnabled(v,false)        
+        end
+    end
+    Instance.new('Animator',h)
+    Humanoid = h
+    h.Parent = model
+    return h
+end
+local function createEye(offset,hitbox)
+    local eye = Instance.new("Part",hitbox.Parent)
+    eye.Size = Vector3.new(hitbox.Size.X,0,hitbox.Size.Z)
+    eye.Name = "Eye"
+    eye.Transparency = 1
+    local weld = Instance.new("Motor6D",eye)
+    weld.Part0 = hitbox
+    weld.Part1 = eye
+    weld.Name = "EyeWeld"
+    weld.C0 = offset and CFrame.new(Vector3.new(0,offset/2,0)*Settings.GridSize) or CFrame.new()
+    return eye
+end
+local function createHitBox(data)
+    local model = Instance.new("Model")
+    local hitbox = Instance.new("Part",model)
+    local hitboxSize = Entity.get(data,"Hitbox")
+    hitbox.Size = (Vector3.new(hitboxSize.X,hitboxSize.Y,hitboxSize.X) or Vector3.new(1,1,1))*Settings.GridSize 
+    local eye = createEye(Entity.get(data,"EyeLevel"),hitbox)
+    createAselectionBox(hitbox)
+    createAselectionBox(eye,Color3.new(1, 0, 0)).Parent = hitbox
+    hitbox.CanCollide = false
+    hitbox.Anchored = true
+    hitbox.Transparency = 1
+    hitbox.Name = "Hitbox"
+    model.Name = data.Guid
+    model.PrimaryPart = hitbox
+    return model
+end
+local function createEntityModel(self,hitbox)
+    local model = Render.findModelFrom(self)
+    if not model then return end 
+    model = model:Clone()
+    local humanoid = model:FindFirstChildWhichIsA("Humanoid")  or CreateHumanoid(model)
+    local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new('Animator',humanoid)
+    humanoid.Name = "AnimationController"
+    humanoid.RigType = Enum.HumanoidRigType.R6
+    humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+    humanoid.RequiresNeck = false
+    humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+    model.Parent = hitbox
+    model.Name = "EntityModel"
+    local weld = Instance.new("Motor6D",hitbox.PrimaryPart)
+    weld.Name = "EntityModelWeld"
+    weld.Part0 = hitbox.PrimaryPart
+    weld.Part1 = model.PrimaryPart
+    return model
+end
+function  Render.checkIfChanged(self,key)
+    if not self.__old then self.__old = {} end 
+    if self.__old[key] ~= self[key] then
+        self.__old[key] = self[key]
+        return true
+    end
+    return false
+end
+function Render.findModelFrom(data)
+    return game.ReplicatedStorage.ResourcePacks.Cubic.Models.Entities.Npcbackup
+end
+
+function Render.createModel(self)
+    if self.__model then self.__model:Destroy() self.__model = nil end 
+    local hitbox = createHitBox(self)
+    local model = createEntityModel(self,hitbox)
+    hitbox.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
+    self.__model = hitbox
+    hitbox.Parent = workspace.EntitiesV2
+    return hitbox
+end
+function Render.updateHitbox(self,targetH,targetE)
+    local model = self.__model
+    if not model then return end 
+    local EntityModel = model:FindFirstChild("EntityModel")
+    if not EntityModel then return end 
+    local PrimaryPart =   model.PrimaryPart
+    if targetH then 
+        PrimaryPart.Size = Vector3.new(targetH.X,targetH.Y,targetH.X)*Settings.GridSize 
+    end
+    local MiddleOffset = PrimaryPart.Size.Y-(PrimaryPart.Size.Y/2+EntityModel.PrimaryPart.Size.Y/2)
+    local pos =PrimaryPart.Position 
+    EntityModel.PrimaryPart.CFrame = CFrame.new(pos.X,pos.Y-MiddleOffset,pos.Z)
+    local weld = PrimaryPart:FindFirstChild("EntityModelWeld")
+    weld.C0 = CFrame.new(0,-MiddleOffset,0)
+    
+    local eyeweld = model:FindFirstChild("Eye"):FindFirstChild("EyeWeld")
+    local offset = targetE or self.EyeLevel
+    if not eyeweld then return end 
+    eyeweld.C0 = offset and CFrame.new( Vector3.new(0,offset/2,0)*3) or CFrame.new()
+end
+function Render.updatePosition(self)
+    if not  Render.checkIfChanged(self,"Position") then return end 
+    local model = self.__model
+    if not model then return end 
+    model.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
+end 
+
 function Render.updateRotation(self)
     local model:Model = self.__model
-    local Resource = ResourceHandler.GetEntity(self.Type)
-    local maxNeckRot = Resource.NeckRotation or DEFAULT_ROTATION
     if not model or self.IsDead then return end 
+    local cR,cHR = Render.checkIfChanged(self,"Rotation"),self["HeadRotation"]
+    if not (cR and cHR) then return end 
     local neck:Motor6D = self.__cachedData["Neck"] or model:FindFirstChild("Neck",true)
     self.__cachedData["Neck"] = neck
     local mainWeld:Motor6D = self.__cachedData["MainWeld"] or model:FindFirstChild("MainWeld",true)
     self.__cachedData["MainWeld"] = mainWeld
-   -- self.Rotation = 0
-   -- self.HeadRotation = Vector2.new(0,0)
     local rotation = self.Rotation or 0
     local headRotation = self.HeadRotation or Vector2.zero
-    local maxHX = maxNeckRot.X
-    local minHX = 360-maxHX
-    -- if maxHX < minHX then
-    --     local temp = minHX
-    --     minHX = maxHX
-    --     maxHX = temp
-    -- end
-    --[[
-    local _,mainWeldDegree  = mainWeld.C0:ToOrientation()
-    mainWeldDegree = math.deg(mainWeldDegree)
-    local _,xdegree = neck.C0:ToEulerAnglesYXZ()
-    xdegree = math.deg(xdegree)]]
-    local normalhRotX = Maths.normalizeAngle(headRotation.X+rotation)
- --   print(xdegree,hRotX)
- --[[
-    local hRotX = convert_and_clamp_angle(normalhRotX-mainWeldDegree,-maxHX,maxHX)
-   -- print(normalhRotX,mainWeldDegree,normalhRotX-mainWeldDegree,"1111")
-    hRotX = Maths.fullToHalf(hRotX)
-    print(hRotX,normalhRotX)
-    local headX =headRotation.X
-    if headRotation.X-hRotX > 0 then
-        xdegree = math.deg(xdegree)
-        headX = rotation+(headRotation.X)
-        rotation+=headRotation.X-hRotX
-      --  print(headRotation.X-hRotX,headRotation,hRotX,"|||",ohRotX,ohRotX2)
-    else
-        headX = normalhRotX
-    end]]
-   -- print(hRotX + rotation+( headRotation.X-hRotX),rotation-( headRotation.X-hRotX))
+    local normalhRotX =headRotation.X+rotation
     local dir = Maths.calculateLookAt(normalhRotX ,headRotation.Y,self.Position)
-  --  print(headRotation.X,hRotX,hRotX + rotation)
     neck.C0 = (Maths.worldCFrameToC0ObjectSpace(neck,CFrame.new(neck.C0.Position,neck.C0.Position+dir)))
-   mainWeld.C0 = CFrame.fromOrientation(0,math.rad(Maths.normalizeAngle(rotation)+180),0)+mainWeld.C0.Position
-  -- _,xdegree  = mainWeld.C0:ToEulerAnglesXYZ()
-   --print(math.deg(xdegree),Maths.normalizeAngle(rotation))
-     xX = Maths.normalizeAngle(xX - (self.t and  .3 or -.3))
-   -- print(xX,Maths.normalizeAngle(rotation),rotation)
-    -- self.HeadRotation = Vector2.new(xX,0)
-   -- print(xX)
-    utils.rotateHeadTo(self,Vector2.new(xX,0))
-
+    mainWeld.C0 = CFrame.fromOrientation(0,math.rad(rotation+180),0)+mainWeld.C0.Position
 end
-
+local Connection 
+function Render.Init()
+    if  Connection then return end 
+    Connection = RunService.RenderStepped:Connect(function(deltaTime)
+        for guid,entity in EntityHolder.getAllEntities() do
+            --TODO: Range Check?
+            Render.updateRotation(entity)
+            Render.updatePosition(entity)
+        end
+    end)
+end
 return Render

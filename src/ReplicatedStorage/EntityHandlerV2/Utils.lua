@@ -3,13 +3,15 @@ local Collisions = require(game.ReplicatedStorage.CollisonHandler)
 local DataHandler = require(game.ReplicatedStorage.DataHandler)
 local CUtils = require(game.ReplicatedStorage.ConversionUtils)
 local MathUtils = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local GameSetting = require(game.ReplicatedStorage.GameSettings)
+local Chx,ChY = GameSetting.getChunkSize()
 local Entity:typeof(require(script.Parent))
-local vector3 = Vector3.new
 local Utils = {}
 function Utils.Init(entity)
     Entity = entity
     return Utils
 end
+local vector3 = Vector3.new
 local function calculateAdjustedGoal(min,goal2,increased2)
 	return goal2 +increased2*-math.sign( min - goal2)
 end
@@ -42,17 +44,27 @@ function Utils.calculateLookAt(self,bRot,hRot)
 
     return vector3(directionX,directionY,directionZ).Unit 
 end
-
+function Utils.getChunk(self)
+    local Position = self.Position
+    local cx = math.floor((Position.X+0.5)/Chx)
+	local cz = math.floor((Position.Z+0.5)/Chx)
+    return cx,cz
+end
+function Utils.getMagnitudeBetween(entity,entity2)
+    return (entity.Position-entity2.Position).magnitude
+end
 --//Turning
-local DEAFULT_TURN = Vector2.new(360,360)
+local DEAFULT_TURN = Vector2.new(180,180)
+function Utils.setRotation(self,target)
+    self.__localData.Rotation = MathUtils.normalizeAngle2(target)
+end
 function Utils.rotateHeadTo(self,target)
     local maxRotation:Vector2 = Entity.getAndCache(self,"MaxNeckRotation") or DEAFULT_TURN
-    local AutoRotate:boolean = Entity.getAndCache(self,"AutoRotate") or false
-    local rrx = MathUtils.normalizeAngle(target.X-  self.Rotation) 
-    local rx,ry = MathUtils.convertCWToCCW(rrx),MathUtils.convertCWToCCW(target.Y)
+    -- local AutoRotate:boolean = Entity.getAndCache(self,"AutoRotate") or false
+    local Rotation = self.__localData.Rotation or self.Rotation
+    local rrx = MathUtils.normalizeAngle2(target.X-  Rotation)
+    local rx,ry = rrx,target.Y
     local maxX,maxY =  maxRotation.X , maxRotation.Y
---    print(rx)
---print(rx,target.X,self.Rotation)
     local offset 
     local a = rx
     if rx > maxX then
@@ -60,30 +72,60 @@ function Utils.rotateHeadTo(self,target)
         rx = maxX
     elseif rx<-maxX then
         offset = rx+maxX
-        rx = 360-maxX
+        rx = -maxX
     else
         rx = rrx
     end
     if ry > maxY then
         ry =maxY
     elseif ry<-maxY then
-        ry = 360-maxY
+        ry = -maxY
     else
         ry = target.Y
     end
-   -- print(a,rx,offset,target.X, self.Rotation)
-    if offset and AutoRotate  then
-        local R = self.Rotation+ offset
-        if  R< 0 then
-            R +=180
-        elseif R> 360 then
+    if offset then
+        local R = Rotation+ offset
+        if  R< -180 then
+            R +=360
+        elseif R> 180 then
             R-=360
         end
-        self.Rotation = R
+        self.__localData.Rotation = R
     end
     local new = Vector2.new(rx,ry)
-    self.HeadRotation = new
+    self.__localData.HeadRotation = new
     return new,offset
+end
+function Utils.followMovement(self,movedir:Vector2)
+    local HeadRot = self.__localData.HeadRotation or self.HeadRotation
+    local maxRotation:Vector2 = Entity.getAndCache(self,"MaxNeckRotation") or DEAFULT_TURN
+    local Rotation = self.__localData.Rotation or self.Rotation
+    local CurrentHeadRotationX = Rotation + HeadRot.X
+    local targetRotation = math.deg(math.atan2(movedir.X,movedir.Y))--90
+    targetRotation = targetRotation == targetRotation and targetRotation or Rotation
+    local rx = MathUtils.normalizeAngle2(CurrentHeadRotationX- targetRotation)
+    local maxX,maxY =  maxRotation.X , maxRotation.Y
+    local offset 
+    local orr = rx
+    if rx > maxX then
+        offset = rx-maxX-1
+        rx = maxX
+    elseif rx<-maxX then
+        offset = rx+maxX+1
+        rx = -maxX
+    end
+    self.__localData.HeadRotation = Vector2.new(rx,HeadRot.Y)
+    if offset then
+        local R = targetRotation + offset
+        if  R< -180 then
+            R +=360
+        elseif R> 180 then
+            R-=360
+        end
+        self.__localData.Rotation= R
+      return  
+    end
+    self.__localData.Rotation = targetRotation--MathUtils.normalizeAngle2(targetRotation - offset)
 end
 function Utils.rotateBodyTo(self,target)
     

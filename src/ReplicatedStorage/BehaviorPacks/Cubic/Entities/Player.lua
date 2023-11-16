@@ -4,8 +4,7 @@ local entity = {
         is_summonable = false,
     }, 
     components ={
-        MaxNeckRotation = Vector2.new(30,310),
-        AutoRotate = true,
+        MaxNeckRotation = Vector2.new(60,310),
         Name = "Player",
         EyeLevel = 1.5,
         Hitbox = Vector2.new(0.6,1.79),
