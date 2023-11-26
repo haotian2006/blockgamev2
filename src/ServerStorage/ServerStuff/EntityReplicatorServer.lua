@@ -9,16 +9,17 @@ local BridgeNet = require(game.ReplicatedStorage.BridgeNet)
 local EntityBridge = BridgeNet.CreateBridge("EntityBridgeR")
 local EntityHolder = require(EntityV2.EntityHolder)
 local EntityHandler = require(EntityV2)
-Server.clientEntities = {} 
+local EntityTasks = require(EntityV2.EntityReplicator.TaskReplicator)
+local clientEntities = {} 
 local temp = ReplicationUtils.temp
 function Server.GetIdLocationFrom(player,Id)
-    return  Server.clientEntities[player][Id]
+    return  clientEntities[player][Id]
 end
 function Server.GetLocationTable(player)
-    return  Server.clientEntities[player] 
+    return  clientEntities[player] 
 end
 function Server.UpdateLocationTable(player,t)
-     Server.clientEntities[player] = t 
+    clientEntities[player] = t 
 end
 function Server.replicateAll(entity)
     local str =`{entity.Guid}NEW!`
@@ -43,8 +44,8 @@ function Server.getOtherData(entity)
     local changed = false
     for i,v in entity.__changed do
         local Level = ReplicationUtils.REPLICATE_LEVEL[i]
-        if Level ~= 0 and  Level then continue end 
-        newData[i] = entity[i]
+        if Level == 1 or Level == 2 then continue end 
+        newData[i] = EntityHandler.get(entity,i)
         changed = true
     end
     table.clear(entity.__changed)
@@ -57,21 +58,27 @@ function Server.Replicate(secondTick)
     local playerData = {}
     local playerKey = {}
     local ToRemove = {}
-
-    local Players = game.Players:GetPlayers()
-    for i,v in Players do
-        if not Server.clientEntities[v] then  
-            table.remove(Players,i)
+    local PlayerTaskData = {}
+    local pt = game.Players:GetPlayers()
+    local Players = {}
+    for i,v in pt do
+        if clientEntities[v] then  
+            Players[#Players+1] = v
         end 
     end
+
     table.clear(temp)
     for uuid,entity in EntityHolder.getAllEntities() do
+        if entity.doReplication == false then continue end 
         for i,player in Players do
             local location = Server.GetIdLocationFrom(player,uuid)
             local PlayerTable = playerData[player] or {}
             playerData[player] = PlayerTable
             local playerKey1 = playerKey[player] or {}
             playerKey[player] = playerKey1
+            PlayerTaskData[player] =   PlayerTaskData[player] or {}
+            local isOwner = EntityHandler.isOwner(entity,player)
+            PlayerTaskData[player][uuid] = EntityTasks.encode(uuid,isOwner)
             if not location then 
                 table.insert( playerKey[player],uuid)
                 table.insert(PlayerTable,Server.replicateAll(entity) ) 
@@ -81,7 +88,7 @@ function Server.Replicate(secondTick)
             if secondTick then
                 slow = Server.getOtherData(entity)
             end
-            if not EntityHandler.isOwner(entity,player) then
+            if not isOwner then
                 fast = ReplicationUtils.fastEncode(entity,slow or {})
             end
             if fast or slow then
@@ -95,6 +102,7 @@ function Server.Replicate(secondTick)
             end
             table.insert( playerKey[player],uuid)
         end
+        EntityTasks.clearDataFor(uuid)
     end
     --compare keys 
     --[[LOGIC 
@@ -107,8 +115,6 @@ function Server.Replicate(secondTick)
         compare old with new
             if new key is missing
                 the entity should be removed 
-
-        
     ]]
     for player,keys in playerKey do
         local function compare(new,old)
@@ -157,11 +163,22 @@ function Server.Replicate(secondTick)
         end
         playerKey[player] = changes or nil
     end
-    -- print("fire",os.clock()-lastfire,Server.NORMAL_RATE)
-    -- lastfire = os.clock()
+    local newTaskData = {}
+    for i,v in PlayerTaskData do
+        if next(v) == nil then continue end 
+        newTaskData[i] = {}
+        for uuid,data in v do
+            newTaskData[i][tostring(Server.GetIdLocationFrom(i,uuid))] = data
+        end
+    end
     for i,v in Players do
-        if not playerData[v] or #playerData[v] == 0 then continue end 
-        EntityBridge:FireTo(v,playerData[v],playerKey[v] or nil)
+        if not playerData[v] or #playerData[v] == 0 then 
+            playerData[v] = nil
+        end 
+        if not (playerData[v] or playerKey[v] or newTaskData[v]) then
+             continue
+        end
+        EntityBridge:FireTo(v,playerData[v],playerKey[v],newTaskData[v])
     end
 end
 local Connection 
@@ -183,20 +200,26 @@ function Server.Init()
     end)
     EntityBridge:Connect(function(player,data)
         if data == "CONNECTED" then
-            Server.clientEntities[player] = {}
+            clientEntities[player] = {}
+        --TESTCASE    EntityTasks.attachDataTo(tostring(player.UserId),"Animation",2,true)
             return
         end
         for i,entity in data do
             local id 
             if typeof(entity[1]) =="Vector2" then
                 id = tostring(entity[1].X)
+                if id == "-69" then 
+                    id =tostring(player.UserId)
+                end
+            elseif entity[1] == false then
+                id = tostring(player.UserId)
             else
                 id = tostring(entity[1][1])
                 entity[1] = Vector2.new(0,entity[1][2])
             end
             local rEntity = EntityHolder.getEntity(id)
             if not rEntity then continue  end
-            local decode = ReplicationUtils.fastDecode(data,rEntity)
+            local decode = ReplicationUtils.fastDecode(entity,rEntity)
             for i,v in decode do
                 rEntity[i] = v
             end

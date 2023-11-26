@@ -4,7 +4,6 @@ local settings = require(game.ReplicatedStorage.GameSettings)
 local chunksize = settings.ChunkSize
 local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
-local bs = require(game.ReplicatedStorage.Libarys.Store)
 local blockPool = require(game.ReplicatedStorage.Libarys.BlockPool)
 local IsServer =runservice:IsServer()
 Chunk.EdgeIndexs ={

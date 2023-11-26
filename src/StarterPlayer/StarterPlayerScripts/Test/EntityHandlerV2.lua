@@ -1,5 +1,8 @@
 local RunService = game:GetService("RunService")
 local resource =require(game.ReplicatedStorage.ResourceHandler)
+do
+    return {}
+end
 local function CreateModel(Data,ParentModel)
     local model = resource.GetEntity("Player").Model
     if model then
@@ -25,7 +28,6 @@ local Render = require(game.ReplicatedStorage.EntityHandlerV2.Render)
 local Animator = require(game.ReplicatedStorage.EntityHandlerV2.Animator)
 local Handler = require(game.ReplicatedStorage.EntityHandlerV2)
 local Client = require(game.ReplicatedStorage.EntityHandlerV2.EntityReplicator.Client)
-Client.Init()
 local entity = Handler.new("Player")
 entity.Position = Vector3.new(340,64,-80)
 local part = Instance.new("Part")
@@ -47,8 +49,10 @@ entity.__model = M
 local fixedTick = 0
 local FixedTime = 1/20
 Animator.play(entity,"Roll")
+local Data = require(game.ReplicatedStorage.Data)
+--Data.setPlayerEntity(entity)
 local holder = require(game.ReplicatedStorage.EntityHandlerV2.EntityHolder)
-holder.addEntity(entity)
+--holder.addEntity(entity)
 RunService.Stepped:Connect(function(p,deltaTime)
     fixedTick += deltaTime
     Handler.update(entity,deltaTime,fixedTick)
@@ -58,7 +62,6 @@ RunService.Stepped:Connect(function(p,deltaTime)
     end
 end)
 Render.createModel(entity)
-Render.Init()
 -- RunService.RenderStepped:Connect(function(deltaTime)
 --     Render.updateRotation(entity)
 -- end)

@@ -170,7 +170,7 @@ function qf.GridToLocal(coords)
 end
 function qf.GetChunkAndLocal(x,y,z)
     local cx,cz = qf.GetChunkfromReal(x,y,z,true) 
-    local lx,ly,lz = x%chunkS.X,y,z%chunkS.X
+    local lx,ly,lz = x%chunkS.X,y,z%chunkS.X 
     return cx,cz,lx,ly,lz
 end
 function qf.SpeicalRound(x)

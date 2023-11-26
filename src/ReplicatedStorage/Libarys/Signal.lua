@@ -1,5 +1,5 @@
 --!strict
-
+-- FAST SIGNAL
 local Signal = {}
 Signal.__index = Signal
 
@@ -17,7 +17,7 @@ end
 function Connection.Disconnect(self)
 	self.Signal[self] = nil
 end
-
+ 
 
 function Signal.new()
 	return setmetatable({} :: any, Signal)
@@ -60,7 +60,7 @@ function Signal.Fire(self, ...)
 end
 
 
-type Connection = {
+export type Connection = {
 	Disconnect: (self: any) -> ()
 }
 

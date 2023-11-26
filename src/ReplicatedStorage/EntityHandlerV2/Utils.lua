@@ -30,8 +30,35 @@ function Utils.getDataFromResource(self,string)
     end
     return entityData.components[string]
 end
+function Utils.checkIfChanged(self,key)
+    if not self.__old then self.__old = {} end 
+    if self.__old[key] ~= self[key] then
+        self.__old[key] = self[key]
+        return true
+    end
+    return false
+end
+function Utils.isOwner(self,player:Player)
+    local pass =  self.__ownership == (player and player.UserId)
+    if pass and self.__ownership then 
+        self.__localData["Owner"] = player
+    end
+    return pass
+end
+function Utils.getOwner(self)
+    if not self.__ownership then
+         return 
+    end
+    local p =self.__localData["Owner"]
+    if p and p.UserId == self.__ownership then
+        return p
+    end
+    local plr = game.Players:GetPlayerByUserId(self.__ownership)
+    self.__localData["Owner"] = plr
+    return plr
+end
 function Utils.getPlayersNearEntity(self,radius)
-    
+    return game.Players:GetPlayers()
 end
 function Utils.calculateLookAt(self,bRot,hRot)
     local rotation = bRot or self.Rotation or 0
@@ -131,6 +158,67 @@ function Utils.rotateBodyTo(self,target)
     
 end
 --//collisions 
+local INCREMENT = 1/2
+local debugPart = Instance.new("Part")
+debugPart.Size = vector3(1,1,1)
+debugPart.Name = "debugPart"
+debugPart.Anchored = true
+debugPart.Parent = workspace
+function Utils.stayOnEdge(self,targetPosition)
+    local CurrentPosition = self.Position*vector3(1,0,1)
+    local CurrentY = self.Position.Y
+    local CurrentX = CurrentPosition.X
+    local CurrentZ = CurrentPosition.Z
+    local Copy = {Hitbox = Entity.getAndCache(self,"Hitbox")}
+    local HitBox = Copy.Hitbox
+    local diffrence = targetPosition*vector3(1,0,1)-CurrentPosition
+    local onGround,block,LastData = Utils.isGrounded(self)
+    if not onGround then return targetPosition end 
+    local collided 
+    local normalX,normalZ
+    local function doSomething(targetPosition,Current,diffrence,xorz)
+        if diffrence == 0 then return  end 
+        local sign = math.sign(diffrence)
+        local Increase = INCREMENT*sign
+        local newtargetPosition = targetPosition + .01*sign
+        for v = Current, newtargetPosition,Increase do
+            if math.abs( v - newtargetPosition) <= INCREMENT then
+                v = newtargetPosition
+            end
+            if xorz then
+                CurrentX = v
+            else
+                CurrentZ = v
+            end
+            Copy.Position = vector3(CurrentX,CurrentY,CurrentZ)
+            local onGround,block,collisionData = Utils.isGrounded(Copy)
+            if not onGround then
+                if xorz then
+                    normalX = sign
+                    CurrentX = LastData[1].X + (LastData[2].X/2+HitBox.X/2-.01)*sign
+                else
+                    normalZ = sign
+                    CurrentZ = LastData[1].Z + (LastData[2].Z/2+HitBox.X/2-.01)*sign
+                end
+                collided = true
+                return
+            end
+            LastData = collisionData
+        end
+        if xorz then
+            CurrentX = targetPosition
+        else
+            CurrentZ = targetPosition
+        end
+    end
+    doSomething(targetPosition.X,CurrentPosition.X,diffrence.X,true)
+    doSomething(targetPosition.Z,CurrentPosition.Z,diffrence.Z,false)
+   local normal = vector3(normalX,0,normalZ)
+   if not collided then
+    return targetPosition
+   end
+    return vector3(CurrentX,CurrentY,CurrentZ),normal
+end
 local ZERO = -9.99999993922529e-09 
 function Utils.shouldjump(entity,bp,bs)
     local pos = entity.Position
@@ -360,7 +448,7 @@ function  Utils.isGrounded(entity,CheckForBlockAboveInstead)
             for i,v in hbdata do
                 local newpos,newsize = v[2],v[1]
                 if Collisions.AABBcheck(vector3(position.X, position.Y-(0.01*invert),position.Z),newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize) then
-                    return true,block
+                    return true,block,{newpos,newsize}
                 end
             end
         end

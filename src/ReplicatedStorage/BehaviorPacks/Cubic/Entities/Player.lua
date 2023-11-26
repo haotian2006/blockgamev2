@@ -1,3 +1,4 @@
+local EntityHandler = require(game.ReplicatedStorage.EntityHandlerV2)
 local entity = {
     ["description"] = {
         is_spawnable = false,
@@ -23,15 +24,16 @@ local entity = {
             Sprinting = {Speed = 1.3},
             Walking = {Speed = 1},
             Crouching = {Speed = 0.3},
-        }
+        },
+
+        getSpeed = function(self)
+             return EntityHandler.getAndCache(self,"Speed")/2*(self.Crouching and 0.3 or 1)
+        end
     },
     component_groups = {
 
     },
     events ={
-        OnDeath = {
-            
-        }
     },
     functions = {
 

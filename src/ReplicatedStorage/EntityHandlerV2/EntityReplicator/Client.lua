@@ -6,16 +6,30 @@ local ReplicationUtils = require(EntityV2.EntityReplicator.ReplicatorUtils)
 local EntityHolder = require(EntityV2.EntityHolder)
 local EntityHandler = require(EntityV2)
 local math = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local Data = require(game.ReplicatedStorage.Data)
 local Render = require(script.Parent.Parent.Render)
+local Animator = require(script.Parent.Parent.Animator)
+local EntityTasks = require(script.Parent.TaskReplicator)
 local LOCAL_PLAYER = game.Players.LocalPlayer
 local Client = {}
 local key = {}
 local toInterpolate = {}
 local overRide = {Position = true,Rotation = true,HeadRotation = true}
+function Client.getGuidFrom(Key)
+    return key[Key]
+end
 function Client.createEntityFrom(data)
     local Entity = EntityHandler.new(data.Type,data.Guid)
+    if data.Guid == tostring(LOCAL_PLAYER.UserId) then
+        Data.setPlayerEntity(Entity)
+    end
     for i,v in data do
         Entity[i] = v
+    end
+    if data.__animations then
+        for i,v in data.__animations do
+            Animator.play(Entity,i)
+        end
     end
     return Entity
 end
@@ -23,7 +37,9 @@ function Client.updateEntity(Guid,data)
     local Entity = EntityHolder.getEntity(Guid)
     if not Entity then return end 
     local toInterpolate = toInterpolate[Guid] or {}
+    local hasOwner = EntityHandler.isOwner(Entity,LOCAL_PLAYER)
     for i,v in data do
+        if hasOwner and ReplicationUtils.REPLICATE_LEVEL[i] == 3 then continue end 
         Entity[i] = v
         if overRide[i] then toInterpolate[i] = nil end --Prevents lerping from messing up stuff
     end
@@ -36,7 +52,8 @@ function Client.handleFast(data,id)
     old.Chunk = normal.Chunk or old.Chunk
     for i,v in normal do
         if not toInterpolate[id] then toInterpolate[id] = {} end 
-        toInterpolate[id][i] = v
+                            --{target,origiank}
+        toInterpolate[id][i] = {v,old[i]}
     end
 end
 function Client.handleData(data)
@@ -59,13 +76,9 @@ function Client.handleData(data)
         end
         local Updated = Client.updateEntity(Guid,data)
         if not Updated then return end 
-        if data.Hitbox or data.EyeLevel then
-            Render.updateHitbox(EntityHolder.getEntity(Guid),
-                EntityHandler.get(Updated,"Hitbox"), 
-                EntityHandler.get(Updated,"EyeLevel"))
-        end
         if data.__components then
             Render.createModel(Updated)
+            table.clear(Updated.__cachedData)
         end
     --slow 
     end
@@ -76,34 +89,50 @@ function Client.readKey(keyData)
         if todo == '1' then
             table.insert(key,id)
         else
-            table.remove(key,table.find(key,id))
+            local idx = table.find(key,id)
+            if not idx then continue end 
+            table.remove(key,idx)
+            --delete entity
         end
     end
 end
-local Const =6
+local Const = 6
+local TIME = .1
 function Client.updateInterpolate(dt)
     local LerpRate = dt*Const
     for guid,target in toInterpolate do
         local Entity = EntityHolder.getEntity(guid)
         if not Entity then return end 
+        if EntityHandler.isOwner(Entity,LOCAL_PLAYER) then
+            Entity.Position = target.Position[1]
+            toInterpolate[guid] = nil return
+        end
         if target.Position then
-            local dif = math.lerp(Entity.Position,target.Position,LerpRate)
-            local reached =   (Entity.Position-target.Position).Magnitude <=.01 
-            Entity.Position = dif
-            if reached then
-                target.Position = nil 
+            local targetV = target.Position[1]
+            local maxDistance = (target.Position[2] - targetV).Magnitude
+            local rate = maxDistance/TIME
+            local moveDistance =rate*dt
+            local direction = (targetV - Entity.Position)
+            local new = Entity.Position + direction.Unit * moveDistance
+            if (target.Position[2]- new).Magnitude < maxDistance then 
+                Entity.Position = new
+            else
+                Entity.Position = targetV
+                target.Position = nil
             end
         end
         if target.Rotation then
-            local dif,reached = math.slerpAngle(Entity.Rotation,target.Rotation,LerpRate)
+            local targetV = target.Rotation[1]
+            local dif,reached = math.slerpAngle(Entity.Rotation,targetV,LerpRate*2.5)
             Entity.Rotation = dif
             if reached then
                 target.Rotation = nil 
             end
         end
         if target.HeadRotation then
-            local x,Xreached = math.slerpAngle(Entity.HeadRotation.X,target.HeadRotation.X,LerpRate)
-            local y,Yreached = math.slerpAngle(Entity.HeadRotation.Y,target.HeadRotation.Y,LerpRate)
+            local targetV = target.HeadRotation[1]
+            local x,Xreached = math.slerpAngle(Entity.HeadRotation.X,targetV.X,LerpRate*2.5)
+            local y,Yreached = math.slerpAngle(Entity.HeadRotation.Y,targetV.Y,LerpRate*2.5)
             Entity.HeadRotation = Vector2.new(x,y)
             if Xreached and Yreached then
                 target.HeadRotation = nil 
@@ -116,13 +145,13 @@ function Client.replicateToServer()
     local toReplicate = {}
     table.clear(ReplicationUtils.temp) 
     for id,entity in EntityHolder.getAllEntities() do
-        if not EntityHandler.isOwner(entity,game.Players.LocalPlayer) then continue end 
+        if not EntityHandler.isOwner(entity,game.Players.LocalPlayer) or entity.doReplication == false then continue end 
         local data = ReplicationUtils.fastEncode(entity)
         if not data then return end 
         if id == tostring(LOCAL_PLAYER.UserId)  then
-            data[1] = data[1][2] and Vector2.new(0,data[1][2]) or false 
+            data[1] = data[1][2] and Vector2.new(-69,data[1][2]) or false 
         else
-            data[1] = data[1][2] and {data[1],Vector2.new(0,data[1][2])} or data
+            data[1] = data[1][2] and {data[1],Vector2.new(0,data[1][2])} or data[1]
         end
         table.insert(toReplicate,data)
     end
@@ -133,10 +162,13 @@ end
 local Connection 
 function Client.Init()
     if Connection then return end 
-    EntityBridge:Connect(function(Entities,Key)
+    EntityBridge:Connect(function(Entities,Key,taskData)
        if Key then Client.readKey(Key) end 
-        for i,v in Entities do
+        for i,v in Entities or {} do
             Client.handleData(v)
+        end
+        for i,v in taskData or {} do
+            EntityTasks.decode(key[tonumber(i)],v)
         end
     end)
     Connection = RunService.RenderStepped:Connect(function(deltaTime)
@@ -152,4 +184,4 @@ function Client.Init()
     end)
     EntityBridge:Fire("CONNECTED")
 end
-return Client
+return table.freeze(Client)

@@ -21,7 +21,6 @@ end
 local EntityBridge = bridge.CreateBridge("EntityBridge")
 local GetChunk = bridge.CreateBridge("GetChunk")
 local isserver = runservice:IsServer()
-local bS = require(game.ReplicatedStorage.Libarys.Store)
 function self.AddEntity(uuid:string,address:table)
     self.AmmountOfEntities += 1
     if type(uuid) == "table" then 

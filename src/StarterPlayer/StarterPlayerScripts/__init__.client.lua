@@ -12,15 +12,13 @@ local EntityBridge = bridge.CreateBridge("EntityBridge")
 local GetChunk = bridge.CreateBridge("GetChunk")
 local datahandler = require(game.ReplicatedStorage.DataHandler)
 local ErrorHandler = require(game.ReplicatedStorage.Libarys.ErrorHandler)
-local mulithandler = require(game.ReplicatedStorage.MultiHandler)
 local toload = {}
 local currentlyloading = {} 
 local queued = {}
 local debirs = require(game.ReplicatedStorage.Libarys.Debris):Init()
 local anihandler = require(game.ReplicatedStorage.AnimationController)
-local render = require(game.ReplicatedStorage.RenderStuff.Render)
 local settings = require(game.ReplicatedStorage.GameSettings)
-local control = require(script.Parent.Controller)
+local control = require(script.Parent.ControllerOLD)
 local hotbar = managers.HotBarManager
 local comp = require(game.ReplicatedStorage.Libarys.compressor)
 local https = game:GetService("HttpService")
@@ -292,10 +290,10 @@ EntityBridge:Connect(function(entitys,ClientIndex)
                         for i,v in c do
                             local chunk = v[1]
                             local cx,cz = qf.cv2type("tuple",chunk)
-                            if render.UpdateChunk(cx,cz) then
-                                toload[chunk] = nil
-                                --break
-                            end
+                            -- if render.UpdateChunk(cx,cz) then
+                            --     toload[chunk] = nil
+                            --     --break
+                            -- end
                         end
                     end
                     runservicer.Heartbeat:Wait()
@@ -347,7 +345,7 @@ task.spawn(function()
             chtoup[i] = nil
             task.spawn(function()
                 local cx,cz = v:GetNTuple() 
-                render.UpdateChunk(cx,cz,true)
+             --   render.UpdateChunk(cx,cz,true)
                 
             end)
         end
@@ -427,7 +425,7 @@ function srender(p)
             task.spawn( function()
                 toload[v] = nil
                 queued[v] = nil
-                render.DeLoad(splited[1],splited[2])
+         --       render.DeLoad(splited[1],splited[2])
             end)
         end
 	end

@@ -576,7 +576,7 @@ function entity:UpdatePosition(dt)
         --     game:GetService("Debris"):AddItem(p,3)
         --     p.Anchored = true
         --     p.Position = p2*3
-        -- end
+        -- end 
         local e = velocity
         velocity = (p2-self.Position)
         local newp,_,_

@@ -3,6 +3,7 @@ local ReplicationRemote = BridgeNet.CreateBridge("ReplicationRemote")
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local Math = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local ConversionUtils = require(game.ReplicatedStorage.ConversionUtils)
+require(script.Parent.EntityTaskReplicator).init()
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Replication = {}
@@ -15,11 +16,14 @@ local temp = Replication.temp
     0: replicates
     1: does not replicate at all 
     2: only replicates once
+    3: does not replicate to owner
     any attributes with not listed would be deafult to 0
 ]]
 Replication.REPLICATE_LEVEL = {
     __main = 1,__velocity = 1,__changed = 1,__cachedData = 1,__localData = 1,Chunk = 1,Grounded = 1,Guid = 1,
     __components = 2,__animations = 2,
+    Crouching = 3, Position = 3,Hitbox = 3, EyeLevel = 3,Rotation = 3,HeadRotation = 3
+
 }
 function Replication.swapKeyPairs(t)
     local new = {}
@@ -69,13 +73,43 @@ local FAST_CHANGES = {"Position","Rotation","HeadRotation",}
 function Replication.getFastChanges(self)
     local old = self.__localData.Old or {}
     self.__localData.Old  = old
+    local localD = self.__localData
     local changes = {}
-    for i,v in FAST_CHANGES do
-        if old[v] ~= self[v] then
-            changes[v] = self[v] 
-        end
-        old[v] = self[v]
+    if old["Position"] ~= self["Position"] then
+        changes["Position"] = self["Position"] 
     end
+    old["Position"] = self["Position"]
+
+    if localD["Rotation"] then
+        if old["Rotation"] ~= localD["Rotation"] then
+            changes["Rotation"] = localD["Rotation"] 
+        end
+        old["Rotation"] = localD["Rotation"] 
+    else
+        if old["Rotation"] ~= self["Rotation"] then
+            changes["Rotation"] = self["Rotation"] 
+        end
+        old["Rotation"] = self["Rotation"] 
+    end
+
+    if localD["HeadRotation"] then
+        if old["HeadRotation"] ~= localD["HeadRotation"] then
+            changes["HeadRotation"] = localD["HeadRotation"] 
+        end
+        old["HeadRotation"] = localD["HeadRotation"] 
+    else
+        if old["HeadRotation"] ~= self["HeadRotation"] then
+            changes["HeadRotation"] = self["HeadRotation"] 
+        end
+        old["HeadRotation"] = self["HeadRotation"] 
+    end
+
+    -- for i,v in FAST_CHANGES do
+    --     if old[v] ~= self[v] then
+    --         changes[v] = self[v] 
+    --     end
+    --     old[v] = self[v]
+    -- end
     return changes
 end
 local CHX = GameSettings.ChunkSize.X

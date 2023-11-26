@@ -82,8 +82,9 @@ local function createEntityModel(self,hitbox)
 end
 function  Render.checkIfChanged(self,key)
     if not self.__old then self.__old = {} end 
-    if self.__old[key] ~= self[key] then
-        self.__old[key] = self[key]
+    local current = Entity.getAndCache(self,key)
+    if self.__old[key] ~= current then
+        self.__old[key] = current
         return true
     end
     return false
@@ -104,12 +105,12 @@ end
 function Render.updateHitbox(self,targetH,targetE)
     local model = self.__model
     if not model then return end 
+    if not  (Render.checkIfChanged(self,"EyeLevel") or Render.checkIfChanged(self,"Hitbox")) then return end 
     local EntityModel = model:FindFirstChild("EntityModel")
     if not EntityModel then return end 
     local PrimaryPart =   model.PrimaryPart
-    if targetH then 
-        PrimaryPart.Size = Vector3.new(targetH.X,targetH.Y,targetH.X)*Settings.GridSize 
-    end
+    targetH = targetH or Entity.getAndCache(self,"Hitbox")
+    PrimaryPart.Size = Vector3.new(targetH.X,targetH.Y,targetH.X)*Settings.GridSize 
     local MiddleOffset = PrimaryPart.Size.Y-(PrimaryPart.Size.Y/2+EntityModel.PrimaryPart.Size.Y/2)
     local pos =PrimaryPart.Position 
     EntityModel.PrimaryPart.CFrame = CFrame.new(pos.X,pos.Y-MiddleOffset,pos.Z)
@@ -117,7 +118,7 @@ function Render.updateHitbox(self,targetH,targetE)
     weld.C0 = CFrame.new(0,-MiddleOffset,0)
     
     local eyeweld = model:FindFirstChild("Eye"):FindFirstChild("EyeWeld")
-    local offset = targetE or self.EyeLevel
+    local offset = targetE or Entity.get(self,"EyeLevel")
     if not eyeweld then return end 
     eyeweld.C0 = offset and CFrame.new( Vector3.new(0,offset/2,0)*3) or CFrame.new()
 end
@@ -131,8 +132,8 @@ end
 function Render.updateRotation(self)
     local model:Model = self.__model
     if not model or self.IsDead then return end 
-    local cR,cHR = Render.checkIfChanged(self,"Rotation"),self["HeadRotation"]
-    if not (cR and cHR) then return end 
+    local cR,cHR = Render.checkIfChanged(self,"Rotation"), Render.checkIfChanged(self,"HeadRotation")
+    if not (cR or cHR) then return end 
     local neck:Motor6D = self.__cachedData["Neck"] or model:FindFirstChild("Neck",true)
     self.__cachedData["Neck"] = neck
     local mainWeld:Motor6D = self.__cachedData["MainWeld"] or model:FindFirstChild("MainWeld",true)
@@ -145,14 +146,10 @@ function Render.updateRotation(self)
     mainWeld.C0 = CFrame.fromOrientation(0,math.rad(rotation+180),0)+mainWeld.C0.Position
 end
 local Connection 
-function Render.Init()
-    if  Connection then return end 
-    Connection = RunService.RenderStepped:Connect(function(deltaTime)
-        for guid,entity in EntityHolder.getAllEntities() do
-            --TODO: Range Check?
-            Render.updateRotation(entity)
-            Render.updatePosition(entity)
-        end
-    end)
+function Render.update(entity)
+    Render.updateRotation(entity)
+    Render.updateHitbox(entity)
+    Render.updatePosition(entity)
 end
+
 return Render

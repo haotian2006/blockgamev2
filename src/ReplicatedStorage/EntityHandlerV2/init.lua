@@ -18,10 +18,12 @@ Entity.Animator = Animator
 Entity.Utils = Utils
 Entity.Gravity = 32--9.81
 Entity.Speed = 0
-Entity.RotationSpeedMultiplier = 7
-
+Entity.RotationSpeedMultiplier = 6*2.5
 local slerpAngle = MathUtils.slerpAngle 
+local NILVALUE = '↓←⊞🌟'
+local DEAFULTS = "⊞↓←🌟"
 function Entity.new(type:string,ID)
+    ID = ID and tostring(ID)
     local info = BehaviorHandler.GetEntity(type)
     if not info then return warn(`Entity '{type}' does not exist`) end 
     local self = {}
@@ -32,15 +34,11 @@ function Entity.new(type:string,ID)
     self.__components = {}
     self.__changed = {}
     self.__animations = {}
-   -- self.__playingAnimations = {}
     self.__states = {}
- --   self.__ownership = nil
     self.__cachedData = {}
-  --  self.__model = nil
     self.__localData = {}
     self.Position = Vector3.zero
     self.Grounded = true
-  --  self.Chunk = Vector2.zero
     self.Rotation = 0 
     self.HeadRotation = Vector2.zero
     return self
@@ -54,11 +52,19 @@ function Entity.addComponent(self,component,index)
     Entity.removeComponent(self,component)
     table.insert(self.__components,index or 1,componentData)
 end
+function Entity.hasComponet(self,componet)
+    for i,v in self.__components do
+        if v.Name == componet then
+            return i
+        end
+    end
+end
 function Entity.removeComponent(self,name)
-    table.clear(self.__cachedData )
     for i,v in self.__components do
         if v.Name == name then
+            table.clear(self.__cachedData )
             table.remove(self.__components,i)
+            self.__changed["__components"] = true
         end
     end
 end
@@ -67,36 +73,41 @@ function Entity.clearCache(self)
     table.clear(self.__cachedData)
 end
 function Entity.getAndCache(self,string)
-    if self[string] then
+    if self[string] ~= nil then
         return self[string] 
     end
     local cached = self.__cachedData[string]
     if not cached then
         local data,_ = Entity.get(self,string) 
-        self.__cachedData[string] = _ and "_" or data
+        if data == "NIL" then
+            data = NILVALUE
+        end
+        self.__cachedData[string] = _ and DEAFULTS or data
         return data
-    elseif cached == "_" then
+    elseif cached == DEAFULTS then
         return Entity[string]
+    elseif cached == NILVALUE then
+        return 
     end
     return cached
 end
 function Entity.get(self,string) 
-    if self[string] then
+    if self[string] ~= nil then
         return self[string]
     end
     for i,v in self.__components do
-        if v[string] then 
+        if v[string] ~= nil then 
             return v[string]
         end
     end
-    if self.__main[string] then 
+    if self.__main[string] ~= nil then 
         return self.__main[string]
     end
     return Entity[string],true
 end
 function Entity.set(self,key,value)
-    if self[key] ~= value and IS_SERVER then
-        self.__changed[key] = true
+    if self[key] ~= value then
+        self.__changed[key] = IS_SERVER and true or nil
     end
     self[key] = value
 end
@@ -132,29 +143,70 @@ end
 function Entity.getMoveDireaction(self,Direaction)
  return self.moveDir
 end
-function Entity.jump(self,JumpPower)
-    if not self.Grounded then return end 
-    local bodyVelocity = Entity.getVelocity(self,"Physics") or Vector3.zero
-    local JumpPower = JumpPower or Entity.get(self,"jumpPower")
-    Entity.setVelocity(self,"Physics",bodyVelocity + Vector3.new(0,JumpPower,0))
-    self.Grounded = false
+--//Overrideable
+function Entity.getSpeed(self)
+    return Entity.getAndCache(self,"Speed")
 end
+
 --4.9
 
 
 --//OwnerShip
-function Entity.isOwner(self,player:Player)
-    return self.__ownership == player.UserId
+Entity.isOwner = Utils.isOwner
+Entity.getOwner = Utils.getOwner
+function Entity.setOwner(self,player:Player | nil)
+     self.__ownership = player and player.UserId
+     self.__changed["__ownership"] = true
+     self.__localData["Owner"] = nil 
 end
-function Entity.getOwner(self)
-    return self.__ownership ~= nil and game.Players:GetPlayerByUserId(self.__ownership)
-end
---//StateHandler 
+--//StateHandler (Might disable this)
 function Entity.setState(self,state,value)
     self.__states[state] = value
 end
 function Entity.getState(self,state)
     return self.__states[state] 
+end
+--//Other
+function Entity.jump(self,JumpPower)
+    if not self.Grounded or  Utils.isGrounded(self,true) then return end 
+    local bodyVelocity = Entity.getVelocity(self,"Physics") or Vector3.zero
+    local JumpPower = JumpPower or Entity.get(self,"jumpPower")
+    Entity.setVelocity(self,"Physics",bodyVelocity + Vector3.new(0,JumpPower,0))
+    self.Grounded = false
+end
+function Entity.isDead(self)
+    if not self then return true end 
+    return self.__dead or false 
+end
+function Entity.canCrouch(self,unCrouch)
+    if unCrouch and Utils.isGrounded(self,true) then
+        return false
+   end
+   return true 
+end
+function Entity.crouch(self,isDown,requestplayer)
+    local CrouchHeight = Entity.get(self,"CrouchLower")
+    if not CrouchHeight then return end 
+    self.Crouching = self.Crouching or false
+    if isDown~=nil and self.Crouching == isDown then return end 
+    Entity.set(self,"Crouching",not self.Crouching)
+    local currentHitBox = Entity.get(self,"Hitbox")
+    local EyeLevel = Entity.get(self,"EyeLevel")
+    if self.Crouching then
+        Entity.set(self,"Hitbox", Vector2.new(currentHitBox.X, currentHitBox.Y-CrouchHeight))
+        Entity.set(self,"EyeLevel", EyeLevel-CrouchHeight)
+        Entity.set(self,"Position",self.Position+Vector3.new(0,-CrouchHeight/2,0))
+        if not requestplayer then 
+            Animator.play(self,"Crouch",nil,nil,nil)
+        end
+    else
+        Entity.set(self,"Hitbox", Vector2.new(currentHitBox.X, currentHitBox.Y+CrouchHeight))
+        Entity.set(self,"EyeLevel", EyeLevel+CrouchHeight)
+        Entity.set(self,"Position",self.Position+Vector3.new(0,CrouchHeight/2,0))
+       if not requestplayer then
+            Animator.stop(self,"Crouch",nil,requestplayer)
+       end
+    end
 end
 --//Updates
 function Entity.updateChunk(self)
@@ -181,6 +233,7 @@ function Entity.updateTurning(self,dt)
     if targetHead then
        local x,_x =  slerpAngle(head.X,targetHead.X,dt)
        local y,_y =slerpAngle(head.Y,targetHead.Y,dt)
+
        self.HeadRotation = Vector2.new(x,y)
        if _x and _y then
         self.__localData.HeadRotation = nil
@@ -203,15 +256,29 @@ function Entity.updatePosition(self,dt)
         --local e = velocity
         velocity = (p2-self.Position)
         local newPosition,normal,blockdata,shouldJump = Utils.entityVsTerrain(self,velocity)
+        if self.Crouching and velocity.Y == 0 then
+            local newP,n = Utils.stayOnEdge(self,newPosition)
+            newPosition = newP
+            normal = n or normal
+        end
         local direationVector = newPosition - self.Position
-        if Vector3.new(direationVector.X,0,direationVector.Z):FuzzyEq(Vector3.zero,0.01) then
-            if  self.__localData.LastUpdate and (os.clock()- self.__localData.LastUpdate)>.2 or RunService:IsClient()  then
-                -- self:StopAnimation("Walk")
+        if Vector3.new(direationVector.X,0,direationVector.Z):FuzzyEq(Vector3.zero,0.001) then
+            if  self.__localData.LastUpdate and (os.clock()- self.__localData.LastUpdate)>.02  then
+               if Animator.isPlaying(self,"Walk") then
+                Animator.stop(self,"Walk")
+               end
                 -- self:SetState('Moving',false)
             end
         else
+            local speed = (newPosition*Vector3.new(1,0,1) - self.Position*Vector3.new(1,0,1)).Magnitude/dt/(Entity.getAndCache(self,"Speed"))
+            if not Animator.isPlaying(self,"Walk") then
+                Animator.play(self,"Walk")
+            end
+            if speed >=0.04 then
+                Animator.adjustSpeed(self,"Walk",speed)
+            end
             -- self:PlayAnimation("Walk")
-            -- self.__localData.LastUpdate = os.clock()
+          self.__localData.LastUpdate = os.clock()
             -- self:SetState('Moving',true)
         end
         self.Position = newPosition--interpolate(self.Position,newp,dt) 
@@ -237,23 +304,24 @@ local a = true
 function Entity.updateGravity(self,dt)
     local bodyVelocity = Entity.getVelocity(self,"Physics") or Vector3.zero
     local yValue = 0
-    local FramesInAir = self.FramesInAir or 1
-    if not self.Grounded then
+    local FramesInAir = self.FramesInAir or 0
+    if not self.Grounded and (not Utils.isGrounded(self,true) or FramesInAir == 0) then
         local Gravity = Entity.getAndCache(self,"Gravity")
         yValue = bodyVelocity.Y + (-Gravity)*dt
-        self.FramesInAir = FramesInAir +1
+        FramesInAir = FramesInAir +1
     else
         FramesInAir = 0 
     end
+    self.FramesInAir  = FramesInAir
     Entity.setVelocity(self,"Physics",Vector3.new(bodyVelocity.X,yValue,bodyVelocity.Z))
 end
-function Entity.updateFriction(self,dt,normal)
+function Entity.updateMovement(self,dt,normal)
     local bodyVelocity = Entity.getVelocity(self,"Physics") or Vector3.zero
     local newX = bodyVelocity.X
     local newZ = bodyVelocity.Z
     local dir = self.moveDir or Vector3.zero
     if  dt >= 1/20 or (dir.Magnitude >.1 and Vector2.new(bodyVelocity.X,bodyVelocity.Z).Magnitude<=.01) then
-        local Speed = 4.3/2--Entity.getAndCache(self,"Speed") or 0 
+        local Speed = Entity.getAndCache(self,"getSpeed")(self)--4.3/2--Entity.getAndCache(self,"Speed") or 0 
         local s = .6
         local accelerationX = Speed*(.6/s)^3 * dir.X/1
         local accelerationZ = Speed*(.6/s)^3 * dir.Z/1
@@ -272,26 +340,14 @@ function Entity.update(self,dt,fixedDt)
         Entity.updateGrounded(self,dt)
         Entity.updateGravity(self,dt)
         Entity.updateTurning(self,dt)
-        Entity.updateFriction(self,fixedDt,normal)
+        Entity.updateMovement(self,fixedDt,normal)
     end
     if IS_CLIENT then
         
     end
 end
---//Animaton
-function Entity.playAnimation(self,animation)
-    if self.__dead then return end 
-    local owner = Entity.getOwner(self)
-    if not IS_CLIENT then
-        --//SendToUpdateTable
-    elseif owner == LOCAL_PLAYER then
-        Animator.play(self,animation)
-            --//SendToUpdateTable
-    else
-        Animator.play(self,animation)
-    end
-end
-function Entity:destroy()
+
+function Entity.destroy(self)
     self.__destroyed = true
 end
 return Entity
