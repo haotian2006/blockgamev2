@@ -104,8 +104,11 @@ function Client.updateInterpolate(dt)
         local Entity = EntityHolder.getEntity(guid)
         if not Entity then return end 
         if EntityHandler.isOwner(Entity,LOCAL_PLAYER) then
-            Entity.Position = target.Position[1]
-            toInterpolate[guid] = nil return
+            if target.Position then
+                Entity.Position = target.Position[1]
+            end
+            toInterpolate[guid] = nil 
+            continue
         end
         if target.Position then
             local targetV = target.Position[1]
@@ -141,22 +144,33 @@ function Client.updateInterpolate(dt)
         if next(target) == nil then toInterpolate[guid] = nil end 
     end
 end
+local TaskReplicator = require(script.Parent.TaskReplicator)
 function Client.replicateToServer()
     local toReplicate = {}
+    local OtherTasks = {}
     table.clear(ReplicationUtils.temp) 
     for id,entity in EntityHolder.getAllEntities() do
         if not EntityHandler.isOwner(entity,game.Players.LocalPlayer) or entity.doReplication == false then continue end 
         local data = ReplicationUtils.fastEncode(entity)
-        if not data then return end 
+        local tasks = TaskReplicator.encode(id)
+        TaskReplicator.clearDataFor(id)
+        if not data then 
+            if tasks then
+                table.insert(toReplicate,if id == tostring(LOCAL_PLAYER.UserId) then false else id)
+                table.insert(OtherTasks,tasks)
+            end
+            continue 
+        end 
         if id == tostring(LOCAL_PLAYER.UserId)  then
             data[1] = data[1][2] and Vector2.new(-69,data[1][2]) or false 
         else
             data[1] = data[1][2] and {data[1],Vector2.new(0,data[1][2])} or data[1]
         end
         table.insert(toReplicate,data)
+        table.insert(OtherTasks,tasks)
     end
     if #toReplicate >0 then
-        EntityBridge:Fire(toReplicate)
+        EntityBridge:Fire(toReplicate,#OtherTasks >0 and OtherTasks or nil)
     end
 end
 local Connection 

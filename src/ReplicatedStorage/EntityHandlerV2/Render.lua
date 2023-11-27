@@ -121,19 +121,23 @@ function Render.updateHitbox(self,targetH,targetE)
     local offset = targetE or Entity.get(self,"EyeLevel")
     if not eyeweld then return end 
     eyeweld.C0 = offset and CFrame.new( Vector3.new(0,offset/2,0)*3) or CFrame.new()
+    task.delay(.05,function()
+        Render.updateRotation(self,true)
+        Render.updatePosition(self,true)
+    end) -- werid bug with head rotation
 end
-function Render.updatePosition(self)
-    if not  Render.checkIfChanged(self,"Position") then return end 
+function Render.updatePosition(self,override)
+    if not  Render.checkIfChanged(self,"Position") and not override then return end 
     local model = self.__model
     if not model then return end 
     model.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
 end 
 
-function Render.updateRotation(self)
+function Render.updateRotation(self,bypass)
     local model:Model = self.__model
     if not model or self.IsDead then return end 
     local cR,cHR = Render.checkIfChanged(self,"Rotation"), Render.checkIfChanged(self,"HeadRotation")
-    if not (cR or cHR) then return end 
+    if not (cR or cHR) and not bypass then return end 
     local neck:Motor6D = self.__cachedData["Neck"] or model:FindFirstChild("Neck",true)
     self.__cachedData["Neck"] = neck
     local mainWeld:Motor6D = self.__cachedData["MainWeld"] or model:FindFirstChild("MainWeld",true)

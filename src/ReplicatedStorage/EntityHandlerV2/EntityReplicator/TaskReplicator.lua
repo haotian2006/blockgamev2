@@ -28,8 +28,10 @@ function Tasks.bind(task,callback)
         fixOrderTask()
     end
 end
+local cache = {}
 function Tasks.clearDataFor(uuid)
     TaskData[uuid] = nil
+    cache[uuid] = nil
 end
 function Tasks.attachDataTo(uuid,task,data,SendToOwner)
     TaskData[uuid] = TaskData[uuid] or {}
@@ -37,12 +39,12 @@ function Tasks.attachDataTo(uuid,task,data,SendToOwner)
     TaskData[uuid][task] = taskFolder
     table.insert(TaskData[uuid][task],{data,SendToOwner})
 end
-local cache = {}
 function Tasks.encode(uuid,isOwner)
     local data = TaskData[uuid]
     if not data then return end 
-    if cache[uuid] and not isOwner then return cache end 
+    if cache[uuid] and not isOwner then return cache or nil end 
     local newData = {}
+    local hasData = false
     for subTask,subData in data do
         local subFolderIndex = OrderTask[subTask]
         local subFolder
@@ -54,12 +56,14 @@ function Tasks.encode(uuid,isOwner)
             end
             newData[subTask] = subFolder
             table.insert(subFolder,tData[1])
+            hasData = true
         end
     end
+    newData = hasData and newData or hasData
     if not isOwner then
         cache[uuid] = newData
     end
-    return newData
+    return newData or nil
 end
 function Tasks.decode(uuid,data)
    for i,tData in data do
@@ -68,7 +72,7 @@ function Tasks.decode(uuid,data)
         if not callback then warn(`No CallBack Found For {task}`) continue  end 
         for i,v in tData do
             if i == 1 then continue end 
-            callback(v)
+            callback(uuid,v)
         end
    end
 end
@@ -84,4 +88,4 @@ else
 end)
 end
 
-return Tasks
+return table.freeze(Tasks)

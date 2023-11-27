@@ -168,7 +168,9 @@ function Server.Replicate(secondTick)
         if next(v) == nil then continue end 
         newTaskData[i] = {}
         for uuid,data in v do
-            newTaskData[i][tostring(Server.GetIdLocationFrom(i,uuid))] = data
+            local sId = Server.GetIdLocationFrom(i,uuid)
+            if not sId then continue end 
+            newTaskData[i][tostring(sId)] = data
         end
     end
     for i,v in Players do
@@ -198,13 +200,21 @@ function Server.Init()
             clock1 = 0
         end
     end)
-    EntityBridge:Connect(function(player,data)
+    EntityBridge:Connect(function(player,data,otherData)
         if data == "CONNECTED" then
             clientEntities[player] = {}
-        --TESTCASE    EntityTasks.attachDataTo(tostring(player.UserId),"Animation",2,true)
             return
         end
-        for i,entity in data do
+        local ids = {}
+        for i,entity in data or {} do
+            if type(entity) ~= "table" then
+                if not entity then 
+                    ids[i] = tostring(player.UserId)
+                    continue
+                end
+                ids[i] = entity
+                continue
+            end
             local id 
             if typeof(entity[1]) =="Vector2" then
                 id = tostring(entity[1].X)
@@ -217,12 +227,18 @@ function Server.Init()
                 id = tostring(entity[1][1])
                 entity[1] = Vector2.new(0,entity[1][2])
             end
+            ids[i] = id
             local rEntity = EntityHolder.getEntity(id)
             if not rEntity then continue  end
             local decode = ReplicationUtils.fastDecode(entity,rEntity)
             for i,v in decode do
                 rEntity[i] = v
             end
+        end
+        for idx,data in otherData or {} do
+            local uuid = ids[idx]
+
+            EntityTasks.decode(uuid,data)
         end
     end)
 end

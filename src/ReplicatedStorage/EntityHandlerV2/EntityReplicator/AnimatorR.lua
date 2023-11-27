@@ -1,72 +1,81 @@
 local AnimatorR = {}
 local Utils = require(script.Parent.Parent.Utils)
-local BridgeNet = require(game.ReplicatedStorage.BridgeNet)
-local AnimationBridge = BridgeNet.CreateBridge("AnimationBridge")
 local Runservice = game:GetService("RunService")
 local EntityHolder = require(script.Parent.Parent.EntityHolder)
 local Animator: typeof(require(script.Parent.Parent.Animator))
 local IS_CLIENT = Runservice:IsClient()
+local TaskReplicator = require(script.Parent.TaskReplicator)
 local Tasks = {
     'play',
     'stop',
     'stopAll',
     'adjustSpeed',
+    'adjustWeight',
 }
-function AnimatorR.sendTask(entity,task,player,...)
+local encodeFunc = {
+    play = function(animation,fadeTime,weight,speed)
+        local v2 = if fadeTime or weight then Vector2.new(fadeTime or 0.100000001,weight or 1) else nil
+        return {Vector2.new(1,speed or 1),animation,v2}
+    end,
+    stop = function(animation,fadeTime)
+        return {Vector2.new(2,fadeTime or 0.100000001),animation}
+    end,
+    stopAll = function(fadeTime)
+        return Vector2.new(3,fadeTime or 0.100000001)
+    end,
+    adjustSpeed = function(animation,speed)
+        return {Vector2.new(4,speed or 1),animation}
+    end,
+    adjustWeight = function(animation,weight)
+        return {Vector2.new(5,weight or 1),animation}
+    end,
+}
+local decodeFunc = {
+    play = function(entity,data)
+        local a = data[3] or {}
+        Animator.play(entity,data[2],a.X,a.Y,data[1].Y)
+    end,
+    stop = function(entity,data)
+        Animator.stop(entity,data[2],data[1].Y)
+    end,
+    stopAll = function(entity,data)
+        Animator.stopAll(entity,data.Y)
+    end,
+    adjustSpeed = function(entity,data)
+        Animator.adjustSpeed(entity,data[2],data[1].Y)
+    end,
+    adjustWeight = function(entity,data)
+        Animator.adjustWeight(entity,data[2],data[1].Y)
+    end,
+}
+function AnimatorR.sendTask(entity,task,SendToOwner,...)
     if entity.doReplication == false then return end 
-    task = table.find(Tasks,task)
-    if not task then return end 
+    local func = encodeFunc[task]
+    if not func then return end 
     local guid = entity.Guid
     if IS_CLIENT then
-        if not Utils.isOwner(entity,game.Players.LocalPlayer) then return end 
-        if guid == tostring(game.Players.LocalPlayer.UserId) then
-            guid = true
-        end
-        AnimationBridge:Fire(guid,task,...)
+       TaskReplicator.attachDataTo(guid,"Animator",func(...))
     else
-        local ToFire = Utils.getPlayersNearEntity(entity)
-        if player then 
-            local idx = table.find(ToFire,player)
-            if idx then 
-                table.remove(ToFire,idx) 
-            end 
-         end 
-         
-        AnimationBridge:FireToMultiple(ToFire,guid,task,...)
+        TaskReplicator.attachDataTo(guid,"Animator",func(...),SendToOwner)
     end
 end
-
+local function Recieve(uuid,data)
+    local Entity = EntityHolder.getEntity(uuid)
+    if not Entity then return end 
+    local defunc 
+    if IS_CLIENT then
+        if type(data) == "table" then
+            defunc= decodeFunc[Tasks[data[1].X]]
+        else
+            defunc= decodeFunc[Tasks[data.X]]
+        end
+        defunc(Entity,data)
+    else
+        TaskReplicator.attachDataTo(uuid,"Animator",data)
+    end
+end
 function AnimatorR.init(animator)
     Animator = animator
-    if IS_CLIENT then
-
-    AnimationBridge:Connect(function(uuid,task,...)
-        local Entity = EntityHolder.getEntity(uuid)
-        if not Entity then return end 
-        Animator[Tasks[task]](Entity,...)
-    end)
-    
-    else
-    
-    AnimationBridge:Connect(function(player,uuid,task,...)
-        if uuid == true then
-            uuid = tostring(player.UserId)
-        end
-        local Entity = EntityHolder.getEntity(uuid)
-        if not Entity then return end 
-        if not Utils.isOwner(Entity,player) then return end 
-        if task == 1 then
-            Animator.play2(Entity,...)
-        elseif task == 2 then
-            Animator.stop2(Entity,...)
-        elseif task == 3 then
-            Animator.stopAll2(Entity,...)
-        elseif task == 4 then
-            Animator.adjustSpeed2(Entity,...)
-        end
-      --  Animator[Tasks[task]](Entity,unpack(add))
-    end)
-        
-    end
 end
+TaskReplicator.bind("Animator",Recieve)
 return AnimatorR

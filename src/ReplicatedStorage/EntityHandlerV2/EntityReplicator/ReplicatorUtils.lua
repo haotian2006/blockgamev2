@@ -3,7 +3,6 @@ local ReplicationRemote = BridgeNet.CreateBridge("ReplicationRemote")
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local Math = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local ConversionUtils = require(game.ReplicatedStorage.ConversionUtils)
-require(script.Parent.EntityTaskReplicator).init()
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Replication = {}
@@ -79,7 +78,6 @@ function Replication.getFastChanges(self)
         changes["Position"] = self["Position"] 
     end
     old["Position"] = self["Position"]
-
     if localD["Rotation"] then
         if old["Rotation"] ~= localD["Rotation"] then
             changes["Rotation"] = localD["Rotation"] 

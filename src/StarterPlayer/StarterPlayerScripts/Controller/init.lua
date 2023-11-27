@@ -15,13 +15,9 @@ function Funcs.Crouch(key,IsDown,GPE,inputs)
     local Player = LPE()
     if EntityHandler.isDead(Player) or  Player.Crouching or not IsDown then return end 
     EntityHandler.crouch(Player,true)
-    Animator.play(Player,"Crouch")
-    EntityTaskReplicator.doTask(Player,"Crouch",true)
     repeat
         task.wait()
     until (not InputHandler.isDown("Crouch") and   EntityHandler.canCrouch(Player,true))
-    EntityTaskReplicator.doTask(Player,"Crouch",false)
-    Animator.stop(Player,"Crouch")
     EntityHandler.crouch(Player,false)
 end
 function  Controller.createBinds()

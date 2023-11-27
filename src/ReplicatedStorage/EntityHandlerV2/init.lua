@@ -11,8 +11,9 @@ local MathUtils = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local Animator = require(script.Animator)
 local Utils = require(script.Utils)
 local DataHandler = require(game.ReplicatedStorage.DataHandler)
-
+local EntityTaskReplicator = require(script.EntityReplicator.EntityTaskReplicator)
 local Entity = {}
+EntityTaskReplicator.Init(Entity)
 Utils.Init(Entity) 
 Entity.Animator = Animator
 Entity.Utils = Utils
@@ -184,28 +185,35 @@ function Entity.canCrouch(self,unCrouch)
    end
    return true 
 end
-function Entity.crouch(self,isDown,requestplayer)
+function Entity.crouch(self,isDown,fromClient)
     local CrouchHeight = Entity.get(self,"CrouchLower")
     if not CrouchHeight then return end 
     self.Crouching = self.Crouching or false
     if isDown~=nil and self.Crouching == isDown then return end 
-    Entity.set(self,"Crouching",not self.Crouching)
+    self.Crouching = not self.Crouching
     local currentHitBox = Entity.get(self,"Hitbox")
     local EyeLevel = Entity.get(self,"EyeLevel")
     if self.Crouching then
-        Entity.set(self,"Hitbox", Vector2.new(currentHitBox.X, currentHitBox.Y-CrouchHeight))
-        Entity.set(self,"EyeLevel", EyeLevel-CrouchHeight)
-        Entity.set(self,"Position",self.Position+Vector3.new(0,-CrouchHeight/2,0))
-        if not requestplayer then 
-            Animator.play(self,"Crouch",nil,nil,nil)
+        -- Entity.set(self,"Hitbox", Vector2.new(currentHitBox.X, currentHitBox.Y-CrouchHeight))
+        -- Entity.set(self,"EyeLevel", EyeLevel-CrouchHeight)
+        self.Hitbox = Vector2.new(currentHitBox.X, currentHitBox.Y-CrouchHeight)
+        self.EyeLevel = EyeLevel-CrouchHeight
+        if not  fromClient then 
+            Entity.set(self,"Position",self.Position+Vector3.new(0,-CrouchHeight/2,0))
         end
+        Animator.playLocal(self,"Crouch",nil,nil,nil)
     else
-        Entity.set(self,"Hitbox", Vector2.new(currentHitBox.X, currentHitBox.Y+CrouchHeight))
-        Entity.set(self,"EyeLevel", EyeLevel+CrouchHeight)
-        Entity.set(self,"Position",self.Position+Vector3.new(0,CrouchHeight/2,0))
-       if not requestplayer then
-            Animator.stop(self,"Crouch",nil,requestplayer)
-       end
+        -- Entity.set(self,"Hitbox", Vector2.new(currentHitBox.X, currentHitBox.Y+CrouchHeight))
+        -- Entity.set(self,"EyeLevel", EyeLevel+CrouchHeight)
+        self.Hitbox = Vector2.new(currentHitBox.X, currentHitBox.Y+CrouchHeight)
+        self.EyeLevel = EyeLevel+CrouchHeight
+        if not fromClient then 
+            Entity.set(self,"Position",self.Position+Vector3.new(0,CrouchHeight/2,0))
+        end
+        Animator.stopLocal(self,"Crouch",nil)
+    end
+    if not fromClient or IS_SERVER then
+        EntityTaskReplicator.doTask(self,"Crouch",not fromClient and IS_SERVER,self.Crouching,true)
     end
 end
 --//Updates

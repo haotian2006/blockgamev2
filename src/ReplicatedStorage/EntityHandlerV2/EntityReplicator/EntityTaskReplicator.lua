@@ -1,43 +1,54 @@
 local tasks = {}
 local RunService = game:GetService("RunService")
-local BridgeNet = require(game.ReplicatedStorage.BridgeNet)
-local EntityTasksBridge = BridgeNet.CreateBridge("EntityBridgeT")
 local IS_CLIENT = RunService:IsClient()
 local EntityV2 = game.ReplicatedStorage.EntityHandlerV2
 local EntityHolder = require(EntityV2.EntityHolder)
-local EntityHandler = require(EntityV2)
-local Tasks = {}
-if IS_CLIENT then
-else
+local EntityHandler 
+local TaskReplicator = require(script.Parent.TaskReplicator)
+local TaskOrder = {
+    "Crouch"
+}
+local decodeFunctions = {
+    Crouch = function(Entity,data)
+        local value1 = bit32.band(data.Y, 1)
+        local value2 = bit32.band(bit32.rshift(data.Y, 1), 1)
+        EntityHandler.crouch(Entity,value1 == 1, value2 == 1)
+    end
+}
+local encodeFunctions = {
+    Crouch = function(Entity,isDown,fromClient)
+        local v = isDown and 1 or 0
+        local v2 = fromClient and 1 or 0
+        return Vector2int16.new(1,bit32.bor(v, bit32.lshift(v2, 1)))
+    end
+}
 
-function Tasks.Crouch(Entity,IsDown,player)
-    EntityHandler.crouch(Entity,IsDown,player)
-end
 
-
-end
-function tasks.doTask(Entity,task,data)
+function tasks.doTask(Entity,task,SendToOwner,...)
+    local encodeFunction = encodeFunctions[task]
+    if not encodeFunction then return false end 
     if IS_CLIENT then 
-        EntityTasksBridge:Fire(Entity.Guid,task,data)
+        TaskReplicator.attachDataTo(Entity.Guid,"Task",encodeFunction(Entity,...))
     else
-        local owner = EntityHandler.getOwner(Entity)
-        if not owner then return false end
-        EntityTasksBridge:FireTo(owner,Entity.Guid,task,data)
+        TaskReplicator.attachDataTo(Entity.Guid,"Task",encodeFunction(Entity,...),SendToOwner)
     end
     return true
 end
-function tasks.init()
-    if IS_CLIENT then
 
+local function handleTask(uuid,data)
+    local Entity = EntityHolder.getEntity(uuid)
+    if not Entity then return end 
+    local defunc 
+    if type(data) == "table" then
+        defunc= decodeFunctions[TaskOrder[data[1].X]]
     else
-        EntityTasksBridge:Connect(function(player,uuid,task,data)
-            local Entity = EntityHolder.getEntity(uuid)
-            if not Entity then return end 
-            if not EntityHandler.isOwner(Entity,player) then return end 
-            if Tasks[task] then
-                Tasks[task](Entity,data,player)
-            end
-        end)
+        defunc= decodeFunctions[TaskOrder[data.X]]
     end
+    defunc(Entity,data)
 end
+
+function tasks.Init(handler)
+    EntityHandler = handler
+end
+TaskReplicator.bind("Task",handleTask)
 return table.freeze(tasks)
