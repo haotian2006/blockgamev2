@@ -141,13 +141,13 @@ function self.GetBiome(x,y,z)
         return chunk:GetBiomeAt(lx,ly,lz)
     end
 end
-local blockpool = require(game.ReplicatedStorage.Libarys.BlockPool)
+local blockpool = require(game.ReplicatedStorage.core.BlockPool)
 function self.GetBlock(x,y,z)
     local cx,cz = qf.GetChunkfromReal((x),(y),(z),true)
     local chunk = self.GetChunk(cx,cz)
     local localgrid = Vector3.new(round(x)%settings.ChunkSize.X,round(y),round(z)%settings.ChunkSize.X)
     localgrid = Vector3.new((localgrid.X),(localgrid.Y),(localgrid.Z))
-    if chunk and (not isserver or chunk.Settings["Generated"]) then
+    if chunk and (not isserver or chunk.generated) then
         if localgrid.Y >= settings.ChunkSize.Y then
             return false,tostring(localgrid),localgrid
         end

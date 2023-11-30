@@ -4,28 +4,30 @@ local RunService = game:GetService("RunService")
 local IS_CLIENT = RunService:IsClient()
 local IS_SERVER = not IS_CLIENT
 local LOCAL_PLAYER = game.Players.LocalPlayer or {UserId = "NAN"}
-local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
+local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandlerV2)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local MathUtils = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local Animator = require(script.Animator)
 local Utils = require(script.Utils)
+local CollisionHandler = require(script.EntityCollisionHandler)
 local DataHandler = require(game.ReplicatedStorage.DataHandler)
 local EntityTaskReplicator = require(script.EntityReplicator.EntityTaskReplicator)
 local Entity = {}
 EntityTaskReplicator.Init(Entity)
 Utils.Init(Entity) 
+CollisionHandler.Init(Entity)
 Entity.Animator = Animator
 Entity.Utils = Utils
 Entity.Gravity = 32--9.81
 Entity.Speed = 0
-Entity.RotationSpeedMultiplier = 6*2.5
+Entity.RotationSpeedMultiplier = 6*2
 local slerpAngle = MathUtils.slerpAngle 
 local NILVALUE = '↓←⊞🌟'
 local DEAFULTS = "⊞↓←🌟"
 function Entity.new(type:string,ID)
     ID = ID and tostring(ID)
-    local info = BehaviorHandler.GetEntity(type)
+    local info = BehaviorHandler.getEntity(type)
     if not info then return warn(`Entity '{type}' does not exist`) end 
     local self = {}
     self.Type = type 
@@ -35,7 +37,7 @@ function Entity.new(type:string,ID)
     self.__components = {}
     self.__changed = {}
     self.__animations = {}
-    self.__states = {}
+    --self.__states = {}
     self.__cachedData = {}
     self.__localData = {}
     self.Position = Vector3.zero
@@ -46,7 +48,7 @@ function Entity.new(type:string,ID)
 end
 function Entity.addComponent(self,component,index)
     table.clear(self.__cachedData )
-    local entityData =  BehaviorHandler.GetEntity(self.Type)
+    local entityData =  BehaviorHandler.getEntity(self.Type)
     local componentData = entityData.component_groups[component]
     if not componentData then warn(`component {component} is not a member or {self.Type}`) end 
     componentData.Name = component
@@ -70,6 +72,9 @@ function Entity.removeComponent(self,name)
     end
 end
 --//Get/seters
+function Entity.getCache(self)
+    return self.__cachedData
+end
 function Entity.clearCache(self)
     table.clear(self.__cachedData)
 end
@@ -112,6 +117,9 @@ function Entity.set(self,key,value)
     end
     self[key] = value
 end
+function Entity.rawSet(self,key,value)
+    self[key] = value
+end
 function Entity.getTotalVelocity(self):Vector3
     local x,y,z = 0,0,0
     for i,v in self.__velocity do
@@ -139,6 +147,7 @@ function Entity.getVelocity(self,name)
     return self.__velocity[name]
 end
 function Entity.setMoveDireaction(self,Direaction)
+    Utils.followMovement(self,Vector2.new(Direaction.X,Direaction.Z).Unit)
     self.moveDir = Direaction
 end
 function Entity.getMoveDireaction(self,Direaction)
@@ -169,7 +178,7 @@ function Entity.getState(self,state)
 end
 --//Other
 function Entity.jump(self,JumpPower)
-    if not self.Grounded or  Utils.isGrounded(self,true) then return end 
+    if not self.Grounded or  CollisionHandler.isGrounded(self,true) then return end 
     local bodyVelocity = Entity.getVelocity(self,"Physics") or Vector3.zero
     local JumpPower = JumpPower or Entity.get(self,"jumpPower")
     Entity.setVelocity(self,"Physics",bodyVelocity + Vector3.new(0,JumpPower,0))
@@ -180,7 +189,7 @@ function Entity.isDead(self)
     return self.__dead or false 
 end
 function Entity.canCrouch(self,unCrouch)
-    if unCrouch and Utils.isGrounded(self,true) then
+    if unCrouch and CollisionHandler.isGrounded(self,true) then
         return false
    end
    return true 
@@ -238,15 +247,6 @@ function Entity.updateTurning(self,dt)
     local multi = Entity.getAndCache(self,"RotationSpeedMultiplier")
     dt*=multi
     if dt>1 then dt = 1 end 
-    if targetHead then
-       local x,_x =  slerpAngle(head.X,targetHead.X,dt)
-       local y,_y =slerpAngle(head.Y,targetHead.Y,dt)
-
-       self.HeadRotation = Vector2.new(x,y)
-       if _x and _y then
-        self.__localData.HeadRotation = nil
-       end
-    end
     if targetBody then 
         local reached 
         self.Rotation,reached = slerpAngle(body,targetBody,dt)   
@@ -255,6 +255,22 @@ function Entity.updateTurning(self,dt)
         end 
 
     end
+    if targetHead then
+        if IS_CLIENT and false  then
+            local dR = (targetBody or self.Rotation )-self.Rotation
+            self.HeadRotation = Vector2.new(targetHead.X+dR,targetHead.Y)
+            self.__localData.HeadRotation = nil
+        else
+            local x,_x =  slerpAngle(head.X,targetHead.X,dt)
+            local y,_y =slerpAngle(head.Y,targetHead.Y,dt)
+
+            self.HeadRotation = Vector2.new(x,y)
+            if _x and _y then
+                self.__localData.HeadRotation = nil
+            end
+        end
+    end
+
 end
 function Entity.updatePosition(self,dt)
     if Entity.isOwner(self,LOCAL_PLAYER) then 
@@ -263,17 +279,17 @@ function Entity.updatePosition(self,dt)
         local p2 = self.Position+velocity*dt--self.Position:Lerp(self.Position+velocity,dt) 
         --local e = velocity
         velocity = (p2-self.Position)
-        local newPosition,normal,blockdata,shouldJump = Utils.entityVsTerrain(self,velocity)
+        local newPosition,normal,blockdata,shouldJump = CollisionHandler.entityVsTerrain(self,velocity)
         if self.Crouching and velocity.Y == 0 then
-            local newP,n = Utils.stayOnEdge(self,newPosition)
+            local newP,n = CollisionHandler.stayOnEdge(self,newPosition)
             newPosition = newP
             normal = n or normal
         end
         local direationVector = newPosition - self.Position
         if Vector3.new(direationVector.X,0,direationVector.Z):FuzzyEq(Vector3.zero,0.001) then
-            if  self.__localData.LastUpdate and (os.clock()- self.__localData.LastUpdate)>.02  then
+            if  self.__localData.LastUpdate and (os.clock()- self.__localData.LastUpdate)>.018  then
                if Animator.isPlaying(self,"Walk") then
-                Animator.stop(self,"Walk")
+                Animator.stop(self,"Walk",.1)
                end
                 -- self:SetState('Moving',false)
             end
@@ -282,7 +298,7 @@ function Entity.updatePosition(self,dt)
             if not Animator.isPlaying(self,"Walk") then
                 Animator.play(self,"Walk")
             end
-            if speed >=0.04 then
+            if speed >=0.05 then
                 Animator.adjustSpeed(self,"Walk",speed)
             end
             -- self:PlayAnimation("Walk")
@@ -294,7 +310,7 @@ function Entity.updatePosition(self,dt)
     end
 end
 function Entity.updateGrounded(self,dt,shouldJump)
-    local isGrounded,b = Utils.isGrounded(self)
+    local isGrounded,b = CollisionHandler.isGrounded(self)
     self.Grounded = isGrounded
     --[[
     self:SetState("Grounded",self.Data.Grounded)
@@ -313,7 +329,7 @@ function Entity.updateGravity(self,dt)
     local bodyVelocity = Entity.getVelocity(self,"Physics") or Vector3.zero
     local yValue = 0
     local FramesInAir = self.FramesInAir or 0
-    if not self.Grounded and (not Utils.isGrounded(self,true) or FramesInAir == 0) then
+    if not self.Grounded and (not CollisionHandler.isGrounded(self,true) or FramesInAir == 0) then
         local Gravity = Entity.getAndCache(self,"Gravity")
         yValue = bodyVelocity.Y + (-Gravity)*dt
         FramesInAir = FramesInAir +1
@@ -353,7 +369,7 @@ function Entity.update(self,dt,fixedDt)
     if IS_CLIENT then
         
     end
-end
+end 
 
 function Entity.destroy(self)
     self.__destroyed = true

@@ -16,7 +16,7 @@ return {
             entity.NotSaved["behaviors"]["behavior.Random_Stroll"] = false
         end,
         bhtype = {"Movement","Turning"},
-    },
+    }, 
     ['behavior.GoToPlayer'] = {
         func = function(entity,data)
             local interval = data.interval or 3

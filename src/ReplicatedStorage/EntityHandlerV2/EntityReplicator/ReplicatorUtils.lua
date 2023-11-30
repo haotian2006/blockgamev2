@@ -2,9 +2,11 @@ local BridgeNet = require(game.ReplicatedStorage.BridgeNet)
 local ReplicationRemote = BridgeNet.CreateBridge("ReplicationRemote")
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local Math = require(game.ReplicatedStorage.Libarys.MathFunctions)
-local ConversionUtils = require(game.ReplicatedStorage.ConversionUtils)
+local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local Entity = require(game.ReplicatedStorage.EntityHandlerV2)
+local IS_CLIENT = RunService:IsClient()
 local Replication = {}
 Replication.EntityPlayerId = {}
 Replication.temp = {
@@ -15,11 +17,11 @@ local temp = Replication.temp
     0: replicates
     1: does not replicate at all 
     2: only replicates once
-    3: does not replicate to owner
+    3: does not replicate to owner at all
     any attributes with not listed would be deafult to 0
 ]]
 Replication.REPLICATE_LEVEL = {
-    __main = 1,__velocity = 1,__changed = 1,__cachedData = 1,__localData = 1,Chunk = 1,Grounded = 1,Guid = 1,
+    __main = 1,__velocity = 1,__changed = 1,__cachedData = 1,__localData = 1,Chunk = 1,Grounded = 1,Guid = 1,__running = 1,
     __components = 2,__animations = 2,
     Crouching = 3, Position = 3,Hitbox = 3, EyeLevel = 3,Rotation = 3,HeadRotation = 3
 
@@ -76,8 +78,11 @@ function Replication.getFastChanges(self)
     local changes = {}
     if old["Position"] ~= self["Position"] then
         changes["Position"] = self["Position"] 
+        if IS_CLIENT then
+            changes["Position"]  += Entity.getTotalVelocity(self)*1/30
+        end
     end
-    old["Position"] = self["Position"]
+    old["Position"] =   changes["Position"] or self["Position"]
     if localD["Rotation"] then
         if old["Rotation"] ~= localD["Rotation"] then
             changes["Rotation"] = localD["Rotation"] 
@@ -112,7 +117,9 @@ function Replication.getFastChanges(self)
 end
 local CHX = GameSettings.ChunkSize.X
 function Replication.fastEncode(self,idk)
-    if temp[self.Guid] then return  temp[self.Guid] end 
+    if temp[self.Guid] then 
+        return   temp[self.Guid]  ~= 1 and table.clone(temp[self.Guid]) or nil
+    end 
     idk = idk or {}
     local changes = Replication.getFastChanges(self)
     local pos = changes.Position
@@ -147,7 +154,7 @@ function Replication.fastEncode(self,idk)
     elseif toUpdate[3] then
         toUpdate[3] = Vector2int16(toUpdate[3]*ROTATION_PRECISION,-32768)
     end
-    temp[self.Guid] =  Changed and changes
+    temp[self.Guid] =  Changed and toUpdate or 1
     return Changed and toUpdate
 end
 function Replication.fastDecode(data,old)

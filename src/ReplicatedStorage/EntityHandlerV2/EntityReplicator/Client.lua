@@ -15,11 +15,15 @@ local Client = {}
 local key = {}
 local toInterpolate = {}
 local overRide = {Position = true,Rotation = true,HeadRotation = true}
+
+local UDP = EntityV2.EntityReplicator.EntityUDP
+local TCP = EntityV2.EntityReplicator.EntityTCP
 function Client.getGuidFrom(Key)
     return key[Key]
 end
 function Client.createEntityFrom(data)
     local Entity = EntityHandler.new(data.Type,data.Guid)
+    if not Entity then return end 
     if data.Guid == tostring(LOCAL_PLAYER.UserId) then
         Data.setPlayerEntity(Entity)
     end
@@ -67,6 +71,7 @@ function Client.handleData(data)
     data.Guid = Guid
     if type == 1 then -- all
         local Entity = Client.createEntityFrom(data)
+        if not Entity then return end 
         EntityHolder.addEntity(Entity)
         Render.createModel(Entity)
     else
@@ -156,8 +161,7 @@ function Client.replicateToServer()
         TaskReplicator.clearDataFor(id)
         if not data then 
             if tasks then
-                table.insert(toReplicate,if id == tostring(LOCAL_PLAYER.UserId) then false else id)
-                table.insert(OtherTasks,tasks)
+                table.insert(OtherTasks,{tasks,if id == tostring(LOCAL_PLAYER.UserId) then false else id})
             end
             continue 
         end 
@@ -167,22 +171,35 @@ function Client.replicateToServer()
             data[1] = data[1][2] and {data[1],Vector2.new(0,data[1][2])} or data[1]
         end
         table.insert(toReplicate,data)
-        table.insert(OtherTasks,tasks)
+        if tasks then
+            table.insert(OtherTasks,{tasks,if id == tostring(LOCAL_PLAYER.UserId) then false else id})
+        end
     end
     if #toReplicate >0 then
-        EntityBridge:Fire(toReplicate,#OtherTasks >0 and OtherTasks or nil)
+        UDP:FireServer(toReplicate)
+    end
+    if #OtherTasks >0 then
+        TCP:FireServer(OtherTasks)
     end
 end
+
 local Connection 
+function Client.readData(Entities,Key,taskData)
+    if Key then Client.readKey(Key) end 
+    for i,v in Entities or {} do
+        Client.handleData(v)
+    end
+    for i,v in taskData or {} do
+        EntityTasks.decode(key[tonumber(i)],v)
+    end
+end
 function Client.Init()
     if Connection then return end 
-    EntityBridge:Connect(function(Entities,Key,taskData)
-       if Key then Client.readKey(Key) end 
-        for i,v in Entities or {} do
+    TCP.OnClientEvent:Connect(Client.readData)
+    EntityBridge:Connect(Client.readData)
+    UDP.OnClientEvent:Connect(function(entityEncoded)
+        for i,v in entityEncoded or {} do
             Client.handleData(v)
-        end
-        for i,v in taskData or {} do
-            EntityTasks.decode(key[tonumber(i)],v)
         end
     end)
     Connection = RunService.RenderStepped:Connect(function(deltaTime)
@@ -191,11 +208,13 @@ function Client.Init()
     local clock1 = 0
     RunService.Heartbeat:Connect(function(deltaTime)
         clock1 += deltaTime
-        if clock1 >= 1/20 then
+        if clock1 >= 1/30 then
             Client.replicateToServer()
             clock1 = 0
         end
     end)
-    EntityBridge:Fire("CONNECTED")
+    task.delay(3, function()
+        TCP:FireServer("CONNECTED")
+    end)
 end
 return table.freeze(Client)

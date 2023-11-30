@@ -50,7 +50,6 @@ function  Controller.createBinds()
         EntityHandler.setMoveDireaction(Entity,velocity) 
         local pitch,yaw = MathLib.GetP_YawFromVector3((CameraCFrame.LookVector))
         EntityUtils.rotateHeadTo(Entity,Vector2.new(pitch,yaw))
-        EntityUtils.followMovement(Entity,Vector2.new(v2.X,v2.Z).Unit)
         if InputHandler.isDown("Jump") then
             EntityHandler.jump(Entity)
         end

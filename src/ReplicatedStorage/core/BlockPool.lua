@@ -7,7 +7,9 @@ local Pool = BlockPool.Pool
 
 local BlockState = {}
 BlockState.__index = BlockState
-
+BlockState.__metatable = function()
+    warn("Cannot get metatable of Block")
+end
 BlockState.__tostring = function(self)
     return tostring(self[2])
 end
@@ -17,7 +19,7 @@ end
 
 function  BlockState.new(str:string)
     local name,r,state = str:match("([^,]*),?([^,]*),?([^,]*)")
-    local block = setmetatable({{name,tonumber(r),tonumber(state)},str,1,behaviorhandler.GetBlock(name)},BlockState)
+    local block = setmetatable(table.freeze({{name,tonumber(r),tonumber(state)},str,1,behaviorhandler.GetBlock(name)}),BlockState)
     return block
 end
 function BlockState:getName()
@@ -75,12 +77,12 @@ function BlockState:equal(str)
     return self:getName() == str
 end
 
-BlockPool.CONST_FALSE = setmetatable({{"false"},false,0},BlockState)
-BlockPool.CONST_NULL = setmetatable({{"NULL"},"NULL",0},BlockState)
+BlockPool.CONST_FALSE = setmetatable(table.freeze({{"false"},false,0}),BlockState)
+BlockPool.CONST_NULL = setmetatable(table.freeze({{"NULL"},"NULL",0}),BlockState)
 
 function BlockPool:bulkAdd(str,amt)
     if Pool[str] then
-        Pool[str][3] += amt
+        Pool[str][3] += amt 
     end
 end
 
@@ -133,4 +135,4 @@ function BlockPool.createStrFromTable(tab)
     return table.concat(tab,',')
 end
 
-return BlockPool
+return table.freeze(BlockPool)

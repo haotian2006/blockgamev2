@@ -39,7 +39,7 @@ function Controller.destroyAllEventsFrom(Action)
     local data =  events[Action]
     if not data then return end 
     data:DisconnectAll()
-    events[Action] = nil
+    events[Action] = nil 
 end
 local BindedFunctions = {}
 local keyPairsBinded = {}
@@ -50,9 +50,9 @@ end
 function  Controller.unbindFromRender(Name)
     RenderEvents[Name] = nil
 end
-function Controller.bindFunctionTo(Name,func,action,piority)
+function Controller.bindFunctionTo(Name,func,action,priority)
     if BindedFunctions[Name] then return warn("Name already Binded") end 
-    local d = {action,func,piority or 2000}
+    local d = {action,func,priority or 2000}
     BindedFunctions[Name] = d
     keyPairsBinded[action] = keyPairsBinded[action] or {}
     table.insert(keyPairsBinded[action],d)
@@ -72,7 +72,7 @@ end
 local function runFunctions(action,input,down,IsTyping,keys)
     for i,v in keyPairsBinded[action] or {} do 
         local status =  v[2](input,down,IsTyping,keys)
-        if status == Enum.ContextActionResult.Sink then
+        if status == true then --Enum.ContextActionResult.Sink
             break
         end
     end

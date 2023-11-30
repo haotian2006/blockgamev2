@@ -166,7 +166,7 @@ function maths.AngleDifference(angle1:number,angle2:number ):number
     return diff < -180 and diff + 360 or diff
 end
 function maths.fullToHalf(angle)
-    if angle<0 then
+    if angle<0 then 
         return(angle + 180) 
     end
     return angle

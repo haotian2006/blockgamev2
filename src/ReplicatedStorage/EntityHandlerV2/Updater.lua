@@ -6,9 +6,10 @@ local FixedTime = 1/20
 local IS_CLIENT = RunService:IsClient()
 local Render = require(script.Parent.Render)
 local EntityHolder = require(script.Parent.EntityHolder)
-local Connection
+local Core = require(game.ReplicatedStorage.core)
+local Init
 function Updater.Init()
-    if  Connection then return end 
+    if  Init then return end 
     if IS_CLIENT then 
         RunService.RenderStepped:Connect(function(deltaTime)
             for guid,entity in EntityHolder.getAllEntities() do
@@ -16,7 +17,7 @@ function Updater.Init()
             end
         end)
     end
-    Connection = RunService.Stepped:Connect(function(p,deltaTime)
+    Core.bindToStepped("Updater",function(p,deltaTime)
         fixedTick += deltaTime
         for guid,entity in EntityHolder.getAllEntities() do
             task.spawn(Handler.update,entity,deltaTime,fixedTick)
@@ -24,6 +25,8 @@ function Updater.Init()
         if fixedTick > FixedTime then
             fixedTick = 0
         end
-    end)
+    end,5)
+
+    Init = true
 end
-return Updater
+return table.freeze(Updater)

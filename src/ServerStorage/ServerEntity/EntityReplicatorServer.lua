@@ -10,6 +10,9 @@ local EntityBridge = BridgeNet.CreateBridge("EntityBridgeR")
 local EntityHolder = require(EntityV2.EntityHolder)
 local EntityHandler = require(EntityV2)
 local EntityTasks = require(EntityV2.EntityReplicator.TaskReplicator)
+
+local UDP = EntityV2.EntityReplicator.EntityUDP
+local TCP = EntityV2.EntityReplicator.EntityTCP
 local clientEntities = {} 
 local temp = ReplicationUtils.temp
 function Server.GetIdLocationFrom(player,Id)
@@ -24,7 +27,7 @@ end
 function Server.replicateAll(entity)
     local str =`{entity.Guid}NEW!`
     if temp[str] then
-        return  temp[str] 
+        return  table.clone(temp[str] )
     end
    local newData = {_=1,i = entity.Guid} 
    for i,v in entity do
@@ -38,7 +41,7 @@ end
 function Server.getOtherData(entity)
     local str =`{entity.Guid}C!`
     if temp[str] then
-        return temp[str] 
+        return temp[str] ~= 1 and table.clone(temp[str]) or nil
     end
     local newData = {_=0}
     local changed = false
@@ -50,7 +53,7 @@ function Server.getOtherData(entity)
     end
     table.clear(entity.__changed)
     newData.i = entity.Guid
-    temp[str] = changed and newData
+    temp[str] = changed and newData or 1
     return changed and newData
 end
 local lastfire = os.clock()
@@ -160,6 +163,7 @@ function Server.Replicate(secondTick)
                 if not new[data[1][1]] then playerData[player][i] = nil end 
                 data[1] = Vector2.new(new[data[1][1]]-32767,data[1][2])
             end
+            playerData[player][i] = data
         end
         playerKey[player] = changes or nil
     end
@@ -174,13 +178,20 @@ function Server.Replicate(secondTick)
         end
     end
     for i,v in Players do
-        if not playerData[v] or #playerData[v] == 0 then 
+        local playerD = playerData[v]
+        local udpData 
+        if not playerD or #playerD == 0 then 
             playerData[v] = nil
+        elseif playerD[1] and not playerKey[v] then
+            udpData = playerD
+            playerD = nil
         end 
-        if not (playerData[v] or playerKey[v] or newTaskData[v]) then
-             continue
+        if (playerD or playerKey[v] or newTaskData[v]) then
+            TCP:FireClient(v,playerD,playerKey[v],newTaskData[v])
         end
-        EntityBridge:FireTo(v,playerData[v],playerKey[v],newTaskData[v])
+        if (udpData) then
+            UDP:FireClient(v,udpData)
+        end
     end
 end
 local Connection 
@@ -200,21 +211,8 @@ function Server.Init()
             clock1 = 0
         end
     end)
-    EntityBridge:Connect(function(player,data,otherData)
-        if data == "CONNECTED" then
-            clientEntities[player] = {}
-            return
-        end
-        local ids = {}
+    UDP.OnServerEvent:Connect(function(player,data)
         for i,entity in data or {} do
-            if type(entity) ~= "table" then
-                if not entity then 
-                    ids[i] = tostring(player.UserId)
-                    continue
-                end
-                ids[i] = entity
-                continue
-            end
             local id 
             if typeof(entity[1]) =="Vector2" then
                 id = tostring(entity[1].X)
@@ -227,7 +225,6 @@ function Server.Init()
                 id = tostring(entity[1][1])
                 entity[1] = Vector2.new(0,entity[1][2])
             end
-            ids[i] = id
             local rEntity = EntityHolder.getEntity(id)
             if not rEntity then continue  end
             local decode = ReplicationUtils.fastDecode(entity,rEntity)
@@ -235,10 +232,16 @@ function Server.Init()
                 rEntity[i] = v
             end
         end
+    end)
+    TCP.OnServerEvent:Connect(function(player,otherData)
+        if otherData == "CONNECTED" then
+            clientEntities[player] = {}
+            return
+        end
         for idx,data in otherData or {} do
-            local uuid = ids[idx]
+            local uuid = data[2] == false and tostring(player.UserId) or data[2]
 
-            EntityTasks.decode(uuid,data)
+            EntityTasks.decode(uuid,data[1])
         end
     end)
 end
