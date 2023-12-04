@@ -141,7 +141,7 @@ function self.GetBiome(x,y,z)
         return chunk:GetBiomeAt(lx,ly,lz)
     end
 end
-local blockpool = require(game.ReplicatedStorage.core.BlockPool)
+local blockpool = require(game.ReplicatedStorage.Libarys.BlockPool)
 function self.GetBlock(x,y,z)
     local cx,cz = qf.GetChunkfromReal((x),(y),(z),true)
     local chunk = self.GetChunk(cx,cz)

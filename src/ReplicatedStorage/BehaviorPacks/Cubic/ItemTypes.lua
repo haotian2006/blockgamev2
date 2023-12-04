@@ -1,3 +1,4 @@
+--!nocheck
 local types = {}
 local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local crt = behhandler.CreateComponent

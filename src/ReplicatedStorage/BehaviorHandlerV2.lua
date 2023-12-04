@@ -4,7 +4,7 @@ local BehaviorPacks = game.ReplicatedStorage.BehaviorPacksV2 or Instance.new("Fo
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ResourcePacks = require(ReplicatedStorage.ResourceHandler) 
-local qf = require(game.ReplicatedStorage.QuickFunctions)
+
 BehaviorPacks.Name = "BehaviorPacksV2"
 
 

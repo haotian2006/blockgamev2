@@ -1,6 +1,4 @@
 local RunService = game:GetService("RunService")
-local BridgeNet = require(game.ReplicatedStorage.BridgeNet)
-local EntityBridge = BridgeNet.CreateBridge("EntityBridgeR")
 local EntityV2 = game.ReplicatedStorage.EntityHandlerV2
 local ReplicationUtils = require(EntityV2.EntityReplicator.ReplicatorUtils)
 local EntityHolder = require(EntityV2.EntityHolder)
@@ -109,9 +107,6 @@ function Client.updateInterpolate(dt)
         local Entity = EntityHolder.getEntity(guid)
         if not Entity then return end 
         if EntityHandler.isOwner(Entity,LOCAL_PLAYER) then
-            if target.Position then
-                Entity.Position = target.Position[1]
-            end
             toInterpolate[guid] = nil 
             continue
         end
@@ -186,17 +181,16 @@ end
 local Connection 
 function Client.readData(Entities,Key,taskData)
     if Key then Client.readKey(Key) end 
-    for i,v in Entities or {} do
+    for i:number,v in Entities or {} do
         Client.handleData(v)
     end
     for i,v in taskData or {} do
-        EntityTasks.decode(key[tonumber(i)],v)
+        EntityTasks.decode(key[tonumber(i) or 1],v)
     end
 end
 function Client.Init()
     if Connection then return end 
     TCP.OnClientEvent:Connect(Client.readData)
-    EntityBridge:Connect(Client.readData)
     UDP.OnClientEvent:Connect(function(entityEncoded)
         for i,v in entityEncoded or {} do
             Client.handleData(v)

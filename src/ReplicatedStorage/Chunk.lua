@@ -1,10 +1,10 @@
 local Chunk = {}
-local qF = require(game.ReplicatedStorage.QuickFunctions)
+
 local settings = require(game.ReplicatedStorage.GameSettings)
 local chunksize = settings.ChunkSize
 local Players = game:GetService("Players")
 local runservice = game:GetService("RunService")
-local blockPool = require(game.ReplicatedStorage.core.BlockPool)
+local blockPool = require(game.ReplicatedStorage.Libarys.BlockPool)
 local IsServer =runservice:IsServer()
 Chunk.EdgeIndexs ={
     x = {},["-x"] = {},z = {},["-z"] = {},init = false

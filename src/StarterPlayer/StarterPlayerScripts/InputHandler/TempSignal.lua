@@ -12,21 +12,21 @@ function TS.new(action,t)
 end
 function TS.Fire(self,...)
     if not self[1] then error("Event is Dead") end 
-    signal.Fire(self[1],...)
+    self[1]:Fire(...)
 end
 function TS.Connect(self, Callback)
     if not self[1] then error("Event is Dead") end 
-    return signal.Connect(self[1],Callback)
+    return self[1]:Connect(Callback)
 end
 
 function TS.Once(self, Callback)
     if not self[1] then error("Event is Dead") end 
-	return signal.Once(self[1],Callback)
+	return self[1]:Once(Callback)
 end
 
 function TS.Wait(self)
     if not self[1] then error("Event is Dead") end 
-	return signal.Wait(self[1])
+	return self[1]:Wait()
 end
 
 function TS.Destroy(self)

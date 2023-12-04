@@ -1,3 +1,0 @@
-local saver = {}
-
-return saver

@@ -2,7 +2,7 @@ local AnimatorR = {}
 local Utils = require(script.Parent.Parent.Utils)
 local Runservice = game:GetService("RunService")
 local EntityHolder = require(script.Parent.Parent.EntityHolder)
-local Animator: typeof(require(script.Parent.Parent.Animator))
+local Animator
 local IS_CLIENT = Runservice:IsClient()
 local TaskReplicator = require(script.Parent.TaskReplicator)
 local Tasks = {

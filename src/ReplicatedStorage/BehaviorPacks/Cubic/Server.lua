@@ -8,7 +8,7 @@ local Behaviors = MH.Behaviors
 local resource = MH.Resources
 local data = MH.DataHandler
 local qf = MH.Functions
-local rotation = require(game.ReplicatedStorage.Libarys.RotationData)
+local rotation = require(game.ReplicatedStorage.Utils.RotationUtils)
 BlockPlace.OnServerEvent:Connect(function(plr,coords1,ori)
     if data.GetEntityFromPlayer(plr) and data.GetEntityFromPlayer(plr):GetState('Dead') then return end  
     

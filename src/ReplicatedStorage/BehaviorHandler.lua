@@ -3,7 +3,7 @@ local BehaviorPacks = game.ReplicatedStorage.BehaviorPacks or Instance.new("Fold
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ResourcePacks = require(ReplicatedStorage.ResourceHandler) 
-local qf = require(game.ReplicatedStorage.QuickFunctions)
+
 BehaviorPacks.Name = "BehaviorPacks"
 local STR = game:GetService("SharedTableRegistry")
 self.LoadOrder = {

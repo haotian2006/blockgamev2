@@ -9,7 +9,7 @@ local callBacks = {}
 local TaskData = {
 
 }
-local BridgeNet = require(game.ReplicatedStorage.BridgeNet)
+local _,BridgeNet = pcall(require,game.ReplicatedStorage.BridgeNet)
 local TaskOrderRemote = BridgeNet.CreateBridge("EntityTaskOrder")
 local RunService = game:GetService("RunService")
 local IS_CLIENT = RunService:IsClient()
@@ -67,7 +67,7 @@ function Tasks.encode(uuid,isOwner)
 end
 function Tasks.decode(uuid,data)
    for i,tData in data do
-        local task = TaskOrder[tonumber(tData[1])]
+        local task = TaskOrder[tonumber(tData[1]) or 1]
         local callback = callBacks[task or 1]
         if not callback then warn(`No CallBack Found For {task}`) continue  end 
         for i,v in tData do

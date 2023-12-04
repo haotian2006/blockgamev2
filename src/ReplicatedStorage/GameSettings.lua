@@ -1,3 +1,4 @@
+--!nocheck
 local settings = {}
 local proxy = newproxy(true)
 local meta = getmetatable(proxy)
@@ -16,7 +17,7 @@ function settings.getChunkSize()
     return settings.ChunkSize.X,settings.ChunkSize.Y
 end
 function settings.GetDistFormChunks(chunk)
-    return settings.ChunkSize.X*chunk
+    return settings.ChunkSize.X*chunk 
 end
 function settings.gridToreal(x:Vector3|number)
     return x*settings.GridSize
@@ -58,7 +59,7 @@ end
 function settings.to1DXZ(x,z)
     return x + z *chsizex + 1
 end
-function settings.to2D(index)
+function settings.to2D(index:number)
     index = tonumber(index) - 1
     local x = index % chsizex
     local y = math.floor(index /chsizex)

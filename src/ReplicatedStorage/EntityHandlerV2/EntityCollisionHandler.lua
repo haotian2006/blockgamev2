@@ -1,12 +1,13 @@
 local Collision = {}
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
-local DataHandler = require(game.ReplicatedStorage.DataHandler)
+local DataHandler = require(game.ReplicatedStorage.Data)
 local CUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local MathUtils = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local GameSetting = require(game.ReplicatedStorage.GameSettings)
 local Chx,ChY = GameSetting.getChunkSize()
-local Entity:typeof(require(script.Parent))
+local Entity
+local BlockUtils = require(game.ReplicatedStorage.Utils.BlockUtils)
 function Collision.Init(entity)
     Entity = entity
 end
@@ -186,27 +187,27 @@ function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
     for x = min.X,calculateAdjustedGoal(min.X,max.X,gridsize),gridsize do    
     for y = min.Y,calculateAdjustedGoal(min.Y,max.Y,gridsize),gridsize do
     for z = min.Z,calculateAdjustedGoal(min.Z,max.Z,gridsize),gridsize do
-        local block,coordsStr,coordsVector = DataHandler.GetBlock(x,y,z)
-        if whitelist and whitelist[coordsStr] then continue end
+        local block,localGrid,Grid = CollisionHandler.getBlock(x,y,z)
+        local GridStr = tostring(Grid)
+        if whitelist and whitelist[GridStr] then continue end
         if block and tostring(block)  then
-            local cx,cz =  CUtils.getChunk(x,y,z)
-            local blockpos = CUtils.convertLocalToGrid(cx,cz, coordsVector.X,coordsVector.Y,coordsVector.Z) 
+            if BlockUtils.isFalseOrIsNULL(block) then continue end 
             local typejump, heightneeded,maxheight
             local currentmin = 1
-            local newpos ,newsize = blockpos,Vector3.one
+            local newpos ,newsize = Grid,Vector3.one
             local hbdata,CanCollide = CollisionHandler.GenerateHitboxes(block,newpos)
             local loop = 0
             if not CanCollide then continue end 
             for i,v in hbdata do
                 local newpos,newsize = v[2],v[1]
-                if whitelist[coordsStr..','..loop] then
+                if whitelist[GridStr..','..loop] then
                     continue 
                 end
                 if  CollisionHandler.AABBcheck(bppos,newpos,bpsize,newsize,true) then  
                     local collisiontime,newnormal1 = CollisionHandler.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize,velocity,mintime)
                     if collisiontime < 1 then
                         if collisiontime < currentmin or loop == 0 then
-                            blockdata = {block,coordsStr,newpos,newsize,i}
+                            blockdata = {block,GridStr,newpos,newsize,i}
                             currentmin = collisiontime
                             normal = newnormal1
                         end
@@ -216,7 +217,7 @@ function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
                         end
                     end
                 end
-                whitelist[coordsStr..((loop == 0 and #hbdata == 1) and '' or loop)] = true 
+                whitelist[GridStr..((loop == 0 and #hbdata == 1) and '' or loop)] = true 
                 loop +=1
             end
             mintime = currentmin < mintime and currentmin or mintime
@@ -224,7 +225,7 @@ function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
                 local dir = (maxheight-position).Unit
                 if typejump == "Small" and entity.Grounded and heightneeded >=0.1 then
                     heightneeded += 0.023
-                    whitelistClone[coordsStr] = true
+                    whitelistClone[GridStr] = true
                     --checks if it would hit a wall
                     local mintime2,normal2,blockdata2 = Collision.entityVsTerrainLoop(entity,position,vector3(velocity.X,velocity.Y+heightneeded,velocity.Z),whitelistClone,"Small")
                     if mintime2 <1 then
@@ -249,7 +250,7 @@ function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
                     return  m2,n2,z2,velocity,position,nil,false
                 elseif typejump == "Full" and (Entity.get(entity,"AutoJump") or false)   then
                     local AutoJump = Entity.get(entity,"AutoJump")
-                    whitelistClone[coordsStr] = true
+                    whitelistClone[GridStr] = true
                     local m2,n2,z2 = Collision.entityVsTerrainLoop(entity,position,vector3(velocity.X, (AutoJump and (typeof(AutoJump) == "boolean" and 1 or AutoJump)),velocity.Z),whitelistClone,"Full")
                     if not m2 or m2 <1 then
                         if loop then
@@ -283,16 +284,17 @@ function  Collision.isGrounded(entity,CheckForBlockAboveInstead)
 )
     local gridsize = .5
 --a
-    local whitelist = {}
+    local whitelist = {}::{[string]:boolean}
     for x = min.X,calculateAdjustedGoal(min.X,max.X,gridsize),gridsize do    
     for y = min.Y,calculateAdjustedGoal(min.Y,max.Y,gridsize),gridsize do
     for z = min.Z,calculateAdjustedGoal(min.Z,max.Z,gridsize),gridsize do
-        local block,coordstring,coordsvector = DataHandler.GetBlock(x,y,z)
-        if whitelist and whitelist[coordstring] then continue end
-        if block and not block:isFalse() then
+        local block,localGrid,Grid = CollisionHandler.getBlock(x,y,z)
+        local coordstring = tostring(Grid)
+        if whitelist and whitelist[localGrid] then continue end
+        if block  then
+            if BlockUtils.isFalseOrIsNULL(block) then continue end 
             whitelist[coordstring] = true
-            local cx,cz =  CUtils.getChunk(x,y,z)
-            local blockpos = CUtils.convertLocalToGrid(cx,cz, coordsvector.X,coordsvector.Y,coordsvector.Z) 
+            local blockpos = Grid
             local newpos ,newsize = blockpos,Vector3.one
             local hbdata,CanCollide = CollisionHandler.GenerateHitboxes(block,newpos)
             local loop = 0

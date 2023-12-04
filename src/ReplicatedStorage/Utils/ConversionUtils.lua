@@ -1,17 +1,33 @@
+--// Local  =   0-chunksize.X-1
+--// Grid   =   x,y,z
+--// Real   =   (x,y,z)*BlockSize
+--// Not Name = Grid
+
 local Utils = {}
+
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
-local CSIZE_X,CSIZE_Y = GameSettings.getChunkSize()
-local GRID_SIZE = GameSettings.GridSize
---//Assume x,y,z will be grid unless told in the name
-function Utils.getChunkAndLocal(x,y,z)
+local Chunk_Width
+local Chunk_Height
+local Block_Size = GameSettings.GridSize
+Chunk_Width,Chunk_Height = GameSettings.getChunkSize()
+
+function Utils.gridToLocalAndChunk(x,y,z)
     local cx,cz = Utils.getChunk(x,y,z) 
-    local lx,ly,lz = x%CSIZE_X,y,z%CSIZE_Y
+    local lx,ly,lz = x%Chunk_Width,y,z%Chunk_Width
     return cx,cz,lx,ly,lz
 end
+
+function Utils.gridToLocal(x,y,z)
+    local lx,ly,lz = x%Chunk_Width,y,z%Chunk_Width
+    return lx,ly,lz
+end
+
 function Utils.getChunk(x,y,z)
-	return math.floor((x+0.5)/CSIZE_X), math.floor((z+0.5)/CSIZE_X)
+	return (x+0.5)//Chunk_Width, (z+0.5)//Chunk_Width
 end
-function Utils.convertLocalToGrid(cx,cz,x,y,z):Vector3
-    return Vector3.new((x+CSIZE_X*cx),y,(z+CSIZE_X*cz))
+
+function Utils.localToGrid(cx,cz,x,y,z):Vector3
+    return Vector3.new((x+Chunk_Width*cx),y,(z+Chunk_Width*cz))
 end
-return Utils
+
+return Utils 

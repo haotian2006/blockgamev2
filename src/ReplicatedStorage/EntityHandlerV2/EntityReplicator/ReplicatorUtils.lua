@@ -1,5 +1,3 @@
-local BridgeNet = require(game.ReplicatedStorage.BridgeNet)
-local ReplicationRemote = BridgeNet.CreateBridge("ReplicationRemote")
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local Math = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
@@ -164,7 +162,7 @@ function Replication.fastDecode(data,old)
         local ch =data[4] or old.Chunk or Vector2.zero
         old.Chunk = ch
         lP = decodePosition(data[2],data[1].Y)
-        local worldPos = ConversionUtils.convertLocalToGrid(ch.X,ch.Y,lP.X,lP.Y,lP.Z)
+        local worldPos = ConversionUtils.localToGrid(ch.X,ch.Y,lP.X,lP.Y,lP.Z)
         update.Position = worldPos
       --  print(ch)
      --   print(worldPos)

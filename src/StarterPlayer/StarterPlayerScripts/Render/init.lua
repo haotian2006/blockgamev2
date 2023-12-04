@@ -8,7 +8,7 @@ local greedyMesh = require(script.GreedyMesh)
 local multiHand = require(script.MultiHandler):Init(4)
 local qf = require(game.ReplicatedStorage.QuickFunctions)
 local blockHandler = require(script.BlockHandler)
-local rotationData = require(game.ReplicatedStorage.Libarys.RotationData)
+local rotationData = require(game.ReplicatedStorage.Utils.RotationUtils)
 local bridge = require(game.ReplicatedStorage.BridgeNet)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local Render = {}
@@ -184,7 +184,7 @@ function Render.requestNearby(position)
           --  break
         end
         if not dataHandler.GetChunk(cx,cz) and not queued[v] then
-            event:FireServer(cx,cz)
+            event:FireServer(tonumber(cx),tonumber(cz))
             queued[v] = true
 
         end

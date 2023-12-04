@@ -344,6 +344,7 @@ function Entity.updateMovement(self,dt,normal)
     local newX = bodyVelocity.X
     local newZ = bodyVelocity.Z
     local dir = self.moveDir or Vector3.zero
+
     if  dt >= 1/20 or (dir.Magnitude >.1 and Vector2.new(bodyVelocity.X,bodyVelocity.Z).Magnitude<=.01) then
         local Speed = Entity.getAndCache(self,"getSpeed")(self)--4.3/2--Entity.getAndCache(self,"Speed") or 0 
         local s = .6

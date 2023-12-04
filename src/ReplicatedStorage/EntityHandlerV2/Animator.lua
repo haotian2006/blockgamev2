@@ -13,8 +13,8 @@ function Animator.loadAnimation(self,animationName)
     self.__loadedAnimations = self.__loadedAnimations or {}
     if not model then return end 
     local animator:Animator = model:FindFirstChild("AnimationController",true):FindFirstChildOfClass("Animator")
-    --Utils.getDataFromResource(self,"Model")
-    local AniPaths = (ResourceHandler.GetEntityModel("Player") or{}).Animations or {}
+    local modelData =  Utils.getDataFromResource(self,"Model")
+    local AniPaths = (ResourceHandler.GetEntityModel(modelData) or{}).Animations or {}
     local ani = AniPaths[animationName]
     if not ani or not animator then return warn(`Animation [{animationName}] or Animator does not exist`) end 
     ani = type(ani) == "string" and ResourceHandler.GetAnimationFromName(ani) or ani

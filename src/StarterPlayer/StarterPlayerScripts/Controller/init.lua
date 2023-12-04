@@ -59,6 +59,11 @@ function  Controller.createBinds()
         InputHandler.bindFunctionTo(`{i}-Controller`,v,i)
     end
 end
+function Controller.setCameraTo(entity)
+   if entity and entity.__model and entity.__model:FindFirstChild("Eye") then
+    Camera.CameraSubject = entity.__model.Eye
+   end
+end
 function Controller.destroyBinds()
     InputHandler.unbindFromRender("#Controller-Handler")
     for i,v in Funcs do

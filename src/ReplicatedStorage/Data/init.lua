@@ -1,9 +1,11 @@
 local Data = {}
 local EntityHolder = require(game.ReplicatedStorage.EntityHandlerV2.EntityHolder)
-Data.EntityHolder = EntityHolder
-Data.Chunks = {}
-Data.Other = {}
-Data.PlayerEntity = nil
+local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
+local BlockUtils = require(game.ReplicatedStorage.Utils.BlockUtils)
+local Chunk = require(game.ReplicatedStorage.ChunkV2)
+local Chunks = {}
+local Other = {}
+local PlayerEntity = nil
 function Data.addEntity(Entity)
     EntityHolder.addEntity(Entity)
 end
@@ -13,16 +15,43 @@ end
 function Data.getAllEntities()
     return EntityHolder.getAllEntities()
 end
+function Data.insertChunk(x,y,chunk)
+    Chunks[Vector3.new(x,y)] = chunk
+end
+function Data.getChunk(x,y)
+    return Chunks[Vector3.new(x,y)]
+end 
+function Data.getChunkOrCreate(x,y)
+    local c = Chunks[Vector3.new(x,y)] 
+    if not c then
+        c = Chunk.new(x, y)
+        Chunks[Vector3.new(x,y)]  = c
+    end
+    return c
+end 
+function Data.getBlock(x,y,z)
+    local cx,cz,lx,ly,lz = ConversionUtils.gridToLocalAndChunk(x, y, z)
+    local chunk = Data.getChunk(cx,cz)
+    if not chunk then  return BlockUtils.CONST_NULL end
+    return Chunk.getBlockAt(chunk, lx, ly, lz)
+end
+function Data.insertBlock(x,y,z,block)
+    local cx,cz,lx,ly,lz = ConversionUtils.gridToLocalAndChunk(x, y, z)
+    local chunk = Data.getChunk(cx,cz)
+    if not chunk then  return false end
+    Chunk.insertBlockAt(chunk, lx,ly,lz, block)
+    return true
+end
 function Data.set(key,value)
-    Data.Other[key] = value
+    Other[key] = value
 end
 function Data.get(key)
-    return Data.Other[key]
+    return Other[key]
 end 
 function Data.getPlayerEntity()
-    return Data.LocalPlayer
+    return PlayerEntity
 end
 function Data.setPlayerEntity(e)
-    Data.LocalPlayer = e
+    PlayerEntity = e
 end
-return Data
+return table.freeze(Data)

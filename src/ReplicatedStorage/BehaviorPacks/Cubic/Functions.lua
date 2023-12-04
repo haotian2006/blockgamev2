@@ -1,6 +1,7 @@
+--!nocheck
 local func = {}
 local ModingMod = require(game.ReplicatedStorage.ModHandler)
-local rotationUtil = require(game.ReplicatedStorage.Libarys.RotationData)
+local rotationUtil = require(game.ReplicatedStorage.Utils.RotationUtils)
 local MH:ModingMod.AutoFill = ModingMod
 type InputData = ModingMod.InputData
 func.PlaceBlockServer = function(entity,Block,id)
@@ -75,7 +76,7 @@ func.PlaceBlockServer = function(entity,Block,id)
 end
 
 end
-local rotation = require(game.ReplicatedStorage.Libarys.RotationData)
+local rotation = require(game.ReplicatedStorage.Utils.RotationUtils)
 func.PlaceBlockClientO = function(entity,Data:InputData) 
 	local ModingMods:ModingMod.AutoFill = ModingMod
 	local lookvector = workspace.CurrentCamera.CFrame.LookVector

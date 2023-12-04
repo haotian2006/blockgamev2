@@ -7,7 +7,7 @@ return {
     ['c:lookAtPlayer'] = {
         Function = function(entity,info)
            for i,v in Utils.getEntitiesNear(entity,10) do
-            part.Position = Utils.getEyePosition(v)*3
+           -- part.Position = Utils.getEyePosition(v)*3
             Utils.lookAt(entity,v)
            end
         end,

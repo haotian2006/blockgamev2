@@ -89,8 +89,9 @@ function  Render.checkIfChanged(self,key)
     end
     return false
 end
-function Render.findModelFrom(data)
-    return game.ReplicatedStorage.ResourcePacks.Cubic.Models.Entities.Npcbackup
+function Render.findModelFrom(self)
+    local modeldata = utils.getDataFromResource(self,"Model")
+    return ResourceHandler.GetEntityModel(modeldata).Model
 end
 
 function Render.createModel(self)
@@ -99,7 +100,10 @@ function Render.createModel(self)
     local model = createEntityModel(self,hitbox)
     hitbox.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
     self.__model = hitbox
-    hitbox.Parent = workspace.EntitiesV2
+    hitbox.Parent = workspace.Entities
+    if Entity.isOwner(self,game.Players.LocalPlayer) then
+        require(game.Players.LocalPlayer.PlayerScripts.Controller).setCameraTo(self)
+    end
     return hitbox
 end
 function Render.updateHitbox(self,targetH,targetE)
@@ -123,11 +127,10 @@ function Render.updateHitbox(self,targetH,targetE)
     eyeweld.C0 = offset and CFrame.new( Vector3.new(0,offset/2,0)*3) or CFrame.new()
     task.delay(.05,function()
         Render.updateRotation(self,true)
-        Render.updatePosition(self,true)
+        Render.updatePosition(self)
     end) -- werid bug with head rotation
 end
-function Render.updatePosition(self,override)
-    if not  Render.checkIfChanged(self,"Position") and not override then return end 
+function Render.updatePosition(self)
     local model = self.__model
     if not model then return end 
     model.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
@@ -157,4 +160,4 @@ function Render.update(entity)
     Render.updatePosition(entity)
 end
 
-return Render
+return table.freeze(Render)

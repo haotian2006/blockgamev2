@@ -48,6 +48,7 @@ function Line:CalculatePointOfInt(L:Line):Point|nil
     end 
 end
 function maths.worldCFrameToC0ObjectSpace(motor6DJoint:Motor6D,worldCFrame:CFrame):CFrame
+    if not  motor6DJoint.Part1 then return CFrame.new() end 
 	local part1CF = motor6DJoint.Part1.CFrame
 	local c1Store = motor6DJoint.C1
 	local c0Store = motor6DJoint.C0
@@ -155,7 +156,7 @@ end
 function maths.inverselerp(start:number,goal:number,value:number):number
     return (value - start) / (goal - start)
 end
-function maths.GetXYfromangle(angle:number,radius:number,center:number):number
+function maths.GetXYfromangle(angle:number,radius:number,center:Vector2):Vector2
     local x = radius * math.sin(math.pi * 2 * angle / 360)
     local y = radius * math.cos(math.pi * 2 * angle / 360)
     x,y =math.round(x * 100) / 100,   math.round(y * 100) / 100 
@@ -180,7 +181,7 @@ end
 function maths.PosToNegative(dt:number):number
     return (dt-180)
 end
-function maths.GetAngleDL(originalRayVector:number):number
+function maths.GetAngleDL(originalRayVector:Vector3):number
     local new = Vector3.new(1,originalRayVector.Y,1)
     return math.deg(math.atan(new.Unit:Dot(Vector3.new(1,0,1).Unit)))*(originalRayVector.Y/math.abs(originalRayVector.Y))
 end

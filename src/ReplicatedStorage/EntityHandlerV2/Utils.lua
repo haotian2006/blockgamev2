@@ -5,7 +5,7 @@ local CUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local MathUtils = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local GameSetting = require(game.ReplicatedStorage.GameSettings)
 local Chx,ChY = GameSetting.getChunkSize()
-local Entity:typeof(require(script.Parent))
+local Entity 
 local EntityHolder = require(script.Parent.EntityHolder)
 local Utils = {}
 function Utils.Init(entity)
@@ -37,7 +37,7 @@ function Utils.getLocalData(self,key,value)
     self.__localData.Storage = self.__localData.Storage or {}
     return  self.__localData.Storage[key]
  end
-function Utils.isOwner(self,player:Player)
+function Utils.isOwner(self,player)
     if (not player or player.UserId =="NAN") and not self.__ownership then
         return true 
     end

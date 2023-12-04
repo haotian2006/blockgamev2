@@ -1,6 +1,6 @@
 local module = {}
 local vector3 = Vector3.new
-local rotationData = require(game.ReplicatedStorage.Libarys.RotationData)
+local rotationData = require(game.ReplicatedStorage.Utils.RotationUtils)
 local gameSetting = require(game.ReplicatedStorage.GameSettings)
 local resourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local gridS = gameSetting.GridSize

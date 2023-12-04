@@ -3,7 +3,7 @@ local indentifier = require(script.Parent.Parent.Parent.core.Identifier)
 local NN = require(script.Parent.Parent.Parent.math.noise.NormalNoise)
 local Perline = require(script.Parent.Parent.Parent.math.noise.PerlineNoise)
 local Radomlib = require(script.Parent.Parent.Parent.math.RandomObject)
-local blockPool = require(game.ReplicatedStorage.core.BlockPool)
+local blockPool = require(game.ReplicatedStorage.Libarys.BlockPool)
 local Random 
 local noises = {
 

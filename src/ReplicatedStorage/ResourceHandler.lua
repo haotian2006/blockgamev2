@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local qf = require(game.ReplicatedStorage.QuickFunctions)
+
 local self = {}
 local ResourcePacks = game.ReplicatedStorage.ResourcePacks or Instance.new("Folder",game.ReplicatedStorage)
 ResourcePacks.Name = "ResourcePacks"
@@ -49,10 +49,7 @@ function self:Init(special)
     end
    -- print(self)
 end
-function self.IsBlock(data)
-    local type =  qf.DecompressItemData(data,"T")
-    return self.GetBlock(type) and type  or false  ,type 
-end
+
 function self.GetAsset(id)
     return self.Assets and self.Assets[id]
 end
