@@ -1,7 +1,7 @@
 local Utils = {}
-local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandlerV2)
+local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local rotationUtils = require(script.Parent.RotationUtils)
-local BlockPool = require(game.ReplicatedStorage.BlockPool)
+local BlockPool = require(game.ReplicatedStorage.Block.BlockPool)
 
 Utils.CONST_FALSE = BlockPool.CONST_FALSE
 Utils.CONST_NULL  = BlockPool.CONST_NULL

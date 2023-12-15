@@ -1,11 +1,11 @@
 local Data = {}
-local EntityHolder = require(game.ReplicatedStorage.EntityHandlerV2.EntityHolder)
-local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
+local EntityHolder = require(game.ReplicatedStorage.EntityHandler.EntityHolder)
+local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils) 
 local BlockUtils = require(game.ReplicatedStorage.Utils.BlockUtils)
-local Chunk = require(game.ReplicatedStorage.ChunkV2)
+local Chunk = require(game.ReplicatedStorage.Chunk)
 local Chunks = {}
 local Other = {}
-local PlayerEntity = nil
+local PlayerEntity = nil 
 function Data.addEntity(Entity)
     EntityHolder.addEntity(Entity)
 end

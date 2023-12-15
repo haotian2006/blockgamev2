@@ -1,84 +1,51 @@
-local self = {}
+local BehaviorHandler = {}
+local Data = {}
 local BehaviorPacks = game.ReplicatedStorage.BehaviorPacks or Instance.new("Folder",game.ReplicatedStorage)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ResourcePacks = require(ReplicatedStorage.ResourceHandler) 
 
 BehaviorPacks.Name = "BehaviorPacks"
-local STR = game:GetService("SharedTableRegistry")
-self.LoadOrder = {
-    'LoadOrder','Components','ItemTypes' 
-}
-self.Shared = {
-    --'WorldGeneration' 
-}
-self.SPECIALLOAD = {
-    'WorldGeneration',"Biomes"
-}
-function self.GetOrCreated(name)
-    if not table.find(self.Shared,name)  then
-        return self[name] or {}
-    end
-    if STR:GetSharedTable(name) then
-        return STR:GetSharedTable(name)
-    else
-        print(name)
-        local t = SharedTable.new()
-        STR:SetSharedTable(name,t)
-        return t
-    end
-end
-local SPECIAL 
-function self.FormatTable(x,p)
+
+
+local function FormatTable(x,p)
     local p = p or {}
     for i,v in x do
         if type(v) == "table" and v.NameSpace then
             i = v.NameSpace
         end
         p[i] = v
-    end
+    end 
     return p
 end
-function self.AddInstanceChildren(Object,AssetObj)
-    local Folder = AssetObj
+local function AddInstanceChildren(Object,Folder)
     for i,stuff in Object:GetChildren() do
         if stuff:IsA("Folder") then
             Folder[stuff.Name] = Folder[stuff.Name] or {}
             Folder[stuff.Name].ISFOLDER = true
-            self.AddInstanceChildren(stuff,Folder[stuff.Name])
+            AddInstanceChildren(stuff,Folder[stuff.Name])
         elseif stuff:IsA("ModuleScript") then
             local data = require(stuff)
-            Folder[(type(data) == "table" and data.NameSpace) or stuff.Name] = type(data) =="table" and self.FormatTable(data) or data
-            self.AddInstanceChildren(stuff,Folder[stuff.Name])
+            Folder[(type(data) == "table" and data.NameSpace) or stuff.Name] = type(data) =="table" and FormatTable(data) or data
+            AddInstanceChildren(stuff,Folder[stuff.Name])
         else
             Folder[stuff.Name] = stuff
         end
     end
 end
-local Scripts = {
-    [true] ={},
-    [false] = {}
-}
-function self.LoadPack(PackName:string,loadComponet)
+function BehaviorHandler.LoadPack(PackName:string,loadComponet)
     local pack = BehaviorPacks:FindFirstChild(PackName)
     if pack then
         local function x(v)
-            if not table.find(type(SPECIAL) == "table" and SPECIAL or self.SPECIALLOAD,v.Name) and SPECIAL then
-                return 
-            end
             if v:IsA("Folder") then
-                self[v.Name] = self.GetOrCreated(v.Name)
-                self[v.Name].ISFOLDER = true
-                 self.AddInstanceChildren(v, self[v.Name])
+                Data[v.Name] = Data[v.Name] or {}
+                Data[v.Name].ISFOLDER = true
+                AddInstanceChildren(v, Data[v.Name])
             elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
-                if (v.Name == "Server" and RunService:IsServer()) or (v.Name == "Client" and RunService:IsClient()) then
-                    table.insert(Scripts[RunService:IsServer()],v)
-                    return
-                end
-                self[v.Name] = self.GetOrCreated(v.Name)
+                Data[v.Name] = Data[v.Name] or {}
                 local data = require(v)
-                self[v.Name] = type(data) =="table" and self.FormatTable(data) or data
-                self.AddInstanceChildren(v, self[v.Name])
+                Data[v.Name] = type(data) =="table" and FormatTable(data) or data
+                AddInstanceChildren(v, Data[v.Name])
             end
         end
         if loadComponet then
@@ -92,96 +59,52 @@ function self.LoadPack(PackName:string,loadComponet)
         end 
     end
 end
-function self:Init(SPECIAL_) 
-    SPECIAL = SPECIAL_
-    for i,name in self.LoadOrder do
-        for i,v in BehaviorPacks:GetChildren()do
-            self.LoadPack(v.Name,name)
-        end
-    end
+local Init = false
+function BehaviorHandler.loadComponet(Componet) 
     for i,v in BehaviorPacks:GetChildren()do
-        self.LoadPack(v.Name,nil)
+        BehaviorHandler.LoadPack(v.Name,Componet)
     end
-    if SPECIAL then return end 
-    for ii,v in Scripts do
-        for i,s in v do
-            if ii == RunService:IsServer() then
-                local m = require(s)
-                if m.Init then
-                    m:Init()
-                end
-            end
-        end
+end
+function BehaviorHandler.Init() 
+    if Init then return end 
+    for i,v in BehaviorPacks:GetChildren()do
+        BehaviorHandler.LoadPack(v.Name)
     end
-    --print(self)
-    return self 
+    Init = true
+    return BehaviorHandler 
 end
-function self.GetItemData(name)
-    if not self.Items then return end
-    return self.Items[name]
+
+--//getters
+function BehaviorHandler.getItemData(name)
+    if not Data.Items then return end
+    return Data.Items[name]
 end
-local ItemType = {
-    maxCount = 64
-}
-function ItemType.__index(s,x)
-    local y = self.GetItemType(rawget(s,'type'))
-    if y and y[x] ~= nil then
-        return y[x]
-    end
-    return rawget(ItemType,x)
+
+function BehaviorHandler.getEntityBehavior(name)
+    if not Data.Behaviors then return end
+    return Data.Behaviors[name]
 end
-function ItemType:IsA(type)
-    return self.type and ((type(self.type) == 'table' and table.find(self.type,type)) or self.type == type )
-end 
-function self.CreateItemType(data)
-    return setmetatable(data,ItemType)
+function BehaviorHandler.getEntity(Name)
+    if not Data.Entities then return end 
+    return Data.Entities[Name]
 end
-function self.GetItemType(name)
-    if not self.ItemTypes then return end
-    return self.ItemTypes[name]
+function BehaviorHandler.getItem(name)
+    if not Data.Items then return end
+    return Data.Items[name]
 end
-function self.CreateComponent(data,Parent,subtable)
-    local t = self.GetComponent(Parent)
-    if subtable and t[subtable] then t= t[subtable] end 
-    if not rawget(t,'__index') then
-        t.__index = t
-    end
-    return setmetatable(data,t)
+function BehaviorHandler.getBlock(Name)
+    if not Data.Blocks then return end
+    return Data.Blocks[Name]
 end
-function self.GetComponent(name)
-    if not self.Components then return end
-    return self.Components[name]
+function BehaviorHandler.getBlockCollisionBox(Name)
+    if not Data.BlockCollisionBoxes then return end
+    return Data.BlockCollisionBoxes[Name]
 end
-function self.GetBehavior(name)
-    if not self.Behaviors then return end
-    return self.Behaviors[name]
+function BehaviorHandler.getfunction(name)
+    return Data.Functions and  Data.Functions[name]
 end
-function self.GetEntity(Name)
-    if not self.Entities then return end 
-    return self.Entities[Name]
-end
-function self.GetItem(name)
-    if not self.Items then return end
-    return self.Items[name]
-end
-function self.GetBCFD(Name,C)--GetBlockComponetsFromData
-    return self.Blocks[Name] and self.Blocks[Name][C or "components"]
-end
-function self.GetBlockHb(Name)
-    return self.BlockHitboxes[Name]
-end
-function self.GetBlock(Name)
-    return self.Blocks[Name]
-end
-function self.Getfunction(name)
-    return self.Functions and  self.Functions[name]
-end
-function self.GetWorldGeneration(path)
-    local gen = self.WorldGeneration or {}
+function BehaviorHandler.getBiome(path)
+    local gen = Data.Biomes or {}
     return gen[path]
 end
-function self.GetBiome(path)
-    local gen = self.Biomes or {}
-    return gen[path]
-end
-return self
+return table.freeze(BehaviorHandler)

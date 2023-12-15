@@ -1,15 +1,16 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local self = {}
+local Data = {}
+local ResourceHandler = {}
 local ResourcePacks = game.ReplicatedStorage.ResourcePacks or Instance.new("Folder",game.ReplicatedStorage)
 ResourcePacks.Name = "ResourcePacks"
-function self.AddInstanceChildren(Object,AssetObj)
+function ResourceHandler.AddInstanceChildren(Object,AssetObj)
     local Folder = AssetObj
     for i,stuff in Object:GetChildren() do
         if stuff:IsA("Folder") then
             Folder[stuff.Name] = Folder[stuff.Name] or {}
-            self.AddInstanceChildren(stuff,Folder[stuff.Name])
+            ResourceHandler.AddInstanceChildren(stuff,Folder[stuff.Name])
         elseif stuff:IsA("ModuleScript") then
             Folder[stuff.Name] = require(stuff)
         else
@@ -17,82 +18,56 @@ function self.AddInstanceChildren(Object,AssetObj)
         end
     end
 end 
-local SPECIAL
-function self.LoadPack(PackName:string)
+function ResourceHandler.LoadPack(PackName:string)
     local pack = ResourcePacks:FindFirstChild(PackName)
-    if pack then
-        for i,v in pack:GetChildren() do
-            if SPECIAL and not table.find(SPECIAL ,v.Name)  then continue end 
-                
-            if v:IsA("Folder") then
-                 self[v.Name] = self[v.Name] or {}
-                 self.AddInstanceChildren(v, self[v.Name])
-            elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
-                self[v.Name] = self[v.Name] or {}
-                for i,data in require(v)do
-                    self[v.Name][i] = data
-                end
-                self.AddInstanceChildren(v, self[v.Name])
+    if not pack then return end 
+    for _,v in pack:GetChildren() do
+        if v:IsA("Folder") then
+            Data[v.Name] = Data[v.Name] or {}
+                ResourceHandler.AddInstanceChildren(v, Data[v.Name])
+        elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
+            Data[v.Name] = Data[v.Name] or {}
+            for i,data in require(v)do
+                Data[v.Name][i] = data
             end
+            ResourceHandler.AddInstanceChildren(v, Data[v.Name])
         end
-        -- local Info
-        -- if pack:FindFirstChild("Info") then Info = pack:FindFirstChild("Info") end
-        -- if Info then Info.Parent = nil end
-        -- pack:ClearAllChildren()
-        -- if Info then Info.Parent = pack end
     end
 end
-function self:Init(special)
-    SPECIAL = special
+function ResourceHandler.Init()
     for i,v in ResourcePacks:GetChildren()do
-        self.LoadPack(v.Name)
+        ResourceHandler.LoadPack(v.Name)
     end
-   -- print(self)
+    print(Data)
 end
 
-function self.GetAsset(id)
-    return self.Assets and self.Assets[id]
+function ResourceHandler.getAsset(id)
+    return Data.Assets and Data.Assets[id]
 end
-function self.GetBlock(Name)
-    return self["Blocks"] and self["Blocks"][Name] or nil
+function ResourceHandler.getBlock(Name)
+    return Data["Blocks"] and Data["Blocks"][Name] or nil
 end
-function self.GetEntity(Name)
-    return self["Entities"] and self["Entities"][Name] or nil 
+function ResourceHandler.getEntity(Name)
+    return Data["Entities"] and Data["Entities"][Name] or nil 
 end
-function self.GetItem(name)
-    return self.Items and self.Items[name]
+function ResourceHandler.getItem(name)
+    return Data.Items and Data.Items[name]
 end
-function self.GetUiContainer(name)
-    if self.Containers then
-        return self.Containers[name]
+function ResourceHandler.getUiContainer(name)
+    if Data.Containers then
+        return Data.Containers[name]
     end
 end
-function self.GetUI(name)
-    return self.Ui and self.Ui[name]
+function ResourceHandler.getUI(name)
+    return Data.Ui and Data.Ui[name]
 end
-function self.GetEntityFromData(Data)
-    local Type,model,ModelId,TextureId = Data.Type,Data.Model,Data.ModelId or 0,Data.TextureId or 0
-    if model and self.Models.Entities[model] then
-        return self.Models.Entities[model] 
-    else
-        local entity = self.GetEntity(Type)
-        return entity
-    end
+
+function ResourceHandler.getAnimationFromName(name)
+    return Data.Animations[name] or Data.AnimationFolder[name] or nil
 end
-function self.GetAnimationFromName(name)
-    return self.Animations[name] or self.AnimationFolder[name] or nil
+function ResourceHandler.getEntityModel(name)
+    return (Data.EntityModels or {})[name]
 end
-function self.GetEntityModel(name)
-    return (self.EntityModels or {})[name]
-end
-function self.GetEntityModelFromData(Data)
-    local Type,model,ModelId,TextureId = Data.Type,Data.Model,Data.ModelId or 0,Data.TextureId or 0
-    if model and self.Models.Entities[model] then
-        return self.Models.Entities[model].Model
-    else
-        local entity = self.GetEntity(Type) and self.GetEntity(Type).Model
-        return entity
-    end
-end
-return self
+
+return table.freeze(ResourceHandler)
 

@@ -2,7 +2,7 @@
 -- FAST SIGNAL
 local Signal = {}
 Signal.__index = Signal
-
+Signal.__type = "Signal"
 local Connection = {}
 Connection.__index = Connection
 

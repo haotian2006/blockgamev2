@@ -1,0 +1,77 @@
+Date : 2023-12-13 23:34:24
+Directory : c:\Users\haoti\Documents\GitHub\blockgamev2
+Total : 26 files,  610 codes, 1 comments, 36 blanks, all 647 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Lua      |         23 |        605 |          1 |         36 |        642 |
+| JSON     |          3 |          5 |          0 |          0 |          5 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                   | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                      |         26 |        610 |          1 |         36 |        647 |
+| src                                                                                                                    |         26 |        610 |          1 |         36 |        647 |
+| src\ReplicatedStorage                                                                                                  |          3 |         20 |          0 |          0 |         20 |
+| src\ReplicatedStorage\Chunk                                                                                            |          1 |          1 |          0 |          0 |          1 |
+| src\ReplicatedStorage\Libarys                                                                                          |          1 |          1 |          0 |         -1 |          0 |
+| src\ReplicatedStorage\Utils                                                                                            |          1 |         18 |          0 |          1 |         19 |
+| src\ServerStorage                                                                                                      |         13 |        170 |         -2 |         12 |        180 |
+| src\ServerStorage\Generation                                                                                           |          1 |         -1 |          0 |          0 |         -1 |
+| src\ServerStorage\Generation\generation                                                                                |          1 |         -1 |          0 |          0 |         -1 |
+| src\ServerStorage\Generation\generation\biomes                                                                         |          1 |         -1 |          0 |          0 |         -1 |
+| src\ServerStorage\Generation\generation\biomes\layers                                                                  |          1 |         -1 |          0 |          0 |         -1 |
+| src\ServerStorage\Generation\generation\biomes\layers\noise                                                            |          1 |         -1 |          0 |          0 |         -1 |
+| src\ServerStorage\core                                                                                                 |         12 |        171 |         -2 |         12 |        181 |
+| src\ServerStorage\core\Chunk                                                                                           |         12 |        171 |         -2 |         12 |        181 |
+| src\ServerStorage\core\Chunk (Files)                                                                                   |          3 |         39 |          0 |          8 |         47 |
+| src\ServerStorage\core\Chunk\GenerationLayer                                                                           |          5 |        160 |          0 |         11 |        171 |
+| src\ServerStorage\core\Chunk\Generator                                                                                 |          4 |        -28 |         -2 |         -7 |        -37 |
+| src\ServerStorage\core\Chunk\Generator (Files)                                                                         |          3 |        -25 |         -2 |         -7 |        -34 |
+| src\ServerStorage\core\Chunk\Generator\Actor                                                                           |          1 |         -3 |          0 |          0 |         -3 |
+| src\StarterPlayer                                                                                                      |         10 |        420 |          3 |         24 |        447 |
+| src\StarterPlayer\StarterPlayerScripts                                                                                 |         10 |        420 |          3 |         24 |        447 |
+| src\StarterPlayer\StarterPlayerScripts (Files)                                                                         |          1 |          0 |          1 |         -1 |          0 |
+| src\StarterPlayer\StarterPlayerScripts\Render                                                                          |          8 |        357 |          2 |         18 |        377 |
+| src\StarterPlayer\StarterPlayerScripts\Render (Files)                                                                  |          5 |        337 |          2 |         16 |        355 |
+| src\StarterPlayer\StarterPlayerScripts\Render\Actor                                                                    |          3 |         20 |          0 |          2 |         22 |
+| src\StarterPlayer\StarterPlayerScripts\core                                                                            |          1 |         63 |          0 |          7 |         70 |
+| src\StarterPlayer\StarterPlayerScripts\core\chunk                                                                      |          1 |         63 |          0 |          7 |         70 |
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                               | language | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Chunk\init.lua                                       | Lua      |          1 |          0 |          0 |          1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\Signal.lua                                   | Lua      |          1 |          0 |         -1 |          0 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Utils\IndexUtils.lua                                 | Lua      |         18 |          0 |          1 |         19 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\biomes\layers\noise\NoiseLayer.lua | Lua      |         -1 |          0 |          0 |         -1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\GenerationLayer\airStoneLayer.lua             | Lua      |         73 |          0 |          3 |         76 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\GenerationLayer\biomeLayer.lua                | Lua      |          9 |          0 |          2 |         11 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\GenerationLayer\combineLayer.lua              | Lua      |         17 |          0 |          1 |         18 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\GenerationLayer\init.lua                      | Lua      |         52 |          0 |          3 |         55 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\GenerationLayer\surfaceNoiseLayer.lua         | Lua      |          9 |          0 |          2 |         11 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\Actor\DataHandler.model.json        | JSON     |         -3 |          0 |          0 |         -3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\GeneratorWorker.lua                 | Lua      |        -63 |         -4 |         -7 |        -74 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\Tasks.lua                           | Lua      |         35 |          2 |          0 |         37 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\init.lua                            | Lua      |          3 |          0 |          0 |          3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\OverworldStack.lua                            | Lua      |          7 |          0 |          0 |          7 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\init.lua                                      | Lua      |         42 |          0 |         10 |         52 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\manager.lua                                   | Lua      |        -10 |          0 |         -2 |        -12 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\Actor\Main.client.lua        | Lua      |         12 |          0 |          2 |         14 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\Actor\Main.meta.json         | JSON     |          5 |          0 |          0 |          5 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\Actor\init.meta.json         | JSON     |          3 |          0 |          0 |          3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\ChunkCompressor.lua          | Lua      |          0 |          0 |          1 |          1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\GreedyMesh.lua               | Lua      |        182 |          1 |          3 |        186 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\RenderWorker.lua             | Lua      |         61 |          0 |          6 |         67 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\Tasks.lua                    | Lua      |        110 |          1 |          6 |        117 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\init.lua                     | Lua      |        -16 |          0 |          0 |        -16 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\__init__.client.lua                 | Lua      |          0 |          1 |         -1 |          0 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\init.lua                 | Lua      |         63 |          0 |          7 |         70 |
+| Total                                                                                                                  |          |        610 |          1 |         36 |        647 |
++------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

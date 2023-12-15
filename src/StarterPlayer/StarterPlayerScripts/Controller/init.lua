@@ -4,11 +4,11 @@ local Camera = workspace.CurrentCamera
 local IsMoving = false 
 local Data = require(game.ReplicatedStorage.Data)
 local LPE = Data.getPlayerEntity
-local EntityV2 = game.ReplicatedStorage.EntityHandlerV2
-local EntityHandler = require(game.ReplicatedStorage.EntityHandlerV2)
+local EntityV2 = game.ReplicatedStorage.EntityHandler
+local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local EntityUtils = EntityHandler.Utils
 local MathLib = require(game.ReplicatedStorage.Libarys.MathFunctions)
-local EntityTaskReplicator = require(game.ReplicatedStorage.EntityHandlerV2.EntityReplicator.EntityTaskReplicator)
+local EntityTaskReplicator = require(game.ReplicatedStorage.EntityHandler.EntityReplicator.EntityTaskReplicator)
 local Animator = require(EntityV2.Animator)
 local Funcs = {}
 function Funcs.Crouch(key,IsDown,GPE,inputs)

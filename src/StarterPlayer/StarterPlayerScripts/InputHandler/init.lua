@@ -44,14 +44,14 @@ end
 local BindedFunctions = {}
 local keyPairsBinded = {}
 function  Controller.bindToRender(Name,fx)
-    if RenderEvents[Name] then return warn(`{Name} is binded already`) end 
+    if RenderEvents[Name] then  warn(`{Name} is binded already`) end 
     RenderEvents[Name] = fx
 end
 function  Controller.unbindFromRender(Name)
     RenderEvents[Name] = nil
 end
 function Controller.bindFunctionTo(Name,func,action,priority)
-    if BindedFunctions[Name] then return warn("Name already Binded") end 
+    if BindedFunctions[Name] then  warn("Name already Binded") end 
     local d = {action,func,priority or 2000}
     BindedFunctions[Name] = d
     keyPairsBinded[action] = keyPairsBinded[action] or {}

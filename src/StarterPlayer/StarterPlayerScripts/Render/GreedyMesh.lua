@@ -1,12 +1,8 @@
 local greedy = {}
 local gs = require(game.ReplicatedStorage.GameSettings)
-local qf 
-local reh
-local cx,cz
-pcall(function()
-     qf = require(game.ReplicatedStorage.QuickFunctions)
-     reh = require(game.ReplicatedStorage.ResourceHandler)
-end)
+
+local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
+
 local function findintable(tab,x,y,z)
    if tab[x] and tab[x][y] and tab[x][y][z]   then
        return tab[x][y][z] 
@@ -17,17 +13,9 @@ local function addtotabl(tab,data,x,y,z)
    tab[x][y] = tab[x][y] or {} 
    tab[x][y][z] = data
 end
-local function shallowCopy(original)
-   local copy = {}
-   for key, value in pairs(original) do
-       copy[key] = value
-   end
-   return copy
-end
 local function decombine(str)
    return str:split(",")
 end
-local one = false
 greedy.Blocks = {}
 function greedy.createblock(sx,ex,sz,ez,sy,ey,data)
     local l = math.sqrt((sx-ex)^2)
@@ -41,34 +29,36 @@ function greedy.createblock(sx,ex,sz,ez,sy,ey,data)
     h += h ~= -1 and 1 or 0
     return {data = data ,startx = sx,endx = ex,startz = sz,endz = ez,starty = sy,endy = ey,h=h,l=l,w=w,real = Vector3.new(midpointx,midpointy,midpointz)},`{midpointx},{midpointy},{midpointz}`
 end
-function  greedy.meshtable(meshtable,sides)
+function greedy.createblock2(startPos,endPos,data)
+    local midpoint = (startPos+endPos)/2
+    local dif = startPos-endPos
+    local l = math.sqrt(dif.X^2)
+    l += l ~= -1 and 1 or 0
+    local w = math.sqrt(dif.Z^2)
+    w += w ~= -1 and 1 or 0
+    local h = math.sqrt(dif.Y^2)
+    h += h ~= -1 and 1 or 0
+    return {data = data ,startPos = startPos,endPos = endPos,size = Vector3.new(l,h,w),midPoint = midpoint},midpoint
+end
+function  greedy.meshtable(meshtable)
     local startx,endx,startz,endz,starty,endy
-    local D3 = {}
+    local data = {}
     local checked = {}
     local old = 0
     local c = 0
-    if next(meshtable) == nil then warn("GIVEN TABLE IS EMPTY") return {},{} end
+    if next(meshtable) == nil then return{} end
     local unabletomeshblocks = {}
     for i,v in meshtable do
-        if not v or not sides[i] then continue end
         old+=1
-        local x,y,z =gs.to3D(i)--unpack(i:split(","))
-        --x,y,z = tonumber(x),tonumber(y),tonumber(z)
+        local Vector = IndexUtils.to3D[i]
+        local x,y,z = Vector.X,Vector.Y,Vector.Z
         if startx == nil then
-            startx = x
-            starty = y
-            startz = z
-            endx = x
-            endy = y
-            endz = z
-        end
-        local d = reh.GetBlock(v[1][1])
-        if d and d.Mesh then
-            unabletomeshblocks[Vector3.new(x,y,z)] = {v,sides[i]}
-        else
-            D3[x] = D3[x] or {}
-            D3[x][y] = D3[x][y] or {}
-            D3[x][y][z] = {v,sides[i]}
+            startx = Vector.X
+            starty = Vector.Y
+            startz = Vector.Z
+            endx = startx
+            endy = starty
+            endz = startz
         end
         if x >=endx then
             endx = x
@@ -88,119 +78,109 @@ function  greedy.meshtable(meshtable,sides)
         if y <=starty then
             starty = y
         end
+        data[Vector] = v
+
     end
     local currentz = startz
     local currenty = starty
     local currentx = startx
     local ssx,ssz,ssy = startx,startz,starty
     local new,total = {},0
-    local lastx,lastz,lasty 
-    local function compare(x,y,z,xx,yy,zz)
-            local d1 = findintable(D3,x,y,z)
-            local d2 = findintable(D3,xx,yy,zz)
+    local lastV = false
+    local StartV = false
+    local function compare(v1:Vector3,v2:Vector3)
+            local d1 = data[v1]
+            local d2 = data[v2]
             -- end
             if d1 and d2 then
-                return d1[1][3] == d2[1][3] and  d1[2] == d2[2]
+                return d1 == d2
             end
             return true
     end
     while currentz <= endz+1 do
         while currentx <= endx+1 do
             while currenty <= endy+1 do
-                if findintable(D3,currentx,currenty,currentz) and not findintable(checked,currentx,currenty,currentz)and compare(lastx,lasty,lastz,currentx,currenty,currentz)  then
-                    if not findintable(D3,lastx,lasty,lastz)  then
-                        startx = currentx
-                        startz = currentz
-                        starty = currenty
+                local currentV = Vector3.new(currentx,currenty,currentz)
+                if data[currentV] and not checked[currentV] and compare(lastV, currentV)  then
+                    if not data[lastV]  then
+                         StartV = currentV
                     end
-                    addtotabl(checked,true,currentx,currenty,currentz)
-                elseif (not findintable(D3,currentx,currenty,currentz)or not compare(lastx,lasty,lastz,currentx,currenty,currentz) )and findintable(D3,startx,starty,startz) and startx and startz and starty and lastx and lastz and lasty then
-                    local data,index = greedy.createblock(startx,lastx,startz,lastz,starty, lasty,findintable(D3,lastx,lasty,lastz))
-                    new[index] = data
-                    if not compare(lastx,lasty,lastz,currentx,currenty,currentz) then
-                        startx = currentx
-                        startz = currentz
-                        starty = currenty
+                    checked[currentV] = true
+                elseif (not data[currentV] or not compare(lastV, currentV))and data[StartV] and StartV and lastV then
+                    local bData,index = greedy.createblock2(StartV,lastV,data[lastV])
+                    new[index] = bData
+                    if not compare(lastV,currentV) then
+                        StartV = currentV
                     else
-                        startx = nil
-                        startz = nil
-                        starty = nil
+                        StartV = false
                     end
                 end
-                lastx = currentx
-                lastz = currentz
-                lasty = currenty
+                lastV = currentV
                 currenty +=1
             end
-            currenty = ssy
+            currenty = ssy 
             currentx+=1
         end
         currentx = ssx
-        lastz = currentz
+        lastV = Vector3.new(lastV.X,lastV.Y,currentz)
         currentz+=1
     end
     local function dosmt(key,dir)
-        local ox,oy,oz = unpack(decombine(key))
-        local rx,ry,rz = ox,oy,oz
+        local oVector = key
+        local rVector = key
         local info = new[key]
-        local sx,ex,sz,ez,sy,ey = info.startx,info.endx,info.startz,info.endz,info.starty,info.endy
-        local l,w,h = info.l,info.w,info.h
+        local StartVector,EndVector = info.startPos,info.endPos
+        local Size = info.size -- lhw
         local involved = {key}
         local function move(goback)
             if dir == 'x' then
-                rx += goback and -l or l
+                rVector += Vector3.new(Size.X)*(goback and -1 or 1)
             elseif  dir == 'z' then
-                rz += goback and -w or w
+                rVector+= Vector3.new(0,0,Size.Z)*(goback and -1 or 1)
             elseif  dir == 'y' then
-                ry += goback and -h or h
+                rVector += Vector3.new(0,Size.Y,0)*(goback and -1 or 1)
             end
         end
         local currentdir = -1
         while true do
             move(currentdir ==-1 and true or nil)
-            local str = `{rx},{ry},{rz}`
-            local c = new[str]
-            if c and c.w == w and c.l == l and c.h == h and c.data[1][3] == info.data[1][3] and  c.data[2] == info.data[2] then 
+            local c = new[rVector]
+            if c and c.size == Size and c.data == info.data  then 
                 if currentdir == -1 then
-                    sx = c.startx
-                    sz = c.startz
-                    sy = c.starty
+                    StartVector = c.startPos
                 else
-                    ex = c.endx
-                    ez = c.endz
-                    ey = c.endy
+                    EndVector = c.endPos
                 end
-                table.insert(involved,str)
+                table.insert(involved,rVector)
             elseif currentdir == -1 then
                 currentdir = 1
-                rx,rz,ry = ox,oz,oy
+                rVector = oVector
                 continue
             else
                 break
             end
         end
-        return involved,greedy.createblock(sx,ex,sz,ez,sy,ey,info.data)
+        return involved,greedy.createblock2(StartVector,EndVector,info.data)
     end
     local cc ={}
-    for key,value in pairs(shallowCopy(new)) do
+    for key,value in (table.clone(new)) do
         if not new[key] then continue end
-        local inv,data,newkey = dosmt(key,"x")
-        cc[newkey] = data
-        for i,v in ipairs(inv)do
+        local inv,bData,newkey = dosmt(key,"x")
+        cc[newkey] = bData
+        for i,v in inv do
             new[v] = nil
         end
     end
     new = cc
-    local cc ={}
-    for key,value in pairs(shallowCopy(new)) do
+    cc ={}
+    for key,value in (table.clone(new)) do
         if not new[key] then continue end
-        local inv,data,newkey = dosmt(key,"z")
-        cc[newkey] = data
-        for i,v in ipairs(inv)do
+        local inv,bData,newkey = dosmt(key,"z")
+        cc[newkey] = bData
+        for i,v in inv do
             new[v] = nil
         end
     end
-    --  df:update("A")
-    return cc,unabletomeshblocks
+    return cc
 end
 return greedy

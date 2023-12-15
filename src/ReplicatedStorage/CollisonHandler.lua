@@ -1,12 +1,11 @@
 local RunService = game:GetService("RunService")
 local collisions ={}
-local qf = require(game.ReplicatedStorage.QuickFunctions)
 local behavior = require(game.ReplicatedStorage.BehaviorHandler)
 local vector3 = Vector3.new
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 
 local BlockUtils = require(game.ReplicatedStorage.Utils.BlockUtils)
-local ChunkHandler = require(game.ReplicatedStorage.ChunkV2)
+local ChunkHandler = require(game.ReplicatedStorage.Chunk)
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local ChunkWidth,ChunkHeight = GameSettings.getChunkSize()
 local rotationLib = require(game.ReplicatedStorage.Utils.RotationUtils)
@@ -171,7 +170,7 @@ function collisions.GetBlockHitBox(data)
     --print(data)
     local Type,Ori = data:getName(),data:getFullRotation()
     local bdata = data:getComponentData()
-    local hb = behavior.GetBlockHb(bdata.Hitbox)
+    local hb-- = behavior.GetBlockHb(bdata.Hitbox)
     if hb then
         if type(hb) == "table" then
             hitboxinfo = hb

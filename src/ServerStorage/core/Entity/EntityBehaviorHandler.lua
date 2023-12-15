@@ -1,6 +1,6 @@
 local BehaviorManager = {}
-local EntityHandler = require(game.ReplicatedStorage.EntityHandlerV2)
-local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandlerV2)
+local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local SPECIALKEY = "↓BE🌟"
 local DEAFULT_PRIORITY = 200
 function BehaviorManager.checkIsBehavior(key)
@@ -94,7 +94,7 @@ function BehaviorManager.run(self)
     end
 end
 local Init = false
-local EntityHolder = require(game.ReplicatedStorage.EntityHandlerV2.EntityHolder)
+local EntityHolder = require(game.ReplicatedStorage.EntityHandler.EntityHolder)
 local Runner = require(game.ReplicatedStorage.Runner)
 function BehaviorManager.Init()
     if Init then return end 
