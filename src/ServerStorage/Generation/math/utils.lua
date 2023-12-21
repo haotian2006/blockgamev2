@@ -58,5 +58,46 @@ function Utils.bor(x, y)
     end
     return result
 end
+function Utils.lerp(a, b, c)
+    return b + a * (c - b)
+end
+function Utils.lerp2(a, b, c, d, e, f)
+    local x = c + a * (d - c)
+    return x+ b* (e + a * (f- e)- x)
+end
+function Utils.lerp3(a, b, c, d, e, f, g, h, i, j, k)
+    local x1 =  d + a * (e - d)
+    local x =   x1 + b * ((f + a * (g - f)) - x1)
+    local y1 =  h + a * (i -h)
+    return    x + c * (( y1 + b * ((j + a * (k - j)) - y1)) - x)
+end
 
+function Utils.clampedLerp(a, b, c)
+    if c < 0 then 
+        return a
+    elseif c > 1 then
+        return b
+    else
+        return (a + c * (b-a))
+    end
+end
+
+function Utils.inverseLerp(a, b, c)
+    return (a - b) / (c - b)
+end
+
+function Utils.clampedMap(value, from, to, fValue, tValue)
+    return Utils.clampedLerp(fValue, tValue, Utils.inverseLerp(value, from, to))
+end
+
+Utils.precentageCache4 = {}
+Utils.YprecentageCache8 = {}
+do
+    for x = 0,3 do
+        Utils.precentageCache4[x] = ((x % 4 + 4) % 4) / 4
+    end
+    for y = 0,255 do
+        Utils.YprecentageCache8[y] = ((y % 8 + 8) % 8) / 8
+    end
+end
 return Utils

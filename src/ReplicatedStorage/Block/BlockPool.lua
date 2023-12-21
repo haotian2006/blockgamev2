@@ -1,7 +1,7 @@
 local BlockPool = {}
 local Pool = {}
 local rotationData = require(game.ReplicatedStorage.Utils.RotationUtils)
-
+local BlockId =require(script.Parent)
 
 
 local Block = {}
@@ -41,6 +41,19 @@ function BlockPool.get(str)
     Pool[str] = {new,1}
     return new 
 end
+function BlockPool.getFromIdx(idx,times)
+    local str = BlockId.getBlock(idx)
+    if not str or str == "false" or str == "c:air" then return BlockPool.CONST_FALSE end 
+    local block = Pool[str]
+    if block then
+        block[2] += times or 1
+        return block[1] 
+    end
+    local new = Block.new(str)
+    Pool[str] = {new,times or 1}
+    return new 
+end
+
 
 function BlockPool.release(str)
     local block = Pool[str]

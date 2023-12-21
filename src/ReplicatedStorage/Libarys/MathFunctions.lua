@@ -38,9 +38,11 @@ function Line:CalculateMidPoint():Point
 end
 function Line:CalculatePointOfInt(L:Line):Point|nil
     local pa,pb,pc,pd = self.p1,self.p2,L.p1,L.p2
-    local a1 = pb.y - pa.y local b1 = pa.x - pb.x
+    local a1 = pb.y - pa.y 
+    local b1 = pa.x - pb.x
     local c1 = a1*(pa.x)+b1*(pa.y)
-    local a2 = pd.y - pc.y local b2 = pc.x - pd.x
+    local a2 = pd.y - pc.y 
+    local b2 = pc.x - pd.x
     local c2 = a2*(pc.x)+b2*(pc.y)
     local det = a1*b2-a2*b1
     if det == 0 then return else

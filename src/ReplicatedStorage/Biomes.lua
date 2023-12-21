@@ -2,7 +2,10 @@ local Biome = {}
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local Biomes = {
     'c:ocean',
-    'c:plains'
+    'c:plains',
+    "c:ice",
+    'c:hill',
+    'c:desert',
 }
 local Cache = {}
 function Biome.getBiomeId(str)

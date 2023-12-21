@@ -1,34 +1,8 @@
 local greedy = {}
-local gs = require(game.ReplicatedStorage.GameSettings)
 
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 
-local function findintable(tab,x,y,z)
-   if tab[x] and tab[x][y] and tab[x][y][z]   then
-       return tab[x][y][z] 
-   end
-end
-local function addtotabl(tab,data,x,y,z)
-   tab[x] = tab[x] or {}
-   tab[x][y] = tab[x][y] or {} 
-   tab[x][y][z] = data
-end
-local function decombine(str)
-   return str:split(",")
-end
 greedy.Blocks = {}
-function greedy.createblock(sx,ex,sz,ez,sy,ey,data)
-    local l = math.sqrt((sx-ex)^2)
-    local midpointx = (sx+ex )/2
-    l += l ~= -1 and 1 or 0
-    local w = math.sqrt((sz-ez)^2)
-    local midpointz = (sz+ez )/2
-    w += w ~= -1 and 1 or 0
-    local h = math.sqrt((sy-ey)^2)
-    local midpointy = (sy+ey )/2
-    h += h ~= -1 and 1 or 0
-    return {data = data ,startx = sx,endx = ex,startz = sz,endz = ez,starty = sy,endy = ey,h=h,l=l,w=w,real = Vector3.new(midpointx,midpointy,midpointz)},`{midpointx},{midpointy},{midpointz}`
-end
 function greedy.createblock2(startPos,endPos,data)
     local midpoint = (startPos+endPos)/2
     local dif = startPos-endPos
@@ -47,7 +21,6 @@ function  greedy.meshtable(meshtable)
     local old = 0
     local c = 0
     if next(meshtable) == nil then return{} end
-    local unabletomeshblocks = {}
     for i,v in meshtable do
         old+=1
         local Vector = IndexUtils.to3D[i]

@@ -18,13 +18,18 @@ function ResourceHandler.AddInstanceChildren(Object,AssetObj)
         end
     end
 end 
-function ResourceHandler.LoadPack(PackName:string)
+function ResourceHandler.loadComponet(Componet) 
+    for i,v in ResourcePacks:GetChildren()do
+        ResourceHandler.LoadPack(v.Name,Componet)
+    end
+end
+function ResourceHandler.LoadPack(PackName:string,loadComponet)
     local pack = ResourcePacks:FindFirstChild(PackName)
     if not pack then return end 
-    for _,v in pack:GetChildren() do
+    local function x(v)
         if v:IsA("Folder") then
             Data[v.Name] = Data[v.Name] or {}
-                ResourceHandler.AddInstanceChildren(v, Data[v.Name])
+            ResourceHandler.AddInstanceChildren(v, Data[v.Name])
         elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
             Data[v.Name] = Data[v.Name] or {}
             for i,data in require(v)do
@@ -33,6 +38,16 @@ function ResourceHandler.LoadPack(PackName:string)
             ResourceHandler.AddInstanceChildren(v, Data[v.Name])
         end
     end
+    if loadComponet then
+        if pack:FindFirstChild(loadComponet) then
+            x(pack:FindFirstChild(loadComponet))
+        end
+        return
+    end
+    for i,v in pack:GetChildren() do
+        x(v)
+    end 
+    
 end
 function ResourceHandler.Init()
     for i,v in ResourcePacks:GetChildren()do

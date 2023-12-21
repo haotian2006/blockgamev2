@@ -190,8 +190,8 @@ function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
         local block,localGrid,Grid = CollisionHandler.getBlock(x,y,z)
         local GridStr = tostring(Grid)
         if whitelist and whitelist[GridStr] then continue end
-        if block and tostring(block)  then
-            if BlockUtils.isFalseOrIsNULL(block) then continue end 
+        if block then
+            if block == 0 or block == -1 then continue end 
             local typejump, heightneeded,maxheight
             local currentmin = 1
             local newpos ,newsize = Grid,Vector3.one
@@ -292,7 +292,7 @@ function  Collision.isGrounded(entity,CheckForBlockAboveInstead)
         local coordstring = tostring(Grid)
         if whitelist and whitelist[localGrid] then continue end
         if block  then
-            if BlockUtils.isFalseOrIsNULL(block) then continue end 
+            if block == 0 then continue end 
             whitelist[coordstring] = true
             local blockpos = Grid
             local newpos ,newsize = blockpos,Vector3.one

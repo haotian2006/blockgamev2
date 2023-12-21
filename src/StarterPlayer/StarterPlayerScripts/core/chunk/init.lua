@@ -6,8 +6,12 @@ local Rendered = {}
 local Data = require(game.ReplicatedStorage.Data)
 local Entity = Data.getPlayerEntity
 local Runner = require(game.ReplicatedStorage.Runner)
-local Render = require(game:GetService("Players").LocalPlayer.PlayerScripts:WaitForChild("Render"))
+local PlayerScripts = game:GetService("Players").LocalPlayer.PlayerScripts
+local Render = require(PlayerScripts:WaitForChild("Render"))
+local BlockPool = require(game.ReplicatedStorage.Block.BlockPool)
 
+local Worker = require(PlayerScripts:WaitForChild("ClientWorker"))
+local ChunkWorkers =Worker.create("Chunk Worker", 10,nil,script.ChunkTasks)
 local RemoteEvent:RemoteEvent = game.ReplicatedStorage.Events.Chunk
 
 
@@ -19,19 +23,18 @@ end
 
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local ChunkClass = require(game.ReplicatedStorage.Chunk)
-RemoteEvent.OnClientEvent:Connect(function(chunk,data)  
-    task.spawn(function()
-        local t =table.create(8*8*256)
-        for i = 0,buffer.len(data)-1 do
-            t[i+1] = buffer.readu8(data, i) == 1 
-        end
-        local newchunk = ChunkClass.new(chunk.X, chunk.Z,t)
-        Data.insertChunk(chunk.X, chunk.Z, newchunk)
-    end)
-
-    Recieved[chunk] = data
+local once = false
+RemoteEvent.OnClientEvent:Connect(function(chunk,blocks,biome)  
+    local decomp =  ChunkWorkers:DoWork("deCompress",blocks)
+    local newchunk = ChunkClass.new(chunk.X, chunk.Z,decomp,biome)
+    Data.insertChunk(chunk.X, chunk.Z, newchunk)
+    if not once then
+        once = true
+        print(buffer.tostring(blocks))
+    end
+    Recieved[chunk] = decomp
 end)
-local limit =4
+local limit =2
 game:GetService("RunService").RenderStepped:Connect(function(a0: number)  
     local done = 0
     for i,v in Recieved do

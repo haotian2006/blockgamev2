@@ -3,6 +3,7 @@ local EntityHolder = require(game.ReplicatedStorage.EntityHandler.EntityHolder)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils) 
 local BlockUtils = require(game.ReplicatedStorage.Utils.BlockUtils)
 local Chunk = require(game.ReplicatedStorage.Chunk)
+debug.setmemorycategory("CUBICAL STORAGE")
 local Chunks = {}
 local Other = {}
 local PlayerEntity = nil 
@@ -20,6 +21,9 @@ function Data.insertChunk(x,y,chunk)
 end
 function Data.getChunk(x,y)
     return Chunks[Vector3.new(x,y)]
+end 
+function Data.getAllChunks(x,y)
+    return Chunks
 end 
 function Data.getChunkOrCreate(x,y)
     local c = Chunks[Vector3.new(x,y)] 

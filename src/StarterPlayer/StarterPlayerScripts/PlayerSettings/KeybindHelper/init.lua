@@ -14,6 +14,7 @@ local function getkeyfrominput(input)
     elseif input.UserInputType.Name ~= "Unknown" then
         return input.UserInputType.Name:lower(),false
     end
+    return nil,nil
 end
 Keybind.getKeyFromInput = getkeyfrominput
 function Keybind.setCurrentState(name)

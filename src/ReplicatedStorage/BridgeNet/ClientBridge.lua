@@ -15,7 +15,7 @@ local ReceiveQueue: { receivePacketQueue } = {}
 
 local BridgeObjects = {}
 
-local threads: { thread? } = {}
+local threads: { thread } = {}
 local replTicksSignal = {}
 
 --[=[
@@ -34,8 +34,8 @@ ClientBridge.__index = ClientBridge
 function ClientBridge._start()
 	RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvent")
 
-	Invoke = SerdesLayer.FromIdentifier("Invoke")
-	InvokeReply = SerdesLayer.FromIdentifier("InvokeReply")
+	Invoke = SerdesLayer.FromIdentifier("Invoke") or ""
+	InvokeReply = SerdesLayer.FromIdentifier("InvokeReply") or ""
 
 	local passingReplRates = {}
 

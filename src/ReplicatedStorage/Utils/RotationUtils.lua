@@ -11,7 +11,7 @@ r.indexPairs = {
     "-0,-1,1",
     "-0,0,-0",
     "-0,0,-1",
-    "-0,0,0",
+    "-0,0,0", 
     "-0,0,1",
     "-0,1,-0",
     "-0,1,-1",
@@ -100,7 +100,9 @@ r.keyPairs = {
     ["1,1,-0"] = 47,
     ["1,1,0"] = 48
 }
+local tableCache = {}
 function r.convertToTable(str:string)
+    if tableCache[str] then return tableCache[str] end 
     local function convert(x)
         if x == '0' then
             x = 0
@@ -116,25 +118,13 @@ function r.convertToTable(str:string)
         return (tonumber(x) or 0)
     end
     local x,y,z = str:match("([^,]*),?([^,]*),?([^,]*)")
-    return {convert(x),convert(y),convert(z)}
+    local v = {convert(x),convert(y),convert(z)}
+    tableCache[str]  = v
+    return v
 end
 function r.convertToCFrame(str:string)
-    local function convert(x)
-        if x == '0' then
-            x = 0
-        elseif x == '-0' then
-            x = 180
-        elseif x == '1' then
-            x = 90
-        elseif x == '-1' then
-            x = -90
-        else 
-            x = 0
-        end
-        return math.rad(tonumber(x) or 0)
-    end
-    local x,y,z = str:match("([^,]*),?([^,]*),?([^,]*)")
-    return CFrame.fromOrientation(convert(x),convert(y),convert(z))
+    local t = r.convertToTable(str)
+    return CFrame.fromOrientation(unpack(t))
 end
 function r.calculateRotationFromData(block,blockHitData,rayData)
     local coords = blockHitData.BlockPosition+blockHitData.Normal

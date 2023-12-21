@@ -14,7 +14,7 @@ local numOfSerials: number = 0
 ]=]
 local SerdesLayer = {}
 
-local AutoSerde: Folder = nil
+local AutoSerde: Instance = nil
 local isServer = RunService:IsServer()
 
 type toSend = string
@@ -23,7 +23,7 @@ SerdesLayer.NilIdentifier = "null"
 
 local function fromHex(toConvert: string): string
 	return string.gsub(toConvert, "..", function(cc)
-		return string.char(tonumber(cc, 16))
+		return string.char(tonumber(cc, 16)or 1)
 	end) :: string
 end
 
@@ -81,7 +81,7 @@ function SerdesLayer.CreateIdentifier(id: string): string
 	if not sendDict[id] and not isServer then
 		return SerdesLayer.WaitForIdentifier(id)
 	elseif sendDict[id] and not isServer then
-		return sendDict[id]
+		return sendDict[id] or ""
 	end
 
 	if numOfSerials >= 65536 then
@@ -104,7 +104,7 @@ function SerdesLayer.WaitForIdentifier(id: string): string
 	while sendDict[id] == nil do
 		task.wait()
 	end
-	return sendDict[id]
+	return sendDict[id] or ""
 end
 
 --[=[
@@ -143,12 +143,15 @@ function SerdesLayer.DestroyIdentifier(id: string): nil
 	assert(isServer, "You cannot destroy identifiers on the client.")
 	assert(type(id) == "string", "ID must be a string")
 
-	receiveDict[sendDict[id]] = nil
+	receiveDict[sendDict[id] or ""] = nil
 	sendDict[id] = nil
 
 	numOfSerials -= 1
-
-	AutoSerde:FindFirstChild(id):Destroy()
+	local f = AutoSerde:FindFirstChild(id)
+	if not f then 
+		return 
+	end
+	f:Destroy()
 	return nil
 end
 
@@ -210,7 +213,6 @@ end
 ]=]
 function SerdesLayer.DictionaryToTable(dict: { [string]: any })
 	assert(typeof(dict) == "table", "[BridgeNet] dict must be a dictionary")
-	assert(getmetatable(dict) == nil, "[BridgeNet] Passed dictionary may not have a metatable")
 
 	local keys = {}
 	for key, _ in dict do

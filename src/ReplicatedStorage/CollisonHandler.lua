@@ -30,9 +30,9 @@ function collisions.getBlock(x,y,z)
             return false,localgrid
         end
         local b = ChunkHandler.getBlockAt(chunk,localgrid.X,localgrid.Y,localgrid.Z)
-        return {b},BlockUtils,Grid
+        return b,localgrid,Grid
     else
-       return BlockUtils.CONST_NULL,BlockUtils,Grid
+       return -1,localgrid,Grid
     end
 end
 function  collisions.newSettings()
