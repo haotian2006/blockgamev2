@@ -1,7 +1,7 @@
---// Local  =   0-chunksize.X-1
+--// Local  =   [0,chunksize.X-1]
 --// Grid   =   x,y,z
 --// Real   =   (x,y,z)*BlockSize
---// Not Name = Grid
+--// No Name = Grid
 
 local Utils = {}
 
@@ -11,6 +11,12 @@ local Chunk_Height
 local Block_Size = GameSettings.GridSize
 Chunk_Width,Chunk_Height = GameSettings.getChunkSize()
 
+function Utils.isWithIn(lx,ly,lz)
+    return (
+        (lx <= 7 and lx >=0) and 
+        (lz <= 7 and lz >= 0 ) 
+    ) 
+end
 function Utils.getoffset(cx,cz):Vector3
     return (Chunk_Width*cx),(Chunk_Width*cz)
 end

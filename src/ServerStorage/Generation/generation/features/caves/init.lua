@@ -1,5 +1,5 @@
 local Carver = {}
-local NoiseHandler = require(script.Parent.Parent.math.noise)
+local NoiseHandler = require(script.Parent.Parent.Parent.math.noise)
 function Carver.samplerHelper(noise1,noise2)
     return math.abs(noise1)+math.abs(noise2)
 end

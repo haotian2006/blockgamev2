@@ -50,8 +50,9 @@ function Line:CalculatePointOfInt(L:Line):Point|nil
     end 
 end
 function maths.worldCFrameToC0ObjectSpace(motor6DJoint:Motor6D,worldCFrame:CFrame):CFrame
-    if not  motor6DJoint.Part1 then return CFrame.new() end 
-	local part1CF = motor6DJoint.Part1.CFrame
+    local p1 = motor6DJoint.Part1
+    if not p1 then return CFrame.new() end 
+	local part1CF = p1.CFrame
 	local c1Store = motor6DJoint.C1
 	local c0Store = motor6DJoint.C0
 	local relativeToPart1 =c0Store*c1Store:Inverse()*part1CF:Inverse()*worldCFrame*c1Store

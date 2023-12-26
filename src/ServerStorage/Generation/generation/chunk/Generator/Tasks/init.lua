@@ -6,7 +6,7 @@ local NoiseManager = require(game.ServerStorage.Generation.math.noise)
 local layers = require(game.ServerStorage.Generation.generation.biomes.layers)
 local Biomes = require(game.ReplicatedStorage.Biomes)
 local Utils = require(script.Parent.Parent.Parent.Parent.math.utils)
-local Caves= script.Parent.Parent.Parent.Caves
+local Caves= script.Parent.Parent.Parent.features.caves
 local noodle = require(Caves.noodle)
 local NoodleSettings 
 do

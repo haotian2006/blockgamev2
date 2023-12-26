@@ -83,11 +83,11 @@ function collisions.AABBcheck(b1,b2,s1,s2,isbp)
     end
     b2 = vector3(b2.X-s2.X/2,b2.Y-s2.Y/2,b2.Z-s2.Z/2)
     return not (b1.X+s1.X <= b2.X or 
-    b1.X>b2.X+s2.X or
-    b1.Y+s1.Y < b2.Y or 
-    b1.Y>b2.Y+s2.Y or                                     
-    b1.Z+s1.Z < b2.Z or 
-    b1.Z>b2.Z+s2.Z    )                             
+        b1.X>b2.X+s2.X or
+        b1.Y+s1.Y < b2.Y or 
+        b1.Y>b2.Y+s2.Y or                                     
+        b1.Z+s1.Z < b2.Z or 
+        b1.Z>b2.Z+s2.Z    )                             
 end
 
 

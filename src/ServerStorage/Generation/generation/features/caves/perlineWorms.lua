@@ -1,6 +1,6 @@
 local worms ={}
-local Noise = require(script.Parent.Parent.Parent.math.noise)
-local Math = require(script.Parent.Parent.Parent.math.utils)
+local Noise = require(script.Parent.Parent.Parent.Parent.math.noise)
+local Math = require(script.Parent.Parent.Parent.Parent.math.utils)
 local lerpMap = Math.clampedMap
 function worms.new(seed,maxDistance,maxRange,amplitude,weight,sampleInterval,maxSections,chance)
     return {seed,Noise.newBasic(seed,1),Noise.newBasic(seed,20),Noise.newBasic(seed,4),maxDistance,maxRange,amplitude,weight or 5,sampleInterval,chance or 5,maxSections}

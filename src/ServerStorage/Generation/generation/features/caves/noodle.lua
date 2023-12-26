@@ -1,6 +1,6 @@
 local Noodle = {}
-local NoiseHandler = require(script.Parent.Parent.Parent.math.noise)
-local Utils = require(script.Parent.Parent.Parent.math.utils)
+local NoiseHandler = require(script.Parent.Parent.Parent.Parent.math.noise)
+local Utils = require(script.Parent.Parent.Parent.Parent.math.utils)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 
