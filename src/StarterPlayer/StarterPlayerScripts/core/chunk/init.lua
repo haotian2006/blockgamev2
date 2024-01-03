@@ -5,69 +5,85 @@ local Rendered = {}
 
 local Data = require(game.ReplicatedStorage.Data)
 local Entity = Data.getPlayerEntity
+local EntityUtils = require(game.ReplicatedStorage.Utils.EntityUtils)
 local Runner = require(game.ReplicatedStorage.Runner)
 local PlayerScripts = game:GetService("Players").LocalPlayer.PlayerScripts
 local Render = require(PlayerScripts:WaitForChild("Render"))
+local BlockRender = require(PlayerScripts:WaitForChild("Render"):WaitForChild("BlockRender"))
 local BlockPool = require(game.ReplicatedStorage.Block.BlockPool)
+local SubChunkHelper = require(PlayerScripts:WaitForChild("Render"):WaitForChild("SubChunkHelper"))
 
 local Worker = require(PlayerScripts:WaitForChild("ClientWorker"))
 local ChunkWorkers =Worker.create("Chunk Worker", 10,nil,script.ChunkTasks)
 local RemoteEvent:RemoteEvent = game.ReplicatedStorage.Events.Chunk
-
-
-function Chunk.requestChunk(Chunk)
-    if Asked[Chunk] or Recieved[Chunk] then return end 
-    RemoteEvent:FireServer(Chunk)
-    Asked[Chunk] = true
+local destroyed = {}
+function Chunk.requestChunk(chunk)
+    if Asked[chunk] or Recieved[chunk] then return end 
+    destroyed[chunk] = nil 
+    RemoteEvent:FireServer(chunk)
+    Asked[chunk] = true
 end
 
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local ChunkClass = require(game.ReplicatedStorage.Chunk)
 local once = false
+
 RemoteEvent.OnClientEvent:Connect(function(chunk,blocks,biome)  
+    if destroyed[chunk] then return end 
     local decomp =  ChunkWorkers:DoWork("deCompress",blocks)
     local newchunk = ChunkClass.new(chunk.X, chunk.Z,decomp,biome)
     Data.insertChunk(chunk.X, chunk.Z, newchunk)
     if not once then
-        once = true
-        print(buffer.tostring(blocks))
+        once = true 
     end
-    Recieved[chunk] = decomp
+    BlockRender.Destroyed[chunk] = nil
+    Asked[chunk] = false
+    Recieved[chunk] = true
+    Render.Recieved[chunk] = decomp
+    Render.subChunkQueue[chunk] = 1
 end)
-local limit =2
-game:GetService("RunService").RenderStepped:Connect(function(a0: number)  
-    local done = 0
-    for i,v in Recieved do
-        if Rendered[i] then continue end
-        local n,e,s,w = Recieved[i+Vector3.xAxis],Recieved[i+Vector3.zAxis],Recieved[i-Vector3.xAxis],Recieved[i-Vector3.zAxis]
-        if not( n and e and s and w) then continue end 
-        done+=1
-        if done > limit then break end 
-        Rendered[i] = true
-        task.spawn(function()
-            Render.render(i,v,n,e,s,w)
-        end)
-    end
-end)
-for x = 0,4 do
-    for z = 0,4 do
-        Chunk.requestChunk(Vector3.new(x,0,z))
+
+local utils = require(game.ReplicatedStorage.Utils.EntityUtils)
+local offsets = {}
+local Inrange = {}
+local r =  16
+r+=2
+for dist = 0, r do
+    for x = -dist, dist do
+        local zBound = math.floor(math.sqrt(r * r - x * x)) -- Bound for 'z' within the circle
+        for z = -zBound, zBound do
+            local radius = x*x +z*z 
+            if radius > r*r then continue end 
+            if table.find(offsets,Vector3.new(x,0,z)) then continue end 
+            table.insert(offsets,Vector3.new(x,0,z))
+            if radius > (r-2)^2 then continue end 
+            Inrange[Vector3.new(x,0,z)] = true
+        end
     end
 end
-local utils = require(game.ReplicatedStorage.Utils.EntityUtils)
-local r = 16
-task.spawn(function()
-    while true do
-        local CEntity = Entity()
-        if CEntity then
-            for x = -r,r do
-                for z = -r,r do
-                    Chunk.requestChunk(Vector3.new(x,0,z)+utils.getChunk(CEntity))
-                end
-            end
-        end
-        task.wait()
-    end
     
+local last = Vector3.new(0,-1,0)
+game:GetService("RunService").Heartbeat:Connect(function(a0: number)  
+    local CEntity = Entity()
+    if CEntity then
+        local current = EntityUtils.getChunk(CEntity)
+        if last == current then return end 
+        last = current
+        local checked = {}
+        for i,offset in offsets do
+            local c = offset+utils.getChunk(CEntity)
+            if Inrange[offset] then
+                Chunk.requestChunk(c)
+            end
+            checked[c] = true
+        end   
+        for i,v in Recieved do
+            if checked[i] then continue end 
+            destroyed[i] = true
+            Render.deloadChunk(i)
+            Recieved[i] = nil
+        end
+    end
 end)
+
 return Chunk

@@ -22,7 +22,10 @@ function Utils.mixSeed(seed,x)
     return seed 
 end
 
-function Utils.createRandom(seed,x,z)
+function Utils.createRandom(seed,x,z,salt)
+    if salt then
+        seed = Utils.jenkins_hash(`{seed}_{salt}`)
+    end
     seed = Utils.mixSeed(seed,x)
     seed = Utils.mixSeed(seed,z*231)
     return Random.new(seed)

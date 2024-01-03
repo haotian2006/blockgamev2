@@ -3,28 +3,29 @@ local rotationUtils = require(game.ReplicatedStorage.Utils.RotationUtils)
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local blockSize = GameSettings.GridSize
 local BlockHandler = require(game.ReplicatedStorage.Block)
-local MeshCOPY = script:FindFirstChild("MeshPart")
-local SurfaceGuiCOPY = script:FindFirstChild("SurfaceGui")::ImageLabel
-if not MeshCOPY then
-    MeshCOPY = Instance.new("MeshPart",script)
-    local ED = Instance.new("EditableMesh",MeshCOPY)
+local RenderStorage = require(script.Parent.RenderStorage)
+local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
+ResourceHandler.Init()
+local function getID(texture)
+    return if texture:IsA("Decal") or texture:IsA("Texture") then texture.Texture else texture
 end
-if not SurfaceGuiCOPY then
-    SurfaceGuiCOPY = Instance.new("SurfaceGui",script)
-    local ImageLableCopy = Instance.new("ImageLabel",SurfaceGuiCOPY)
-    ImageLableCopy.Size = UDim2.new(1,0,1,0)
-    ImageLableCopy.ScaleType = "Tile"
-    ImageLableCopy.TileSize = UDim2.new(0,150,0,150)
-    ImageLableCopy.Name = "ImageLabel"
+for i,v in ResourceHandler.getAllBlocks() or {} do
+    if v.Texture and type(v.Texture) ~= "string" then
+        if type(v.Texture) == "table" then
+            for s,t in v.Texture do
+                v.Texture[s] = getID(t)
+            end
+        else
+            v.Texture = getID(v.Texture)
+        end
+    end
 end
-
 local function split(string:string)
     return string:match("([^,]*),?([^,]*),?([^,]*)")
 end
-local Ttexture = Instance.new("Texture")
 local vector3 = Vector3
 local RotationMap= {
-    ["0,0,0"] = function(size)
+    ["0,0,0"] = function(size) 
         return size
     end,
     ["1,0,0"] = function(size)
@@ -137,15 +138,13 @@ function Texture.GetOrderOfSide(Orientation)
     end
     return new_directions
 end 
-function Texture.CreateTexture(texture:string|Texture|Decal|Instance,face,size)
+function Texture.CreateTexture(texture:string,face)
     local new
-    if type(texture) == "string" or texture:IsA("Decal") or texture:IsA("Texture") then
-        new = Instance.new("Texture")
-      --SurfaceGuiCOPY:Clone()--Instance.new("Texture")
-        --new.ImageLabel.Image =  "rbxassetid://14247472054"
-        new.Texture = if type(texture) == "string" then texture else texture.Texture
-        new.StudsPerTileU = (size or blockSize )
-        new.StudsPerTileV =( size or blockSize)
+    if type(texture) == "string" then
+        new = RenderStorage.getNextTexture()
+        if  new.Texture ~= texture then
+            new.Texture = texture
+        end
         new.Face = face
     elseif texture:IsA("SurfaceGui") then
         new = texture:Clone()
@@ -180,7 +179,7 @@ function Texture.GetTextures(blockName,walls,Orientation,Id,part)
                      table.insert(stuff,Texture.CreateTexture(v,i))
                  end
              end
-         elseif type(texture) == "userdata" then
+         elseif type(texture) == "userdata" or type(texture) == "string" then
              for v in sides do
                  if  v ~= "" then
                      table.insert(stuff,Texture.CreateTexture(texture,v))
@@ -191,18 +190,19 @@ function Texture.GetTextures(blockName,walls,Orientation,Id,part)
      end
      return stuff
  end
+ local toClone = Instance.new("Part")
+ toClone.Anchored = true
+ toClone.Massless = true
  function Texture.CreateBlock(blockName,walls,ori,Id,PartToUse)
-    local p = PartToUse or Instance.new("Part")
-    --local ED = Instance.new("EditableMesh",p)
-   --local p = MeshCOPY:Clone()
+    local p = PartToUse or RenderStorage.getNextBlock()
     local info = BlockHandler.getResource(blockName) or {}
-    p.Material = info.Material or  Enum.Material.SmoothPlastic 
-    for i,v in  Texture.GetTextures(blockName,walls,ori,Id,p) do
+    if info.Material then 
+        p.Material = info.Material 
+    end
+    local t = Texture.GetTextures(blockName,walls,ori,Id,p)
+    for i,v in t  do
         v.Parent = p
     end
-    --p.Transparency = info.Transparency or 0 
-    p.Anchored = true
-    p.Massless = true
-    return p
+    return p,t
 end
 return Texture

@@ -1,32 +1,34 @@
 local range = {}
-
-function range.new(min,max,peak)
-    return {min,max,peak}
-end
-function range.parse(settings)
-    return {settings.min,settings.max,settings.peak}
-end
 --[[
-    public static float TriangularDistribution(float minimum = 0f, float peak = 0.5f, float maximum = 1f)
-{
-    float v = UnityEngine.Random.value;
-
-    if (v < (peak - minimum) / (maximum - minimum))
-        return minimum + Mathf.Sqrt(v * (maximum - minimum) * (peak - minimum));
-    else
-        return maximum - Mathf.Sqrt((1f - v) * (maximum - minimum) * (maximum - peak));
-}
+    {
+    multiplier: number,
+    points: {
+        {
+            min: number,
+            max: number
+        },
+    } 
 ]]
-function range.sample(self,random:Random)
-    local min = self[1]
-    local max = self[2]
-    local peak = self[3]
-    if not peak then return random:NextInteger(min,max) end 
-    local value = random:NextNumber()
-    if value < (peak - min)/(max-min) then
-        return min + math.sqrt(value*(max-min)*(peak-min))
+function range.new(multi, points)
+    return { multi or 1, points }
+end
+function range.parse(data)
+    if data.min then
+        return range.new(data.multiplier, {{min = data.min,max = data.max}})
     end
-    return max - math.sqrt((1-value)*(max - min)*(max - peak))
+    return range.new(data.multiplier, data.points)
+end
+
+function range.inRange(self, value)
+    local multiplier = self[1]
+    local points = self[2]
+    value*=multiplier
+    for _, point in points do
+        if value >= point.min and value <= point.max then
+            return true
+        end
+    end
+    return false
 end
 
 return range

@@ -15,10 +15,11 @@ end
 
 Convert.to3D = {}::{[number]:Vector3}
 Convert.to1D = {}::{[number]:{[number]:{[number]:number}}}
+Convert.to1DVector = {}::{[Vector3]:number}
 local cArea = (ChunkWidth)*(ChunkHeight) 
 local PreComputed = Convert.to1D
 local preComputedFlag = false
-function Convert.preCompute()
+function Convert.preCompute(DoVector)
     if preComputedFlag then return end
     preComputedFlag = true
     for x = 0,ChunkWidth-1 do
@@ -28,12 +29,15 @@ function Convert.preCompute()
             for z = 0,ChunkWidth-1 do
                 local idx =  x+y*ChunkWidth+z *cArea+1
                 PreComputed[x][y][z] =  idx
-                Convert.to3D[idx] = Vector3.new(x,y,z)
+                local v =Vector3.new(x,y,z)
+                Convert.to3D[idx] = v
+                Convert.to1DVector[v] = idx
             end
         end
     end
     freezeAll(PreComputed)
     freezeAll(Convert.to3D)
+    freezeAll(Convert.to1DVector)
 end
 
 Convert.to2D = {}::{[number]:Vector3}
@@ -123,7 +127,7 @@ end
 function Convert.preComputeAll()
     for i,v in Convert do
         if type(v) == "function" and i ~= "preComputeAll" then
-            v()
+            v(true)
         end
     end
 end

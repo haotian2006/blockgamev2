@@ -13,7 +13,7 @@ function Chunk.new(x,z,Block:buffer?,biomes:nil|buffer|number)
     self.Blocks = Block or buffer.create(8*8*256*4)
     self.BiomeMap = biomes
     self.Status = {
-        Version = 0;
+        Version = 0; 
     }
     self.Cache = {}
     return table.freeze(self)

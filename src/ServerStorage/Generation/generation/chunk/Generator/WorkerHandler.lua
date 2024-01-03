@@ -32,7 +32,7 @@ function WorkerManager:GetId()
     local id = self.id
     if self.threads[id] ~= nil then -- if a id is being used then go next
         return self:GetId()
-    elseif id >= 9999999 then
+    elseif id >= 999999999 then
         self.id = 0
         return self:GetId()
     end

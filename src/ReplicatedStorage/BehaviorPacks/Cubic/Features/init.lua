@@ -2,7 +2,7 @@ return {
     ["c:Grass"] = {
         name = "c:Grass",
         noiseSettings = "c:foliageNoise",
-           isFoilage = true, -- structure will only change on the y-axis (better performance)
+           isfoliage = true, -- structure will only change on the y-axis (better performance)
            override = false, --deafult true, if false then would not override blocks 
    
            noise_Range = {
@@ -37,7 +37,7 @@ return {
         name = "c:Tree",
        -- noiseSettings = "c:treeNoise",
         noiseSettings = "c:foliageNoise",
-        isFoilage = false, -- structure will only change on the y-axis (better performance)
+        isfoliage = false, -- structure will only change on the y-axis (better performance)
         override = false, --deafult true, if false then would not override blocks 
 
         noise_Range = {

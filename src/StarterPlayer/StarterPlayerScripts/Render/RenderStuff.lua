@@ -3,14 +3,12 @@ local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
-local RotationUtils = require(game.ReplicatedStorage.Utils.RotationUtils)
+local subChunkHelper = require(script.Parent.SubChunkHelper)
 ResourceHandler.loadComponet("Blocks")
-IndexUtils.preCompute()
-
-local Texture = require(script.Parent.BlockTexture)
-local Block = require(game.ReplicatedStorage.Block)
+IndexUtils.preCompute(true)
+local chunkData ={}
 local Width,Height = GameSettings.getChunkSize()
-
+local to1D = IndexUtils.to1D
 local function CreateBorder(lx,lz)
     return {
         lx+1 >= Width,
@@ -29,14 +27,20 @@ do
             borders[id] = temp[str] or info
             temp[str] = info
         end
-    end 
+    end  
 end
 local function GetBorders(lx,lz)
     return borders[lx + lz *Width + 1]
 end
-
+function Tasks.setSubChunkData(chunk,data)
+    chunkData[chunk] = data
+end
 local Greedy = require(script.Parent.GreedyMesh)
-function Tasks.cull(chunk,center,north,east,south,west )
+function Tasks.sampleSection(section,chunk)
+    local b =subChunkHelper.sampleSection(chunkData[chunk], section,chunk)
+    return b
+end
+function Tasks.cull(chunk,center,north,east,south,west,sections )
     local cache ={
         [center] = table.create(8*8*256),
         [north] = {},
@@ -52,7 +56,7 @@ function Tasks.cull(chunk,center,north,east,south,west )
         return data
     end
     local function checkBlock(x,y,z,chunk)
-        local id = IndexUtils.to1D[x][y][z]
+        local id = to1D[x][y][z]
         return get(id,chunk or center) ~= 0
     end
     local b1,b2,b3,b4
@@ -74,7 +78,7 @@ function Tasks.cull(chunk,center,north,east,south,west )
             if checkBlock(x,y,0,east) then num +=16 end 
         else
             if checkBlock(x,y,z+1) then num +=16  end 
-        end
+        end 
         if b4 then
             if checkBlock(x,y,7,west) then num +=32 end 
         else
@@ -89,14 +93,19 @@ function Tasks.cull(chunk,center,north,east,south,west )
     for x = 0,7 do
         for z = 0,7 do
             b1,b2,b3,b4 = unpack(GetBorders(x,z))
-            for y = 0,255 do
-                local idx = IndexUtils.to1D[x][y][z]
-                local v = get(idx, center)
-                if v == 0 then continue end 
-                local can,i = cull(x,y,z)
-                if not can then
-                    loc[idx] = Vector3.new(v,i)
-                end
+            for ly =0,31 do
+                local val = buffer.readu8(sections, ly)
+                if val == 0 then continue end 
+                for oy = 0,7 do
+                    local y = ly*8+oy
+                    local idx = IndexUtils.to1D[x][y][z]
+                    local v = get(idx, center)
+                    if v == 0 then continue end 
+                    local can,i = cull(x,y,z)
+                    if not can then
+                        loc[idx] = Vector3.new(v,i)
+                    end
+                end 
             end
         end
     end
@@ -104,29 +113,7 @@ function Tasks.cull(chunk,center,north,east,south,west )
     debug.profilebegin("MeshBlocks")
     local meshed = Greedy.meshtable(loc)
     debug.profileend()
-    task.synchronize()
-    debug.profilebegin("M RENDER BLOCKS")
-    local model = Instance.new("Model")
-    model.Name = `{chunk.X},{chunk.Z}`
-    local i = 0
-    for key,data in meshed do
-        i+=1
-        if i%150 == 0 then task.wait() end
-        local blockID,rot,id = Block.decompressCache(data.data.X)
-        rot = RotationUtils.indexPairs[rot]
-        local walls = data.data.Y
-        local BlockName = Block.getBlock(blockID)
-        local p = Texture.CreateBlock(BlockName,walls)
-        p.Size = data.size*3
-        --p.Color = color[data.data]
-        p.Position = (data.midPoint+chunk*8)*3
-        p.Anchored = true
-        p.Massless = true
-        p.Parent = model
-    end
-    model.Parent = workspace.Chunks
-    debug.profileend()
-    --return loc
+    return meshed
 end
 color = {
     Color3.new(0.466667, 1.000000, 0.447059),

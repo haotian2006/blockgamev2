@@ -28,10 +28,10 @@ function Generator.createDensityMap(cx,cz,biome)
     return OtherWorkers:DoWork("sampleDensityNoise",cx,cz,biome)
 end
 function Generator.getAirMap(c,t,l,tl,loc,biomes)
-    return OtherWorkers:DoWork("computeAir",c,t,l,tl,loc,biomes)
+    return OtherWorkers:DoWork("computeAir",c,t,l,tl,loc)
 end
 function Generator.getBlendedAirMap(c,t,l,tl,biome)
-    return OtherWorkers:DoWork("computeBlendedAir",c,t,l,tl,biome)
+    return OtherWorkers:DoWork("computeBlendedAir",c,t,l,tl)
 end
 function Generator.shapeCombine(x1,x2,x3,x4)
     return OtherWorkers:DoWork("shapeCombine",x1,x2,x3,x4)

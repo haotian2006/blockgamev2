@@ -13,5 +13,6 @@ controller.createBinds()
 
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 IndexUtils.preComputeAll()
---local Render = require(script.Parent.Render).Init()
+--local Render = require(script.Parent.Render).Init() 
 require(script.Parent.core.chunk)
+require(game.Players.LocalPlayer.PlayerScripts.core.Ui.ContainerHandler)

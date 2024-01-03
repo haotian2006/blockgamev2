@@ -49,11 +49,13 @@ function ResourceHandler.LoadPack(PackName:string,loadComponet)
     end 
     
 end
+local init = false
 function ResourceHandler.Init()
+    if init then return end 
+    init = true
     for i,v in ResourcePacks:GetChildren()do
         ResourceHandler.LoadPack(v.Name)
     end
-    print(Data)
 end
 
 function ResourceHandler.getAsset(id)
@@ -61,6 +63,9 @@ function ResourceHandler.getAsset(id)
 end
 function ResourceHandler.getBlock(Name)
     return Data["Blocks"] and Data["Blocks"][Name] or nil
+end
+function ResourceHandler.getAllBlocks()
+    return Data["Blocks"]
 end
 function ResourceHandler.getEntity(Name)
     return Data["Entities"] and Data["Entities"][Name] or nil 
@@ -83,6 +88,8 @@ end
 function ResourceHandler.getEntityModel(name)
     return (Data.EntityModels or {})[name]
 end
-
+function ResourceHandler.getAllData()
+    return Data
+end
 return table.freeze(ResourceHandler)
 

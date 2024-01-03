@@ -10,7 +10,7 @@ function Worker.new(index,actor)
     local clone = (actor or script.Parent.Render.Actor):Clone()
     clone.Name = index
     clone.Parent = mhworkers
-    clone.Main.Enabled = true -- enable the script
+    clone.Main.Enabled = true 
     return clone
 end
 
@@ -30,13 +30,19 @@ end
 function WorkerManager:GetId()
     self.id += 1
     local id = self.id
-    if self.threads[id] ~= nil then -- if a id is being used then go next
+    if self.threads[id] ~= nil then 
         return self:GetId()
     elseif id >= 9999999 then
         self.id = 0
         return self:GetId()
     end
     return id 
+end
+
+function WorkerManager:sendMessage(...)
+    for i,actor:Actor in self.Workers do
+        actor:SendMessage("Info",...)
+    end
 end
 
 function WorkerManager:DoWork(taskToDo,...)

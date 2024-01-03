@@ -6,11 +6,11 @@ greedy.Blocks = {}
 function greedy.createblock2(startPos,endPos,data)
     local midpoint = (startPos+endPos)/2
     local dif = startPos-endPos
-    local l = math.sqrt(dif.X^2)
+    local l = math.abs(dif.X)
     l += l ~= -1 and 1 or 0
-    local w = math.sqrt(dif.Z^2)
+    local w = math.abs(dif.Z)
     w += w ~= -1 and 1 or 0
-    local h = math.sqrt(dif.Y^2)
+    local h = math.abs(dif.Y)
     h += h ~= -1 and 1 or 0
     return {data = data ,startPos = startPos,endPos = endPos,size = Vector3.new(l,h,w),midPoint = midpoint},midpoint
 end
@@ -124,7 +124,7 @@ function  greedy.meshtable(meshtable)
                 else
                     EndVector = c.endPos
                 end
-                table.insert(involved,rVector)
+                involved[#involved+1] = rVector
             elseif currentdir == -1 then
                 currentdir = 1
                 rVector = oVector

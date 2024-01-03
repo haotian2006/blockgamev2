@@ -27,10 +27,12 @@ end
 local function calcContribution(offset, x, z)
     return ((x - offset[2]) * (x - offset[2])) + ((z - offset[1]) * (z - offset[1]))
 end
+local find = 1024
+local mul = 3.6
 local function calcOffset2D(seed, x, z, offX, offZ)
     local Random = MathUtils.createRandom(seed, x+offX, z+offZ)
-    local d1 = ((Random:NextInteger(1, 1024)) / 1024 - 0.5) * 3.6 + offX
-    local d2 = (Random:NextInteger(1, 1024) / 1024 - 0.5) * 3.6 + offZ
+    local d1 = ((Random:NextInteger(1, find)) / find - 0.5) * mul+ offX
+    local d2 = (Random:NextInteger(1, find) / find - 0.5) * mul + offZ
     return { d1, d2 }
 end
 function utils.sampleVoronoi2D(seed, x, z)

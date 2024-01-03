@@ -1,14 +1,15 @@
 local Layer = {}
 local layers = {}
+local allLayers = {}
 local cacheInterval = 4
 debug.setmemorycategory("CUBICAL LAYER CACHE ")
 local cache = {}
 
 local Events = require(game.ReplicatedStorage.Libarys.Signal)
 
-function Layer.get(layer,Chunk)
+function Layer.get(layer,Chunk,...)
     local key = Chunk
-    local name = layer[1]
+    local name = layer
     if cache[name] then 
         local a = cache[name][key]
         if a then
@@ -23,14 +24,18 @@ function Layer.get(layer,Chunk)
     end
     local event = Events.new()
     cache[name][key] = event
-    local value = layers[name](layer,Chunk)
+    local value,Cahce = layers[name[1]](layer,Chunk,...)
     event:Fire(value)
     event:DisconnectAll()
-    cache[name][key] = value
+    if Cahce ~= false then 
+        cache[name][key] = value
+    else
+        cache[name][key] = nil
+    end
     return value
 end
-function Layer.compute(layer,chunk)
-    return layers[layer[1]](layer,chunk)
+function Layer.compute(layer,chunk,...)
+    return layers[layer[1]](layer,chunk,...)
 end
 function Layer.create(name,parent,...)
     return {name,parent,...}
@@ -40,6 +45,7 @@ function Layer.Init()
     if Connection then return end 
     for _,v in script:GetDescendants() do
         if v:IsA("ModuleScript") then
+            allLayers[v.Name] = require(v)
             layers[v.Name] = require(v).compute
         end
     end

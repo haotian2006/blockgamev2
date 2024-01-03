@@ -27,6 +27,11 @@ function Runner.bindToHeartbeat(Name,callback,priority)
     end
 end
 RunService.Stepped:Connect(function(time,deltaTime)
+    -- debug.profilebegin("RUNNNER STEPPED")
+    -- for i=0,1000 do
+    --     i+=1
+    -- end
+    -- debug.profileend()
     for i,v in steppedCallbacks do
         if not v then continue end 
         task.spawn(v,time,deltaTime)

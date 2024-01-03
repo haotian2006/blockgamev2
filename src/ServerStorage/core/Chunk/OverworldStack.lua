@@ -8,6 +8,12 @@ self.Terrain = Layers.create("airStoneLayer",self.Terrain)
 self.Surface = Layers.create("surfaceCombineLayer",self.Terrain)
 self.Terrain  = Layers.create("shapeCombineLayer",self.Terrain )
 
-self.Caves = Layers.create("sampleNoodleLayer")
-self.Caves = Layers.create("lerpNoodleLayer",self.Caves)
-return self
+self.Caves = Layers.create("sampleWorm")
+self.Caves = Layers.create("combineLayer",self.Caves,6)
+
+self.Ore = Layers.create("oreSampleLayer")
+self.Ore= Layers.create("combineLayer",self.Ore,3)
+
+self.Structres = Layers.create("structureSampleLayer")
+self.Structres= Layers.create("combineLayer",self.Structres,4)
+return self 

@@ -1,5 +1,14 @@
 local BehaviorHandler = {}
-local Data = {}
+local Data = {
+    Containers = {},
+    Functions = {},
+    Items = {},
+    Crafting = {},
+    Blocks = {},
+    Biomes = {},
+    Entities = {},
+    BlockCollisionBoxes = {}
+}
 local BehaviorPacks = game.ReplicatedStorage.BehaviorPacks or Instance.new("Folder",game.ReplicatedStorage)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -106,5 +115,11 @@ end
 function BehaviorHandler.getBiome(path)
     local gen = Data.Biomes or {}
     return gen[path]
+end
+function BehaviorHandler.getContainer(type)
+    return Data.Containers[type]
+end
+function BehaviorHandler.getAllData()
+    return Data
 end
 return table.freeze(BehaviorHandler)

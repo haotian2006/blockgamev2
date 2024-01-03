@@ -14,8 +14,8 @@ function tasks.deCompress(blocks)
             continue 
         end 
         for i = 1,times do
-                buffer.writeu32(toUse, idx*4, bData)
-                idx+=1
+            buffer.writeu32(toUse, idx*4, bData)
+            idx+=1
         end
     end
     return toUse

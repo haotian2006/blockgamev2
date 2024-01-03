@@ -1,10 +1,12 @@
 local Actor:Actor = script.Parent
 local DataHandler:BindableEvent
 local Tasks
-
 Actor:BindToMessage("Init", function(bindable,tasks)
     DataHandler = bindable
     Tasks = require(tasks)
+end)
+Actor:BindToMessage("Info", function(task,...)
+    Tasks[task](...)
 end)
 Actor:BindToMessageParallel("M", function(Idx,task,...)
     local func = Tasks[task]

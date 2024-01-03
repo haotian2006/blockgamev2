@@ -6,28 +6,34 @@ local NoiseManager = require(game.ServerStorage.Generation.math.noise)
 local layers = require(game.ServerStorage.Generation.generation.biomes.layers)
 local Biomes = require(game.ReplicatedStorage.Biomes)
 local Utils = require(script.Parent.Parent.Parent.Parent.math.utils)
-local Caves= script.Parent.Parent.Parent.features.caves
-local noodle = require(Caves.noodle)
-local NoodleSettings 
-do
-    local noise1 = {
-        firstOctave = -6,
-        amplitudes = {1}
-    }
-    local noise2 = {
-        firstOctave = -12,
-        amplitudes = {2}
-    }
-    local thickness = {
-        firstOctave = -5,
-        amplitudes = {1}
-    }
-    NoodleSettings = noodle.new(1234, noise1, noise2, thickness)
+local features = script.Parent.Parent.Parent.features
+local worms = require(script.Parent.Parent.Parent.features.caves.perlineWorms)
+local ore = require(features.ore)
+local foliage = require(features.foliage)
+local structures = require(features.structures)
+local cave = worms.parse(123,{
+    maxDistance = 200,
+    amplitude = .008,
+    weight = .5,
+    interval = 6,
+    maxSections = 1,
+    chance = 10 
+})
+Tasks.computefoliage = function(cx,cz,block,biome,surface)
+    return foliage.addfoliage(cx, cz, block, biome, surface)
 end
-function Tasks.sampleNoodleNoise(cx,cz,qx,qz)
-    return noodle.sampleChunk(NoodleSettings, cx, cz, qx, qz)
+Tasks.computeStructures = function(cx,cz,blocks,biomeAndSurface)
+    return structures.sample(cx, cz, blocks, biomeAndSurface)
 end
-Tasks.lerpNoodleNoise = noodle.lerp
+Tasks.computeOre = function(cx,cz,surface,biome)
+    return ore.sample(cx, cz, surface, biome)
+end
+Tasks.computeWorms = function(cx,cz)
+   -- task.synchronize()
+    local a = worms.sample(cave, cx, cz,false)
+    return a
+end
+
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 IndexUtils.preCompute()
 IndexUtils.preCompute2D()
@@ -69,6 +75,32 @@ local function clampedLerp(a, b, c)
     end
 end
 
+function Tasks.combineBufferWCarver(mainBuffer,...)
+    debug.profilebegin("CarveBuffer")
+    local checked = {}
+    for ii,toCompute in {...} do
+       for i,data in toCompute do
+            for i,v in data do
+                local mode = v.Z
+                local loc = v.X
+
+                local value = checked[loc] or buffer.readu32(mainBuffer, (loc-1)*4)
+                if mode == 0 and value == 0 then
+                    checked[loc] = value
+                    continue
+                elseif mode ==2 and value ~= 0 then
+                    checked[loc] = value
+                    continue
+                end
+
+                buffer.writeu32(mainBuffer, (loc-1)*4, v.Y)
+                checked[loc] = v.Y
+            end
+       end
+    end
+    debug.profileend()
+    return mainBuffer
+end
 function Tasks.createBiomeMap(cx,cz)
     debug.profilebegin("createBiome")
     local startX,startZ = ConversionUtils.getoffset(cx,cz)
@@ -244,26 +276,11 @@ function Tasks.blendNoise(C,N,E,NE)
     debug.profileend()
     return b
 end
-function Tasks.computeSurface(center,top,left,topLeft)
-    
-end
-function Tasks.computeBlendedAir(center,top,left,topLeft,biome)
+function Tasks.computeBlendedAir(center,top,left,topLeft)
     local noise000,noise001,noise010,noise011,noise100,noise101,noise110,noise111 = 1,1,1,1,1,1,1,1
     local b = buffer.create(256*8*8)
     debug.profilebegin("Blend air")
     local LastY 
-    local ISBUFFER = type(biome) ~= "number"
-    local minHeight = 0 
-    if not ISBUFFER then
-        local bc = Biomes.getBiomeData(biome)
-        minHeight = bc.SurfaceValue or minHeight
-    end
-    local Cache = {}
-    local function getMin(idx)
-        local bc = Biomes.getBiomeData(buffer.readu16(biome, (idx-1)*2)).SurfaceValue or minHeight
-        Cache[idx] = bc
-        return bc 
-    end
     local surfaceBuffer = buffer.create(8*8)
     local calculate = {}
     for y = 0,255 do
@@ -289,12 +306,14 @@ function Tasks.computeBlendedAir(center,top,left,topLeft,biome)
                 local value = lerp3(xp, yp, zp, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                 local bool = value>0 and 1 or 0
                 local idx2d =IndexUtils.to1DXZ[x][z] 
-                if ISBUFFER and not calculate[idx2d] then
-                    minHeight = Cache[idx2d] or getMin(idx2d )or minHeight
-                end
                 if not calculate[idx2d] then
-                    if value > minHeight then
-                        buffer.writeu8(surfaceBuffer, idx2d-1, y)
+                    if  (value < 0) then
+                        local yy = y
+                        yy -=1
+                        if yy >255 or yy <0 then
+                            yy+=1
+                        end
+                        buffer.writeu8(surfaceBuffer, idx2d-1, yy)
                         calculate[idx2d] = true
                     end
                 end
@@ -314,26 +333,12 @@ local offsetTable = {
     Vector3.new(4,0,4)
 }
 local maxBufferSizeAIR = 256*2
-function Tasks.computeAir(center,top,left,topLeft,loc,biome)
+function Tasks.computeAir(center,top,left,topLeft,loc)
     local noise000,noise001,noise010,noise011,noise100,noise101,noise110,noise111 = 1,1,1,1,1,1,1,1
     local b = buffer.create(maxBufferSizeAIR)
     debug.profilebegin("lerping and computing air")
-    local ISBUFFER = type(biome) ~= "number"
-    local minHeight = 0 
-    if not ISBUFFER then
-        local bc = Biomes.getBiomeData(biome)
-        minHeight = bc.SurfaceValue or minHeight
-    end
-    local Cache = {}
-    local function getMin(idx)
-        local bc = (Biomes.getBiomeData(buffer.readu16(biome, (idx-1)*2)).SurfaceValue) or minHeight
-        Cache[idx] = bc
-        return bc 
-    end
     local LastY 
     local surfaceBuffer = buffer.create(4*4)
-    local offset = offsetTable[loc]
-    local ofx,ofz = offset.X,offset.Z
     local calculated = {}
     for y = 0,255 do
         local yp = YprecentageCache[y]
@@ -359,12 +364,13 @@ function Tasks.computeAir(center,top,left,topLeft,loc,biome)
                 local value = lerp3(xp, yp, zp, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                 local bool = value>0 and 1 or 0
                 local idx = IndexUtils.to1DXZChunkQuad[x][z]
-                local idx2d =IndexUtils.to1DXZ[x+ofx][z+ofz]
-                if ISBUFFER and not  calculated[idx] then
-                    minHeight = Cache[idx2d] or getMin(idx2d ) or minHeight
-                end
-                if not calculated[idx] and value > minHeight then
-                    buffer.writeu8(surfaceBuffer, idx-1, y)
+                if not calculated[idx] and  (value < 0) then
+                    local yy = y
+                    yy -=1
+                    if yy >255 or yy <0 then
+                        yy+=1
+                    end
+                    buffer.writeu8(surfaceBuffer, idx-1, yy)
                     calculated[idx] = true
                 end
                 if bool == 0 then continue end 
@@ -423,11 +429,17 @@ function Tasks.surfaceCombine(x1,x2,x3,x4)
     debug.profilebegin("CombineSurface")
     for i,b in last do
         local offs = offsetTable[i] 
-        for a = 0,3 do
-            local value = buffer.readu8(b,a)
-            local loc = IndexUtils.to2D[a+1]+offs
-            buffer.writeu8(B, IndexUtils.to1DXZ[loc.X][loc.Z], value)
-   
+        for x = 0,3 do
+            for z = 0,3 do
+                local idx = IndexUtils.to1DXZChunkQuad[x][z]
+                local value = buffer.readu8(b,idx-1)
+                buffer.writeu8(B, IndexUtils.to1DXZ[offs.X+x][offs.Z+z]-1, value)
+            end
+        end
+    end
+    for i=0,63 do
+        if buffer.readu8(B, i) == 0 then
+            print(i)
         end
     end
     return B

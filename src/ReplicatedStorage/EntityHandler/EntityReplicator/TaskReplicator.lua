@@ -12,6 +12,7 @@ local TaskData = {
 local TaskOrderRemote:RemoteEvent = game.ReplicatedStorage.Events.TaskUpdater
 local RunService = game:GetService("RunService")
 local IS_CLIENT = RunService:IsClient()
+
 local function fixOrderTask()
     table.clear(OrderTask)
     for i,v in TaskOrder do
@@ -27,17 +28,20 @@ function Tasks.bind(task,callback)
         fixOrderTask()
     end
 end
+
 local cache = {}
 function Tasks.clearDataFor(uuid)
     TaskData[uuid] = nil
     cache[uuid] = nil
 end
+
 function Tasks.attachDataTo(uuid,task,data,SendToOwner)
     TaskData[uuid] = TaskData[uuid] or {}
     local taskFolder = TaskData[uuid][task] or {}
     TaskData[uuid][task] = taskFolder
     table.insert(TaskData[uuid][task],{data,SendToOwner})
 end
+
 function Tasks.encode(uuid,isOwner)
     local data = TaskData[uuid]
     if not data then return end 
@@ -64,6 +68,7 @@ function Tasks.encode(uuid,isOwner)
     end
     return newData or nil
 end
+
 function Tasks.decode(uuid,data)
    for i,tData in data do
         local task = TaskOrder[tonumber(tData[1]) or 1]
@@ -75,16 +80,18 @@ function Tasks.decode(uuid,data)
         end
    end
 end
+
 if IS_CLIENT then
     TaskOrderRemote.OnClientEvent:Connect(function(Order)
-    TaskOrder = Order
-    fixOrderTask()
-end)
-TaskOrderRemote:FireServer()
+        TaskOrder = Order
+        fixOrderTask()
+    end)
+
+    TaskOrderRemote:FireServer()
 else
     TaskOrderRemote.OnServerEvent:Connect(function(player)
         TaskOrderRemote:FireClient(player,TaskOrder)
-end)
+    end)
 end
 
 return table.freeze(Tasks)
