@@ -14,13 +14,24 @@ EntityUpdater.Init()
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 IndexUtils.preComputeAll()
 
+require(game.ServerStorage.core.ServerContainer)
 require(game.ServerStorage.core.Chunk)
 local NPC = Handler.new("Npc")
 NPC.Position = Vector3.new(0, 257.395999908447266, 0)
 hold.addEntity(NPC)
+
+local EntityContainer = require(game.ReplicatedStorage.EntityHandler.EntityContainerManager)
+local ItemHandler = require(game.ReplicatedStorage.Item)
+local Container = require(game.ReplicatedStorage.Container)
+require(game.ReplicatedStorage.Libarys.Crafting).Init()
+
 game.Players.PlayerAdded:Connect(function(player: Player)  
     local entity = Handler.new("Player",player.UserId)
     entity.Position = Vector3.new(522//3, 257.395999908447266, -671.44//3)
     Handler.setOwner(entity,player)
     hold.addEntity(entity)
+
+    local craftingContainer = EntityContainer.getContainer(entity, "Crafting")
+    Container.set(craftingContainer, 2, ItemHandler.new("c:Dirt"), 75)
+
 end)

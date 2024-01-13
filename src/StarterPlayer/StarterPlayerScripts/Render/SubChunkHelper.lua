@@ -1,7 +1,8 @@
 local helper = {}
 local Chunk = require(game.ReplicatedStorage.Chunk)
 local chunks = {}
-local Queue = require(game.ReplicatedStorage.Libarys.Queue)
+local Stack = require(game.ReplicatedStorage.Libarys.DataTypes.Stack)
+local Queue = require(game.ReplicatedStorage.Libarys.DataTypes.Queue)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local to1DVector = IndexUtils.to1DVector
 local to1D= IndexUtils.to1D
@@ -168,6 +169,7 @@ function helper.sampleSection(blocks,section,chunk)
     local isAir = true
     local allWalls = true
     local mappings = table.create(512)
+    debug.profilebegin("sample Everything")
     debug.profilebegin("PreCompute Flood")
     for x =0,7 do
         for z = 0,7 do
@@ -210,13 +212,14 @@ function helper.sampleSection(blocks,section,chunk)
     end
     local conflicts = {}
     local checked = {}
+    local size = 8*8*8
     local function floodFill(vector)
-        local queue = Queue.new()
-        Queue.enqueue(queue, vector)
+        local floodStack = Stack.new(size)
+        Stack.push(floodStack, vector)
         local hadCon = false
         conflictsL = {}
-        while queue.front do
-            local current = Queue.dequeue(queue)
+        while #floodStack>0 do
+            local current = Stack.pop(floodStack)
             if checked[current] then continue end
             checked[current] = true
             local pass = isIn(current)
@@ -230,7 +233,7 @@ function helper.sampleSection(blocks,section,chunk)
             end 
             for i,v in directions1D do
                 local newDir = current+v
-                Queue.enqueue(queue, newDir)
+                Stack.push(floodStack, newDir)
             end
         end
         if hadCon then
@@ -270,6 +273,7 @@ function helper.sampleSection(blocks,section,chunk)
     for i,v in enter do
         buffer.writeu8(b, keysValues[i], 1)
     end
+    debug.profileend()
     return b,enter
 end
 
@@ -303,19 +307,19 @@ end
 local maxRenderDistance = 16
 local lastDir,lastChunk =  camera.CFrame.LookVector,getChunkLocation(camera.CFrame.Position/3-Vector3.yAxis)
 function helper.startSearch(start,direaction)
-    local queue = Queue.new()
+    local maxVisited = maxRenderDistance*230
+    local searchQueue = Queue.new(maxVisited+100)
 
     local visited = {}
    
-    Queue.enqueue(queue, {fromVector = start,fromDir = -1,dirs = table.create(6,0)})
+    Queue.enqueue(searchQueue, {fromVector = start,fromDir = -1,dirs = table.create(6,0)})
     visited[start] = 1
     local minX,maxX= start.X-maxRenderDistance,start.X+maxRenderDistance
     local minZ,maxZ = start.Z-maxRenderDistance,start.Z+maxRenderDistance
     local minY,maxY = 0,31
     local visitedTotal = 0
-    local maxVisited = maxRenderDistance*230
-    while queue.front and visitedTotal <=maxVisited do
-        local top = Queue.dequeue(queue)
+    while searchQueue[1] <= searchQueue[2]  and visitedTotal <=maxVisited do
+        local top = Queue.dequeue(searchQueue)
         local current = getSubChunk(top.fromVector)
         if not current then continue end 
         local function vist(vector,throughFace)
@@ -344,7 +348,7 @@ function helper.startSearch(start,direaction)
             visitedTotal +=1
             local clone = table.clone(top.dirs)
             clone[throughFace] = 1
-            Queue.enqueue(queue, {fromVector = vector,fromDir = oppsiteFaces[throughFace],dirs =clone})
+            Queue.enqueue(searchQueue, {fromVector = vector,fromDir = oppsiteFaces[throughFace],dirs =clone})
             return true 
         end
         for i,v in Faces do

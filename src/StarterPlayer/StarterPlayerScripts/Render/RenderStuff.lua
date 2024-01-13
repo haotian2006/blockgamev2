@@ -38,6 +38,8 @@ end
 local Greedy = require(script.Parent.GreedyMesh)
 function Tasks.sampleSection(section,chunk)
     local b =subChunkHelper.sampleSection(chunkData[chunk], section,chunk)
+
+
     return b
 end
 function Tasks.cull(chunk,center,north,east,south,west,sections )

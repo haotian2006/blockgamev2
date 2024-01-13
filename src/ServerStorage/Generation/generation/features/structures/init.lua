@@ -13,7 +13,7 @@ local v3 = Vector3.new
 local addBlock = Carver.addBlock
 local tree =   {
     name = "c:tree",
-    chance = 10,
+    chance = 1,
     override = 2,
     layout = {
         key = {
@@ -154,10 +154,12 @@ function structure.sample(cx,cz,blocks,biomeAndSurface)
     local biome = biomeAndSurface[chunkStr][1]
     local surface = biomeAndSurface[chunkStr][2]
     local newTemp = {}
+    debug.profilebegin("parse")
     for i,v in biomeAndSurface do
         local x,z = i:match("(-?%d+),(-?%d+)")
         newTemp[v3(x,0,z)] = v
     end
+    debug.profileend()
     biomeAndSurface = newTemp
     if typeof(biome) =='buffer' then
         biome = buffer.readu16(biome, 2)

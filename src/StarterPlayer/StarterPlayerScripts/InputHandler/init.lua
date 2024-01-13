@@ -93,7 +93,7 @@ local function HandleInputBegan(input,IsTyping)
         if events[v] then
             events[v]:Fire(input,true,IsTyping,keys)
         end
-        if TempEvents[v] then
+        if TempEvents[v] then 
             for i,event in TempEvents[v] do
                 event:Fire(input,true,IsTyping,keys)
             end

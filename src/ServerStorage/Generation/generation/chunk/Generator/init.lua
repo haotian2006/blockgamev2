@@ -6,6 +6,9 @@ local OtherWorkers = require(script.WorkerHandler).create("Biomes",14)
 function Generator.DoWork(task,...)
     return OtherWorkers:DoWork(task,...)
 end
+function Generator.DoWorkDefered(task,...)
+    return OtherWorkers:DoWorkDefered(task,...)
+end
 function Generator.createBlocks(chunk)
     if Chunk.getStatus(chunk, "Generated") then return false end 
     for x = 0, 7 do

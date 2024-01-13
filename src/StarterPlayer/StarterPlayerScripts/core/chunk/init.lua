@@ -76,12 +76,12 @@ game:GetService("RunService").Heartbeat:Connect(function(a0: number)
                 Chunk.requestChunk(c)
             end
             checked[c] = true
-        end   
+        end 
         for i,v in Recieved do
             if checked[i] then continue end 
             destroyed[i] = true
-            Render.deloadChunk(i)
             Recieved[i] = nil
+            Render.deloadChunk(i)
         end
     end
 end)

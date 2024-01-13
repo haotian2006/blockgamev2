@@ -42,7 +42,7 @@ function ore.parse(settings)
 end
 function ore.sample(cx,cz,surface,biome)
     debug.profilebegin("Create Ore")
-    local random = Utils.createRandom(SEED, cx, cz)
+    local random = Utils.createRandom(SEED, cx, cz,54)
     local ores = getOreFrom(biome)
     local carver = {}
     for i,ore in ores do

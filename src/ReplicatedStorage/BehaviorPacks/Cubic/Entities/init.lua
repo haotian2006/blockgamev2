@@ -27,7 +27,28 @@ local entity = {
         functions = {
     
         }
-    }
+    },
+    ["Special:Arm"] = {
+        ["description"] = {
+            is_spawnable = false,
+            is_summonable = false,
+        }, 
+        components ={
+            EyeLevel = 1.5,
+            Hitbox = Vector2.new(0.6,1.79),
 
+        },
+        component_groups = {
+
+        },
+        events ={
+            OnDeath = {
+                
+            }
+        },
+        functions = {
+
+        }
+    }
 }
 return entity

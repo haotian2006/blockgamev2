@@ -202,7 +202,7 @@ end
 	Alphabetically sorts a dictionary and turns it into a table. Useful because string keys are typically unnecessary when sending things
 	over the wire.
 	
-	Please note: This doesn't play too nicely with special characters.
+	Please note: This doesn't play too nicely with Special characters.
 
 	```lua
 		print(BridgeNet.DictionaryToTable({ alpha = 999, bravo = 1000, charlie = 1001, delta = 1002 })) -- prints {999,1000,1001,1002}

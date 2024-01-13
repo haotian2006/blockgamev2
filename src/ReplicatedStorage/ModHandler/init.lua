@@ -183,7 +183,7 @@ export type Entity = typeof(setmetatable({}, {})) & {
     PlayingAnimations:{},
     --//shared
     IndexFromComponets: (self:Entity,key:any,ignore:{}|nil) -> (any,boolean|string),
-    GetAllData:(self:Entity,SPECIAL:boolean) -> {},
+    GetAllData:(self:Entity,Special:boolean) -> {},
     new: (data:{}) -> Entity,
     UpdateChunk: (self:Entity) -> nil,
     UpdateIdleAni: (self:Entity) ->nil,

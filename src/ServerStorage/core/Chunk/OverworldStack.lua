@@ -14,6 +14,6 @@ self.Caves = Layers.create("combineLayer",self.Caves,6)
 self.Ore = Layers.create("oreSampleLayer")
 self.Ore= Layers.create("combineLayer",self.Ore,3)
 
-self.Structres = Layers.create("structureSampleLayer")
-self.Structres= Layers.create("combineLayer",self.Structres,4)
+self.Structures = Layers.create("structureSampleLayer")
+self.Structures= Layers.create("combineLayer",self.Structures,4)
 return self 

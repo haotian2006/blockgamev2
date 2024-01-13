@@ -8,6 +8,8 @@ debug.setmemorycategory("CUBICAL STORAGE")
 local Chunks = {}
 local Other = {}
 local PlayerEntity = nil 
+
+
 function Data.addEntity(Entity)
     EntityHolder.addEntity(Entity)
 end
@@ -53,6 +55,7 @@ end
 function Data.get(key)
     return Other[key]
 end 
+
 function Data.getPlayerEntity()
     return PlayerEntity
 end

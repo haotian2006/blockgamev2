@@ -49,6 +49,16 @@ function WorkerManager:DoWork(taskToDo,...)
     return unpack(data)
 end
 
+function WorkerManager:DoWorkDefered(taskToDo,...)
+    local c = self:GetId()
+    local worker:Actor,idx = self:GetWorker()
+    worker:SendMessage("D",c,taskToDo,...)
+    self.threads[c] = coroutine.running() 
+    local data =  {coroutine.yield()} 
+    self.threads[c] = nil 
+    return unpack(data)
+end
+
 function WorkerManager.create(name,amt,...)
     local Bindable = Instance.new("BindableEvent")
     Bindable.Name = name

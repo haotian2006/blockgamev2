@@ -283,7 +283,7 @@ function Tasks.computeBlendedAir(center,top,left,topLeft)
     local LastY 
     local surfaceBuffer = buffer.create(8*8)
     local calculate = {}
-    for y = 0,255 do
+    for y = 255,0,-1 do
         local yp = YprecentageCache[y]
         local ly = y//8
         if LastY ~= ly then
@@ -307,13 +307,8 @@ function Tasks.computeBlendedAir(center,top,left,topLeft)
                 local bool = value>0 and 1 or 0
                 local idx2d =IndexUtils.to1DXZ[x][z] 
                 if not calculate[idx2d] then
-                    if  (value < 0) then
-                        local yy = y
-                        yy -=1
-                        if yy >255 or yy <0 then
-                            yy+=1
-                        end
-                        buffer.writeu8(surfaceBuffer, idx2d-1, yy)
+                    if  (bool == 1) then
+                        buffer.writeu8(surfaceBuffer, idx2d-1, y)
                         calculate[idx2d] = true
                     end
                 end
@@ -340,7 +335,7 @@ function Tasks.computeAir(center,top,left,topLeft,loc)
     local LastY 
     local surfaceBuffer = buffer.create(4*4)
     local calculated = {}
-    for y = 0,255 do
+    for y = 255,0,-1 do
         local yp = YprecentageCache[y]
         local ly = y//8
         if LastY ~= ly then
@@ -364,13 +359,8 @@ function Tasks.computeAir(center,top,left,topLeft,loc)
                 local value = lerp3(xp, yp, zp, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                 local bool = value>0 and 1 or 0
                 local idx = IndexUtils.to1DXZChunkQuad[x][z]
-                if not calculated[idx] and  (value < 0) then
-                    local yy = y
-                    yy -=1
-                    if yy >255 or yy <0 then
-                        yy+=1
-                    end
-                    buffer.writeu8(surfaceBuffer, idx-1, yy)
+                if not calculated[idx] and  (bool == 1) then
+                    buffer.writeu8(surfaceBuffer, idx-1, y)
                     calculated[idx] = true
                 end
                 if bool == 0 then continue end 

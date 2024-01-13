@@ -15,4 +15,7 @@ local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 IndexUtils.preComputeAll()
 --local Render = require(script.Parent.Render).Init() 
 require(script.Parent.core.chunk)
-require(game.Players.LocalPlayer.PlayerScripts.core.Ui.ContainerHandler)
+require(game.Players.LocalPlayer.PlayerScripts.core.ClientContainer)
+
+require(game:GetService("Players").LocalPlayer.PlayerScripts.core.Rendering.Arms).Init()
+require(game:GetService("Players").LocalPlayer.PlayerScripts.core.Ui.HotbarManager).Init()

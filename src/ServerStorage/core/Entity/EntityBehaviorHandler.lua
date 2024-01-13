@@ -1,7 +1,7 @@
 local BehaviorManager = {}
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
-local SPECIALKEY = "↓BE🌟"
+local SpecialKEY = "↓BE🌟"
 local DEAFULT_PRIORITY = 200
 function BehaviorManager.checkIsBehavior(key)
     local length = #key
@@ -13,8 +13,8 @@ function BehaviorManager.get(self,name)
 end
 function BehaviorManager.getAndCacheAll(self)
     local selfCache = EntityHandler.getCache(self)
-    if selfCache[SPECIALKEY] then
-        return selfCache[SPECIALKEY]
+    if selfCache[SpecialKEY] then
+        return selfCache[SpecialKEY]
     end
     local BehaviorsFound = {}
     local Behaviors = {}
@@ -39,7 +39,7 @@ function BehaviorManager.getAndCacheAll(self)
     for index, value in Behaviors do
         Behaviors[index] = value[1]
     end
-    selfCache[SPECIALKEY] = Behaviors
+    selfCache[SpecialKEY] = Behaviors
     return Behaviors
 end
 function BehaviorManager.getType(name)

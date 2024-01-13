@@ -1,16 +1,16 @@
 local recipes = {}
 recipes.Test = {
-    type = "Crafting",
-    key = {
+    Type = "Crafting",
+    Key = {
         d = {
             Item ='c:Dirt',
             }
     },
-    shape = {
+    Shape = {
         " d",
         "dd",
     },
-    result = {
+    Result = {
         Item = 'c:GrassBlock',
         Count = 2
     }
@@ -19,34 +19,34 @@ recipes.Test = {
 }
 
 recipes.KBStick = {
-    type = "Crafting",
-    key = {
+    Type = "Crafting",
+    Key = {
         d = {
             Item ='c:Dirt',
             }
     },
-    shape = {
+    Shape = {
         "d",
         "d"
     },
-    result = {
+    Result = {
         Item = 'c:GodStick',
         Count = 1
     }
 
 }
 recipes.LongStick = {
-    type = "Crafting",
-    key = {
+    Type = "Crafting",
+    Key = {
         d = {
             Item ='c:Stone',
             }
     },
-    shape = {
+    Shape = {
         "d",
         "d"
     },
-    result = {
+    Result = {
         Item = 'c:LongStick',
         Count = 1
     }

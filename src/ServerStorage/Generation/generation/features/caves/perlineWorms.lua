@@ -25,7 +25,7 @@ local function getDir(x,y,z,n1,n2,n3,scale)
     return dir
 end
 function worms.sample(self,cx,cz,DEBUG)
-    local RandomO = Random.new(Math.jenkins_hash(`{self[1]}{cx}_{cz}`))
+    local RandomO = Math.createRandom(self[1],cx,cz,73) 
     if RandomO:NextInteger(0, self[10]) ~= 1 then return {} end 
     debug.profilebegin("caves")
     local n1,n2,n3 = self[2],self[3],self[4]

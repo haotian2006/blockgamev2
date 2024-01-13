@@ -26,7 +26,7 @@ Keys.Keyboard = {
     Slot7 = {'seven',"HotBarUpdate"},
     Slot8 = {'eight',"HotBarUpdate"},
     Slot9 = {'nine',"HotBarUpdate"}, 
-    MouseWheel = {"mousewheel","HotBarUpdate"},
+    MouseWheel = {"mousewheel","HotBarUpdateWheel"},
     Inventory = {'e','Inventory'},
     F5 = {"q","F5"}
 }

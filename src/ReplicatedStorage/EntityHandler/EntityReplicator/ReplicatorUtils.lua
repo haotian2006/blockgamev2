@@ -19,9 +19,9 @@ local temp = Replication.temp
     any attributes with not listed would be deafult to 0
 ]]
 Replication.REPLICATE_LEVEL = {
-    __main = 1,__velocity = 1,__changed = 1,__cachedData = 1,__localData = 1,Chunk = 1,Grounded = 1,Guid = 1,__running = 1,
+    __main = 1,__velocity = 1,__changed = 1,__cachedData = 1,__localData = 1,Chunk = 1,Grounded = 1,Guid = 1,__running = 1,__containers = 1,slot = 1,
     __components = 2,__animations = 2,
-    Crouching = 3, Position = 3,Hitbox = 3, EyeLevel = 3,Rotation = 3,HeadRotation = 3
+    Crouching = 3, Position = 3,Hitbox = 3, EyeLevel = 3,Rotation = 3,HeadRotation = 3,Holding = 3
 
 }
 function Replication.swapKeyPairs(t)

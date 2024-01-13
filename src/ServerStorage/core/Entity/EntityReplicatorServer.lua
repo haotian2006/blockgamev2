@@ -11,6 +11,9 @@ local EntityTasks = require(EntityV2.EntityReplicator.TaskReplicator)
 
 local UDP = EntityV2.EntityReplicator.EntityUDP
 local TCP = EntityV2.EntityReplicator.EntityTCP
+
+local SlotRemote:RemoteEvent = game.ReplicatedStorage.Events.SwapSlot
+
 local clientEntities = {} 
 local temp = ReplicationUtils.temp
 function Server.GetIdLocationFrom(player,Id)
@@ -243,4 +246,12 @@ function Server.Init()
         end
     end)
 end
+
+SlotRemote.OnServerEvent:Connect(function(plr,newSlot)
+    local Entity = EntityHolder.getEntity(tostring(plr.UserId))
+    if not Entity or not tonumber(newSlot) then return end 
+
+    EntityHandler.setSlot(Entity, `Inventory.{newSlot}`)
+end)
+
 return Server

@@ -16,6 +16,11 @@ local entity = {
         MaxHealth = 20,
         AutoJump = false,
         CrouchLower = 0.3,
+        Containers = {
+            Crafting = 5,
+            Holding = 1,
+            Inventory = 36
+        },
         getSpeed = function(self)
              return EntityHandler.getAndCache(self,"Speed")/2*(self.Crouching and 0.3 or 1)
         end

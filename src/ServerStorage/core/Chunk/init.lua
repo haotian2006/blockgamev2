@@ -12,7 +12,7 @@ local ChunkTemp = debirs.createFolder("Chunk", 30)
 local Runner = require(game.ReplicatedStorage.Runner)
 
 
-local r =  10
+local r =  5
 local precomputed = {}
 local xx = 0
 for dist = 0, r do
@@ -35,8 +35,8 @@ local mainQueue = {}
 local forCaveUse = {}
 
 local maxSubLoops = 3
-local maxCaveLoops = 3
-local maxTimes = 2
+local maxCaveLoops = 2
+local maxTimes = 1
 
 local awaitingChunks = {}
 
@@ -67,6 +67,7 @@ function manager.buildCaves(chunk,data)
     if not data then return warn(`Chunk {tostring(chunk)} has no Data`) end 
     tempD[1] = Builder.buildCaves(chunk,tempD[1])
     debirs.add(ChunkTemp, chunk, tempD)
+    
     forCaveUse[chunk] = nil
     return 
 end
@@ -163,6 +164,7 @@ end
 local order = {
     QueueSubChunk,
     QueueSubChunk,
+    handleCaveQueue,
     handleCaveQueue,
     handleCaveQueue,
     mainChunkQueue

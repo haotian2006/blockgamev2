@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 local IS_CLIENT = RunService:IsClient()
 local IS_SERVER = not IS_CLIENT
 local LOCAL_PLAYER = game.Players.LocalPlayer or {UserId = "NAN"}
+
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local Chunk = require(game.ReplicatedStorage.Chunk)
@@ -11,7 +12,10 @@ local Animator = require(script.Animator)
 local Utils = require(script.Utils)
 local CollisionHandler = require(script.EntityCollisionHandler)
 local EntityTaskReplicator = require(script.EntityReplicator.EntityTaskReplicator)
+local Container = require(game.ReplicatedStorage.Container)
+local EntityContainerManager = require(script.EntityContainerManager)
 local Data = require(game.ReplicatedStorage.Data)
+
 local slerpAngle = MathUtils.slerpAngle 
 
 local Entity = {}
@@ -43,12 +47,22 @@ function Entity.new(type:string,ID)
     self.__animations = {}
     self.__cachedData = {}
     self.__localData = {}
+    self.Holding = ""
     self.Position = Vector3.zero
     self.Grounded = true
     self.Rotation = 0 
     self.HeadRotation = Vector2.zero
+
+    if IS_SERVER then
+        self.__containerUpdate = function()
+            Entity.setSlot(self, self["Slot"])
+        end
+        EntityContainerManager.init(self)
+    end
     return self
 end
+
+
 
 function Entity.addComponent(self,component,index)
     table.clear(self.__cachedData )
@@ -58,6 +72,10 @@ function Entity.addComponent(self,component,index)
     componentData.Name = component
     Entity.removeComponent(self,component)
     table.insert(self.__components,index or 1,componentData)
+
+    if IS_SERVER then
+        EntityContainerManager.changedComponets(self)
+    end
 end
 
 function Entity.hasComponet(self,componet)
@@ -66,6 +84,7 @@ function Entity.hasComponet(self,componet)
             return i
         end
     end
+    return 
 end
 
 function Entity.removeComponent(self,name)
@@ -76,8 +95,31 @@ function Entity.removeComponent(self,name)
             self.__changed["__components"] = true
         end
     end
+    if IS_SERVER then
+        EntityContainerManager.changedComponets(self)
+    end
 end
 --//Get/seters
+
+function Entity.setSlot(self,slot)
+    slot = slot or ""
+    self.Slot = slot
+    local container, index = slot:match("^(.-)%.([^%.]+)$")
+
+    if not container then
+        Entity.set(self, "Holding", "")
+        return
+    end
+
+    local containerToLook = EntityContainerManager.getContainer(self,container)
+
+    if not containerToLook then
+        Entity.set(self, "Holding", "")
+        return
+    end
+    Entity.set(self, "Holding", Container.get(containerToLook, tonumber(index)) or "")
+
+end
 
 function Entity.getCache(self)
     return self.__cachedData

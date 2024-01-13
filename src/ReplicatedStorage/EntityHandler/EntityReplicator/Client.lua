@@ -8,14 +8,25 @@ local Data = require(game.ReplicatedStorage.Data)
 local Render = require(script.Parent.Parent.Render)
 local Animator = require(script.Parent.Parent.Animator)
 local EntityTasks = require(script.Parent.TaskReplicator)
+local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+
 local LOCAL_PLAYER = game.Players.LocalPlayer
 local Client = {}
 local key = {}
 local toInterpolate = {}
 local overRide = {Position = true,Rotation = true,HeadRotation = true}
 
+local UpdateEvents = {}
+
 local UDP = EntityV2.EntityReplicator.EntityUDP
 local TCP = EntityV2.EntityReplicator.EntityTCP
+
+function Client.getUpdateEvent(key)
+    if UpdateEvents[key] then return UpdateEvents[key] end 
+    local event = Signal.new()
+    UpdateEvents[key] = event
+    return event
+end
 function Client.getGuidFrom(Key)
     return key[Key]
 end
@@ -43,6 +54,7 @@ function Client.updateEntity(Guid,data)
     for i,v in data do
         if hasOwner and ReplicationUtils.REPLICATE_LEVEL[i] == 3 then continue end 
         Entity[i] = v
+        if UpdateEvents[i] then UpdateEvents[i]:Fire(Entity,v) end 
         if overRide[i] then toInterpolate[i] = nil end --Prevents lerping from messing up stuff
     end
     return Entity

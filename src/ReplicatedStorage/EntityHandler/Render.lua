@@ -1,20 +1,67 @@
+--!nocheck
 local RunService = game:GetService("RunService")
 local Entity = require(script.Parent)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local Maths = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local Settings = require(game.ReplicatedStorage.GameSettings)
 local utils = require(script.Parent.Utils)
-local EntityHolder = require(script.Parent.EntityHolder)
+local Data = require(game.ReplicatedStorage.Data)
+local ItemClass = require(game.ReplicatedStorage.Item)
 local Render = {}
+local Player = game:GetService("Players").LocalPlayer
 local DEFAULT_ROTATION = Vector2.new(360,360)
 local function createAselectionBox(parent,color) 
     local sb = Instance.new("SelectionBox",parent) 
-    --sb.Visible = DataHandler.HitBoxEnabled 
+    sb.Visible = false
     sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) 
     sb.Adornee = parent sb.LineThickness = 0.025 
     return sb 
 end
 local Humanoid
+
+local function CreateTexture(texture,face)
+    local new
+    if texture:IsA("Decal") or texture:IsA("Texture") or type(texture) == "string" then
+        new = Instance.new("Decal")
+        new.Texture = type(texture) == "string" and texture or texture.Texture
+        new.Face = face
+    elseif texture:IsA("SurfaceGui") then
+        new = texture:Clone()
+        new.Face = face 
+    end
+
+        return new
+end 
+
+local function createItemModel(Item)
+    local sides = {Right = true,Left = true,Top = true,Bottom = true,Back = true,Front =true}
+    local itemdata = ItemClass.getItemInfoR(Item)
+    if not itemdata  then return end 
+    local stuff = {}
+    local texture = itemdata.Texture
+    local mesh = itemdata.Mesh 
+    if not mesh then return end 
+    mesh = mesh:Clone()
+    if not texture then return mesh,itemdata end 
+    if mesh:IsA("MeshPart") and type(texture) == "string" then 
+        (mesh::MeshPart).TextureID = texture
+        return mesh
+    end
+    if type(texture) == "table" then
+        for i,v in texture do
+            table.insert(stuff,CreateTexture(v,i))
+        end
+    elseif type(texture) == "userdata" or type(texture) == "string" then
+        for v in sides do
+            table.insert(stuff,CreateTexture(texture,v))
+        end
+    end
+    for i,v in stuff do
+        v.Parent = mesh
+    end
+    return mesh,itemdata
+end
+
 local function CreateHumanoid(model)
     if Humanoid then 
         local Humanoidc = Humanoid:Clone() 
@@ -44,6 +91,8 @@ local function createEye(offset,hitbox)
     weld.C0 = offset and CFrame.new(Vector3.new(0,offset/2,0)*Settings.GridSize) or CFrame.new()
     return eye
 end
+
+
 local function createHitBox(data)
     local model = Instance.new("Model")
     local hitbox = Instance.new("Part",model)
@@ -60,8 +109,9 @@ local function createHitBox(data)
     model.PrimaryPart = hitbox
     return model
 end
+
 local function createEntityModel(self,hitbox)
-    local model = Render.findModelFrom(self)
+    local model,data = Render.findModelFrom(self)
     if not model then return end 
     model = model:Clone()
     local humanoid = model:FindFirstChildWhichIsA("Humanoid")  or CreateHumanoid(model)
@@ -77,8 +127,100 @@ local function createEntityModel(self,hitbox)
     weld.Name = "EntityModelWeld"
     weld.Part0 = hitbox.PrimaryPart
     weld.Part1 = model.PrimaryPart
-    return model
+    return model,data
 end
+
+
+function Render.renderHolding(self,holding,size)
+
+    local Item = holding or self.Holding or ""
+    local Name = type(Item) == "table" and ItemClass.tostring(Item) or ""
+    local entity = self.__model
+    if not entity then return  end 
+    local cache = Entity.getCache(self)
+    local attachment = cache["RENDER_RightAttach"]
+    if not attachment then
+        attachment =     entity:FindFirstChild("RightAttach",true)
+        cache["RENDER_RightAttach"] = attachment
+    end
+    
+    if not attachment or attachment:FindFirstChild(Name or "") then return Name  end 
+
+    local function  createPlaceHolder()
+        local item = Instance.new("Part")
+        item.Size = Vector3.new(1,.1,1)
+        item.Parent = attachment
+        item.Name = Name
+
+        local surfacegui = Instance.new("SurfaceGui",item)
+        surfacegui.Face = Enum.NormalId.Top
+        local txt = Instance.new('TextLabel',surfacegui)
+        txt.Size = UDim2.new(1,0,1,0)
+        txt.TextScaled = true
+        txt.Text = Name
+        local a = surfacegui:Clone()
+        a.Parent = item
+        a.Face = Enum.NormalId.Bottom
+        a.TextLabel.Rotation = 180
+
+        local weld = item:FindFirstChild("HandleAttach") or Instance.new("Motor6D")
+        weld.Name = "HandleAttach"
+        weld.Part0 = attachment.Parent
+        weld.Part1 = item
+        weld.C0 = attachment.CFrame*CFrame.new(0,0,-0.5)*CFrame.Angles(0,math.rad(-90),0)
+        weld.Parent = item
+        return item,nil
+    end
+
+    local function createitem()
+        local mesh,data = createItemModel(Item)
+        if not mesh then return end 
+        mesh.Parent = attachment
+        mesh.Name = Name
+        local handle = mesh:FindFirstChild("Handle",true) or mesh 
+        local weld = mesh:FindFirstChild("HandleAttach",true) or Instance.new("Motor6D")
+        weld.Name = "HandleAttach"
+        weld.Part0 = attachment.Parent
+        weld.Part1 = mesh
+        weld.C0 = attachment.CFrame
+        weld.C1 = handle.CFrame
+        weld.Parent = mesh
+        return mesh,data
+    end
+    
+    attachment:ClearAllChildren()
+    if Item and Item ~= '' then
+        local item,ItemData = createitem() 
+        if not Item then 
+            item,ItemData =  createPlaceHolder()
+        end 
+        if size then
+            return item,ItemData
+        end
+        if Data.getPlayerEntity() == self and item then
+            Render.setTransparencyOfModel(item.Parent,1)
+        end
+        return item,ItemData
+    end
+    return 
+end
+
+function Render.setTransparencyOfModel(model,t)
+    for i,v:BasePart|Texture|Decal in model:GetDescendants() do
+        if v:IsA("Texture") or v:IsA("Decal") then
+            v.Transparency = t
+        end
+        if not v:IsA("BasePart") or v.Transparency == 1 then continue end 
+        v.LocalTransparencyModifier = t
+    end
+end
+
+function Render.setTransparency(entity,value)
+    local model = entity.__model
+    if not model then return end 
+    Render.setTransparencyOfModel(model, value)
+end
+
 function  Render.checkIfChanged(self,key)
     if not self.__old then self.__old = {} end 
     local current = Entity.getAndCache(self,key)
@@ -96,15 +238,21 @@ end
 function Render.createModel(self)
     if self.__model then self.__model:Destroy() self.__model = nil end 
     local hitbox = createHitBox(self)
-    local model = createEntityModel(self,hitbox)
+    createEntityModel(self,hitbox)
     hitbox.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
     self.__model = hitbox
     hitbox.Parent = workspace.Entities
     if Entity.isOwner(self,game.Players.LocalPlayer) then
         require(game.Players.LocalPlayer.PlayerScripts.Controller).setCameraTo(self)
     end
+    Render.renderHolding(self)
+
+    if Data.getPlayerEntity() == self then
+        Render.setTransparency(self,1)
+    end
     return hitbox
 end
+
 function Render.updateHitbox(self,targetH,targetE)
     local model = self.__model
     if not model then return end 
@@ -129,6 +277,7 @@ function Render.updateHitbox(self,targetH,targetE)
         Render.updatePosition(self)
     end) -- werid bug with head rotation
 end
+
 function Render.updatePosition(self)
     local model = self.__model
     if not model then return end 

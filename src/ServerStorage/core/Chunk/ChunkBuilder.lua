@@ -27,11 +27,11 @@ function Builder.buildFeatures(chunk,surroundingChunks)
         surfaceArray[`{i.X},{i.Z}`] = {v[2],v[3]}
     end
     local colored,Biome,Surface = unpack(lastData)
+    local Structures = Layers.compute(OverWorld.Structures,chunk,surroundingChunks,surfaceArray)
     local ore = Layers.compute(OverWorld.Ore,chunk)
-    local combined = Generator.DoWork("combineBufferWCarver",colored,ore)
-    local Structures = Layers.compute(OverWorld.Structres,chunk,surroundingChunks,surfaceArray)
+    --local combined = Generator.DoWork("combineBufferWCarver",colored,ore)
    -- combined =  Generator.DoWork("computefoliage",chunk.X,chunk.Z,combined,Biome,Surface)
-    combined = Generator.DoWork("combineBufferWCarver",combined,Structures)
+    local combined = Generator.DoWork("combineBufferWCarver",colored,Structures,ore)
     return combined
 end
 function Builder.compress(buffer)
