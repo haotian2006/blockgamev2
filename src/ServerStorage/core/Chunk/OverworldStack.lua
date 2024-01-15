@@ -16,4 +16,4 @@ self.Ore= Layers.create("combineLayer",self.Ore,3)
 
 self.Structures = Layers.create("structureSampleLayer")
 self.Structures= Layers.create("combineLayer",self.Structures,4)
-return self 
+return self  

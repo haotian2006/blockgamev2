@@ -8,6 +8,7 @@ end
 function Stack.push(self,value)
     self[#self+1] = value
 end
+
 function Stack.pop(self)
     local value = self[#self]
     self[#self] = nil

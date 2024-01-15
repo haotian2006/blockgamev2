@@ -121,20 +121,22 @@ local function doSpherePreComputed(cx,cz,lx,ly,lz,block,Table,radius,checked)
         local chunkX,chunkZ = cx,cz
         local add = v+vectorLocal
         local xx,yy,zz = add.X,add.Y,add.Z
+
         -- local str = add
         -- if checked[str] then continue end 
         -- checked[str] = true
-        if yy < 0 or yy >255 then continue end 
-        if not ConversionUtils.isWithIn(xx, 0, zz) then
-            chunkX,chunkZ,xx,yy,zz = ConversionUtils.gridToLocalAndChunk(xx+ofx, yy, zz+ofz)
-        end
-         addBlock(Table, chunkX, chunkZ, xx, yy, zz, block)
+
+        -- if yy < 0 or yy >255 then continue end 
+        -- if not ConversionUtils.isWithIn(xx, 0, zz) then
+        --     chunkX,chunkZ,xx,yy,zz = ConversionUtils.gridToLocalAndChunk(xx+ofx, yy, zz+ofz)
+        -- end
+        --  addBlock(Table, chunkX, chunkZ, xx, yy, zz, block)
     end
     return Table
 end
 function carver.sphere(cx,cz,lx,ly,lz,block,Table,radius,checked)
     if radius <= #spherePrecomputed then
-        return doSpherePreComputed(cx,cz,lx,ly,lz,block,Table,radius,checked)
+        return doSpherePreComputed(cx,cz,lx,ly,lz,block,Table,5,checked)
     end
     local ofx,ofz = cx*8,cz*8
     checked = checked or {}

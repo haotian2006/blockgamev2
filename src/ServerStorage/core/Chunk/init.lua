@@ -193,6 +193,9 @@ end)
 
 --mainQueue[Vector3.new(0,0,0)] = true
 Remote.OnServerEvent:Connect(function(player,requestedChunk)
+    do
+        return
+    end
     local found = Data.getChunk(requestedChunk.X,requestedChunk.Z)
     if found then
         Remote:FireClient(player,requestedChunk,Builder.compress(found.Blocks),found.BiomeMap)

@@ -16,7 +16,7 @@ function AirLayer.compute(layer,chunk)
         if Done == 4 then
             coroutine.resume(Thread)
         end
-    end)
+    end) 
     task.spawn(function()
         T = Layer.get(layer[2],chunk+Vector3.xAxis)
         Done+=1

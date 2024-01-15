@@ -2,42 +2,50 @@ local Debris = {}
 Debris.__index = Debris
 local Folders = {}
 
+local ThreadDebounce = 1
+
 function Debris:add(name,value)
-    self[1][name] = {value,time()}
-    if self[4][name] then 
-        task.cancel(self[4][name])
+    self[1][name] = value
+    local threads = self[4]
+    if threads[name] then 
+        task.cancel(threads[name])
     end
-    self[4][name] = task.delay(self[2], self[5],name)
+    threads[name] = task.delay(self[2], self[5],name)
 end
 
+function Debris:remove(name)
+    self[1][name] = nil
+    local t = self[4][name]
+    if t then
+        task.cancel(t)
+        self[4][name] = nil
+    end
+end
 
 function Debris:get(name)
     local a = self[1][name]
-    if self[4][name] then 
-        task.cancel(self[4][name])
-        self[4][name] = task.delay(self[2], self[5],name)
+    local threads = self[4]
+    if threads[name] then 
+        task.cancel(threads[name])
+        threads[name] = task.delay(self[2], self[5],name)
     end
-    return if a then a[1] else nil
+    return a
 end
 
-function Debris:update()
-    local max = self[2]
-    local t = time()
-    for i,v in self[1] do
-        if t-v[2] > max then
-            self[1][v] = nil
-        end
-    end
+function Debris:getAll()
+    return self[1]
 end
 
 function Debris.createFolder(Name,maxTime)
     if Folders[Name] then
         return Folders[Name]
     end
-    local object = setmetatable({{},maxTime,Name,{}}, Debris)
+    local object = setmetatable({{},maxTime,Name,{},nil}, Debris)
+    local storage = object[1]
+    local threadStorage = object[4]
     local function remove(name)
-        object[1][name] = nil
-        object[4][name] = nil
+        storage[name] = nil
+        threadStorage[name] = nil
     end
     object[5] = remove
     Folders[Name] = object
