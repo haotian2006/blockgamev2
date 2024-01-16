@@ -22,6 +22,15 @@ Overworld.Init()
 local preComputedRadius = OtherUtils.preComputeSquare(Configs.StructureRange)
 local preComputeLength = #preComputedRadius
 
+local preComputedLarge = {}
+for i,of1 in preComputedRadius do
+    for _,of2 in preComputedRadius do
+        local offset = of1+of2
+        if table.find(preComputedLarge, offset) then continue end 
+        table.insert(preComputedLarge,offset)
+    end
+end
+
 local AwaitingForBuild = {}
 local AwaitingChunks = {}
 
@@ -38,17 +47,8 @@ local ToCombineCarveQueue = {}
 local InBuildQueue = {}
 
 local Generation = game.ServerStorage.Generation
-local Carver = require(Generation.generation.features.caves.perlineWorms)
-local Cave = {}
 
-local CarverObject = Carver.parse(123,{
-    maxDistance = 200,
-    amplitude = .008,
-    weight = .5,
-    interval = 6,
-    maxSections = 1,
-    chance = 10 
-})
+local Cave = {}
 
 
 local function FinishCarve(chunk)
@@ -82,8 +82,12 @@ local function HandleCarveCombine(chunk)
     FinishCarve(chunk)
 end
 
+local function HandleFeature(chunk)
+    
+end
+
 local function HandlerCave(chunk,data)
-    local carved = Carver.sample(CarverObject, chunk.X, chunk.Z)
+    local carved = Overworld.Carve(chunk)
     CaveQueue[chunk] = nil
     debug.profilebegin("loop")
     for i,offset in preComputedRadius do
@@ -107,7 +111,6 @@ local function HandleMain(chunk,toSend)
     AwaitingChunks[chunk] = AwaitingChunks[chunk] or {}
     local Awaiting = AwaitingChunks[chunk]
     local flag = true
-    local checked = {}
     for i,offset in preComputedRadius do
         local newChunk = offset + chunk
         local foundData = Storage.get(newChunk)
@@ -117,26 +120,29 @@ local function HandleMain(chunk,toSend)
             continue
         end
         flag = false
-        for i,offset_ in preComputedRadius do
-            local newSubChunk = offset_ + newChunk
-            if checked[newSubChunk] then continue end 
-            checked[newSubChunk] = true
-            if  InBuildQueue[newSubChunk]  then continue end 
-            local ActorId = Communicator.chunkNotInActor(newSubChunk)
-            InBuildQueue[newSubChunk] = true
-            if ActorId then
-                toSend[ActorId] = toSend[ActorId] or {}
-                if  table.find(toSend[ActorId],newSubChunk) then continue end 
-                table.insert(toSend[ActorId],newChunk)
-                continue
-            end
-            Queue.enqueue(BuildQueue,newSubChunk)
-        end
     end
+
     if flag then 
         print("done Main")
+        return 2
     end
-    return flag
+    debug.profilebegin("Large")
+    for i,offset in preComputedLarge do
+        local newSubChunk = chunk + offset
+    
+        if  InBuildQueue[newSubChunk]  then continue end 
+        local ActorId = Communicator.chunkNotInActor(newSubChunk)
+        InBuildQueue[newSubChunk] = true
+        if ActorId then
+            toSend[ActorId] = toSend[ActorId] or {}
+            if  table.find(toSend[ActorId],newSubChunk) then continue end 
+            table.insert(toSend[ActorId],newSubChunk)
+            continue
+        end
+        Queue.enqueue(BuildQueue,newSubChunk)
+    end
+    debug.profileend()
+    return 1
 end
 
 local function MainLoop()
@@ -145,8 +151,11 @@ local function MainLoop()
     local ToSend = {}
     for v,i in MainQueue do
         if times >= MaxMain then break end 
-        if HandleMain(i,ToSend) then
+        local value = HandleMain(i,ToSend)
+        if value ==2 then
+            times +=1
             removed[i] = true
+        elseif value == 1 then
             times +=1
         end
     end
@@ -176,6 +185,21 @@ local function CaveLoop()
     for i,v in CaveQueue do
         if times >= MaxCarver then break end 
         if HandlerCave(i) then
+            times +=1
+            if  os.clock()-start >.014 then
+                break
+            end
+        end
+    end
+    return times == 0
+end
+
+local function FeatureLoop()
+    local times =0
+    local start = os.clock()
+    for i,v in FeatureQueue do
+        if times >= MaxFeature then break end 
+        if HandleFeature(i) then
             times +=1
             if  os.clock()-start >.014 then
                 break
@@ -308,8 +332,8 @@ Communicator.bindToMessage("SB",function(From,Data)
     end
 end)
 
-Communicator.bindToMessage("RB",function(From,cx,cz)
-    local chunk = Vector3.new(cx,0,cz)
+Communicator.bindToMessage("RB",function(From,chunks)
+  for i,chunk in chunks do 
     local data = Storage.get(chunk)
     if data.FinishBuild then
         ReplicateBuildQueue[chunk] = {data.Shape,data.Surface,data.Biome}
@@ -321,6 +345,7 @@ Communicator.bindToMessage("RB",function(From,cx,cz)
         AwaitingForBuild[chunk] = {}
     end
     table.insert(AwaitingForBuild[chunk],From)
+  end
 end)
 
 return Handler

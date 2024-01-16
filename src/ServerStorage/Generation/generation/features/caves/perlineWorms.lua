@@ -99,7 +99,7 @@ function worms.sample(self,cx,cz,DEBUG)
                 buffer.writeu16(currentBuffer, (to1d-1)*2, 0)
             end
             debug.profileend()
-            current+= direaction
+            current+= direaction 
         end
     end
     debug.profileend()

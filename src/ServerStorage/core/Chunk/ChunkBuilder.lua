@@ -13,7 +13,7 @@ function Builder.buildChunk(chunk)
     local Surface = Layers.compute(OverWorld.Surface,chunk)
     local Biome = Layers.get(OverWorld.Biome,chunk)
     local colored = Builder.color(chunk,Shape,Surface,Biome)
-    return colored,Biome,Surface
+    return colored,Biome,Surface 
 end
 function Builder.buildCaves(chunk,blocks)
     local caves = Layers.compute(OverWorld.Caves,chunk)
