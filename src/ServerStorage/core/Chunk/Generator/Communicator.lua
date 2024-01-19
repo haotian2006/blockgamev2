@@ -47,6 +47,8 @@ end
 
 function Communicator.sendMessageToId(Id,MessageType,...)
    debug.profilebegin(MessageType)
+   if MessageType == "Q" then 
+   end
    Actors[Id]:SendMessage("Message",ActorID,MessageType,...)
    debug.profileend()
 end

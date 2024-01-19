@@ -43,6 +43,7 @@ function Chunk.new(chunk)
         AmmountCarved = 0 ,
         ActorsToSend = isSame and nearby,
         CravedData = {},
+        CarvedAlready = {},
         RequiredCarved = count,
         Carved = carvedBuffer,
     }
@@ -57,26 +58,37 @@ function Chunk.setData(self,shape,surface,biome)
 end
 
 function Chunk.didCarving(self,chunk)
+    local Carved = self.CarvedAlready
+          
+    if Carved[chunk] then return Chunk.checkCaveDone(self) end  
     local v = self.AmmountCarved +1
     self.AmmountCarved = v
-
+    Carved[chunk] = true
+    if v > self.RequiredCarved  then
+        error(self)
+    end
     if v < self.RequiredCarved then
         return
     end
     return Chunk.checkCaveDone(self)
 end
 
-function Chunk.checkCaveDone(self,extra)
-    if extra then
-        table.insert(self.CravedData,extra)
+function Chunk.checkCaveDone(self,from,extra)
+    
+    if from and extra then
+        if self.Loc == Vector3.new(1,0,1) then
+            print(self)
+        end
+        self.CravedData[from] = extra
     end
+
     if self.AmmountCarved < self.RequiredCarved then
         return false
     end
     if self.NotInRegion then
         return 1,self.NotInRegion,self.Carved,self.RequiredCarved
     end
-
+   
     return 2 
 end
 
