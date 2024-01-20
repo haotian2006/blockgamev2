@@ -22,6 +22,14 @@ function Debris:remove(name)
     end
 end
 
+function Debris:getSize()
+    local count = 0
+    for i,v in self[1] do
+        count +=1
+    end
+    return count
+end
+
 function Debris:get(name)
     local a = self[1][name]
     local threads = self[4]
@@ -36,18 +44,20 @@ function Debris:getAll()
     return self[1]
 end
 
-function Debris.createFolder(Name,maxTime)
+function Debris.createFolder(Name,maxTime,Destroy)
     if Folders[Name] then
         return Folders[Name]
     end
-    local object = setmetatable({{},maxTime,Name,{},nil}, Debris)
+    local object = setmetatable({{},maxTime,Name,nil}, Debris)
     local storage = object[1]
-    local threadStorage = object[4]
     local function remove(name)
+        local object =  storage[name] 
+        if Destroy then
+            Destroy(object[1])
+        end
         storage[name] = nil
-        threadStorage[name] = nil
     end
-    object[5] = remove
+    object[4] = remove
     Folders[Name] = object
     return object
 end
@@ -55,8 +65,8 @@ function Debris.getFolder(Name)
   return Folders[Name]
 end
 function Debris.destroyFolder(Name)
-    if not Folders[Name] then return end 
-    for i,v in Folders[Name][4] do
+    if not Folders[1][Name] then return end 
+    for i,v in Folders[1][Name] do
         task.cancel(v)
     end
     Folders[Name] = nil

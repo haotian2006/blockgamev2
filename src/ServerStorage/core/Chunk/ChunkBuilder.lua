@@ -16,9 +16,9 @@ function Builder.buildChunk(chunk)
     return colored,Biome,Surface 
 end
 function Builder.buildCaves(chunk,blocks)
-    local caves = Layers.compute(OverWorld.Caves,chunk)
-    local combined = Generator.DoWork("combineBufferWCarver",blocks,caves)
-    return combined
+    -- local caves = Layers.compute(OverWorld.Caves,chunk)
+    -- local combined = Generator.DoWork("combineBufferWCarver",blocks,caves)
+    return blocks
 end
 function Builder.buildFeatures(chunk,surroundingChunks)
     local lastData = surroundingChunks[chunk]

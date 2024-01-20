@@ -22,11 +22,11 @@ local preComputedFlag = false
 function Convert.preCompute(DoVector)
     if preComputedFlag then return end
     preComputedFlag = true
-    for x = 0,ChunkWidth-1 do
+    for x = 1,ChunkWidth do
         PreComputed[x] = PreComputed[x] or {}
-        for y = 0,ChunkHeight-1 do
+        for y = 1,ChunkHeight do
             PreComputed[x][y] = PreComputed[x][y] or {}
-            for z = 0,ChunkWidth-1 do
+            for z = 1,ChunkWidth do
                 local idx =  x+y*ChunkWidth+z *cArea+1
                 PreComputed[x][y][z] =  idx
                 local v =Vector3.new(x,y,z)

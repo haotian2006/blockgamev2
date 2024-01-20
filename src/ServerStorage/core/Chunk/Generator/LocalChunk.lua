@@ -13,6 +13,9 @@ local CONST_IDK = 8*256*8-1
 
 local UINT16 = 65535
 
+local sharedBuffer = buffer.create(carvedBufferSize)
+buffer.fill(sharedBuffer, 0,255,carvedBufferSize)
+
 function Chunk.new(chunk)
     local _,ActorID = Communicator.getActor()
     local ChunkRegion = RegionHelper.GetIndexFromChunk(chunk)
@@ -23,7 +26,8 @@ function Chunk.new(chunk)
         local newChunk = chunk + offset
         local newID = RegionHelper.GetIndexFromChunk(newChunk)
         if newID ~= ActorID  then 
-            nearby[newID] = true
+            nearby[newID] =  nearby[newID] or {}
+            table.insert(nearby[newID],newChunk)
             continue 
         end 
         if isSame then continue end 
@@ -36,6 +40,7 @@ function Chunk.new(chunk)
     local self = {
         Loc = chunk,
         Shape = nil,
+        LocalCaveDone = false,
         Surface = nil,
         Biome = nil,
         NotInRegion =if isSame then false else ChunkRegion,
@@ -57,42 +62,49 @@ function Chunk.setData(self,shape,surface,biome)
     self.biome = biome 
 end
 
+
 function Chunk.didCarving(self,chunk)
+
     local Carved = self.CarvedAlready
-          
+    if self.LocalCaveDone then return end 
+   
     if Carved[chunk] then return Chunk.checkCaveDone(self) end  
     local v = self.AmmountCarved +1
     self.AmmountCarved = v
-    Carved[chunk] = true
-    if v > self.RequiredCarved  then
-        error(self)
-    end
+   Carved[chunk] = true
     if v < self.RequiredCarved then
         return
     end
+    self.LocalDone = true
     return Chunk.checkCaveDone(self)
 end
 
-function Chunk.checkCaveDone(self,from,extra)
-    
-    if from and extra then
-        if self.Loc == Vector3.new(1,0,1) then
-            print(self)
-        end
-        self.CravedData[from] = extra
+function Chunk.combineCarverfromActor(self,from,carver)
+    local Carved = self.CarvedAlready
+
+    for i,chunk in self.ActorsToSend[from] do
+        if Carved[chunk] then continue end 
+        Carved[chunk] = true
+        self.AmmountCarved +=1
     end
+
+    self.CravedData[from] = carver
+end
+
+function Chunk.checkCaveDone(self)
 
     if self.AmmountCarved < self.RequiredCarved then
         return false
     end
     if self.NotInRegion then
-        return 1,self.NotInRegion,self.Carved,self.RequiredCarved
+        return 1,self.NotInRegion,self.Carved
     end
    
     return 2 
 end
 
 function Chunk.combineCarve(self)
+    if self.FinishCarve then return end 
     local shape = self.Shape
     debug.profilebegin("combine")
     local function combine(b)
@@ -107,10 +119,14 @@ function Chunk.combineCarve(self)
     end
     combine(self.Carved)
     self.FinishCarve = true
+    self.Carved = sharedBuffer
+    table.clear(self.CravedData)
     debug.profileend()
-    for i,v in self.ActorsToSend do
-        Communicator.sendMessageToId(i,"UpdateShape",self.Loc.X,self.Loc.Z,self.Shape)
-    end
+
+end
+
+function Chunk.destroy(self)
+    table.clear(self)
 end
 
 return Chunk
