@@ -15,22 +15,53 @@ function Utils.chunkDictToArray(dict,center)
     end
     return array
 end
+
 local allSquare = {}
 function Utils.preComputeSquare(r)
     if allSquare[r] then return allSquare[r] end 
     local precomputed = {}
-    local xx = 0
-    for dist = 0, r do
-        for x = -dist, dist do
-            local zBound = math.floor(math.sqrt(r * r - x * x)) -- Bound for 'z' within the circle
-            for z = -zBound, zBound do
-                if table.find(precomputed,Vector3.new(x,0,z)) then continue end 
-                table.insert(precomputed,Vector3.new(x,0,z))
-                xx+=1
-            end
+    for x = -r, r do
+        for z = -r, r do
+            local vector = Vector3.new(x,0,z)
+            local mag = vector.Magnitude
+          -- if mag-.1 >=r then continue end 
+            table.insert(precomputed,vector+Vector3.new(0,mag))
+            
         end
+    end
+    table.sort(precomputed,function(a,b)
+        return a.Y<b.Y
+    end)
+    local remove = Vector3.new(1,0,1)
+    for i = 1, #precomputed do
+        precomputed[i] *= remove
     end
     allSquare[r] = precomputed
     return precomputed
 end
+
+local allCircle = {}
+function Utils.preComputeCircle(r)
+    if allCircle[r] then return allCircle[r] end 
+    local precomputed = {}
+    for x = -r, r do
+        for z = -r, r do
+            local vector = Vector3.new(x,0,z)
+            local mag = vector.Magnitude
+            if mag >=r then continue end 
+            table.insert(precomputed,vector+Vector3.new(0,mag))
+            
+        end
+    end
+    table.sort(precomputed,function(a,b)
+        return a.Y<b.Y
+    end)
+    local remove = Vector3.new(1,0,1)
+    for i = 1, #precomputed do
+        precomputed[i] *= remove
+    end
+    allCircle[r] = precomputed
+    return precomputed
+end
+
 return Utils

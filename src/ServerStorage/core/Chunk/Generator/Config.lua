@@ -1,16 +1,14 @@
 return {
-    RegionSize = 10,
+    RegionSize = 5,
     Actors = 2,
 
     --//Debris
     MaxTimeDebris = 30,
     --//Looping
-    MaxCarverReplication = 10,
-    MaxCarveCombine = 80,
-    MaxCarver = 12,
-    MaxBuild = 5,
+    MaxCarver = 15,
+    MaxBuild = 15,
     MaxFeature = 2,
-    MaxMain = 2,
+    MaxResume = 300,
 
-    StructureRange = 10,
+    StructureRange = 5,
 } 

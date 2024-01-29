@@ -22,12 +22,12 @@ function Utils.getoffset(cx,cz):Vector3
 end
 function Utils.gridToLocalAndChunk(x,y,z)
     local cx,cz = Utils.getChunk(x,y,z) 
-    local lx,ly,lz = x%Chunk_Width,y,z%Chunk_Width
+    local lx,ly,lz = x%Chunk_Width+1,y,z%Chunk_Width+1
     return cx,cz,lx,ly,lz
 end
 
 function Utils.gridToLocal(x,y,z)
-    local lx,ly,lz = x%Chunk_Width,y,z%Chunk_Width
+    local lx,ly,lz = x%Chunk_Width+1,y,z%Chunk_Width+1
     return lx,ly,lz
 end
 

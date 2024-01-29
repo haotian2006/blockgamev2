@@ -9,12 +9,14 @@ function BasicNoise.new(seed,salt)
     local RandomObject =Random.new(seed)
     return Vector3.new(RandomObject:NextNumber(-1000,1000),RandomObject:NextNumber(-1000,1000),RandomObject:NextNumber(-1000,1000))
 end
+
 function BasicNoise.sample(self,x,y,z)
    return math.noise(x+self.X,y+self.Y,z+self.Z)
 end
 
 Noise.newBasic = BasicNoise.new
 Noise.basicSample = BasicNoise.sample
+
 function Noise.new(seed,firstOctave,amplitudes,persistance,lacunarity,salt)
     local inputFactor = 2^firstOctave
     local valueFactor = 2^ (#amplitudes - 1) / ((2^ #amplitudes) - 1)
@@ -26,9 +28,11 @@ function Noise.new(seed,firstOctave,amplitudes,persistance,lacunarity,salt)
     end
     return self
 end
+
 function Noise.parse(seed,setting)
     return Noise.new(seed, setting.firstOctave, setting.amplitudes, setting.persistance, setting.lacunarity,setting.salt)
 end
+
 function Noise.sample(self,x,y,z)
     local inputFactor = self[2]
     local valueFactor = self[3]
@@ -47,4 +51,5 @@ function Noise.sample(self,x,y,z)
 
     return value
 end
+
 return Noise

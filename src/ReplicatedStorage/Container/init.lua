@@ -121,7 +121,6 @@ function container.resize(self,newSize)
     local diff = newSize-(#self-2)
     if diff == 0 then return end 
     local fx = if diff > 0 then table.insert else table.remove
-    
     for i =1,diff do
         fx(self,#self-1,"")
     end

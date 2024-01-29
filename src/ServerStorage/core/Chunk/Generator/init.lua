@@ -23,7 +23,12 @@ local function createWorker(index):Actor
     return clone
 end
 
+local Remote:RemoteEvent = game.ReplicatedStorage.Events.Chunk
+local Builder = require(script.Parent.ChunkBuilder)
+local alreadyInit = false
 function Generator.Init()
+    if alreadyInit then return end 
+    alreadyInit = true
     for i=1,Configs.Actors do
         local Worker = createWorker(i)
         Worker:SendMessage("Init",Bindable)
@@ -31,4 +36,11 @@ function Generator.Init()
     Communicator.Init()
 end
 
+Bindable.Event:Connect(function(data)
+    for i,v in data do
+        local block,surface,biomes,chunk = unpack(v)
+        Remote:FireAllClients(chunk,Builder.compress(block))
+    end
+    --Remote:FireAllClients(chunk,Builder.compress(shape))
+end)
 return Generator

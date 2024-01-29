@@ -82,6 +82,7 @@ function Animator.stop2(self,animation,fadeTime,SendToOwner)
     AnimatorR.sendTask(self,"stop",SendToOwner,animation,fadeTime)
     self.__animations[animation] = nil
 end
+
 function Animator.stopAll2(self,fadeTime,SendToOwner)
     SendToOwner = if SendToOwner ==nil then true else false
     for i,v in self.__loadedAnimations or {} do

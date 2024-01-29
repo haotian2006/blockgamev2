@@ -42,7 +42,7 @@ local to1D = IndexUtils.to1D
 
 local Overworld = require(script.Parent.Overworld)
 local Width,Height = GameSettings.getChunkSize()
-Width-=1;Height-=1
+
 
 local XprecentageCache = Utils.precentageCache4
 local YprecentageCache = Utils.YprecentageCache8
@@ -106,8 +106,8 @@ function Tasks.createBiomeMap(cx,cz)
     local startX,startZ = ConversionUtils.getoffset(cx,cz)
     local b = buffer.create(8*8*2)
     local current = nil
-    for x = 0,Width do
-        for z = 0,Width do
+    for x = 1,Width do
+        for z = 1,Width do
             local biome = layers.get(Overworld,startX+x,0,startZ+z)
             current = if biome ~= current and current ~= nil then false else biome
             buffer.writeu16(b,(IndexUtils.to1DXZ[x][z]-1)*2,biome)
@@ -135,13 +135,13 @@ function Tasks.color(cx,cz,Shape,Surface,Biome)
     end
     local b = buffer.create(8*8*256*4)
     debug.profilebegin("color")
-    for x = 0,7 do
-        for z = 0,7 do
+    for x = 1,8 do
+        for z = 1,8 do
             local idx2D = IndexUtils.to1DXZ[x][z]
             if ISBUFFER then
                 currentBiome = getBiome(idx2D)
             end
-            for y = 255,0,-1 do
+            for y = 256,1,-1 do
                 local idx = to1D[x][y][z]
                 local value = buffer.readu8(Shape, idx-1)
                 local color = 0
@@ -199,10 +199,10 @@ function Tasks.sampleDensityNoise(cx,cz,biome)
     end
     debug.profilebegin("sample Density")
     local TL,TR,BL,BR = buffer.create(maxBufferSize),buffer.create(maxBufferSize),buffer.create(maxBufferSize),buffer.create(maxBufferSize)
-    for x =0,Width,4 do
-        local lx = x//4
-        for z =0,Width,4 do
-            local lz =z//4
+    for x =1,Width,4 do
+        local lx = (x-1)//4
+        for z =1,Width,4 do
+            local lz =(z-1)//4
             local bufferObject = if lx == 0 and lz == 0 then BL 
             else if lx == 1 and lz == 0 then TL
             else if lx == 0 and lz == 1 then BR
@@ -215,8 +215,8 @@ function Tasks.sampleDensityNoise(cx,cz,biome)
                 noise_scale = b.NoiseScale or noise_scale
                 SurfaceScale = b.SurfaceScale or SurfaceScale
             end
-            for y = 0,Height,8 do
-                local ly = y//8
+            for y = 1,Height,8 do
+                local ly = (y-1)//8
                 local nx = x + startX
                 local nz = z + startZ
                 local surface = NoiseManager.sample(Noise1, nx, y, nz)/SurfaceScale
@@ -283,9 +283,9 @@ function Tasks.computeBlendedAir(center,top,left,topLeft)
     local LastY 
     local surfaceBuffer = buffer.create(8*8)
     local calculate = {}
-    for y = 255,0,-1 do
+    for y = 256,1,-1 do
         local yp = YprecentageCache[y]
-        local ly = y//8
+        local ly = (y-1)//8
         if LastY ~= ly then
             LastY = ly
             local IncreaseY = (ly+1)>31 and 31*4 or (ly+1)*4
@@ -299,9 +299,9 @@ function Tasks.computeBlendedAir(center,top,left,topLeft)
             noise110 = buffer.readf32(top, IncreaseY)
             noise111 = buffer.readf32(topLeft, IncreaseY)
         end
-        for x = 0,7 do
+        for x = 1,8 do
             local xp= YprecentageCache[x]
-            for z = 0,7 do
+            for z = 1,8 do
                 local zp = YprecentageCache[z]
                 local value = lerp3(xp, yp, zp, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                 local bool = value>0 and 1 or 0
@@ -335,9 +335,9 @@ function Tasks.computeAir(center,top,left,topLeft,loc)
     local LastY 
     local surfaceBuffer = buffer.create(4*4)
     local calculated = {}
-    for y = 255,0,-1 do
+    for y = 256,1,-1 do
         local yp = YprecentageCache[y]
-        local ly = y//8
+        local ly = (y-1)//8
         if LastY ~= ly then
             LastY = ly
             local IncreaseY = (ly+1)>31 and 31*4 or (ly+1)*4
@@ -352,9 +352,9 @@ function Tasks.computeAir(center,top,left,topLeft,loc)
             noise111 = buffer.readf32(topLeft, IncreaseY)
         end
         local bits = 0
-        for x = 0,3 do
+        for x = 1,4 do
             local xp= XprecentageCache[x]
-            for z = 0,3 do
+            for z = 1,4 do
                 local zp = XprecentageCache[z]
                 local value = lerp3(xp, yp, zp, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                 local bool = value>0 and 1 or 0
@@ -367,7 +367,7 @@ function Tasks.computeAir(center,top,left,topLeft,loc)
                 bits += bool*(2^(idx-1))
             end
         end
-        buffer.writeu16(b, y*2, bits)
+        buffer.writeu16(b, (y-1)*2, bits)
     end
     debug.profileend()
     return b,surfaceBuffer
@@ -380,8 +380,8 @@ function Tasks.shapeCombine(x1,x2,x3,x4)
     debug.profilebegin("Combine")
     for i,b in last do
         local offs = offsetTable[i] 
-        for y =0,maxy-1 do
-            local xzBits = buffer.readu16(b,y*2)
+        for y =1,maxy do
+            local xzBits = buffer.readu16(b,(y-1)*2)
             for iter = 15, 0,-1 do
                 local value = false
                 if xzBits == 0 then
@@ -419,8 +419,8 @@ function Tasks.surfaceCombine(x1,x2,x3,x4)
     debug.profilebegin("CombineSurface")
     for i,b in last do
         local offs = offsetTable[i] 
-        for x = 0,3 do
-            for z = 0,3 do
+        for x = 1,4 do
+            for z = 1,4 do
                 local idx = IndexUtils.to1DXZChunkQuad[x][z]
                 local value = buffer.readu8(b,idx-1)
                 buffer.writeu8(B, IndexUtils.to1DXZ[offs.X+x][offs.Z+z]-1, value)

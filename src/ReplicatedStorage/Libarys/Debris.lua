@@ -1,76 +1,93 @@
 local Debris = {}
 Debris.__index = Debris
+
+local Stack = require(game.ReplicatedStorage.Libarys.DataStructures.Stack)
+
+local DESTROY_INTERVAL = 25
+
+local DestroyStack = Stack.new(10000)
+
 local Folders = {}
-
-local ThreadDebounce = 1
-
+--//WARNING: AVOID USING NUMBERED KEYS OR INDEXS 1 2 3
 function Debris:add(name,value)
-    self[1][name] = value
-    local threads = self[4]
-    if threads[name] then 
-        task.cancel(threads[name])
-    end
-    threads[name] = task.delay(self[2], self[5],name)
+    local sub = table.create(3)
+    sub[1] = value
+    sub[2] = task.delay(self[1], self[3],name)
+    self[name] = sub
 end
 
 function Debris:remove(name)
-    self[1][name] = nil
-    local t = self[4][name]
+    local object = self[name]
+    if not object then return end 
+    local t = object[2]
     if t then
         task.cancel(t)
-        self[4][name] = nil
     end
+    object[3] = false 
+    self[3](name)
 end
 
 function Debris:getSize()
-    local count = 0
-    for i,v in self[1] do
+    local count = -3
+    for i,v in self do
         count +=1
     end
     return count
 end
 
 function Debris:get(name)
-    local a = self[1][name]
-    local threads = self[4]
-    if threads[name] then 
-        task.cancel(threads[name])
-        threads[name] = task.delay(self[2], self[5],name)
-    end
-    return a
+    local a = self[name]
+    if not a then return  end 
+    a[3] = true
+    return a[1]
 end
 
-function Debris:getAll()
-    return self[1]
-end
-
-function Debris.createFolder(Name,maxTime,Destroy)
+function Debris.getOrCreateFolder(Name,maxTime,Destroy,UseStack)
     if Folders[Name] then
         return Folders[Name]
     end
-    local object = setmetatable({{},maxTime,Name,nil}, Debris)
-    local storage = object[1]
+    local object = setmetatable({maxTime,Name}, Debris)
     local function remove(name)
-        local object =  storage[name] 
-        if Destroy then
-            Destroy(object[1])
+        local obj = object[name]
+        if not obj then return end 
+        if obj[3] then
+            obj[2] = task.delay(maxTime,remove,name)
+            obj[3] = false
+            return
         end
-        storage[name] = nil
+        if Destroy then 
+            Destroy(obj[1])
+        end
+        object[name] = nil
+        if UseStack then
+            Stack.push(DestroyStack, obj)
+        end
     end
-    object[4] = remove
+    object[3] = remove
     Folders[Name] = object
     return object
 end
+
 function Debris.getFolder(Name)
   return Folders[Name]
 end
+
 function Debris.destroyFolder(Name)
-    if not Folders[1][Name] then return end 
-    for i,v in Folders[1][Name] do
-        task.cancel(v)
+    if not Folders[Name] then return end 
+    for i,v in Folders[Name] do
+        if type(i) == "number" then continue end 
+        Debris.remove(Folders[Name] ,i)
     end
+    table.clear( Folders[Name])
     Folders[Name] = nil
 end
   
+game:GetService("RunService").Heartbeat:Connect(function()
+    for i = 1,DESTROY_INTERVAL do
+        local item = Stack.pop(DestroyStack)
+        if not item then break end 
+        table.clear(item)
+    end
+end)
 
 return Debris

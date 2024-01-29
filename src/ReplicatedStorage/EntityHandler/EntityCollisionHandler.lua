@@ -72,7 +72,9 @@ function Collision.stayOnEdge(self,targetPosition)
    end
     return vector3(CurrentX,CurrentY,CurrentZ),normal
 end
+
 local ZERO = -9.99999993922529e-09 
+
 function Collision.shouldjump(entity,bp,bs)
     local pos = entity.Position
     local hitbox = Entity.get(entity,"Hitbox") 

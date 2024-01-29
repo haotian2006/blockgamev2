@@ -11,18 +11,18 @@ local Width,Height = GameSettings.getChunkSize()
 local to1D = IndexUtils.to1D
 local function CreateBorder(lx,lz)
     return {
-        lx+1 >= Width,
-        lx-1 <= -1,
-        lz+1 >= Width ,
-        lz-1 <= -1
-    },`{lx+1 >= Width},{lx-1 <= -1},{lz+1 >= Width},{lz-1 <= -1}`
+        lx+1 >= Width+1,
+        lx-1 <= 0,
+        lz+1 >= Width +1,
+        lz-1 <= 0,
+    },`{lx+1 >= Width+1},{lx-1 <= 0},{lz+1 >= Width+1},{lz-1 <= 0}`
 end
 local borders = {}
 do
     local temp = {}
-    for x =0,Width-1 do
-        for z = 0,Width-1 do
-            local id = x + z *Width + 1
+    for x =1,Width do
+        for z = 1,Width do
+            local id = (x-1) + (z-1) *Width + 1
             local info,str = CreateBorder(x,z)
             borders[id] = temp[str] or info
             temp[str] = info
@@ -30,7 +30,7 @@ do
     end  
 end
 local function GetBorders(lx,lz)
-    return borders[lx + lz *Width + 1]
+    return borders[(lx-1) + (lz-1) *Width + 1]
 end
 function Tasks.setSubChunkData(chunk,data)
     chunkData[chunk] = data
@@ -65,24 +65,24 @@ function Tasks.cull(chunk,center,north,east,south,west,sections )
     local function cull(x,y,z)
         local num = 0
         if b1 then
-            if checkBlock(0,y,z,north) then num +=1 end 
+            if checkBlock(1,y,z,north) then num +=1 end 
         else
             if checkBlock(x+1,y,z) then num +=1 end 
         end
         if b2 then
-            if checkBlock(7,y,z,south) then num +=2 end 
+            if checkBlock(8,y,z,south) then num +=2 end 
         else
             if checkBlock(x-1,y,z) then num +=2 end 
         end
-        if y ~= 255 and checkBlock(x,y+1,z) then num +=4 end 
-        if y ~= 0 and checkBlock(x,y-1,z) then num +=8 end 
+        if y ~= 256 and checkBlock(x,y+1,z) then num +=4 end 
+        if y ~= 1 and checkBlock(x,y-1,z) then num +=8 end 
         if b3 then
-            if checkBlock(x,y,0,east) then num +=16 end 
+            if checkBlock(x,y,1,east) then num +=16 end 
         else
             if checkBlock(x,y,z+1) then num +=16  end 
         end 
         if b4 then
-            if checkBlock(x,y,7,west) then num +=32 end 
+            if checkBlock(x,y,8,west) then num +=32 end 
         else
             if checkBlock(x,y,z-1) then num +=32  end 
         end
@@ -92,14 +92,14 @@ function Tasks.cull(chunk,center,north,east,south,west,sections )
     local count = 1
 
     debug.profilebegin("cull")
-    for x = 0,7 do
-        for z = 0,7 do
+    for x = 1,8 do
+        for z = 1,8 do
             b1,b2,b3,b4 = unpack(GetBorders(x,z))
             for ly =0,31 do
                 local val = buffer.readu8(sections, ly)
                 if val == 0 then continue end 
                 for oy = 0,7 do
-                    local y = ly*8+oy
+                    local y = ly*8+oy+1
                     local idx = IndexUtils.to1D[x][y][z]
                     local v = get(idx, center)
                     if v == 0 then continue end 

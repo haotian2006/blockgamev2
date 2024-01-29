@@ -96,11 +96,11 @@ end
 Utils.precentageCache4 = {}
 Utils.YprecentageCache8 = {}
 do
-    for x = 0,3 do
-        Utils.precentageCache4[x] = ((x % 4 + 4) % 4) / 4
+    for x = 1,4 do
+        Utils.precentageCache4[x] = (((x-1) % 4 + 4) % 4) / 4
     end
-    for y = 0,255 do
-        Utils.YprecentageCache8[y] = ((y % 8 + 8) % 8) / 8
+    for y = 1,256 do
+        Utils.YprecentageCache8[y] = (((y-1) % 8 + 8) % 8) / 8
     end
 end
 return Utils

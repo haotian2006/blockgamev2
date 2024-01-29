@@ -5,12 +5,12 @@ local Utils = require(script.Parent.Parent.Parent.math.utils)
 local NoiseHandler = require(script.Parent.Parent.Parent.math.noise)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
-local Carver = require(script.Parent.Parent.Parent.math.carver)
+local Carver = require(script.Parent.Parent.Parent.math.Carver2)
+local Storage = require(game.ServerStorage.core.Chunk.Generator.ChunkDataLocal)
 local to1dXZ = IndexUtils.to1DXZ
 local to1d = IndexUtils.to1D
 local structure = {}
 local v3 = Vector3.new
-local addBlock = Carver.addBlock
 local tree =   {
     name = "c:tree",
     chance = 1,
@@ -20,6 +20,7 @@ local tree =   {
             3,2
         },
         shape = {
+            [v3(0, 0, 0)] = -1,
             [v3(0, 1, 0)] = 1,
             [v3(0, 2, 0)] = 1,
             [v3(0, 3, 0)] = 1,
@@ -149,18 +150,13 @@ end
     layout : table|function,
     }
 ]]
-function structure.sample(cx,cz,blocks,biomeAndSurface)
-    local chunkStr = `{cx},{cz}`
-    local biome = biomeAndSurface[chunkStr][1]
-    local surface = biomeAndSurface[chunkStr][2]
-    local newTemp = {}
-    debug.profilebegin("parse")
-    for i,v in biomeAndSurface do
-        local x,z = i:match("(-?%d+),(-?%d+)")
-        newTemp[v3(x,0,z)] = v
-    end
-    debug.profileend()
-    biomeAndSurface = newTemp
+local writter = buffer.writeu32
+function structure.sample(cx,cz)
+    local currentChunk = Vector3.new(cx,0,cz)
+    local ChunkData = Storage.getOrCreate(currentChunk)
+    local biome = ChunkData.Biome
+    local surface = ChunkData.Surface
+    local blocks = ChunkData.Shape
     if typeof(biome) =='buffer' then
         biome = buffer.readu16(biome, 2)
     end
@@ -170,37 +166,46 @@ function structure.sample(cx,cz,blocks,biomeAndSurface)
     local cofx,cofz = cx*8,cz*8 
     debug.profilebegin("sampleStructures")
     local finished = tree
+    local currentBuffer = Storage.getFeatureBuffer(Vector3.new(cx,0,cz))
+    local currentBlocks = blocks
     for i,stru in strucutres do
         if random:NextInteger(1, stru.chance or 10) ~= 1 then continue end
-        local ofx = random:NextInteger(0, 7)
-        local ofz = random:NextInteger(0, 7)
+        local ofx = random:NextInteger(1, 8)
+        local ofz = random:NextInteger(1, 8)
         local idx = to1dXZ[ofx][ofz]
         local height = buffer.readu8(surface, idx-1)
         local blockAt = buffer.readu32(blocks, (to1d[ofx][height][ofz]-1)*4)
         if blockAt == 0 then continue end 
         local key = stru.layout.key
-        local currentV = v3(ofx+cofx,height,ofz+cofz)
+        local currentV = v3(ofx+cofx-1,height,ofz+cofz-1)
         local mode = stru.override
         if typeof( stru.layout.shape) == "function" then
-            local v = stru.layout.shape(CarvedOut,cx,cz,ofx,height,ofz,stru,biomeAndSurface,random)
+            local v = stru.layout.shape(CarvedOut,cx,cz,ofx,height,ofz,stru,random)
             if not v then
                 finished = false
             end
             continue
         end
         for offset,block in stru.layout.shape do
-            local chx = cx
-            local chz = cz
             local current = offset+currentV
-            local xx,yy,zz = current.X,current.Y,current.Z
-            if yy < 0 or yy >255 then continue end 
-            if not ConversionUtils.isWithIn(xx, 0, zz) then
-                chx,chz,xx,_,zz = ConversionUtils.gridToLocalAndChunk(xx, yy, zz)
+            local ncx,ncz,lx,ly,lz = ConversionUtils.gridToLocalAndChunk(current.X, current.Y, current.Z)
+            if ly > 256 or ly <1 then continue end 
+            if ncx ~= cx or ncz ~= cz then
+                local c = Vector3.new(ncx,0,ncz)
+                currentBuffer = Storage.getFeatureBuffer(c)
+                currentBlocks = Storage.getOrCreate(c).Shape
+                cx,cz = ncx,ncz
             end
-           addBlock(CarvedOut, chx, chz, xx,yy,zz,key[block],mode)
+            local to1d = to1d[lx][ly][lz]
+            if block == -1 then
+                local idx_ = (to1d-1)*4
+                if not currentBlocks then continue end 
+                writter(currentBuffer, idx_,buffer.readu32(currentBlocks, idx_))
+            else
+                writter(currentBuffer, (to1d-1)*4, key[block])
+            end
         end
     end
     debug.profileend()
-    return Carver.toArray(CarvedOut),finished
 end
 return structure 

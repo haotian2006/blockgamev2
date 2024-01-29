@@ -3,7 +3,6 @@ return {
     NameSpace = 'c:plains',
     Elevation  = 14,
     Factor =150,--.01,
-    NoiseScale = .1,
     SurfaceBlock = 'c:GrassBlock',
     MiddleBlock = 'c:Dirt',
     Color = 1,

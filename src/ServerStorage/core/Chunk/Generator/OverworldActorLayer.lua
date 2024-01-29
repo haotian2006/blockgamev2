@@ -5,8 +5,11 @@ Layers.Init()
 
 local Overworld = {}
 local self = {}
-
+local Generation = game.ServerStorage.Generation
 local Carver = require(game.ServerStorage.Generation.generation.features.caves.perlineWorms)
+local ore = require(Generation.generation.features.ore)
+local foliage = require(Generation.generation.features.foliage)
+local structures = require(Generation.generation.features.structures)
 
 local CarverObject = Carver.parse(123,{
     maxDistance = 200,
@@ -20,7 +23,6 @@ local CarverObject = Carver.parse(123,{
 
 
 function Overworld.Init()
-    
     self.Biome = Layers.create("BiomeLayer")
     self.Caves = Layers.create("CaveLayer")
     self.Terrain = Layers.create("SampleNoiseLayer",self.Biome)
@@ -33,11 +35,13 @@ function Overworld.Biome(chunk)
 end
 
 function Overworld.AddFeatures(chunk)
-    
+   -- ore.sample(chunk.X, chunk.Z)
+    foliage.addfoliage(chunk.X, chunk.Z)
+    structures.sample(chunk.X, chunk.Z)
 end
 
 function Overworld.Carve(chunk)
-    return Carver.sample(CarverObject, chunk.X, chunk.Y)
+    return Carver.sample(CarverObject, chunk.X, chunk.Z)
 end
 
 function Overworld.Build(chunk)

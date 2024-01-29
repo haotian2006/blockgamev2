@@ -10,4 +10,4 @@ function Color.compute(self,chunk,Shape,surface,biome)
     return shaper.color(chunk.X, chunk.Z, Shape, surface, biome)
 end
 
-return Color 
+return Color  

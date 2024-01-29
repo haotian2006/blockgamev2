@@ -35,7 +35,7 @@ function Chunk.removeEntity(self,Entity)
 end
 function Chunk.getEntity(self,Entity)
     return self.Entities[Entity.Guid] 
-end
+end 
 function Chunk.getBiome(self,idx) 
     return if typeof(self.BiomeMap) =='buffer' then buffer.readu16(self.BiomeMap, (idx-1)*2) else self.BiomeMap
 end

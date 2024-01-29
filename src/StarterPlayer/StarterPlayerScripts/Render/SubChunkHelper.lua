@@ -65,11 +65,13 @@ local keysValues = {
     [Vector3.new(1, 1, 0)] = 15,
 }
 local b = buffer.create(32)
+
 function helper.getSubChunk(loc)
     local chunk = data.getChunk(loc.X,loc.Z)
     if not chunk or not chunk.Status.SubChunks  then return end
     return chunk.Status.SubChunks[loc.Y]
 end
+
 local function canSee(subB,from,to)
     local key = Faces[from]+Faces[to]
     if key == Vector3.zero then
@@ -116,13 +118,13 @@ do
         end
         return pass,vectors
     end
-    for a = 0,9 do 
+    for a = 1,10 do 
         subChunkTo1d[a] = subChunkTo1d[a] or {}
-        for b = 0,9 do
+        for b = 1,10 do
             subChunkTo1d[a][b] =   subChunkTo1d[a][b] or  {}
-            for c = 0,9 do
-                local pass,vector = helperL(a,b,c)
-                local abc = to1DTEMP(a, b, c)
+            for c = 1,10 do
+                local pass,vector = helperL(a-1,b-1,c-1)
+                local abc = to1DTEMP(a-1, b-1, c-1)
                 if not pass then
                     bounds[abc] = vector
                 end
@@ -171,12 +173,12 @@ function helper.sampleSection(blocks,section,chunk)
     local mappings = table.create(512)
     debug.profilebegin("sample Everything")
     debug.profilebegin("PreCompute Flood")
-    for x =0,7 do
-        for z = 0,7 do
-            for y = 0,7 do
+    for x =1,8 do
+        for z = 1,8 do
+            for y = 1,8 do
                local vector = to1D[x][y+offset][z]
                local block = buffer.readu32(blocks, (vector-1)*4)
-               if x == 0 or x == 7 or y == 0 or y == 7 or z == 0 or z == 7 then
+               if x == 1 or x == 8 or y == 1 or y == 8 or z == 1 or z == 8 then
                     if block ~= 1 then
                         allWalls = false
                     end
@@ -240,9 +242,9 @@ function helper.sampleSection(blocks,section,chunk)
             table.insert(conflicts,conflictsL)
         end
     end
-    for x =1,8 do
-        for z = 1,8 do
-            for y = 1,8 do
+    for x =2,9 do
+        for z = 2,9 do
+            for y = 2,9 do
                local vector = subChunkTo1d[x][y][z]
                if checked[vector] then continue end 
                local block = mappings[vector]
@@ -304,9 +306,12 @@ local function inFrustum(vector, from, direction)
     end
     return false
 end
+
 local maxRenderDistance = 16
+
 local lastDir,lastChunk =  camera.CFrame.LookVector,getChunkLocation(camera.CFrame.Position/3-Vector3.yAxis)
 function helper.startSearch(start,direaction)
+    local startTime = os.clock()
     local maxVisited = maxRenderDistance*230
     local searchQueue = Queue.new(maxVisited+100)
 
@@ -318,8 +323,9 @@ function helper.startSearch(start,direaction)
     local minZ,maxZ = start.Z-maxRenderDistance,start.Z+maxRenderDistance
     local minY,maxY = 0,31
     local visitedTotal = 0
-    while searchQueue[1] <= searchQueue[2]  and visitedTotal <=maxVisited do
+    while searchQueue.S <= searchQueue.E  and visitedTotal <=maxVisited or os.clock()-startTime >=.015 do
         local top = Queue.dequeue(searchQueue)
+        if not top then break end 
         local current = getSubChunk(top.fromVector)
         if not current then continue end 
         local function vist(vector,throughFace)
@@ -364,7 +370,6 @@ function helper.update(force)
         lastDir = direaction
         lastChunk = chunk
         fov = math.cos(camera.FieldOfView+math.rad(15))
-        local start = os.clock()
         debug.profilebegin("Frustum Cull")
         local visited = helper.startSearch(lastChunk,lastDir)
         debug.profileend()

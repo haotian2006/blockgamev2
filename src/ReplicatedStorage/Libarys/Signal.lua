@@ -53,7 +53,7 @@ end
 
 function Signal.Fire(self, ...)
 	if next(self) then
-		for CN in pairs(self) do
+		for CN in self,next do
 			CN.Callback(...)
 		end
 	end

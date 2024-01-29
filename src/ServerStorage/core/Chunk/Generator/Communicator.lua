@@ -12,6 +12,8 @@ local CallBacks = {
 
 }
 
+local ToSend = {}
+
 local function BindToRecv()
     if not Actor then return end 
     Runner = require(Actor:FindFirstChild("ParallelRunner"))
@@ -52,6 +54,11 @@ function Communicator.sendMessageToId(Id,MessageType,...)
    Actors[Id]:SendMessage("Message",ActorID,MessageType,...)
    debug.profileend()
 end
+
+function Communicator.delayMessageToId(Id,MessageType,...)
+    ToSend[Id] = ToSend[Id] or {}
+ end
+ 
 
 function Communicator.sendMessageMain(...)
     Main:Fire(...)

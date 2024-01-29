@@ -303,7 +303,7 @@ function handler.close(name,FORCECLOSE,CAMEFROMOPEN)
 end
 local open = false
 game:GetService("UserInputService").InputBegan:Connect(function(a0: InputObject, a1: boolean)  
-    if a0.KeyCode == Enum.KeyCode.Q then
+    if a0.KeyCode == Enum.KeyCode.E then
         if open then
             handler.open("InventoryFrame")
         else

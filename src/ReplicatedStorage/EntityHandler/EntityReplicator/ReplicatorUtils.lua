@@ -16,7 +16,7 @@ local temp = Replication.temp
     1: does not replicate at all 
     2: only replicates once
     3: does not replicate to owner at all
-    any attributes with not listed would be deafult to 0
+    any attributes  not listed would be deafult to 0
 ]]
 Replication.REPLICATE_LEVEL = {
     __main = 1,__velocity = 1,__changed = 1,__cachedData = 1,__localData = 1,Chunk = 1,Grounded = 1,Guid = 1,__running = 1,__containers = 1,slot = 1,

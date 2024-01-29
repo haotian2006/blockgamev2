@@ -8,7 +8,8 @@ local OverWorld = require(script.OverworldStack)
 local Builder = require(script.ChunkBuilder)
 local ChunkClass = require(game.ReplicatedStorage.Chunk)
 local debirs = require(game.ReplicatedStorage.Libarys.Debris)
-local ChunkTemp = debirs.createFolder("Chunk", 30)
+local ChunkTemp = debirs.getOrCreateFolder("Chunk", 30)
+local Generator2 = require(script.Generator)
 local Runner = require(game.ReplicatedStorage.Runner)
 
 
@@ -190,10 +191,11 @@ end
 game:GetService("RunService").Stepped:Connect(function()
     x()
 end)
-
+Generator2.Init()
 --mainQueue[Vector3.new(0,0,0)] = true
 Remote.OnServerEvent:Connect(function(player,requestedChunk)
     do
+        Generator2.queueChunk(requestedChunk)
         return
     end
     local found = Data.getChunk(requestedChunk.X,requestedChunk.Z)

@@ -36,7 +36,7 @@ end
 
 function worms.sample(self,cx,cz,DEBUG)
     local RandomO = Math.createRandom(self[1],cx,cz,73) 
-    --if RandomO:NextInteger(0, self[10]) ~= 1 then return false end 
+    if RandomO:NextInteger(0, self[10]) ~= 1 then return false end 
     debug.profilebegin("caves")
     local n1,n2,n3 = self[2],self[3],self[4]
     local maxDistnace = self[5]
@@ -47,14 +47,14 @@ function worms.sample(self,cx,cz,DEBUG)
 
     local maxSplits = 1--RandomO:NextInteger(1, self[11])
     local ofx,ofz = cx*8,cz*8
-    local startingX = RandomO:NextInteger(0, 7)
-    local startingZ = RandomO:NextInteger(0, 7)
+    local startingX = RandomO:NextInteger(1, 8)
+    local startingZ = RandomO:NextInteger(1, 8)
     local startingY = RandomO:NextInteger(30, 80)
     local radius = RandomO:NextInteger(2,5)
     local carved = {}
 
     local checked = {}
-    local currentBuffer = Storage.rawGetOrCreate(Vector3.new(cx,0,cz)).Carved
+    local currentBuffer = Storage.getCarvedBuffer(Vector3.new(cx,0,cz))
     local Lcx,Lcz  = cx,cz
     for split =1,maxSplits do
         
@@ -63,6 +63,7 @@ function worms.sample(self,cx,cz,DEBUG)
         local direaction
         local yOffset = RandomO:NextInteger(-1000,1000)
         local endDir = RandomO:NextUnitVector()
+        
         if endDir.Y <=.5 then
             endDir = Vector3.new(endDir.X,.5,endDir.Z).Unit
         end
@@ -90,9 +91,9 @@ function worms.sample(self,cx,cz,DEBUG)
                 if checked[new] then continue end 
                 checked[new] = true
                 local ncx,ncz,lx,ly,lz = ConversionUtils.gridToLocalAndChunk(new.X, new.Y, new.Z)
-                if ly > 255 or ly <0 then continue end 
+                if ly > 256 or ly <1 then continue end 
                 if ncx ~= Lcx or ncz ~= Lcz then
-                    currentBuffer = Storage.rawGetOrCreate(Vector3.new(ncx,0,ncz)).Carved
+                    currentBuffer = Storage.getCarvedBuffer(Vector3.new(ncx,0,ncz))
                     Lcx,Lcz = ncx,ncz
                 end
                 local to1d = to1d[lx][ly][lz]

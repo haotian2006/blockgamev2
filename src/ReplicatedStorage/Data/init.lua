@@ -41,7 +41,7 @@ function Data.getBlock(x,y,z)
     local chunk = Data.getChunk(cx,cz)
     if not chunk then  return BlockUtils.CONST_NULL end
     return Chunk.getBlockAt(chunk, lx, ly, lz)
-end
+end 
 function Data.insertBlock(x,y,z,block)
     local cx,cz,lx,ly,lz = ConversionUtils.gridToLocalAndChunk(x, y, z)
     local chunk = Data.getChunk(cx,cz)

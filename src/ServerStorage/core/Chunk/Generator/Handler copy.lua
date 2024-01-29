@@ -37,12 +37,12 @@ local InCaveQueue = {}
 local InFeatureQueue = {}
 local InBuildQueue = {}
 --//Replication
+local RequestCarve = {}
 local RequestBuildR = {}
 local SendCarve = {}
 local SendFeatures = {}
+local SendBlockData = {}
 local RequestMain = {}
-local ToReplicateBuilt = {}
-local SendMain = {}
 
 local function QuickReplicator(toReplicate,task)
     local new = {}
@@ -65,7 +65,6 @@ local function QuickReplicator(toReplicate,task)
         Communicator.sendMessageToId(i, task,v)
     end
 end
-
 --//Handler
 local function BuildHandler(chunk)
     local ChunkObj = Storage.getOrCreate(chunk)
@@ -74,11 +73,7 @@ local function BuildHandler(chunk)
         ChunkObj.Shape =Shape
         ChunkObj.Surface =Surface
         ChunkObj.Biome =Biome
-        ChunkObj.Built = true 
-        if next(ChunkObj.ActorsToSend) then
-            --If it has nearby then send 
-            ToReplicateBuilt[chunk] = true
-        end
+        ChunkObj.Built = true
     end
     for _,v in preComputedArea do
         local newLoc = v+chunk
@@ -87,43 +82,41 @@ local function BuildHandler(chunk)
         if checked[chunk] or SubChunk.ABuilt then continue end 
         checked[chunk] = true
         SubChunk.BAmtChecked += 1
-        if  SubChunk.BAmtChecked < AreaSize then continue end 
-        SubChunk.ABuilt = true
-        if SubChunk.Step ~= 1 then continue end 
-        Queue.enqueue(ResumeQueue,newLoc)
+        if  SubChunk.BAmtChecked >= AreaSize then
+            SubChunk.ABuilt = true
+            print("x")
+            if SubChunk.Step == 1 then
+                Queue.enqueue(ResumeQueue,newLoc)
+            end
+            continue
+        end
+        if not SubChunk.FBuilt and  SubChunk.BAmtChecked >= SubChunk.RequiredAmmount then
+            SubChunk.FBuilt = true
+            if SubChunk.Step == 1 then
+                Queue.enqueue(ResumeQueue,newLoc)
+            end
+        end
     end
+
 end
 
-local function replicateBuiltHandler()
-    local times = 0
+local function SendBlockDataHandler()
     local new = {}
-    for chunk,_ in ToReplicateBuilt do
-        if times >= 5 then break end 
-        local ChunkObj = Storage.getOrCreate(chunk)
-        local data =  {ChunkObj.Shape,ChunkObj.Surface,ChunkObj.Biome,chunk}
-        for nearby,_ in ChunkObj.ActorsToSend do
-            new[nearby] = new[nearby] or {}
-            table.insert( new[nearby],data)
+    for i,children in SendBlockData do
+        local t = {}
+        new[i] = t
+        local count = 1
+        for key,data in children do
+                t[count] = data
+            count +=1
         end
-        ToReplicateBuilt[chunk] = nil
-        times+=1
+        table.clear(children)
     end
     for i,v in new do
+        if #v == 0 then continue end 
         Communicator.sendMessageToId(i, "SendBlockData",v)
     end
 end
-
-local function replicateToMain()
-    local new = {}
-    for i,v in SendMain do
-        table.insert(new,v)
-    end
-    if #new ~= 0 then
-        table.clear(SendMain)
-        Communicator.sendMessageMain(new)
-    end
-end
-
 local function HandleCave(chunk)
    -- local ChunkObject = Storage.getOrCreate(chunk)
     --//CarveChunkHere
@@ -136,10 +129,13 @@ local function HandleCave(chunk)
         if checked[chunk] or SubChunk.FCarve then continue end 
         checked[chunk] = true
         SubChunk.AmtChecked += 1
-        if SubChunk.AmtChecked < SubChunk.RequiredAmmount then continue end 
-        SubChunk.FCarve = true
-        if SubChunk.Step ~= 2 then continue end 
-        Queue.enqueue(ResumeQueue,newLoc)
+
+        if SubChunk.AmtChecked >= SubChunk.RequiredAmmount then
+            SubChunk.FCarve = true
+            if SubChunk.Step == 2 then
+                Queue.enqueue(ResumeQueue,newLoc)
+            end
+        end
     end
     InCaveQueue[chunk] = false
     close()
@@ -149,23 +145,27 @@ local function HandleFeature(chunk)
      Overworld.AddFeatures(chunk)
      began("FeatureFloop")
      for _,v in preComputedArea do
-        local newLoc = v+chunk
-        local SubChunk =  Storage.getOrCreate(newLoc)
-        local checked = SubChunk.FChecked
-        if checked[chunk] or SubChunk.FFeature then continue end 
-        checked[chunk] = true
-        SubChunk.FAmtChecked += 1
-        if SubChunk.FAmtChecked < SubChunk.RequiredAmmount then continue end 
-        SubChunk.FFeature = true
-        if SubChunk.Step ~= 3 then continue end 
-        Queue.enqueue(ResumeQueue,newLoc)
+         local newLoc = v+chunk
+         local SubChunk =  Storage.getOrCreate(newLoc)
+         local checked = SubChunk.FChecked
+         if checked[chunk] or SubChunk.FFeature then continue end 
+         checked[chunk] = true
+         SubChunk.FAmtChecked += 1
+ 
+         if SubChunk.FAmtChecked >= SubChunk.RequiredAmmount then
+             SubChunk.FFeature = true
+             if SubChunk.Step == 4 then
+                 Queue.enqueue(ResumeQueue,newLoc)
+                
+             end
+         end
      end
      InFeatureQueue[chunk] = false
      close()
  end
-
 --//Loops
 local function BuildLoop()
+    
     local times = 0
     began("build")
     for i =1 , MaxBuild do
@@ -218,26 +218,14 @@ local function FeatureLoop()
     return  os.clock()-Start_Time <=.005
 end
 
-local ReplicateOrder:{[number]:()->()|{}} = {
-    replicateToMain,
-    replicateBuiltHandler,
-    {RequestBuildR, "RequestBuildR"},
-    {RequestMain, "RequestMain"},
-    {SendCarve,"SendCarve"},
-    {SendFeatures,"SendFeatures"},
-}
 local function ReplicateLoop()
-    for i,v in ReplicateOrder do
-        if os.clock()-Start_Time > .010 then break end
-        if type(v) == "table" then
-            QuickReplicator(v[1], v[2])
-        else
-            v()
-        end
-    end
+    QuickReplicator(RequestBuildR, "RequestBuildR")
+    QuickReplicator(RequestMain,"RequestMain")
+    QuickReplicator(SendCarve,"SendCarve")
+    QuickReplicator(SendFeatures,"SendFeatures")
+    SendBlockDataHandler()
     return os.clock()-Start_Time <= .007
 end
-
 --//Other
 local function RequestCaves(chunk)
     if InCaveQueue[chunk] then return end 
@@ -262,86 +250,121 @@ local function MainHandler(chunk)
     if ChunkObj.InQueue then return end 
     ChunkObj.InQueue = true
     local IsInActor = not ChunkObj.NotInRegion
-    Storage.pause(chunk) --Don't GC
+    Storage.pause(chunk)
     local running = coroutine.running()
     ChunkObj.MainThread = running
-    --This step will tell the other Nearby Workers to Began their Handler
-    if IsInActor then
-        for Actor,_ in ChunkObj.ActorsToSend do
-            if not RequestMain[Actor] then 
-                RequestMain[Actor] = {}
-            end
-            RequestMain[Actor][chunk] = true
-        end
-    end
     ChunkObj.Step = 1
-    --Began The Build
-    if not ChunkObj.ABuilt then --If not All Built
+    if not ChunkObj.ABuilt then
+        if IsInActor then
+            for Actor,_ in ChunkObj.ActorsToSend do
+                if not RequestMain[Actor] then 
+                    RequestMain[Actor] = {}
+                end
+                RequestMain[Actor][chunk] = true
+            end
+        end
         for _,v in ChunkObj.ChunksToQueue do
             RequestBuild(v)
         end
-        coroutine.yield() -- Yield until AllReplicated 
+        coroutine.yield()
+        print(ChunkObj.BAmtChecked)
     end
-    -- All nearbychunk data is recieved
-    --Carve
+    if IsInActor then
+        for Actor,_ in ChunkObj.ActorsToSend do
+            if not SendBlockData[Actor] then 
+                SendBlockData[Actor] = {}
+            end
+            SendBlockData[Actor][chunk] = {ChunkObj.Shape,ChunkObj.Surface,ChunkObj.Biome,chunk}
+        end
+    else
+        local Actor = ChunkObj.NotInRegion
+        if not SendBlockData[Actor] then 
+            SendBlockData[Actor] = {}
+        end
+        SendBlockData[Actor][chunk] =  {ChunkObj.Shape,ChunkObj.Surface,ChunkObj.Biome,chunk}
+    end
+    --print("x")
+    --print(ChunkObj.BAmtChecked,AreaSize,ACTORID,ChunkObj.ChunksToQueue,ChunkObj.RequiredAmmount)  
+    if ChunkObj.BAmtChecked < AreaSize then
+        ChunkObj.Step = 1.5
+        coroutine.yield()
+    end
     ChunkObj.Step = 2
     if not ChunkObj.FCarve then
+        if IsInActor then
+           
+        end
         for _,v in ChunkObj.ChunksToQueue do
             RequestCaves(v)
         end
         coroutine.yield()
     end
-      --ReplicateCaves
     if not IsInActor then
         local Actor = ChunkObj.NotInRegion
         if not SendCarve[Actor] then 
             SendCarve[Actor] = {}
         end
         SendCarve[Actor][chunk] = ChunkObj.Carved or false 
+       -- coroutine.yield()
     elseif  IsInActor and not ChunkObj.FCarve then
         coroutine.yield()
     end
-    --AddFeatures
-    ChunkObj.Step = 3
+        --//WaitForCombine
+    do
+        return
+    end
     if not ChunkObj.FFeature then
+        if IsInActor then
+            --//Combine
+            LocalChunk.finishCarve(ChunkObj)
+            --//Replicate
+            for Actor,_ in ChunkObj.ActorsToSend do
+                if not SendBlockData[Actor] then 
+                    SendBlockData[Actor] = {}
+                end
+                SendBlockData[Actor][chunk] = {ChunkObj.Shape,ChunkObj.Surface,ChunkObj.Biome,chunk}
+            end
+        elseif not ChunkObj.Shape then 
+            ChunkObj.Step = 3
+            coroutine.yield()
+        end
+        -- table.clear(ChunkObj.Checked)
+        -- ChunkObj.AmtChecked = 0
+
+        ChunkObj.Step = 4
         for _,v in ChunkObj.ChunksToQueue do
             RequestFeature(v)
         end
         coroutine.yield()
     end
-    if IsInActor then
-        LocalChunk.finishCarve(ChunkObj)
-    end
-      --ReplicateFeatures
+    --print("step4")   
+   -- print("step4")    if IsInActor and not next(ChunkObj.ActorsToSend) then  print("step4") end
+    ChunkObj.Step = 4
     if not IsInActor then
+     
         local Actor = ChunkObj.NotInRegion
         if not SendFeatures[Actor] then 
             SendFeatures[Actor] = {}
         end
         SendFeatures[Actor][chunk] = ChunkObj.FeatureBuffer or false 
+       -- coroutine.yield()
     elseif  IsInActor and not ChunkObj.FFeature then
         coroutine.yield()
     end
 
-    Storage.resume(chunk) -- resume
-
-    --Finish
-    if IsInActor then
-        LocalChunk.finishFeature(ChunkObj)
-        SendMain[chunk] =  {ChunkObj.Shape,ChunkObj.Surface,ChunkObj.Biome,chunk}
-    end
-    --print("step4")    if IsInActor and not next(ChunkObj.ActorsToSend) then  print("step4") end
-    
+--     task.synchronize()
+--     if IsInActor and not next(ChunkObj.ActorsToSend) then    game.ServerScriptService.Tests.NewGeneration[`{chunk.X},{chunk.Z}`]:Destroy() end
+--    game.ServerScriptService.Tests.NewGeneration[`{chunk.X},{chunk.Z}`]:Destroy()
 end
-  
 
 local RunnerOrder = {
     BuildLoop,
+    ResumeLoop,
     ReplicateLoop,
     CaveLoop,
-    ReplicateLoop,
+    ResumeLoop,
     FeatureLoop,
-    ReplicateLoop,
+    ResumeLoop,
 }
 
 local index_ = 0
@@ -374,7 +397,6 @@ end
 
 RunService.Heartbeat:Connect(function()
     iter_ = 0
-    if not ResumeLoop() then return end 
     Communicator.runParallel(RecursiveRunner)
 end)
 RunService.Stepped:Connect(function()
@@ -421,7 +443,7 @@ Communicator.bindToMessage("SendFeatures",function(from,requested)
         local Finished = LocalChunk.combineFeature(ChunkObject,from,data)
         
         if not Finished then continue end 
-        if ChunkObject.Step == 3 then
+        if ChunkObject.Step == 4 then
             Queue.enqueue(ResumeQueue,chunk)
         end
     end

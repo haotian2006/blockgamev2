@@ -19,7 +19,6 @@ local to1DXZ = IndexUtils.to1DXZ
 
 local Overworld = require(script.Parent.Parent.Parent.OverworldBiome)
 local Width,Height = GameSettings.getChunkSize()
-Width-=1;Height-=1
 
 local XprecentageCache = Utils.precentageCache4
 local YprecentageCache = Utils.YprecentageCache8
@@ -63,15 +62,14 @@ function Shaper.color(cx,cz,Shape,Surface,Biome)
         Cache[idx] = b or currentBiome
         return b
     end
-    local b = buffer.create(8*8*256*4)
     debug.profilebegin("color")
-    for x = 0,7 do
-        for z = 0,7 do
+    for x = 1,8 do
+        for z = 1,8 do
             local idx2D = IndexUtils.to1DXZ[x][z]
             if ISBUFFER then
                 currentBiome = getBiome(idx2D)
             end
-            for y = 255,0,-1 do
+            for y = 256,1,-1 do
                 local idx = to1D[x][y][z]
                 local idx_ = (idx-1)*4
                 local value = buffer.readu32(Shape, idx_)
@@ -84,7 +82,7 @@ function Shaper.color(cx,cz,Shape,Surface,Biome)
         end
     end
     debug.profileend()
-    return b 
+    return Shape
 end
 
 function Shaper.createBiomeMap(cx,cz)
@@ -92,8 +90,8 @@ function Shaper.createBiomeMap(cx,cz)
     local startX,startZ = cx*8,cz*8
     local b = buffer.create(8*8*2)
     local current = nil
-    for x = 0,Width do
-        for z = 0,Width do
+    for x = 1,Width do
+        for z = 1,Width do
             local biome = layers.get(Overworld,startX+x,0,startZ+z)
             current = if biome ~= current and current ~= nil then false else biome
             buffer.writeu16(b,(IndexUtils.to1DXZ[x][z]-1)*2,biome)
@@ -149,8 +147,8 @@ function Shaper.sampleDensityNoise(cx,cz,qx,qz,biome)
     end
     debug.profilebegin("sample Density For SubChuck")
     local bufferObject = buffer.create(maxBufferSize)
-    local x= qx*4
-    local z = qz*4
+    local x= qx*4+1
+    local z = qz*4+1
     if ISBUFFER then
         local idx = IndexUtils.to1DXZ[x][z]
         local b = Biomes.getBiomeData(buffer.readu16(biome, (idx-1)*2))
@@ -159,10 +157,11 @@ function Shaper.sampleDensityNoise(cx,cz,qx,qz,biome)
         noise_scale = b.NoiseScale or noise_scale
         SurfaceScale = b.SurfaceScale or SurfaceScale
     end
-    for y = 0,Height,8 do
-        local ly = y//8
-        local nx = x + startX
-        local nz = z + startZ
+
+    local nx = x-1 + startX
+    local nz = z-1 + startZ
+    for y = 0,Height-1,8 do
+        local ly = (y)//8
         local surface = NoiseManager.sample(Noise1, nx, y, nz)/SurfaceScale
         local min = NoiseManager.sample(MinNoise, nx, y, nz)/noise_scale
         local max = NoiseManager.sample(MaxNoise, nx, y, nz)/noise_scale
@@ -193,7 +192,7 @@ function Shaper.blendNoise(C,N,E,NE)
     local maxBufferSize = 32*4
     local b = buffer.create(maxBufferSize)
     debug.profilebegin("blend noise")
-    for y = 0,Height//BlendSize do
+    for y = 0,(Height-1)//BlendSize do
         local yy = YprecentageCache[y//4]
         local IncreaseY = (y+1)>31 and 31 or (y+1)
         local my =  y
@@ -220,8 +219,8 @@ function Shaper.computeBlendedAir(center,top,left,topLeft)
     local surfaceBuffer = buffer.create(8*8)
     local calculate = {}
     for y = 255,0,-1 do 
-        local yp = YprecentageCache[y]
-        local ly = y//8
+        local yp = YprecentageCache[y+1]
+        local ly = (y)//8
         if LastY ~= ly then
             LastY = ly
             local IncreaseY = (ly+1)>31 and 31*4 or (ly+1)*4
@@ -235,9 +234,9 @@ function Shaper.computeBlendedAir(center,top,left,topLeft)
             noise110 = buffer.readf32(top, IncreaseY)
             noise111 = buffer.readf32(topLeft, IncreaseY)
         end
-        for x = 0,7 do
+        for x = 1,8 do
             local xp= YprecentageCache[x]
-            for z = 0,7 do
+            for z = 1,8 do
                 local zp = YprecentageCache[z]
                 local value = lerp3(xp, yp, zp, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                 local bool = value>0 and 1 or 0
@@ -249,7 +248,7 @@ function Shaper.computeBlendedAir(center,top,left,topLeft)
                     end
                 end
                 if bool == 0 then continue end 
-                local idx = to1D[x][y][z]
+                local idx = to1D[x][y+1][z]
                 buffer.writeu8(b, (idx-1), bool)
             end
         end
@@ -264,8 +263,8 @@ function Shaper.computeAir(center,top,left,topLeft,bufferObject,surfaceBuffer,qx
     local LastY 
     local calculated = {}
     for y = 255,0,-1 do
-        local yp = YprecentageCache[y]
-        local ly = y//8
+        local yp = YprecentageCache[y+1]
+        local ly = (y)//8
         if LastY ~= ly then
             LastY = ly
             local IncreaseY = (ly+1)>31 and 31*4 or (ly+1)*4
@@ -279,10 +278,10 @@ function Shaper.computeAir(center,top,left,topLeft,bufferObject,surfaceBuffer,qx
             noise110 = buffer.readf32(top, IncreaseY)
             noise111 = buffer.readf32(topLeft, IncreaseY)
         end
-        for x = 0,3 do
+        for x = 1,4 do
             local xp= XprecentageCache[x]
             local rx = qx*4+x
-            for z = 0,3 do
+            for z = 1,4 do
                 local rz = qz*4+z
                 local zp = XprecentageCache[z]
                 local value = lerp3(xp, yp, zp, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
@@ -290,10 +289,10 @@ function Shaper.computeAir(center,top,left,topLeft,bufferObject,surfaceBuffer,qx
                 if bool == 0 then continue end 
                 local indx2d = to1DXZ[rx][rz]
                 if not calculated[indx2d]  then
-                    buffer.writeu8(surfaceBuffer, indx2d-1, y)
+                    buffer.writeu8(surfaceBuffer, indx2d-1, y+1)
                     calculated[indx2d] = true
                 end
-                local ridx = to1D[rx][y][rz]
+                local ridx = to1D[rx][y+1][rz]
                 buffer.writeu32(bufferObject, (ridx-1)*4, UInt32)
                 
             end

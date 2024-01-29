@@ -6,7 +6,7 @@ local shaper = require(Tasks.Shaper)
 local StoneAir = {}
 
 function StoneAir.compute(self,chunk)
-    local C,T,L,TL = chunk,chunk+Vector3.xAxis,chunk+Vector3.yAxis,chunk+Vector3.yAxis+Vector3.xAxis
+    local C,T,L,TL = chunk,chunk+Vector3.xAxis,chunk+Vector3.zAxis,chunk+Vector3.zAxis+Vector3.xAxis
     local toCompute = {
             {C,1},-- 1
             {C,2},-- 2
@@ -28,6 +28,7 @@ function StoneAir.compute(self,chunk)
     shaper.computeAir(toCompute[2],toCompute[5],toCompute[4],toCompute[6],b,surface,1,0)
     shaper.computeAir(toCompute[3],toCompute[4],toCompute[7],toCompute[8],b,surface,0,1)
     shaper.computeAir(toCompute[4],toCompute[6],toCompute[8],toCompute[9],b,surface,1,1)
+    
     return {b,surface}
 end
 

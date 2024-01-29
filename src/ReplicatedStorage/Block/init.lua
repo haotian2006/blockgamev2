@@ -1,4 +1,5 @@
 local block = {}
+--block.VOID = 65535
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local Blocks = {
     'c:air',
@@ -8,13 +9,13 @@ local Blocks = {
 }
 local Cache = {}
 local Debris = require(game.ReplicatedStorage.Libarys.Debris)
-local BlockFolder = Debris.createFolder("BlockFolder", 10)
+local BlockFolder = Debris.getOrCreateFolder("BlockFolder", 10)
 function block.getBlockId(str)
     if Cache[str] then
         return Cache[str]
     end
     local loc = table.find(Blocks, str)
-    if loc == -1 then
+    if not loc  then
         error(`'{str}' is not a valid block`)
     end
     Cache[str] = loc-1
@@ -22,18 +23,18 @@ function block.getBlockId(str)
 end
 
 function block.getBlock(id)
-    return Blocks[id+1]
+    return Blocks[id+1] 
 end
 
 function block.getResource(Block,Id)
     local resource = ResourceHandler.getBlock(Block)
-    --//TODO: implment block ids
+    --//TODO: implement block ids
     return resource
 end
 function block.getResourceFrom(compressedBlock)
     local type,rot,id = block.decompress(compressedBlock)
     local resource = ResourceHandler.getBlock(Blocks[type+1])
-    --//TODO: implment block ids
+    --//TODO: implement block ids
     return resource
 end
 
@@ -52,10 +53,10 @@ function block.decompress(packedValue)
     return blockID, rotation, other
 end
 function block.decompressCache(packedValue)
-    local current = BlockFolder:get(packedValue)
+    local current = BlockFolder:get(packedValue+3)
     if  current then return  unpack(current) end 
     local x,y,z = block.decompress(packedValue)
-    BlockFolder:add(packedValue,{x,y,z}) 
+    BlockFolder:add(packedValue+3,{x,y,z}) 
     return x,y,z
 end
 return block

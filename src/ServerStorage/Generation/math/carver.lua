@@ -20,7 +20,7 @@ local direactions = {
     2,  ReplaceOnlyAir
 ]]
 local function addBlock(t,cx,cz,x,y,z,block,carvingType)
-    if y < 0 or y >255 then return end 
+    if y < 1 or y >256 then return end 
     local strC = Vector3.new(cx,0,cz)
     local tt = t[strC]
     if not tt then
@@ -171,7 +171,7 @@ function carver.noiseSphere(cx,cz,lx,ly,lz,block,carverTable,noise,scale,minR,ma
             local ySq = y*y
             for z = -maxR, maxR do
                 local zz = rz+z
-                if yy <0 or yy >255 then continue end 
+                if yy <1 or yy >256 then continue end 
                 local distanceFromCenter = math.sqrt(xSq+ySq+z*z)
                 local noiseValue =NoiseHandler.sample(noise,xx/scale,yy/scale,zz/scale)
                 local normalized = (noiseValue + 1) / 2

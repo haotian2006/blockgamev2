@@ -18,6 +18,7 @@ script.Parent:BindToMessageParallel("Run", function(ID)
     local data = Tasks[ID]
     Tasks[ID] = nil
     coroutine.resume(data[1],data[2](unpack(data[3])))
+    task.desynchronize()
 end)
 
 return function(x,...)
