@@ -1,6 +1,6 @@
 local Collision = {}
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
-local CollisionHandler = require(game.ReplicatedStorage.CollisonHandler)
+local CollisionHandler = require(game.ReplicatedStorage.CollisionHandler)
 local DataHandler = require(game.ReplicatedStorage.Data)
 local CUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local MathUtils = require(game.ReplicatedStorage.Libarys.MathFunctions)

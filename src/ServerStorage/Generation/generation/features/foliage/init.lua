@@ -4,7 +4,7 @@ local NoiseHandler = require(math.noise)
 local Range = require(math.range)
 local BiomeHandler = require(game.ReplicatedStorage.Biomes)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
-local Storage = require(game.ServerStorage.core.Chunk.Generator.ChunkDataLocal)
+local Storage = unpack(require(game.ServerStorage.core.Chunk.Generator.ChunkAndStorage))
 local to1d = IndexUtils.to1D
 local to1DXZ = IndexUtils.to1DXZ
 local foliage = {}
@@ -35,7 +35,7 @@ function foliage.new(noise,block,salt)
 end
 function foliage.addfoliage(cx,cz)
     local currentChunk = Vector3.new(cx,0,cz)
-    local ChunkData = Storage.getOrCreate(currentChunk)
+    local ChunkData = Storage.getChunkData(currentChunk)
     local biomes = ChunkData.Biome
     local surface = ChunkData.Surface
     local blocks = ChunkData.Shape

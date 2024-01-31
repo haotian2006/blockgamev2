@@ -11,10 +11,10 @@ local Chunk_Height
 local Block_Size = GameSettings.GridSize
 Chunk_Width,Chunk_Height = GameSettings.getChunkSize()
 
-function Utils.isWithIn(lx,ly,lz)
+function Utils.isWithIn(lx,ly,lz) 
     return (
-        (lx <= 7 and lx >=0) and 
-        (lz <= 7 and lz >= 0 ) 
+        (lx <= 8 and lx >=1) and 
+        (lz <= 8 and lz >= 1 ) 
     ) 
 end
 function Utils.getoffset(cx,cz):Vector3
@@ -36,7 +36,7 @@ function Utils.getChunk(x,y,z)
 end
 
 function Utils.localToGrid(cx,cz,x,y,z):Vector3
-    return Vector3.new((x+Chunk_Width*cx),y,(z+Chunk_Width*cz))
+    return Vector3.new((x+Chunk_Width*cx)-1,y,(z+Chunk_Width*cz)-1)
 end
 
 return Utils 

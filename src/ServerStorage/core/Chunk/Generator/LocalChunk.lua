@@ -36,9 +36,11 @@ function Chunk.new(chunk)
     local count = if isSame then preComputeLength else 0
     local nearby = isSame and {}
     local ToQueue = {}
+    local allNearby = {}
     debug.profilebegin("precompute")
     for i,offset in Precompute do
         local newChunk = chunk + offset
+        table.insert(allNearby,newChunk)
         local newID = RegionHelper.GetIndexFromChunk(newChunk)
         local equals = newID == ActorID 
         if isSame and not equals  then 
@@ -54,6 +56,7 @@ function Chunk.new(chunk)
     debug.profileend()
 
     local self = {
+        [3] = 0,
         Loc = chunk,
         Shape = nil,
        -- LocalCaveDone = false,
@@ -66,9 +69,7 @@ function Chunk.new(chunk)
         FAmtChecked = 0,
         ActorsToSend = nearby,
         ChunksToQueue = ToQueue,
-        Checked = {},
-        FChecked = {},
-        BChecked = {},
+        NearbyChunks = allNearby,
         RequiredAmmount = count,
     }
 

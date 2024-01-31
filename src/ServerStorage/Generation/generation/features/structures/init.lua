@@ -6,14 +6,14 @@ local NoiseHandler = require(script.Parent.Parent.Parent.math.noise)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local Carver = require(script.Parent.Parent.Parent.math.Carver2)
-local Storage = require(game.ServerStorage.core.Chunk.Generator.ChunkDataLocal)
+local Storage = unpack(require(game.ServerStorage.core.Chunk.Generator.ChunkAndStorage))
 local to1dXZ = IndexUtils.to1DXZ
 local to1d = IndexUtils.to1D
 local structure = {}
 local v3 = Vector3.new
 local tree =   {
     name = "c:tree",
-    chance = 1,
+    chance = 10,
     override = 2,
     layout = {
         key = {
@@ -153,7 +153,7 @@ end
 local writter = buffer.writeu32
 function structure.sample(cx,cz)
     local currentChunk = Vector3.new(cx,0,cz)
-    local ChunkData = Storage.getOrCreate(currentChunk)
+    local ChunkData = Storage.getChunkData(currentChunk)
     local biome = ChunkData.Biome
     local surface = ChunkData.Surface
     local blocks = ChunkData.Shape
@@ -193,7 +193,7 @@ function structure.sample(cx,cz)
             if ncx ~= cx or ncz ~= cz then
                 local c = Vector3.new(ncx,0,ncz)
                 currentBuffer = Storage.getFeatureBuffer(c)
-                currentBlocks = Storage.getOrCreate(c).Shape
+                currentBlocks = Storage.getChunkData(c).Shape
                 cx,cz = ncx,ncz
             end
             local to1d = to1d[lx][ly][lz]

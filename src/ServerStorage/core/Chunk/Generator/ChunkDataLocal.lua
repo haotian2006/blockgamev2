@@ -14,7 +14,7 @@ local Chunks = {}
 local function OnDestroy(chunk)
     local obj = Chunks[chunk]
     if not obj then return end 
-    if obj[2] or obj[3] then
+    if obj[2] or obj[3]<=0 then
         obj[1] = task.delay(MaxTime,OnDestroy,chunk)
         obj[2] = false
         return
@@ -35,7 +35,6 @@ function Storage.pause(name)
     if t then
         task.cancel(t)
     end
-    object[3] = true
     object[1] = nil
 end
 
@@ -44,10 +43,7 @@ function Storage.resume(name)
     if not object then return end 
     object[1] = object[1] or task.delay(MaxTime,OnDestroy,name)
     object[2] = true
-    object[3] = false
 end
-
-
 
 function Storage.remove(name)
     local object = Chunks[name]
@@ -69,32 +65,32 @@ function Storage.getSize()
 end
 
 function Storage.get(name)
-    local a = Chunks[name]
-    if not a then return  end 
-    a[2] = true
-    return a
+    local chunkobj = Chunks[name]
+    if not chunkobj then return  end 
+    chunkobj[2] = true
+    return chunkobj
 end
 
 local sharedBuffer = buffer.create( 4*8*256*8)
 buffer.fill(sharedBuffer, 0,255,4*8*256*8)
 
 function Storage.getFeatureBuffer(chunk)
-    local old = Storage.getOrCreate(chunk)
-    if not old.FeatureBuffer then
-        Chunk.initFeatureBuffer(old)
+    local chunkobj = Storage.getOrCreate(chunk)
+    if not chunkobj.FeatureBuffer then
+        Chunk.initFeatureBuffer(chunkobj)
     end
-    return old.FeatureBuffer
+    return chunkobj.FeatureBuffer
 end
 
 function Storage.getCarvedBuffer(chunk)
-    local old = Storage.getOrCreate(chunk)
-    if old.FCarve then
+    local chunkobj = Storage.getOrCreate(chunk)
+    if chunkobj.FCarve then
         return sharedBuffer
     end
-    if not old.Carved then
-        Chunk.initCarveBuffer(old)
+    if not chunkobj.Carved then
+        Chunk.initCarveBuffer(chunkobj)
     end
-    return old.Carved
+    return chunkobj.Carved
 end
 
 function Storage.getOrCreate(name)

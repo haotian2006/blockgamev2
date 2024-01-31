@@ -4,7 +4,7 @@ local Math = require(script.Parent.Parent.Parent.Parent.math.utils)
 local carver = require(script.Parent.Parent.Parent.Parent.math.carver)
 local carver2 = require(script.Parent.Parent.Parent.Parent.math.Carver2)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
-local Storage = require(game.ServerStorage.core.Chunk.Generator.ChunkDataLocal)
+local Storage = unpack(require(game.ServerStorage.core.Chunk.Generator.ChunkAndStorage))
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local to1d = IndexUtils.to1D
 

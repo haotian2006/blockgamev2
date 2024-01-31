@@ -20,6 +20,30 @@ function Funcs.Crouch(key,IsDown,GPE,inputs)
     until (not InputHandler.isDown("Crouch") and   EntityHandler.canCrouch(Player,true))
     EntityHandler.crouch(Player,false)
 end
+
+local ray = require(game.ReplicatedStorage.CollisionHandler.Ray)
+
+
+local hitPos = Instance.new("Part",workspace)
+hitPos.Size = Vector3.one 
+hitPos.Color = Color3.new(0.960784, 0.803922, 0.513725)
+hitPos.Anchored = true
+local heightlight = Instance.new("Part",workspace)
+heightlight.Size = Vector3.new(3,3,3)
+heightlight.Anchored = true
+local H = Instance.new("Highlight",heightlight)
+H.Adornee = heightlight
+
+function Funcs.HitBoxs(key,IsDown,GPE,inputs)
+    if not IsDown then return end 
+    local Camera = workspace.CurrentCamera
+    local block,Blockpos,hitpos,normal =  ray.cast(Camera.CFrame.Position/3, (Camera.CFrame.LookVector*Vector3.new(1,1,1)).Unit*100)
+    if block == -1 or not block then return end 
+    heightlight.Position = Blockpos*3
+   -- hitPos.Position = hitpos*3
+
+end
+
 function  Controller.createBinds()
     InputHandler.bindToRender("#Controller-Handler",function(dt)
         local Entity = LPE()

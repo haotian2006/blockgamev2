@@ -10,3 +10,9 @@ Actor:BindToMessage("Init", function(bindable)
     Communicator.Init(bindable,Actor)
     local Handler = require(Generator.Handler)
 end)
+
+local storage = unpack(require(Generator.ChunkAndStorage))
+
+script.Parent.Info.OnInvoke = function()
+    return storage.getInfo()
+end

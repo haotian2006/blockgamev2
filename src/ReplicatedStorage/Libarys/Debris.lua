@@ -1,14 +1,9 @@
 local Debris = {}
 Debris.__index = Debris
 
-local Stack = require(game.ReplicatedStorage.Libarys.DataStructures.Stack)
-
-local DESTROY_INTERVAL = 25
-
-local DestroyStack = Stack.new(10000)
-
 local Folders = {}
 --//WARNING: AVOID USING NUMBERED KEYS OR INDEXS 1 2 3
+
 function Debris:add(name,value)
     local sub = table.create(3)
     sub[1] = value
@@ -42,7 +37,7 @@ function Debris:get(name)
     return a[1]
 end
 
-function Debris.getOrCreateFolder(Name,maxTime,Destroy,UseStack)
+function Debris.getOrCreateFolder(Name,maxTime,Destroy)
     if Folders[Name] then
         return Folders[Name]
     end
@@ -59,9 +54,6 @@ function Debris.getOrCreateFolder(Name,maxTime,Destroy,UseStack)
             Destroy(obj[1])
         end
         object[name] = nil
-        if UseStack then
-            Stack.push(DestroyStack, obj)
-        end
     end
     object[3] = remove
     Folders[Name] = object
@@ -82,12 +74,4 @@ function Debris.destroyFolder(Name)
     Folders[Name] = nil
 end
   
-game:GetService("RunService").Heartbeat:Connect(function()
-    for i = 1,DESTROY_INTERVAL do
-        local item = Stack.pop(DestroyStack)
-        if not item then break end 
-        table.clear(item)
-    end
-end)
-
 return Debris
