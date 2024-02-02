@@ -48,6 +48,7 @@ end
 function Storage.remove(name)
     local object = Chunks[name]
     if not object then return end 
+    Storage.resume(name)
     local t = object[1]
     if t then
         task.cancel(t)

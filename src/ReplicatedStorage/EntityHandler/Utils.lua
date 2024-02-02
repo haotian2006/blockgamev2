@@ -7,10 +7,12 @@ local Chx,ChY = GameSetting.getChunkSize()
 local Entity 
 local EntityHolder = require(script.Parent.EntityHolder)
 local Utils = {}
+
 function Utils.Init(entity)
     Entity = entity
     return Utils
 end
+
 local vector3 = Vector3.new
 
 function Utils.getDataFromResource(self,string)

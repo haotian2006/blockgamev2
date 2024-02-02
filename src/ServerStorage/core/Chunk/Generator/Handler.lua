@@ -311,7 +311,7 @@ local function MainHandler(chunk)
     end
 
     for c,data in nChunks do 
-        Storage.increment(c) --tells the system that its being used
+        --Storage.increment(c) --tells the system that its being used
 
         if data.Shape then --If shape was already calculated 
             ChunkObj.BuildAmmount +=1
@@ -336,13 +336,6 @@ local function MainHandler(chunk)
             RequestBuild(nChunk)
         end
         coroutine.yield()
-    end
-    if IsInActor then
-        --return back to main thread 
-        SendMain[chunk] =  {chunkData.Shape,chunkData.Surface,chunkData .Biome,chunk}
-    end
-    do
-        return
     end
 
     ChunkObj.Step = 2 --Carving Step
@@ -397,16 +390,16 @@ local function MainHandler(chunk)
     
     --Finish
     for c,data in nChunks do 
-        Storage.decrement(c) --tells the system that its not being used
+       -- Storage.decrement(c) --tells the system that its not being used
     end
 
-    Storage.resume(chunk) -- resume collection 
+    Storage.remove(chunk) -- resume collection 
 
     if IsInActor then
         --return back to main thread 
         SendMain[chunk] =  {chunkData.Shape,chunkData.Surface,chunkData .Biome,chunk}
     end
-
+    ChunkObj.InQueue = false
 end
   
 local function MainLoop()

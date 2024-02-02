@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/haoti/AppData/Local/Temp/0280f4d1-7bf9-4ca4-a775-1f02febe2e46_RblxStudio.zip.e46/RobloxStudio",
-      "program": "c:/Users/haoti/AppData/Local/Temp/0280f4d1-7bf9-4ca4-a775-1f02febe2e46_RblxStudio.zip.e46/RobloxStudio/build/Debug/outDebug",
+      "cwd": ".",
+      "program": "build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

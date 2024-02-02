@@ -14,7 +14,7 @@ local Storage = {}
 
 local Stack = require(game.ReplicatedStorage.Libarys.DataStructures.Stack)
 
-local DESTROY_INTERVAL = 10
+local DESTROY_INTERVAL = 5
 
 local carvedBufferSize =  2*8*256*8
 local BufferRange = 8*256*8-1
@@ -52,7 +52,7 @@ end
 local function OnDestroy(chunk)
     local obj = Chunks[chunk]
     if not obj then return end 
-    if obj[2] or not InUse[chunk]  then
+    if obj[2] then--or not InUse[chunk]  then
         obj[1] = task.delay(MaxTime,OnDestroy,chunk)
         obj[2] = false
         return
@@ -76,6 +76,7 @@ function Storage.decrement(chunk)
     InUse[chunk] = current-1
     if current<=0 then
         InUse[chunk] = nil
+        Storage.remove(chunk)
     end
 end
 
