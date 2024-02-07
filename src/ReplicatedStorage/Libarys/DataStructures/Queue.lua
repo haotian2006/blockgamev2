@@ -2,8 +2,8 @@ local Queue = {}
 
 function Queue.new(preAllocated)
     local self = table.create(preAllocated or 0)
-    self.S = 1
-    self.E = 0
+    self.S = 0
+    self.E = -1
     return self
 end
 
@@ -23,6 +23,5 @@ function Queue.dequeue(self)
     self.S = first + 1
     return value
 end
-
 
 return Queue

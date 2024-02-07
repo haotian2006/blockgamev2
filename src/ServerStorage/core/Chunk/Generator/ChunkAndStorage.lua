@@ -6,63 +6,72 @@ local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
 local Precompute = OtherUtils.preComputeSquare(Config.StructureRange)
 local preComputeLength = #Precompute
 
+local Stack = require(game.ReplicatedStorage.Libarys.DataStructures.Stack)
 local indexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 indexUtils.preComputeAll()
+
 local MaxTime =  Config.MaxTimeDebris
-
 local Storage = {}
-
-local Stack = require(game.ReplicatedStorage.Libarys.DataStructures.Stack)
-
-local DESTROY_INTERVAL = 5
+local DestroyStack = Stack.new(10000)
 
 local carvedBufferSize =  2*8*256*8
 local BufferRange = 8*256*8-1
-
 local FeatureBufferSize = carvedBufferSize*2
+
 local UINT16 = 65535
 local UINT32 = 2^32-1
+local DESTROY_INTERVAL = 5 -- prevents roblox's GC from casuing too much lag
+
+game:GetService("RunService").Heartbeat:Connect(function()
+    for i = 1,DESTROY_INTERVAL do
+        local item = Stack.pop(DestroyStack) -- Stack will act as a refrence holder preventing the object from being gc until it is popped 
+        if not item then break end 
+        table.clear(item)
+    end
+end)
+
+
 
 local function CopyBuffer(b)
     local len = buffer.len(b)
     local newb = buffer.create(len)
     buffer.copy(newb, 0, b, 0, len)
+    return newb
 end
 
-local DestroyStack = Stack.new(10000)
 
+local ChunkData = setmetatable({}, {__mode = 'v'}) 
 local Chunks = {}
-local ChunkData = setmetatable({}, {__mode = 'v'})
 local Chunk = {}
 local InUse = {}
 
 --//Storage
 function Storage.getInfo()
-    local x = 0
-    local y = 0
-    for _,_ in Chunks do
-        x+=1
+    local chunkAmt = 0
+    local ChunkDataAmt = 0
+    for _ in Chunks do
+        chunkAmt+=1
     end
-    for _,_ in ChunkData do
-        y+=1
+    for _ in ChunkData do
+        ChunkDataAmt+=1
     end
-    return x,y,#DestroyStack
+    return chunkAmt,ChunkDataAmt,#DestroyStack
 end
 
 local function OnDestroy(chunk)
     local obj = Chunks[chunk]
     if not obj then return end 
-    if obj[2] then--or not InUse[chunk]  then
-        obj[1] = task.delay(MaxTime,OnDestroy,chunk)
-        obj[2] = false
-        return
-    end
+    -- if obj[2] then--or not InUse[chunk]  then
+    --     obj[1] = task.delay(MaxTime,OnDestroy,chunk)
+    --     obj[2] = false
+    --     return
+    -- end
     Chunks[chunk] = nil
     Stack.push(DestroyStack, obj)
 end
 
 function Storage.add(name,value)
-    value[1] = task.delay(MaxTime, OnDestroy,name)
+   -- value[1] = task.delay(MaxTime, OnDestroy,name)
     Chunks[name] = value
 end
 
@@ -97,7 +106,7 @@ function Storage.pause(name)
     if not object then return end 
     local t = object[1]
     if t then
-        task.cancel(t)
+       -- task.cancel(t)
     end
     object[1] = nil
 end
@@ -120,20 +129,13 @@ function Storage.remove(name)
     OnDestroy(name)
 end
 
-function Storage.getSize()
-    local count = 0
-    for i,v in Chunks do
-        count +=1
-    end
-    return count
-end
-
 function Storage.get(name)
     local chunkobj = Chunks[name]
     if not chunkobj then return  end 
     chunkobj[2] = true
     return chunkobj
 end
+
 
 local sharedBuffer = buffer.create( 4*8*256*8)
 buffer.fill(sharedBuffer, 0,255,4*8*256*8)
@@ -169,13 +171,6 @@ function Storage.getOrCreate(name)
     return a
 end
 
-game:GetService("RunService").Heartbeat:Connect(function()
-    for i = 1,DESTROY_INTERVAL do
-        local item = Stack.pop(DestroyStack)
-        if not item then break end 
-        table.clear(item)
-    end
-end)
 
 --//Chunk 
 function Chunk.new(chunk)

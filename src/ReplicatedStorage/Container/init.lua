@@ -2,7 +2,6 @@ local container = {}
 local RunService = game:GetService("RunService")
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ItemClass = require(game.ReplicatedStorage.Item)
-local IS_CLIENT = RunService:IsClient()
 
 local Changed = {}
 
@@ -39,7 +38,7 @@ local function update(self,idx,old)
     end
     data[idx] = true
     
-    local call =  self[#self].__Call
+    local call = self[#self].__Call
     if call then
         call(self,idx,old)
     end
@@ -103,6 +102,7 @@ end
 function container.getContainerData(self)
     return BehaviorHandler.getContainer(self[1])  or {Frames ={}}
 end
+
 function container.getFrameData(self,idx)
     local containerData = container.getContainerData(self)
     local Frames = containerData.Frames or {}
@@ -178,13 +178,12 @@ function container.setAt(self,index,Itemdata,count)
         self[index] = {Itemdata,count}
         count= 0
     end
-   -- self:UP()
     update(self, index-1,oldV)
     if count == 0 then return end  
     return Itemdata,count
 end
 
---//attempt to swap the given item from container1 to container 2, if items are same and not full and canStack then stack it in 
+--//attempt to swap the given item from container1 to container 2, if items are same and not full and canStack then stack it 
 function container.swap(container1,container2,from,to,canStack,canBeOutPut)
     if container.checkOutOfBounds(container1,from) or
         container.checkOutOfBounds(container2,to)
@@ -196,7 +195,7 @@ function container.swap(container1,container2,from,to,canStack,canBeOutPut)
     local item2 = container2[to+1]
     local value1,c1 = getValue(item1)
     local value2,c2 = getValue(item2)
-    local function swap()
+    local function swap() --swaps the vars
         local temp = container1
         container1 = container2  
         container2 = temp

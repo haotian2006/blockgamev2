@@ -111,7 +111,6 @@ function Utils.rotateHeadTo(self,target:Vector2)
     local rx,ry = rrx,target.Y
     local maxX,maxY =  maxRotation.X , maxRotation.Y
     local offset 
-    local a = rx
     if rx > maxX then
         offset = rx-maxX
         rx = maxX

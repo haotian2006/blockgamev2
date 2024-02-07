@@ -27,7 +27,7 @@ function render.render(chunk,meshed,override)
     model.Name = `{chunk.X},{chunk.Z}`
     local  m =  workspace.Chunks:FindFirstChild( model.Name) 
     local removed = {}
-    local cOfx = chunk*8
+    local cOfx = chunk*8- Vector3.new(1,0,1)
     local times = 0
     for key,data in meshed do
         times +=1
@@ -43,7 +43,7 @@ function render.render(chunk,meshed,override)
         local BlockName = Block.getBlock(blockID)
         local p,textures = Texture.CreateBlock(BlockName,walls)
         p.Size = data.size*3
-        p.Position = (data.midPoint+cOfx)*3- Vector3.new(3,0,3)
+        p.Position = (data.midPoint+cOfx)*3
         p.Parent = hasChunk and m or  model
         chunkData[partName] = {p,textures}
         removed[partName] = true 

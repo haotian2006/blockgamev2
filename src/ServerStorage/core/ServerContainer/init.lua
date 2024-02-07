@@ -221,9 +221,10 @@ end)
 
 local tasks ={
     ServerContainer.place,
-    ServerContainer.split,
+    ServerContainer.split, 
     ServerContainer.playerCloseUi
 }
+
 Send.OnServerEvent:Connect(function(player,task,...)
     if not tasks[task] then return end
     tasks[task](player,...)

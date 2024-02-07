@@ -29,15 +29,18 @@ function layers.load(name,fx)
     Classes[name] = fx
     Sample[name] = fx.sample
 end
+
 function layers.createTemplate(name,seed,salt,parent,...)
     return {name,Utils.jenkins_hash(`{seed},{salt or 0}`),parent,...}
 end
+
 function layers.create(name,seed,salt,parent,...)
     if Classes[name].new then
         return Classes[name].new(seed,salt,parent,...)
     end
     return {name,Utils.jenkins_hash(`{seed},{salt or 0}`),parent,...}
 end
+
 local Connection
 function layers.Init()
     if Connection then return end 

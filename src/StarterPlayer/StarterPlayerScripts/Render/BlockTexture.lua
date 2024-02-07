@@ -7,6 +7,7 @@ local RenderStorage = require(script.Parent.RenderStorage)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 ResourceHandler.Init()
 local function getID(texture)
+    if type(texture) == "string" then return texture end 
     return if texture:IsA("Decal") or texture:IsA("Texture") then texture.Texture else texture
 end
 for i,v in ResourceHandler.getAllBlocks() or {} do

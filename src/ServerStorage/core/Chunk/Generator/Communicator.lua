@@ -8,9 +8,7 @@ local Actor:Actor = nil
 local Main:BindableEvent = nil
 local Runner
 
-local CallBacks = {
-
-}
+local CallBacks = {}
 
 local ToSend = {}
 
@@ -28,7 +26,7 @@ function Communicator.chunkNotInActor(chunk)
 end
 
 function Communicator.isActor()
-    return Actor and true or false
+    return if Actor then true else false
 end
 
 function Communicator.getActor()
@@ -59,7 +57,6 @@ function Communicator.delayMessageToId(Id,MessageType,...)
     ToSend[Id] = ToSend[Id] or {}
  end
  
-
 function Communicator.sendMessageMain(...)
     Main:Fire(...)
 end

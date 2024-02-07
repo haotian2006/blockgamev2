@@ -1,5 +1,6 @@
 local Ray = {}
 local collisionHandler = require(script.Parent)
+
 local getBlock = collisionHandler.getBlock
 local abs = math.abs
 local inf = math.huge
@@ -75,12 +76,11 @@ local function traceRay(start,direction:Vector3,DEBUG)
         local current = Vector3.new(ix,iy,iz )
         block,lcoord,grid = getBlock(ix,iy,iz)
 
-        if DEBUG then 
-            if grid then
-                local a = p:Clone()
-                a.Position = grid*3
-                a.Parent = DebugFolder
-            end
+        if DEBUG and grid then 
+            local a = p:Clone()
+            a.Position = grid*3
+            a.Parent = DebugFolder
+            
             local hitPos = Vector3.new(px+t*dx , py+t*dy , pz+t*dz)
             local a = p:Clone()
             a.Size = Vector3.one*.5

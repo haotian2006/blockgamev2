@@ -7,6 +7,7 @@ local Biomes = {
     'c:hill',
     'c:desert',
 }
+
 local Cache = {}
 function Biome.getBiomeId(str)
     if Cache[str] then
@@ -19,9 +20,11 @@ function Biome.getBiomeId(str)
     Cache[str] = loc-1
     return loc-1
 end
+
 function Biome.getBiomeFrom(id)
     return Biomes[id+1]
 end
+
 function Biome.getBiomeData(str)
     if type(str) == "number" then
         str = Biomes[str+1]

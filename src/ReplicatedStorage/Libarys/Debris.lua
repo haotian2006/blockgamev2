@@ -2,6 +2,7 @@ local Debris = {}
 Debris.__index = Debris
 
 local Folders = {}
+
 --//WARNING: AVOID USING NUMBERED KEYS OR INDEXS 1 2 3
 
 function Debris:add(name,value)

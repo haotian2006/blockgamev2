@@ -1,9 +1,6 @@
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local entity = {
-    ["description"] = {
-        is_spawnable = false,
-        is_summonable = false,
-    }, 
+
     components ={
         MaxNeckRotation = Vector2.new(60,310),
         Name = "Player",
@@ -24,7 +21,7 @@ local entity = {
         getSpeed = function(self)
              return EntityHandler.getAndCache(self,"Speed")/2*(self.Crouching and 0.3 or 1)
         end
-    },
+    }, 
     component_groups = {
 
     },

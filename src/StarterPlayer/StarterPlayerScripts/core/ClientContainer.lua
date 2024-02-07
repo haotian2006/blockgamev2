@@ -34,11 +34,11 @@ function ClientContainer.getAllContainers(container)
     return  loadedContainers
 end
 
-function ClientContainer.LoadContainer(Name,data)
+function ClientContainer.loadContainer(Name,data)
     loadedContainers[Name] = data
 end
 
-function ClientContainer.deLoadContainer(Name)
+function ClientContainer.deloadContainer(Name)
     loadedContainers[Name] = nil
 end
 
@@ -55,7 +55,7 @@ function ClientContainer.getAndLoadFromServer(uuid,name)
     if cc then return cc end 
     local CData = Request:InvokeServer(uuid,name)
     CData[#CData+1] = {__Parent = uuid}
-    ClientContainer.LoadContainer(name, CData)
+    ClientContainer.loadContainer(name, CData)
     return CData
 end
 
@@ -80,4 +80,4 @@ ClientContainer.getAndLoadFromServer(tostring(LocalPlayer.UserId),"Crafting")
 ClientContainer.getAndLoadFromServer(tostring(LocalPlayer.UserId),"Holding")
 ClientContainer.getAndLoadFromServer(tostring(LocalPlayer.UserId),"Inventory")
 
-return ClientContainer 
+return ClientContainer   

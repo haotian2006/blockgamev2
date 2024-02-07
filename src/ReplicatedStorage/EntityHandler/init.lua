@@ -30,8 +30,8 @@ Entity.Speed = 0
 Entity.RotationSpeedMultiplier = 6*2
 
 
-local NILVALUE = '↓←⊞🌟'
-local DEFAULTS = "⊞↓←🌟"
+local NILVALUE = {"__NILVALUE__"}
+local DEFAULTS = {"__DEFAULTS__"}
 
 function Entity.new(type:string,ID)
     ID = ID and tostring(ID)
@@ -213,7 +213,7 @@ function Entity.getMoveDireaction(self,Direaction)
  return self.moveDir
 end
 
---//Overridable
+--=@Overridable
 function Entity.getSpeed(self)
     return Entity.getAndCache(self,"Speed")
 end
@@ -238,6 +238,7 @@ end
 function Entity.getState(self,state)
     return self.__states[state] 
 end
+
 --//Other
 function Entity.jump(self,JumpPower)
     if not self.Grounded or  CollisionHandler.isGrounded(self,true) then return end 

@@ -3,14 +3,17 @@ local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local SpecialKEY = "↓BE🌟"
 local DEAFULT_PRIORITY = 200
+
 function BehaviorManager.checkIsBehavior(key)
     local length = #key
     if key:sub(length-7) ~= "behavior" then return false end 
     return key:sub(1,length-9)
 end
+
 function BehaviorManager.get(self,name)
     return EntityHandler.getAndCache(self,`{name}.behavior`)
 end
+
 function BehaviorManager.getAndCacheAll(self)
     local selfCache = EntityHandler.getCache(self)
     if selfCache[SpecialKEY] then
@@ -36,12 +39,14 @@ function BehaviorManager.getAndCacheAll(self)
     table.sort(Behaviors,function(a,b)
         return a[2]<b[2]
     end)
+    
     for index, value in Behaviors do
         Behaviors[index] = value[1]
     end
     selfCache[SpecialKEY] = Behaviors
     return Behaviors
 end
+
 function BehaviorManager.getType(name)
     local data = BehaviorHandler.getEntityBehavior(name)
     if not data then return end 
@@ -49,6 +54,7 @@ function BehaviorManager.getType(name)
     if not type then return end 
     return type 
 end
+
 local function contains(object1,object2)
     if type(object1) == "table" and type(object2) == "table" then
         for i,v in object1 do
@@ -65,12 +71,15 @@ local function contains(object1,object2)
     else
         return object1 == object2
     end
+    return false 
 end
+
 function BehaviorManager.setRuning(self,name,isRunning)
     local runningBehavior = self.__running or {}
     self.__running  = runningBehavior
     runningBehavior[name] = isRunning or nil
 end
+
 function BehaviorManager.isRunning(self,name,checkSameType)
     local runningBehavior = self.__running or {}
     self.__running  = runningBehavior
@@ -83,7 +92,9 @@ function BehaviorManager.isRunning(self,name,checkSameType)
         if not iType then continue end 
         if contains(cType,iType) then return i end 
     end
+    return false
 end
+
 function BehaviorManager.run(self)
     for i,name in BehaviorManager.getAndCacheAll(self) do
         local func = BehaviorHandler.getEntityBehavior(name) or {}
@@ -93,9 +104,11 @@ function BehaviorManager.run(self)
         func.Function(self,data)
     end
 end
+
 local Init = false
 local EntityHolder = require(game.ReplicatedStorage.EntityHandler.EntityHolder)
 local Runner = require(game.ReplicatedStorage.Runner)
+
 function BehaviorManager.Init()
     if Init then return end 
     Init = true

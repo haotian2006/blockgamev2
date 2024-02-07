@@ -20,19 +20,25 @@ function Data.getAllEntities()
     return EntityHolder.getAllEntities()
 end
 function Data.insertChunk(x,y,chunk)
-    Chunks[Vector3.new(x,y)] = chunk
+    Chunks[Vector3.new(x,0,y)] = chunk
 end
+
 function Data.getChunk(x,y)
-    return Chunks[Vector3.new(x,y)]
+    return Chunks[Vector3.new(x,0,y)]
 end 
-function Data.getAllChunks(x,y)
+
+function Data.getChunkFrom(vector)
+    return Chunks[vector]
+end 
+
+function Data.getAllChunks()
     return Chunks
 end 
 function Data.getChunkOrCreate(x,y)
-    local c = Chunks[Vector3.new(x,y)] 
+    local c = Chunks[Vector3.new(x,0,y)] 
     if not c then
         c = Chunk.new(x, y)
-        Chunks[Vector3.new(x,y)]  = c
+        Chunks[Vector3.new(x,0,y)]  = c
     end
     return c
 end 

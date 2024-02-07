@@ -166,6 +166,7 @@ end
 
 function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
     local shouldjump = false
+    
     local hitbox = Entity.get(entity,"Hitbox")
     local min = vector3(
         position.X-hitbox.X/2+(velocity.X <0 and velocity.X or 0)   ,
@@ -177,6 +178,7 @@ function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
         position.Y+hitbox.Y/2+(velocity.Y >0 and velocity.Y or 0), 
         position.Z+hitbox.X/2+(velocity.Z >0 and velocity.Z or 0)   
     )
+    
     local normal = Vector3.zero
     local mintime = 1
     local blockdata 
@@ -268,6 +270,7 @@ function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
     end 
     return mintime,normal,blockdata,velocity,nil,nil,shouldjump
 end
+
 function  Collision.isGrounded(entity,CheckForBlockAboveInstead)
     local position = entity.Position
     local hitbox = Entity.get(entity,"Hitbox")

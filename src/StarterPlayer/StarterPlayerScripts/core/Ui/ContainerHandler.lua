@@ -22,8 +22,7 @@ local Send:RemoteEvent = Events.Send
 
 local ClientContainer = {}
 
-local DefaultIcon = resourceHandler.getUI("IconFrame")
-
+local DEFAULTICON = resourceHandler.getUI("IconFrame")
 
 local frames = {}
 
@@ -62,7 +61,7 @@ function handler.getOrCreateFrame(name,isContainer)
     end)
     return frames[name]
 end
-
+ 
 
 local Containers = {
     Crafting = {
@@ -116,8 +115,8 @@ function handler.displayInfo(x,y)
         LastDisplayed = nil
         return
     end
-    local sName,sData = getFrameParentAndData(frame)
-    if sData and sData.CanHover == false then return end 
+    local _,FData = getFrameParentAndData(frame)
+    if FData and FData.CanHover == false then return end 
     local info = getItemAt(middle, last)
     if not info or info == "" then
         ItemInfoFrame.Enabled = false
@@ -145,8 +144,8 @@ function handler.displayHover(x,y,override)
         return
     end
 
-    local sName,sData = getFrameParentAndData(frame)
-    if sData and sData.CanHover == false then return end 
+    local _,FData = getFrameParentAndData(frame)
+    if FData and FData.CanHover == false then return end 
 
     if LastFrame == frame and not override then
         return 
@@ -209,13 +208,12 @@ end
 function handler.renderFrame(frame:Frame,item,amount,ToUse,percentage)
     local Icon = frame:FindFirstChild("Icon")
     if not Icon then 
-        Icon = (ToUse or DefaultIcon):Clone()
+        Icon = (ToUse or DEFAULTICON):Clone()
         Icon.Name = "Icon"
         Icon.Parent = frame
     end
     handler.renderIcon(Icon, item, amount, percentage)
 end
-
 
 function handler.clearFrame(frame:Frame)
     local Icon = frame:FindFirstChild("Icon")
@@ -223,11 +221,10 @@ function handler.clearFrame(frame:Frame)
     handler.clearIcon(Icon)
 end
 
-
 function handler.update(gui,name)
     local container = resourceHandler.getUiContainer(name)
     if not gui then return end 
-    for i,v in gui:GetDescendants() do
+    for i,v in gui:GetDescendants() do -- Cache this in the future
         local first, middle, last = v.Name:match("^(.-)%.(.-)%.([^%.]+)$")
         if first ~= "Container" then continue end 
         local data = getItemAt(middle, last)
@@ -271,7 +268,6 @@ function handler.open(name)
         table.insert(OpenedGUi,name)
     end
 
-
     local holding = handler.getOrCreateFrame("HoldingFrame",true)
     holding.Parent = script
     holding.Parent = Player.PlayerGui
@@ -280,27 +276,27 @@ function handler.open(name)
 
 end 
 
-function handler.close(name,FORCECLOSE,CAMEFROMOPEN)
+function handler.close(name,forceClose,fromOpen)
     if not  EnabledGUi[name] then return end 
     local container = resourceHandler.getUiContainer(name)
     if container.OnClose then
         container.OnClose( EnabledGUi[name])
     end
     handler.OnClose:Fire(name)
-    if not container.AlwaysOpen or FORCECLOSE then
+    if not container.AlwaysOpen or forceClose then
         EnabledGUi[name]:Destroy()
         EnabledGUi[name] = nil
 
-        local Find = table.find(OpenedGUi, name)
-        if Find then 
-            table.remove(OpenedGUi,Find)
+        local Index = table.find(OpenedGUi, name)
+        if Index then 
+            table.remove(OpenedGUi,Index)
         end
-        if #OpenedGUi == 0 and not CAMEFROMOPEN then
+        if #OpenedGUi == 0 and not fromOpen then
             Send:FireServer(3)
         end
     end
-
 end
+
 local open = false
 game:GetService("UserInputService").InputBegan:Connect(function(a0: InputObject, a1: boolean)  
     if a0.KeyCode == Enum.KeyCode.E then
@@ -331,6 +327,7 @@ function handler.processRight(frame,mainFound)
    
     Send:FireServer(2,ClientContainer.getPath(click),idx)
 end
+
 local Debounce = 1/20
 local timeC = time()
 function handler.onClick(x,y,isRightClick)
@@ -351,13 +348,13 @@ function handler.onClick(x,y,isRightClick)
             continue
         end
         if ContainerFound then continue end 
-        local first, middle,_ = frame.Name:match("^(.-)%.(.-)%.([^%.]+)$")
+        local first, middle = frame.Name:match("^(.-)%.(.-)%.([^%.]+)$")
         if first ~= "Container" or not all[middle]  then continue end 
         ContainerFound = frame
     end
 
     if ContainerFound then
-        local sName,sData = getFrameParentAndData(ContainerFound)
+        local _,sData = getFrameParentAndData(ContainerFound)
         if sData and sData.CanClick == false then return end 
     end
 
@@ -366,7 +363,7 @@ function handler.onClick(x,y,isRightClick)
     else
         handler.processLeft(ContainerFound,mainFound)
     end
-    if not ContainerFound then return end 
+    --if not ContainerFound then return end 
 end
 
 UserInputService.InputBegan:Connect(function(keyCode: InputObject, a1: boolean) 
@@ -380,9 +377,13 @@ end)
 
 local rate = 1/20
 local total = 0
+
 game:GetService("RunService").RenderStepped:Connect(function(dt: number)  
     total+=dt
-    if total < rate then return end 
+    if total < rate then
+        total = 0 
+        return 
+    end 
     local m = Player:GetMouse()
     local x,y = m.X,m.Y
     handler.displayInfo(x,y)

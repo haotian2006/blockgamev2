@@ -69,12 +69,13 @@ local function QuickReplicator(toReplicate,task)
         Communicator.sendMessageToId(i, task,v)
     end
 end
+
 local function AddToReplicator(t,id,c,data)
     t[id] = t[id] or {}
     t[id][c] = data or true 
 end
 
-local function finishBuild(chunk,Shape,Surface,Biome)
+local function finishBuild(chunk,Shape,Surface,Biome,frombuilt)
     local obj = Storage.getOrCreateChunkData(chunk)
     obj.Shape = Shape
     obj.Surface = Surface
@@ -84,7 +85,7 @@ local function finishBuild(chunk,Shape,Surface,Biome)
             AddToReplicator(ToReplicateBuilt, v, chunk, obj)
         end
     end
-    began("Bloop")
+    began("Biome-loop")
     for _,v in preComputedArea do
         local newLoc = v+chunk
         local SubChunk =  Storage.get(newLoc)
@@ -101,13 +102,14 @@ local function finishBuild(chunk,Shape,Surface,Biome)
     end
     close()
 end
+
 --//Handler
 local function BuildHandler(chunk)
     InBuildQueue[chunk] = nil
-    debug.profilebegin("building")
+    began("building")
     local Shape,Surface,Biome = Overworld.Build(chunk)
     close()
-    finishBuild(chunk,Shape,Surface,Biome)
+    finishBuild(chunk,Shape,Surface,Biome,true)
 end
 
 local function replicateBuiltHandler()
@@ -204,7 +206,7 @@ end
 local function ResumeLoop()
     began("resume")
     for i =1 , MaxResume do
-        if os.clock()-Start_Time >= 0.15 then break end 
+        if os.clock()-Start_Time >= 0.015 then break end 
         local chunk = Queue.dequeue(ResumeQueue)
         if not chunk  then break end 
         began("resumeChunk")
@@ -286,7 +288,6 @@ local function RequestBuild(chunk)
 end
 
 
-
 local function MainHandler(chunk)
     local ChunkObj = Storage.getOrCreate(chunk)
     if ChunkObj.InQueue then return end 
@@ -310,9 +311,8 @@ local function MainHandler(chunk)
         end
     end
 
-    for c,data in nChunks do 
+    for c,data in nChunks do -- loop thru nearby chunks 
         --Storage.increment(c) --tells the system that its being used
-
         if data.Shape then --If shape was already calculated 
             ChunkObj.BuildAmmount +=1
             ChunkObj.BuildTable[c] = true
@@ -323,10 +323,11 @@ local function MainHandler(chunk)
             ChunkObj.CarveTable[c] = true
         end
         
-        if data.DidFeature then -- if carving was already calculated 
+        if data.DidFeature then -- if features was already calculated 
             ChunkObj.FeatureAmmount +=1
             ChunkObj.FeatureTable[c] = true
         end      
+
     end
 
     ChunkObj.Step = 1 --Building Step
@@ -363,7 +364,7 @@ local function MainHandler(chunk)
     end
 
     ChunkObj.Step = 3 --Feature Step
-    if ChunkObj.FeatureAmmount < ChunkObj.Required then --If not finished carve 
+    if ChunkObj.FeatureAmmount < ChunkObj.Required then --If not finished Feature 
         for _,nChunk in ChunkObj.ToQueue do
             if ChunkObj.FeatureTable[nChunk] then continue end --If already checked 
             RequestFeature(nChunk)
@@ -383,32 +384,27 @@ local function MainHandler(chunk)
     end
    -- print("done")
     if IsInActor then
-        LocalChunk.finishFeatures(ChunkObj) -- combine carve with shape 
+        LocalChunk.finishFeatures(ChunkObj) -- combine features with shape 
     end
 
-
-    
     --Finish
-    for c,data in nChunks do 
-       -- Storage.decrement(c) --tells the system that its not being used
-    end
-
-    Storage.remove(chunk) -- resume collection 
+    -- for c,data in nChunks do 
+    --     Storage.decrement(c) --tells the system that its not being used
+    -- end
 
     if IsInActor then
         --return back to main thread 
         SendMain[chunk] =  {chunkData.Shape,chunkData.Surface,chunkData .Biome,chunk}
     end
     ChunkObj.InQueue = false
+    Storage.remove(chunk) -- resume collection 
 end
   
 local function MainLoop()
-    local times = 0
     for i =1 , 5 do
         local chunk = Queue.dequeue(MainQueue)
         if not chunk  then break end 
         task.spawn(MainHandler,chunk)
-        times +=1
     end
     --return times == 0
 end
@@ -456,6 +452,7 @@ RunService.Heartbeat:Connect(function()
     if not ResumeLoop() then return end 
     Communicator.runParallel(RecursiveRunner)
 end)
+
 RunService.Stepped:Connect(function()
     Start_Time = os.clock()
 end)
@@ -474,7 +471,6 @@ Communicator.bindToMessage("RequestMain",function(from,requested)
     end
 end)
 
-
 Communicator.bindToMessage("RequestBuildR",function(from,requested)
     for _,chunk in requested do
       RequestBuild(chunk)
@@ -492,8 +488,6 @@ Communicator.bindToMessage("RequestBuild",function(from,requested)
         table.insert( ChunksRequested[chunk],from)
     end
 end)
-
-
 
 Communicator.bindToMessage("SendCarve",function(from,requested)
     for _,rev in requested do

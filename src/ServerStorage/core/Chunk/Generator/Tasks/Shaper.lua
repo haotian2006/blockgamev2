@@ -63,6 +63,7 @@ function Shaper.color(cx,cz,Shape,Surface,Biome)
         return b
     end
     debug.profilebegin("color")
+    local times = 0
     for x = 1,8 do
         for z = 1,8 do
             local idx2D = IndexUtils.to1DXZ[x][z]
@@ -76,13 +77,14 @@ function Shaper.color(cx,cz,Shape,Surface,Biome)
                 local color = 0
                 if value == UInt32 then
                     color = currentBiome.Color or 0
+                    times+=1
                 end
                 buffer.writeu32(Shape, idx_, color)
             end
         end
     end
     debug.profileend()
-    return Shape
+    return Shape,times
 end
 
 function Shaper.createBiomeMap(cx,cz)

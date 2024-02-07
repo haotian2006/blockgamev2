@@ -23,12 +23,15 @@ function Layer.get(layer,Chunk,...)
     end
     return value
 end
+
 function Layer.compute(layer,chunk,...)
     return layers[layer[1]](layer,chunk,...)
 end
+
 function Layer.create(name,parent,...)
     return {name,parent,...}
 end
+
 local Connection
 function Layer.Init()
     if Connection then return end 

@@ -32,34 +32,23 @@ end
 local function GetBorders(lx,lz)
     return borders[(lx-1) + (lz-1) *Width + 1]
 end
+
+
 function Tasks.setSubChunkData(chunk,data)
     chunkData[chunk] = data
 end
+
 local Greedy = require(script.Parent.GreedyMesh)
-function Tasks.sampleSection(section,chunk)
-    local b =subChunkHelper.sampleSection(chunkData[chunk], section,chunk)
+function Tasks.sampleSection(section,chunk,data)
+    local b =subChunkHelper.sampleSection(data, section,chunk)
 
 
     return b
 end
-function Tasks.cull(chunk,center,north,east,south,west,sections )
-    local cache ={
-        [center] = table.create(8*8*256),
-        [north] = {},
-        [east] = {},
-        [south] = {},
-        [west] = {},
-    }
-    local function get(id,chunk)
-        local cache = cache[chunk]
-        if cache[id] then return cache[id] end 
-        local data = buffer.readu16(chunk or center, (id-1)*4)
-        cache[id] = data
-        return data
-    end
+function Tasks.cull(chunk,center,centerData,north,east,south,west,sections )
     local function checkBlock(x,y,z,chunk)
         local id = to1D[x][y][z]
-        return get(id,chunk or center) ~= 0
+        return buffer.readu8(chunk or centerData, (id-1)) == 0
     end
     local b1,b2,b3,b4
     local function cull(x,y,z)
@@ -101,11 +90,12 @@ function Tasks.cull(chunk,center,north,east,south,west,sections )
                 for oy = 0,7 do
                     local y = ly*8+oy+1
                     local idx = IndexUtils.to1D[x][y][z]
-                    local v = get(idx, center)
-                    if v == 0 then continue end 
+                    local v = buffer.readu8( centerData, (idx-1)) 
+                    if v ~= 0 then continue end 
                     local can,i = cull(x,y,z)
                     if not can then
-                        loc[idx] = Vector3.new(v,i)
+                        local real = buffer.readu32(center, (idx-1)*4)
+                        loc[idx] = Vector3.new(real,i)
                     end
                 end 
             end

@@ -19,10 +19,11 @@ local Recieved = {}
 Render.Recieved = Recieved
 local toArray = OtherUtils.chunkDictToArray
 
+local StartTime = os.clock()
 
 local shouldRender = {}
-function Render.render(chunk,center,n,e,s,w,a)
-    local meshed =  RenderWorkers:DoWork("cull",chunk,center,n,e,s,w,a)
+function Render.render(chunk,center,cTB,n,e,s,w,a)
+    local meshed =  RenderWorkers:DoWork("cull",chunk,center,cTB,n,e,s,w,a)
     BlockQueue[chunk] = meshed
 end
 local debugModel = Instance.new("Model")
@@ -32,7 +33,7 @@ debugModel.Parent = workspace
 local updated = false
 function Render.createSubChunks(i,part)
     local chunkO = DataHandler.getChunk(i.X,i.Z)
-    RenderWorkers:sendMessage("setSubChunkData",i,chunkO.Blocks)
+    --RenderWorkers:sendMessage("setSubChunkData",i,chunkO.Blocks)
     local c = i
     local Status = chunkO.Status
     Status.SubChunks = table.create(32)
@@ -43,7 +44,7 @@ function Render.createSubChunks(i,part)
     local size = 32--goal-start+1
     for i=start,goal do
         task.spawn(function()
-            Status.SubChunks[i] = RenderWorkers:DoWork("sampleSection", i,c)
+            Status.SubChunks[i] = RenderWorkers:DoWork("sampleSection", i,c,chunkO.TransparencyBuffer)
             done +=1
             if done == size then
                 coroutine.resume(thread)
@@ -53,7 +54,7 @@ function Render.createSubChunks(i,part)
     if done ~= size then
         coroutine.yield()
     end
-    RenderWorkers:sendMessage("setSubChunkData",i,nil)
+    --RenderWorkers:sendMessage("setSubChunkData",i,nil)
     if part == 1 then
         Status.DoneSubChunks = true
         updated = true
@@ -66,6 +67,7 @@ function Render.createSubChunks(i,part)
         -- p.Transparency = .5
     end
 end
+
 local function updateSearch()
     local data = subChunkHelper.update(updated)
     updated = false
@@ -105,6 +107,7 @@ local function updateSearch()
         end
     end
 end
+
 local center = Vector3.new()
 local array 
 local function updateSubChunks(i)
@@ -132,6 +135,7 @@ local function updateSubChunks(i)
     return times == 0
 end
 
+
 local renderArray 
 local p = Instance.new("Part")
 p.Size = Vector3.new(3,100,3)
@@ -143,6 +147,7 @@ local c = p:Clone()
 c.Parent = workspace
 p.BrickColor =BrickColor.Green()
 local chunkSignals = {}
+
 function Render.deloadChunk(chunk)
     renderQueue[chunk] = nil
     subChunkQueue[chunk] = nil
@@ -154,7 +159,7 @@ function Render.deloadChunk(chunk)
 end
 
 local function renderBlocks()
-    local times = 0
+    local times = 0 
     for v,i in toArray(BlockQueue,center) do
         if times == 3 then break end 
        -- if not inFov(i) then continue end 
@@ -173,6 +178,7 @@ local function renderBlocks()
     end
 end
 
+local allChunks = DataHandler.getAllChunks()
 local function render(i)
     local times = 0
     if i == 3 then
@@ -183,13 +189,16 @@ local function render(i)
        -- if not inFov(i) then continue end 
         local a = renderQueue[i]
         if not a then continue end 
-        local n,e,s,w = Recieved[i+Vector3.xAxis],Recieved[i+Vector3.zAxis],Recieved[i-Vector3.xAxis],Recieved[i-Vector3.zAxis]
+        local n,e,s,w = allChunks[i+Vector3.xAxis],allChunks[i+Vector3.zAxis],allChunks[i-Vector3.xAxis],allChunks[i-Vector3.zAxis]
         if not( n and e and s and w) then continue end 
+        n,e,s,w = n.TransparencyBuffer,e.TransparencyBuffer,s.TransparencyBuffer,w.TransparencyBuffer
+        local center = allChunks[i]
+        if not( n and e and s and w and center) then continue end 
         times+=1
         task.spawn(function()
           --  p.Position = i*8*3+Vector3.new(0,65*3)
             renderQueue[i] = nil
-            Render.render(i,Recieved[i],n,e,s,w,a)
+            Render.render(i,center.Blocks,center.TransparencyBuffer,n,e,s,w,a)
         end)
     end
     task.spawn(updateSubChunks)
@@ -226,12 +235,12 @@ local function x()
     end
     return 
 end
-game:GetService("RunService").Stepped:Connect(function()
+game:GetService("RunService").RenderStepped:Connect(function()
     if not DataHandler.getPlayerEntity() or game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Q) then return end 
     local camera = workspace.CurrentCamera.CFrame.Position/3
     local cx,cy = Conversion.getChunk(camera.X,camera.Y,camera.Z)
     center = Vector3.new(cx,0,cy)
-    x()
+   -- x()
 end)
  
 return Render

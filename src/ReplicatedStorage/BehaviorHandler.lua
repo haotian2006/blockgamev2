@@ -42,29 +42,29 @@ local function AddInstanceChildren(Object,Folder)
         end
     end
 end
+local function loop(v)
+    if v:IsA("Folder") then
+        Data[v.Name] = Data[v.Name] or {}
+        Data[v.Name].ISFOLDER = true
+        AddInstanceChildren(v, Data[v.Name])
+    elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
+        Data[v.Name] = Data[v.Name] or {}
+        local data = require(v)
+        Data[v.Name] = type(data) =="table" and FormatTable(data) or data
+        AddInstanceChildren(v, Data[v.Name])
+    end
+end
 function BehaviorHandler.LoadPack(PackName:string,loadComponet)
     local pack = BehaviorPacks:FindFirstChild(PackName)
     if pack then
-        local function x(v)
-            if v:IsA("Folder") then
-                Data[v.Name] = Data[v.Name] or {}
-                Data[v.Name].ISFOLDER = true
-                AddInstanceChildren(v, Data[v.Name])
-            elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
-                Data[v.Name] = Data[v.Name] or {}
-                local data = require(v)
-                Data[v.Name] = type(data) =="table" and FormatTable(data) or data
-                AddInstanceChildren(v, Data[v.Name])
-            end
-        end
         if loadComponet then
             if pack:FindFirstChild(loadComponet) then
-                x(pack:FindFirstChild(loadComponet))
+                loop(pack:FindFirstChild(loadComponet))
             end
             return
         end
         for i,v in pack:GetChildren() do
-            x(v)
+            loop(v)
         end 
     end
 end

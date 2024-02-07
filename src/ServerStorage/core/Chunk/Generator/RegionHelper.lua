@@ -1,10 +1,12 @@
 local Region = {}
 local Config = require(script.Parent.Config)
+
 local TotalActors = Config.Actors
 local RegionSize = Config.RegionSize
 
 local Debirs = require(game.ReplicatedStorage.Libarys.Debris)
 local RegionFolder = Debirs.getOrCreateFolder("RegionHelper", 10)
+
 function Region.getIndexFromRegion(x, y)
     local index = ((x % TotalActors) + (y % TotalActors)) % TotalActors + 1
     return index

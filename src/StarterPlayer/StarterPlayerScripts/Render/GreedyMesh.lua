@@ -14,6 +14,7 @@ function greedy.createblock2(startPos,endPos,data)
     h += h ~= -1 and 1 or 0
     return {data = data ,startPos = startPos,endPos = endPos,size = Vector3.new(l,h,w),midPoint = midpoint},midpoint
 end
+
 function  greedy.meshtable(meshtable)
     local startx,endx,startz,endz,starty,endy
     local data = {}

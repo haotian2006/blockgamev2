@@ -1,5 +1,5 @@
 return {
-    RegionSize = 100,
+    RegionSize = 50,
     Actors = 2, 
 
     --//Debris

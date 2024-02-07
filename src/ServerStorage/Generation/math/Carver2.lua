@@ -1,6 +1,6 @@
 local Carver = {}
 local Generator = game.ServerStorage.core.Chunk.Generator
-local Storage = require(Generator.ChunkDataLocal)
+local Storage = unpack( require(Generator.ChunkAndStorage))
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local ConverstionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local to1d = IndexUtils.to1D

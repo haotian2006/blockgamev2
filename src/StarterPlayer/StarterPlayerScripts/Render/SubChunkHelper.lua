@@ -166,37 +166,48 @@ local function to3DTEMP(index)
     return x, y, z
 end
 
+local precomputedLoopTable = {}
+for x =1,8 do
+    for z = 1,8 do
+        for y = 1,8 do
+            local isEdge = false
+            if x == 1 or x == 8 or y == 1 or y == 8 or z == 1 or z == 8 then
+                isEdge = true
+            end
+            precomputedLoopTable[{x,y,z}] = isEdge
+        end
+    end
+end
+
+
 function helper.sampleSection(blocks,section,chunk)
     local offset = section*8
     local isAir = true
     local allWalls = true
     local mappings = table.create(512)
-    debug.profilebegin("sample Everything")
-    debug.profilebegin("PreCompute Flood")
-    for x =1,8 do
-        for z = 1,8 do
-            for y = 1,8 do
-               local vector = to1D[x][y+offset][z]
-               local block = buffer.readu32(blocks, (vector-1)*4)
-               if x == 1 or x == 8 or y == 1 or y == 8 or z == 1 or z == 8 then
-                    if block ~= 1 then
-                        allWalls = false
-                    end
-               end
-               if block ~= 0 then 
-                   isAir = false 
-               end      
-               mappings[subChunkTo1d[x+1][y+1][z+1]] = block
-            end
-        end
+    debug.profilebegin("sample Section")
+    debug.profilebegin("Pre Flood Check")
+    for loc,isWall in next,precomputedLoopTable do
+        local x,y,z = loc[1],loc[2],loc[3]
+        local vector = to1D[x][y+offset][z]
+        local block = buffer.readu8(blocks, (vector-1))
+        if isWall and block ~= 0 then
+            allWalls = false
+        elseif block == 0 then
+            isAir = false
+        end 
+        mappings[subChunkTo1d[x+1][y+1][z+1]] = block
     end
+
     debug.profileend()
+
     if isAir then
         return airBuffer
     end
     if allWalls then
         return wallBuffer
     end
+
     debug.profilebegin("S flood fill")
     local conflictsL = {}
     local function isIn(pos)
@@ -212,13 +223,15 @@ function helper.sampleSection(blocks,section,chunk)
         end 
         return false
     end
+
     local conflicts = {}
     local checked = {}
     local size = 8*8*8
+
     local function floodFill(vector)
         local floodStack = Stack.new(size)
         Stack.push(floodStack, vector)
-        local hadCon = false
+        local hadConflict = false
         conflictsL = {}
         while #floodStack>0 do
             local current = Stack.pop(floodStack)
@@ -226,11 +239,11 @@ function helper.sampleSection(blocks,section,chunk)
             checked[current] = true
             local pass = isIn(current)
             if not pass then 
-                hadCon = true 
+                hadConflict = true 
                 continue 
             end 
             local block = mappings[current]
-            if block ~= 0 then 
+            if block == 0 then 
                 continue 
             end 
             for i,v in directions1D do
@@ -238,26 +251,28 @@ function helper.sampleSection(blocks,section,chunk)
                 Stack.push(floodStack, newDir)
             end
         end
-        if hadCon then
+        if hadConflict then
             table.insert(conflicts,conflictsL)
         end
     end
+
     for x =2,9 do
         for z = 2,9 do
             for y = 2,9 do
                local vector = subChunkTo1d[x][y][z]
                if checked[vector] then continue end 
                local block = mappings[vector]
-               if block ~= 0 then 
+               if block == 0 then 
                    continue 
                end 
                floodFill(vector)         
             end
         end
     end
+
     debug.profileend()
     local enter = {}
-    debug.profilebegin("S floodFIll combine")
+    debug.profilebegin("FloodFill Create Combinations")
     for i,subConflicts in conflicts do
         for sides,_ in subConflicts do
             for sides1,_ in subConflicts do
@@ -270,6 +285,7 @@ function helper.sampleSection(blocks,section,chunk)
             end
         end
     end
+
     debug.profileend()
     local b = buffer.create(16)
     for i,v in enter do

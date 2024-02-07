@@ -1,3 +1,4 @@
+--// TODO: SWITCH TO BUFFERS
 local Tasks = {}
 local TaskOrder = {
 
@@ -30,6 +31,7 @@ function Tasks.bind(task,callback)
 end
 
 local cache = {}
+
 function Tasks.clearDataFor(uuid)
     TaskData[uuid] = nil
     cache[uuid] = nil
@@ -70,7 +72,7 @@ function Tasks.encode(uuid,isOwner)
 end
 
 function Tasks.decode(uuid,data)
-   for i,tData in data do
+   for _,tData in data do
         local task = TaskOrder[tonumber(tData[1]) or 1]
         local callback = callBacks[task or 1]
         if not callback then warn(`No CallBack Found For {task}`); continue  end 

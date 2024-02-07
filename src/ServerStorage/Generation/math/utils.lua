@@ -39,7 +39,7 @@ function Utils.choose4(random:Random,a,b,c,d)
     return if r == 0 then a else if r == 1 then b else if r == 2 then c else d
 end
 local function toTwosComplement(n)
-    return 4294967296 + n -- Equivalent to 2^32 + n
+    return 4294967296 + n 
 end
 
 function Utils.band(x, y)

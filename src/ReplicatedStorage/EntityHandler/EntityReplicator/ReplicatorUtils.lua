@@ -155,6 +155,7 @@ function Replication.fastEncode(self,idk)
     temp[self.Guid] =  Changed and toUpdate or 1
     return Changed and toUpdate
 end
+
 function Replication.fastDecode(data,old)
     local lP,chunk,hR,R
     local update = {}

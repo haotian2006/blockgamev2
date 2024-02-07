@@ -36,7 +36,7 @@ function Utils.getChunk(x,y,z)
 end
 
 function Utils.localToGrid(cx,cz,x,y,z):Vector3
-    return Vector3.new((x+Chunk_Width*cx)-1,y,(z+Chunk_Width*cz)-1)
+    return Vector3.new((x+Chunk_Width*cx),y,(z+Chunk_Width*cz))
 end
 
 return Utils 

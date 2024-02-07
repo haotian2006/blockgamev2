@@ -47,9 +47,11 @@ function  Controller.bindToRender(Name,fx)
     if RenderEvents[Name] then  warn(`{Name} is binded already`) end 
     RenderEvents[Name] = fx
 end
+
 function  Controller.unbindFromRender(Name)
     RenderEvents[Name] = nil
 end
+
 function Controller.bindFunctionTo(Name,func,action,priority)
     if BindedFunctions[Name] then  warn("Name already Binded") end 
     local d = {action,func,priority or 2000}
@@ -60,6 +62,7 @@ function Controller.bindFunctionTo(Name,func,action,priority)
         return a[3]<b[3]
     end)
 end
+
 function Controller.unbindFunction(name)
     local d = BindedFunctions[name]
     if not d then return end 
@@ -69,6 +72,7 @@ function Controller.unbindFunction(name)
         keyPairsBinded[d[1]] = nil
     end
 end
+
 local function runFunctions(action,input,down,IsTyping,keys)
     for i,v in keyPairsBinded[action] or {} do 
         local status =  v[2](input,down,IsTyping,keys)
@@ -77,15 +81,19 @@ local function runFunctions(action,input,down,IsTyping,keys)
         end
     end
 end
+
 function Controller.isDown(action)
     return ActionsDown[action] or false
 end
+
 function Controller.inGui()
     return InGui
 end
+
 function Controller.setGui(bool)
     InGui = bool
 end
+
 local function HandleInputBegan(input,IsTyping)
    local actions = KeyBinds.getActionsFromKey(input)
    for v,keys in actions do
@@ -120,11 +128,13 @@ local function HandleInputEnded(input,IsTyping)
         end
    end
 end
+
 RunService.RenderStepped:Connect(function(deltaTime)
     for i,v in RenderEvents do
         task.spawn(v,deltaTime)
     end
 end)
+
 UserInputService.InputChanged:Connect(HandleInputBegan)
 UserInputService.InputBegan:Connect(HandleInputBegan)
 UserInputService.InputEnded:Connect(HandleInputEnded)

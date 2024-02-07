@@ -5,6 +5,7 @@ local EntityHolder = require(script.Parent.Parent.EntityHolder)
 local Animator
 local IS_CLIENT = Runservice:IsClient()
 local TaskReplicator = require(script.Parent.TaskReplicator)
+
 local Tasks = {
     'play',
     'stop',
@@ -12,6 +13,7 @@ local Tasks = {
     'adjustSpeed',
     'adjustWeight',
 }
+
 local encodeFunc = {
     play = function(animation,fadeTime,weight,speed)
         local v2 = if fadeTime or weight then Vector2.new(fadeTime or 0.100000001,weight or 1) else nil
@@ -30,6 +32,7 @@ local encodeFunc = {
         return {Vector2.new(5,weight or 1),animation}
     end,
 }
+
 local decodeFunc = {
     play = function(entity,data)
         local a = data[3] or {}
@@ -48,6 +51,7 @@ local decodeFunc = {
         Animator.adjustWeight(entity,data[2],data[1].Y)
     end,
 }
+
 function AnimatorR.sendTask(entity,task,SendToOwner,...)
     if entity.doReplication == false then return end 
     local func = encodeFunc[task]
@@ -59,23 +63,27 @@ function AnimatorR.sendTask(entity,task,SendToOwner,...)
         TaskReplicator.attachDataTo(guid,"Animator",func(...),SendToOwner)
     end
 end
+
 local function Recieve(uuid,data)
     local Entity = EntityHolder.getEntity(uuid)
     if not Entity then return end 
-    local defunc 
+    local decodefunc 
     if IS_CLIENT then
         if type(data) == "table" then
-            defunc= decodeFunc[Tasks[data[1].X]]
+            decodefunc= decodeFunc[Tasks[data[1].X]]
         else
-            defunc= decodeFunc[Tasks[data.X]]
+            decodefunc= decodeFunc[Tasks[data.X]]
         end
-        defunc(Entity,data)
+        decodefunc(Entity,data)
     else
         TaskReplicator.attachDataTo(uuid,"Animator",data)
     end
 end
+
 function AnimatorR.init(animator)
     Animator = animator
 end
+
 TaskReplicator.bind("Animator",Recieve)
+
 return AnimatorR

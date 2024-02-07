@@ -281,7 +281,7 @@ end
 function Render.updatePosition(self)
     local model = self.__model
     if not model then return end 
-    model.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
+    model.PrimaryPart.CFrame = CFrame.new((self.Position)*Settings.GridSize )
 end 
 
 function Render.updateRotation(self,bypass)

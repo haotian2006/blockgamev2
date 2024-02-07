@@ -1,4 +1,6 @@
 --// rojo sourcemap default.project.json --output sourcemap.json
+local Synchronizer = require(game.ReplicatedStorage.Synchronizer).Init()
+local Blocks = require(game.ReplicatedStorage.Block).Init()
 local controller = require(script.Parent:WaitForChild("Controller"))
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 BehaviorHandler.Init()

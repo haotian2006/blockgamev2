@@ -14,7 +14,7 @@ local BlockPool = require(game.ReplicatedStorage.Block.BlockPool)
 local SubChunkHelper = require(PlayerScripts:WaitForChild("Render"):WaitForChild("SubChunkHelper"))
 
 local Worker = require(PlayerScripts:WaitForChild("ClientWorker"))
-local ChunkWorkers =Worker.create("Chunk Worker", 10,nil,script.ChunkTasks)
+local ChunkWorkers =Worker.create("Chunk Worker", 3,nil,script.ChunkTasks)
 local RemoteEvent:RemoteEvent = game.ReplicatedStorage.Events.Chunk
 local destroyed = {}
 function Chunk.requestChunk(chunk)
@@ -23,24 +23,29 @@ function Chunk.requestChunk(chunk)
     RemoteEvent:FireServer(chunk)
     Asked[chunk] = true
 end
-
+ 
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local ChunkClass = require(game.ReplicatedStorage.Chunk)
 local once = false
 
+local RenderHandler = require(script.Rendering.Handler)
+
+local Builder = require(script.Rendering.Helper.Build)
+
 RemoteEvent.OnClientEvent:Connect(function(chunk,blocks,biome)  
     if destroyed[chunk] then return end 
-    local decomp =  ChunkWorkers:DoWork("deCompress",blocks)
-    local newchunk = ChunkClass.new(chunk.X, chunk.Z,decomp,biome)
+    local decomp,transparencyTable =  ChunkWorkers:DoWork("deCompress",blocks)
+    local newchunk = ChunkClass.new(chunk.X, chunk.Z,decomp,biome,transparencyTable)
     Data.insertChunk(chunk.X, chunk.Z, newchunk)
     if not once then
         once = true 
     end
-    BlockRender.Destroyed[chunk] = nil
     Asked[chunk] = false
     Recieved[chunk] = true
-    Render.Recieved[chunk] = decomp
-    Render.subChunkQueue[chunk] = 1
+    RenderHandler.renderNewChunk(chunk)
+    -- BlockRender.Destroyed[chunk] = nil
+    -- Render.Recieved[chunk] = decomp
+    -- Render.subChunkQueue[chunk] = 1
 end)
 
 local utils = require(game.ReplicatedStorage.Utils.EntityUtils)
@@ -81,7 +86,12 @@ game:GetService("RunService").Heartbeat:Connect(function(a0: number)
             if checked[i] then continue end 
             destroyed[i] = true
             Recieved[i] = nil
-            Render.deloadChunk(i)
+           -- Render.deloadChunk(i)
+           -- RenderHandler.requestDeload(i)
+        end
+        for i,v in Builder.Rendered do
+            if checked[i] then continue end 
+            RenderHandler.requestDeload(i)
         end
     end
 end)

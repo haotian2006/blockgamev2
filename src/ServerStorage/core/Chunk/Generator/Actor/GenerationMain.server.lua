@@ -8,6 +8,7 @@ local Communicator = require(Generator.Communicator)
 Actor:BindToMessage("Init", function(bindable)
     BehaviorHandler.loadComponet("Biomes")
     Communicator.Init(bindable,Actor)
+    local Blocks = require(game.ReplicatedStorage.Block).Init()
     local Handler = require(Generator.Handler)
 end)
 

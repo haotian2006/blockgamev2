@@ -3,8 +3,9 @@ Chunk.Width = 16
 Chunk.Height = 256
 
 local IndexConverter = require(game.ReplicatedStorage.Utils.IndexUtils)
-local BlockPool = require(game.ReplicatedStorage.Block.BlockPool)
-function Chunk.new(x,z,Block:buffer?,biomes:nil|buffer|number)
+local IS_CLIENT = game:GetService("RunService"):IsClient()
+
+function Chunk.new(x,z,Block:buffer?,biomes:nil|buffer|number,transparencyData)
     local self = {
         X = x;
         Z =z;
@@ -12,9 +13,17 @@ function Chunk.new(x,z,Block:buffer?,biomes:nil|buffer|number)
     self.Entities = {} 
     self.Blocks = Block or buffer.create(8*8*256*4)
     self.BiomeMap = biomes
+    self.TransparencyBuffer = transparencyData
     self.Status = {
         Version = 0; 
     }
+    self.Data = {
+        
+    }
+    if IS_CLIENT then
+        self.SubChunks = {}
+        self.CurrentlyLoaded = buffer.create(32)
+    end
     self.Cache = {}
     return table.freeze(self)
 end

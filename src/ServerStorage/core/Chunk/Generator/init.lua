@@ -34,13 +34,8 @@ function Generator.Init()
         Worker:SendMessage("Init",Bindable)
     end
     Communicator.Init()
+    return Bindable
 end
 
-Bindable.Event:Connect(function(data)
-    for i,v in data do
-        local block,surface,biomes,chunk = unpack(v)
-        Remote:FireAllClients(chunk,Builder.compress(block))
-    end
-    --Remote:FireAllClients(chunk,Builder.compress(shape))
-end)
+
 return Generator

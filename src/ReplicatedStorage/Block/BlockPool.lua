@@ -1,8 +1,8 @@
 local BlockPool = {}
 local Pool = {}
+
 local rotationData = require(game.ReplicatedStorage.Utils.RotationUtils)
 local BlockId =require(script.Parent)
-
 
 local Block = {}
 
@@ -17,17 +17,15 @@ BlockPool.CONST_NULL  = table.freeze({"NULL","NULL"})
 
 function BlockPool.bulkAdd(str,amt)
     local block = Pool[str]
-    if block then
-        block[2] += amt 
-    end
+    if not block then return end 
+    block[2] += amt 
 end
 
 function BlockPool.bulkRelease(str,amt)
     local block = Pool[str]
-    if block then
-        block[2] -= amt
-        if block[2] <= 0 then Pool[str] = nil end 
-    end
+    if not block then return end 
+    block[2] -= amt
+    if block[2] <= 0 then Pool[str] = nil end 
 end
 
 function BlockPool.get(str)
@@ -41,6 +39,7 @@ function BlockPool.get(str)
     Pool[str] = {new,1}
     return new 
 end
+
 function BlockPool.getFromIdx(idx,times)
     local str = BlockId.getBlock(idx)
     if not str or str == "false" or str == "c:air" then return BlockPool.CONST_FALSE end 
@@ -53,7 +52,6 @@ function BlockPool.getFromIdx(idx,times)
     Pool[str] = {new,times or 1}
     return new 
 end
-
 
 function BlockPool.release(str)
     local block = Pool[str]

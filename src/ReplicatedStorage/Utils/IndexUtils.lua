@@ -11,7 +11,7 @@ local function freezeAll(t)
         end
     end
     table.freeze(t)
-end
+end 
 
 Convert.to3D = {}::{[number]:Vector3}
 Convert.to1D = {}::{[number]:{[number]:{[number]:number}}}
