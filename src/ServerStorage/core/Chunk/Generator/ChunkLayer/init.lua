@@ -4,8 +4,7 @@ local allLayers = {}
 local cacheInterval = 4
 local cache = {}
 
-local Events = require(game.ReplicatedStorage.Libarys.Signal)
-
+--Get Caches the data as well while compute just computes it without caching 
 function Layer.get(layer,Chunk,...)
     local key = Chunk
     local name = layer
@@ -15,8 +14,8 @@ function Layer.get(layer,Chunk,...)
     else
         cache[name] = {} 
     end
-    local value,Cahce = layers[name[1]](layer,Chunk,...)
-    if Cahce ~= false then 
+    local value,shouldCache = layers[name[1]](layer,Chunk,...)
+    if shouldCache ~= false then 
         cache[name][key] = value
     else
         cache[name][key] = nil

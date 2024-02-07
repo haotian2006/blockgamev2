@@ -287,14 +287,14 @@ local function RequestBuild(chunk)
     Queue.enqueue(BuildQueue,chunk)
 end
 
-
+--//Main
 local function MainHandler(chunk)
     local ChunkObj = Storage.getOrCreate(chunk)
     if ChunkObj.InQueue then return end 
     ChunkObj.InQueue = true
     local IsInActor = not ChunkObj.NotInRegion
 
-    Storage.pause(chunk) --Pause collection 
+   -- Storage.pause(chunk) --Pause collection 
 
     local running = coroutine.running()
     ChunkObj.MainThread = running
@@ -409,6 +409,7 @@ local function MainLoop()
     --return times == 0
 end
 
+--//Runner
 local RunnerOrder = {
     MainLoop,
     BuildLoop,

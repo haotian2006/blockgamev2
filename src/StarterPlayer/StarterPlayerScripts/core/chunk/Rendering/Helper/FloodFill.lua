@@ -185,7 +185,7 @@ local function sampleSection(blocks,section)
             end
         end
         if hadConflict then
-            table.insert(co nflicts,conflictsL)
+            table.insert(conflicts,conflictsL)
         end
     end
 

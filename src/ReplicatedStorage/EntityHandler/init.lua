@@ -16,7 +16,7 @@ local Container = require(game.ReplicatedStorage.Container)
 local EntityContainerManager = require(script.EntityContainerManager)
 local Data = require(game.ReplicatedStorage.Data)
 
-local slerpAngle = MathUtils.slerpAngle 
+local slerp = MathUtils.slerpAngle 
 
 local Entity = {}
 EntityTaskReplicator.Init(Entity)
@@ -213,7 +213,7 @@ function Entity.getMoveDireaction(self,Direaction)
  return self.moveDir
 end
 
---=@Overridable
+--@Overridable
 function Entity.getSpeed(self)
     return Entity.getAndCache(self,"Speed")
 end
@@ -269,8 +269,6 @@ function Entity.crouch(self,isDown,fromClient)
     local currentHitBox = Entity.get(self,"Hitbox")
     local EyeLevel = Entity.get(self,"EyeLevel")
     if self.Crouching then
-        -- Entity.set(self,"Hitbox", Vector2.new(currentHitBox.X, currentHitBox.Y-CrouchHeight))
-        -- Entity.set(self,"EyeLevel", EyeLevel-CrouchHeight)
         self.Hitbox = Vector2.new(currentHitBox.X, currentHitBox.Y-CrouchHeight)
         self.EyeLevel = EyeLevel-CrouchHeight
         if not  fromClient then 
@@ -278,8 +276,6 @@ function Entity.crouch(self,isDown,fromClient)
         end
         Animator.playLocal(self,"Crouch",nil,nil,nil)
     else
-        -- Entity.set(self,"Hitbox", Vector2.new(currentHitBox.X, currentHitBox.Y+CrouchHeight))
-        -- Entity.set(self,"EyeLevel", EyeLevel+CrouchHeight)
         self.Hitbox = Vector2.new(currentHitBox.X, currentHitBox.Y+CrouchHeight)
         self.EyeLevel = EyeLevel+CrouchHeight
         if not fromClient then 
@@ -318,7 +314,7 @@ function Entity.updateTurning(self,dt)
     if dt>1 then dt = 1 end 
     if targetBody then 
         local reached 
-        self.Rotation,reached = slerpAngle(body,targetBody,dt)   
+        self.Rotation,reached = slerp(body,targetBody,dt)   
         if reached then  
             self.__localData.Rotation= nil 
         end 
@@ -330,8 +326,8 @@ function Entity.updateTurning(self,dt)
             self.HeadRotation = Vector2.new(targetHead.X+dR,targetHead.Y)
             self.__localData.HeadRotation = nil
         else
-            local x,_x =  slerpAngle(head.X,targetHead.X,dt)
-            local y,_y =slerpAngle(head.Y,targetHead.Y,dt)
+            local x,_x =  slerp(head.X,targetHead.X,dt)
+            local y,_y =slerp(head.Y,targetHead.Y,dt)
 
             self.HeadRotation = Vector2.new(x,y)
             if _x and _y then
@@ -361,7 +357,6 @@ function Entity.updatePosition(self,dt)
                if Animator.isPlaying(self,"Walk") then
                 Animator.stop(self,"Walk",.1)
                end
-                -- self:SetState('Moving',false)
             end
         else
             local speed = (newPosition*Vector3.new(1,0,1) - self.Position*Vector3.new(1,0,1)).Magnitude/dt/(Entity.getAndCache(self,"Speed"))
@@ -383,20 +378,8 @@ end
 function Entity.updateGrounded(self,dt,shouldJump)
     local isGrounded,b = CollisionHandler.isGrounded(self)
     self.Grounded = isGrounded
-    --[[
-    self:SetState("Grounded",self.Data.Grounded)
-    if  self.NotSaved["LastG"] and not self.Data.Grounded and not self.NotSaved.Jumping then
-        self.NotSaved["ExtraJump"] = DateTime.now().UnixTimestampMillis/1000
-    end
-    self.NotSaved.LastG = self.Data.Grounded
-    if shouldJump then
-        self:Jump()
-    end
-    ]]
 end
 
-local start = os.clock()
-local a = true
 
 function Entity.updateGravity(self,dt)
     local bodyVelocity = Entity.getVelocity(self,"Physics") or Vector3.zero
@@ -441,9 +424,6 @@ function Entity.update(self,dt,fixedDt)
         Entity.updateGravity(self,dt)
         Entity.updateTurning(self,dt)
         Entity.updateMovement(self,fixedDt,normal)
-    end
-    if IS_CLIENT then
-        
     end
 end 
 

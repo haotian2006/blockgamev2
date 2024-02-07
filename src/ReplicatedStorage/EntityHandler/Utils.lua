@@ -30,6 +30,7 @@ function Utils.getDataFromResource(self,string)
     end
     return entityData.components[string]
 end
+
 function Utils.setLocalData(self,key,value)
     self.__localData.Storage = self.__localData.Storage or {}
     self.__localData.Storage [key] = value
@@ -38,6 +39,7 @@ function Utils.getLocalData(self,key,value)
     self.__localData.Storage = self.__localData.Storage or {}
     return  self.__localData.Storage[key]
  end
+
 function Utils.isOwner(self,player)
     if (not player or player.UserId =="NAN") and not self.__ownership then
         return true 
@@ -64,11 +66,11 @@ function Utils.getEyePosition(self)
     return self.Position + vector3(0,Entity.getAndCache(self,"EyeLevel") or 0,0)/2
 end
 function Utils.getPlayersNearEntity(self,radius)
-    --//changes to search in nearby chunks 
+    --//change to search in nearby chunks 
     return game.Players:GetPlayers()
 end
 function Utils.getEntitiesNear(self,radius)
-    --//changes to search in nearby chunks 
+    --//change to search in nearby chunks 
     local entities = {}
     for i,v in EntityHolder.getAllEntities() do
         if v == self then continue end 
@@ -103,6 +105,7 @@ local DEAFULT_TURN = Vector2.new(180,180)
 function Utils.setRotation(self,target)
     self.__localData.Rotation = MathUtils.normalizeAngle2(target)
 end
+
 function Utils.rotateHeadTo(self,target:Vector2)
     local maxRotation:Vector2 = Entity.getAndCache(self,"MaxNeckRotation") or DEAFULT_TURN
     -- local AutoRotate:boolean = Entity.getAndCache(self,"AutoRotate") or false
@@ -142,6 +145,7 @@ function Utils.rotateHeadTo(self,target:Vector2)
     -- part.Position = (self.Position+vector3(lookat.X,0,lookat.Z)*4)*3
     return new,offset
 end
+
 function Utils.lookAt(self,target:Vector3)
     if typeof(target) ~= "Vector3" then
         target = Utils.getEyePosition(target)
