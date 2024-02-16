@@ -50,6 +50,7 @@ function Utils.isOwner(self,player)
     end
     return pass
 end
+
 function Utils.getOwner(self)
     if not self.__ownership then
          return 
@@ -62,13 +63,16 @@ function Utils.getOwner(self)
     self.__localData["Owner"] = plr
     return plr
 end
+
 function Utils.getEyePosition(self)
     return self.Position + vector3(0,Entity.getAndCache(self,"EyeLevel") or 0,0)/2
 end
+
 function Utils.getPlayersNearEntity(self,radius)
     --//change to search in nearby chunks 
     return game.Players:GetPlayers()
 end
+
 function Utils.getEntitiesNear(self,radius)
     --//change to search in nearby chunks 
     local entities = {}
@@ -80,6 +84,7 @@ function Utils.getEntitiesNear(self,radius)
     end
     return entities
 end
+
 function Utils.calculateLookAt(self,bRot,hRot)
     local rotation = bRot or self.Rotation or 0
     local headRotation = hRot or self.HeadRotation or Vector2.zero
@@ -91,25 +96,29 @@ function Utils.calculateLookAt(self,bRot,hRot)
 
     return vector3(directionX,directionY,directionZ).Unit 
 end
+
 function Utils.getChunk(self)
     local Position = self.Position
     local cx = math.floor((Position.X+0.5)/Chx)
 	local cz = math.floor((Position.Z+0.5)/Chx)
     return vector3(cx,0,cz)
 end
+
 function Utils.getMagnitudeBetween(entity,entity2)
     return (entity.Position-entity2.Position).magnitude
 end
+
 --//Turning
 local DEAFULT_TURN = Vector2.new(180,180)
 function Utils.setRotation(self,target)
     self.__localData.Rotation = MathUtils.normalizeAngle2(target)
 end
 
-function Utils.rotateHeadTo(self,target:Vector2)
+function Utils.rotateHeadTo(self,pitch,yaw)
     local maxRotation:Vector2 = Entity.getAndCache(self,"MaxNeckRotation") or DEAFULT_TURN
     -- local AutoRotate:boolean = Entity.getAndCache(self,"AutoRotate") or false
     local Rotation = self.__localData.Rotation or self.Rotation
+    local target = vector3(pitch,yaw)
     local rrx = MathUtils.normalizeAngle2(target.X-  Rotation)
     local rx,ry = rrx,target.Y
     local maxX,maxY =  maxRotation.X , maxRotation.Y
@@ -139,7 +148,7 @@ function Utils.rotateHeadTo(self,target:Vector2)
         end
         self.__localData.Rotation = R
     end
-    local new = Vector2.new(rx,ry)
+    local new = vector3(rx,ry)
     self.__localData.HeadRotation = new
     -- local lookat = Utils.calculateLookAt(self,self.Rotation,self.HeadRotation)
     -- part.Position = (self.Position+vector3(lookat.X,0,lookat.Z)*4)*3
@@ -152,7 +161,7 @@ function Utils.lookAt(self,target:Vector3)
     end
     local dif = (target-Utils.getEyePosition(self)).Unit
     local pitch,yaw = MathUtils.GetP_YawFromVector3(dif)
-    Utils.rotateHeadTo(self,Vector2.new(pitch,yaw))
+    Utils.rotateHeadTo(self,pitch,yaw)
 end
 
 function Utils.followMovement(self,movedir:Vector2)
@@ -165,9 +174,9 @@ function Utils.followMovement(self,movedir:Vector2)
     local lookat = Utils.calculateLookAt(self)
     lookat = Vector2.new(lookat.X,lookat.Z)*4
     local dot = lookat:Dot(movedir.Unit)
-    --print(dot)
+
     if dot <-1 then
-    --    print("x")
+
         targetRotation = targetRotation+180
     end
     local rx = MathUtils.normalizeAngle2(CurrentHeadRotationX- targetRotation)

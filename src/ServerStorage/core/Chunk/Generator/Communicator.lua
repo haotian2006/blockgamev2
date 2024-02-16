@@ -1,4 +1,4 @@
-local Communicator = {}
+local Communicator = {Ready = false}
 
 local RegionHelper = require(script.Parent.RegionHelper)
 

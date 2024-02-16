@@ -23,8 +23,6 @@ local function createWorker(index):Actor
     return clone
 end
 
-local Remote:RemoteEvent = game.ReplicatedStorage.Events.Chunk
-local Builder = require(script.Parent.ChunkBuilder)
 local alreadyInit = false
 function Generator.Init()
     if alreadyInit then return end 

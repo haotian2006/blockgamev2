@@ -44,7 +44,7 @@ function Layer.Init()
     Connection = game:GetService("RunService").Heartbeat:Connect(function(dt: number)  
         t+=dt
         if t>= cacheInterval then
-            table.clear(cache)
+            table.clear(cache) -- works for now, might look into a diffrent method later
             t = 0
         end
     end)

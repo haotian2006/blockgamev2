@@ -9,6 +9,7 @@ local function add(x)
 end
 
 local Base = add(layers.create("BaseLandLayer",SEED,2))
+
 Base = add(layers.create("ScaleLayer",SEED,300,"FUZZY",Base))
 Base = add(layers.create("LandLayer",SEED,1,Base))
 Base = add(layers.create("ScaleLayer",SEED,4,"NORMAL",Base))

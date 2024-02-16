@@ -21,9 +21,14 @@ end
 Generator2.Init().Event:Connect(function(data)
     for i,v in data do
         local block,surface,biomes,chunk = unpack(v)
+        if not block then
+            sendDataToClients(chunk,false)
+            requested[chunk] = nil
+            continue
+        end
         local newChunk = ChunkClass.new(data.X,data.Z,block,biomes)
         Data.insertChunk(chunk.X,chunk.Z,newChunk)
-        sendDataToClients(chunk,Builder.compress(block))
+        sendDataToClients(chunk,Builder.compress(block),biomes)
         requested[chunk] = nil
     end
     --Remote:FireAllClients(chunk,Builder.compress(shape))

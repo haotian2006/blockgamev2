@@ -4,9 +4,12 @@ local Block = require(game.ReplicatedStorage.Block)
 local RotationUtils = require(game.ReplicatedStorage.Utils.RotationUtils)
 local Cache = require(script.Parent.Parent.RenderCache)
 local Texture = require(script.Parent.Parent.BlockTexture)
+local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
 local Queue = require(game.ReplicatedStorage.Libarys.DataStructures.Queue)
+local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local ChunkClass = require(game.ReplicatedStorage.Chunk)
 
+local AntiLag = require(script.Parent.Parent.Config).ANTI_LAG
 local StartTime = os.clock()
 
 local CurrentlyBuilding 
@@ -69,35 +72,42 @@ function Builder.build(chunk,Meshed)
     local chunkOffset = chunk*8 - Vector3.new(1,0,1)
     
     local removed = {}
-
+    local toMoveP = {}
+    local toMoveC = {}
+    local i = 0
     for key,data in Meshed do
-        if os.clock()-StartTime >= .014 then
-             coroutine.yield()
-             if Canceled then 
-                Canceled = false
-                return
-             end
-        end
-
+    
         local blockID,rot,id = Block.decompressCache(data.data.X)
         local partName = toStringBlockInfo(data)
-
         if Rendered[partName] then 
             removed[partName] = true 
             continue 
         end 
-
+        
         rot = RotationUtils.indexPairs[rot]
         local walls = data.data.Y
         local BlockName = Block.getBlock(blockID)
-        local p,textures = Texture.CreateBlock(BlockName,walls)
+        local p,textures = Texture.CreateBlock(BlockName,walls,nil,id)
         p.Size = data.size*3
-        p.Position = (data.midPoint+chunkOffset)*3
+        i+=1
+        toMoveP[i] = p
+        toMoveC[i] = CFrame.new((data.midPoint+chunkOffset)*3)
+        --p.Position = (data.midPoint+chunkOffset)*3
         p.Parent = folder
 
         Rendered[partName] = {p,textures}
         removed[partName] = true 
+
+        if os.clock()-StartTime >= .014 and AntiLag then
+            coroutine.yield()
+            if Canceled then 
+               Canceled = false
+               break
+            end
+       end
+
     end
+    workspace:BulkMoveTo(toMoveP, toMoveC)
 
     for i,v in Rendered do
         if removed[i] then continue end 
@@ -107,14 +117,14 @@ function Builder.build(chunk,Meshed)
         end
         Cache.sendBlockBackToQueue( v[1])
     end
-    InQueue[chunk] = nil
     CurrentlyBuilding = nil
     CurrentlyBuildingThread = nil
-    folder.Parent = ChunksFolder
+    if not folder.Parent then
+        folder.Parent = ChunksFolder
+    end
 end
 
 function Builder.destroy(chunk)
-    InQueue[chunk] = nil
     CurrentlyBuilding = chunk
     CurrentlyBuildingThread = coroutine.running()
 
@@ -129,7 +139,7 @@ function Builder.destroy(chunk)
             coroutine.yield()
             if Canceled then 
                Canceled = false
-               return
+               break
             end
        end
         for _,t in v[2] do
@@ -145,14 +155,14 @@ end
 
 function Builder.addToQueue(chunk,Mesh)
     if CurrentlyBuilding == chunk then
-        task.cancel(CurrentlyBuildingThread)
         Canceled = true
+        coroutine.resume(CurrentlyBuildingThread)
         CurrentlyBuildingThread = nil
         CurrentlyBuilding = nil
     end
 
     if not InQueue[chunk] then
-        Queue.enqueue(BuildQueue, chunk)
+      --  Queue.enqueue(BuildQueue, chunk)
     end
     InQueue[chunk] = Mesh
 end
@@ -164,18 +174,40 @@ function Builder.deload(chunk)
     Builder.addToQueue(chunk,1)
 end
 
+-- function Builder.buildNext()
+--     local times = 0
+--     for i = 1,8 do
+--         local Chunk = Queue.dequeue(BuildQueue)
+--         if not Chunk then break end 
+--         local Data = InQueue[Chunk]
+--         if Data == 1 then
+--             Builder.destroy(Chunk)
+--         else
+--             Builder.build(Chunk, Data)
+--         end
+       
+--         times +=1
+--     end
+--     return times ~=0 
+-- end
+
 function Builder.buildNext()
     local times = 0
-    for i = 1,8 do
-        local Chunk = Queue.dequeue(BuildQueue)
-        if not Chunk then break end 
+
+    local camera = workspace.CurrentCamera.CFrame.Position/3
+    local cx,cy = ConversionUtils.getChunk(camera.X,camera.Y,camera.Z)
+    local Center = Vector3.new(cx,0,cy)
+
+    local ComputeBuild = OtherUtils.chunkDictToArray(InQueue, Center)
+    for _,Chunk in ComputeBuild do
+        if times >= 8 then break end 
         local Data = InQueue[Chunk]
         if Data == 1 then
             Builder.destroy(Chunk)
         else
             Builder.build(Chunk, Data)
         end
-       
+        InQueue[Chunk] = nil
         times +=1
     end
     return times ~=0 

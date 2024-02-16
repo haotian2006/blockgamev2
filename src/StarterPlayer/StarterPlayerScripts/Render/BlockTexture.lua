@@ -5,22 +5,7 @@ local blockSize = GameSettings.GridSize
 local BlockHandler = require(game.ReplicatedStorage.Block)
 local RenderStorage = require(script.Parent.RenderStorage)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
-ResourceHandler.Init()
-local function getID(texture)
-    if type(texture) == "string" then return texture end 
-    return if texture:IsA("Decal") or texture:IsA("Texture") then texture.Texture else texture
-end
-for i,v in ResourceHandler.getAllBlocks() or {} do
-    if v.Texture and type(v.Texture) ~= "string" then
-        if type(v.Texture) == "table" then
-            for s,t in v.Texture do
-                v.Texture[s] = getID(t)
-            end
-        else
-            v.Texture = getID(v.Texture)
-        end
-    end
-end
+
 local function split(string:string)
     return string:match("([^,]*),?([^,]*),?([^,]*)")
 end

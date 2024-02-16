@@ -15,13 +15,22 @@ local entity = {
         MaxHealth = 20,
         AutoJump = false,
         CrouchLower = 0.3,
+        ["c:ManFaceManSwitch.behavior"] = {
+            priority = 3
+        },
         ['c:lookAtPlayer.behavior'] ={
             priority = 20,
             MaxRange = 30,
         },
     },
     component_groups = {
-       
+        ManFaceMan = {
+            ['c:ManFaceManSwitch.behavior'] = "NIL",
+            ['c:goToPlayer.behavior'] ={
+                priority = 1,
+                MaxRange = 30,
+            },
+        }
     },
     events ={
         OnDeath = function(self)

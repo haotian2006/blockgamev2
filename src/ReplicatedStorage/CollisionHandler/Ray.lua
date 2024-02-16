@@ -139,7 +139,7 @@ end
 
 function Ray.cast(start:Vector3,direction:Vector3)
     if (direction.Magnitude == 0) then error("Attemped to cast a ray with the length of 0") end 
-    return traceRay(start, direction,true)
+    return traceRay(start, direction,false)
 end
 
 return Ray

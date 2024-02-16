@@ -12,12 +12,18 @@ local range = {}
 function range.new(multi, points)
     return { multi or 1, points }
 end
+
+export type Range = {
+    
+}
+
 function range.parse(data)
     if data.min then
         return range.new(data.multiplier, {{min = data.min,max = data.max}})
     end
     return range.new(data.multiplier, data.points)
 end
+
 
 function range.inRange(self, value)
     local multiplier = self[1]
@@ -31,4 +37,6 @@ function range.inRange(self, value)
     return false
 end
 
-return range
+range.DEFAULT = range.new(1,{{min = 0,max = 1}})
+
+return table.freeze(range)

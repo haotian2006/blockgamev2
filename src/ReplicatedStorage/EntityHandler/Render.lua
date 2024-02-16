@@ -9,6 +9,8 @@ local Data = require(game.ReplicatedStorage.Data)
 local ItemClass = require(game.ReplicatedStorage.Item)
 local Render = {}
 local Player = game:GetService("Players").LocalPlayer
+local ClientUtils = require(script.Parent.ClientUtils)
+
 local DEFAULT_ROTATION = Vector2.new(360,360)
 local function createAselectionBox(parent,color) 
     local sb = Instance.new("SelectionBox",parent) 
@@ -111,7 +113,7 @@ local function createHitBox(data)
 end
 
 local function createEntityModel(self,hitbox)
-    local model,data = Render.findModelFrom(self)
+    local model = ClientUtils.getAndCache(self, "Model")
     if not model then return end 
     model = model:Clone()
     local humanoid = model:FindFirstChildWhichIsA("Humanoid")  or CreateHumanoid(model)
@@ -127,11 +129,11 @@ local function createEntityModel(self,hitbox)
     weld.Name = "EntityModelWeld"
     weld.Part0 = hitbox.PrimaryPart
     weld.Part1 = model.PrimaryPart
-    return model,data
+    return model
 end
 
 
-function Render.renderHolding(self,holding,size)
+function Render.renderHolding(self,holding,special)
 
     local Item = holding or self.Holding or ""
     local Name = type(Item) == "table" and ItemClass.tostring(Item) or ""
@@ -190,11 +192,15 @@ function Render.renderHolding(self,holding,size)
     
     attachment:ClearAllChildren()
     if Item and Item ~= '' then
+        if special then
+            special()
+        end
         local item,ItemData = createitem() 
         if not Item then 
             item,ItemData =  createPlaceHolder()
         end 
-        if size then
+        if special then
+            special(item)
             return item,ItemData
         end
         if Data.getPlayerEntity() == self and item then
@@ -231,8 +237,7 @@ function  Render.checkIfChanged(self,key)
     return false
 end
 function Render.findModelFrom(self)
-    local modeldata = utils.getDataFromResource(self,"Model")
-    return ResourceHandler.getEntityModel(modeldata).Model
+    return ClientUtils.getAndCache(self, "Model")
 end
 
 function Render.createModel(self)
@@ -248,7 +253,7 @@ function Render.createModel(self)
     Render.renderHolding(self)
 
     if Data.getPlayerEntity() == self then
-        Render.setTransparency(self,1)
+        Render.setTransparency(self,1) 
     end
     return hitbox
 end

@@ -4,24 +4,12 @@ local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local blockSize = GameSettings.GridSize
 local BlockHandler = require(game.ReplicatedStorage.Block)
 local RenderStorage = require(script.Parent.RenderCache)
-local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
-ResourceHandler.Init()
 
-local function getID(texture)
-    if type(texture) == "string" then return texture end 
-    return if texture:IsA("Decal") or texture:IsA("Texture") then texture.Texture else texture
-end
-for i,v in ResourceHandler.getAllBlocks() or {} do
-    if v.Texture and type(v.Texture) ~= "string" then
-        if type(v.Texture) == "table" then
-            for s,t in v.Texture do
-                v.Texture[s] = getID(t)
-            end
-        else
-            v.Texture = getID(v.Texture)
-        end
-    end
-end
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local AssetManager = require(LocalPlayer.PlayerScripts:WaitForChild("AssetManager"))
+local BlocksAssets = AssetManager.Blocks
+
+
 local function split(string:string)
     return string:match("([^,]*),?([^,]*),?([^,]*)")
 end
@@ -153,15 +141,12 @@ function Texture.CreateTexture(texture:string,face)
             new.Texture = texture
         end
         new.Face = face
-    elseif texture:IsA("SurfaceGui") then
-        new = texture:Clone()
-        new.Face = face 
     end
     return new
 end 
 
 function Texture.GetTextures(blockName,walls,Orientation,Id,part)
-     local info = BlockHandler.getResource(blockName)
+     local info = BlocksAssets.getBlockData(blockName,Id)
      local texture = info["Texture"]
      if typeof(texture) == "BrickColor" then
          part.BrickColor = info["Texture"]
@@ -204,8 +189,9 @@ function Texture.GetTextures(blockName,walls,Orientation,Id,part)
  toClone.Massless = true
 
  function Texture.CreateBlock(blockName,walls,ori,Id,PartToUse)
+
     local p = PartToUse or RenderStorage.getNextBlock()
-    local info = BlockHandler.getResource(blockName) or {}
+    local info = BlocksAssets.getBlockData(blockName,Id) 
     if info.Material then 
         p.Material = info.Material 
     end

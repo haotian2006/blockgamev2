@@ -3,17 +3,18 @@ local block = {}
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local Synchronizer = require(game.ReplicatedStorage.Synchronizer)
+local Loading = Instance.new("BindableEvent")
 
 local Blocks = {
     'c:air',
     'c:stone',
-    'c:grass',
+    'c:grassBlock',
     'c:dirt'
 }
 
 local Cache = {}
 local Debris = require(game.ReplicatedStorage.Libarys.Debris)
-local BlockFolder = Debris.getOrCreateFolder("BlockFolder", 10)
+local BlockFolder = Debris.getFolder("BlockFolder", 10)
 
 function block.exists(str)
     if Cache[str] then
@@ -30,10 +31,19 @@ function block.getBlockId(str)
     end
     local loc = table.find(Blocks, str)
     if not loc  then
-        error(`'{str}' is not a valid block`)
+        warn(`'{str}' is not a valid block`)
+        loc = 1
     end
-    Cache[str] = loc-1
+    Cache[str] = loc-1 
     return loc-1
+end
+
+function block.awaitBlock(str)
+    if not Loading then 
+        return block.getBlockId(str)
+    end 
+    Loading.Event:Wait()
+    return block.getBlockId(str)
 end
 
 function block.getBlock(id)
@@ -70,14 +80,30 @@ function block.decompress(packedValue)
 end
 
 function block.decompressCache(packedValue)
-    local current = BlockFolder:get(packedValue+3)
+    local current = BlockFolder:get(packedValue)
     if  current then return  unpack(current) end 
     local x,y,z = block.decompress(packedValue)
-    BlockFolder:add(packedValue+3,{x,y,z}) 
+    BlockFolder:set(packedValue,{x,y,z}) 
     return x,y,z
 end
 
+function block.parse(t)
+    if type(t) == "table" then
+        if t.Block then 
+            return block.compress(block.getBlockId(t.Block), t.Rotation or 0, t.Id or 0)
+        else
+            return block.compress(block.getBlockId(t[1]), t[2] or 0, t[3] or 0)
+        end
+    elseif type(t) == "number" then
+        return t
+    end
+    return block.getBlockId(t)
+end
+
+local initAlready = false
 function block.Init()
+    if initAlready then return end 
+    initAlready = true
     if Synchronizer.isActor() then
         Blocks = Synchronizer.getDataActor("BlockData")
     elseif Synchronizer.isClient() then
@@ -89,6 +115,9 @@ function block.Init()
         end
         Synchronizer.setData("BlockData",Blocks)
     end
+    local t = Loading
+    Loading = nil
+    t:Fire()
     return block
 end
 

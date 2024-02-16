@@ -3,6 +3,7 @@ local Generator = game.ServerStorage.core.Chunk.Generator
 local Storage = unpack( require(Generator.ChunkAndStorage))
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local ConverstionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
+local NoiseHandler = require(script.Parent.noise)
 local to1d = IndexUtils.to1D
 local gridtoChunkandL = ConverstionUtils.gridToLocalAndChunk
 
@@ -72,19 +73,75 @@ function Carver.sphere(startX,y,startZ,Block,radius,useU16,Checked)
 end
 
 function Carver.addStructure(cx,cz,x,y,z,shape,key)
-    local currentV = Vector3.new(x+cx*8,y,z+cz*8)
+    local currentV = Vector3.new(x+cx*8-1,y,z+cz*8-1)
+    
     local currentBuffer = Storage.getFeatureBuffer(Vector3.new(cx,0,cz))
+
+    local ChunkData = Storage.getChunkData(Vector3.new(cx,0,cz))
+
+    local currentBlocks = ChunkData.Shape
+    
     local writter = buffer.writeu32
     for offset,block in shape do
         local current = offset+currentV
         local ncx,ncz,lx,ly,lz = ConverstionUtils.gridToLocalAndChunk(current.X, current.Y, current.Z)
         if ly > 256 or ly <1 then continue end 
         if ncx ~= cx or ncz ~= cz then
-            currentBuffer = Storage.getFeatureBuffer(Vector3.new(ncx,0,ncz))
+            local c = Vector3.new(ncx,0,ncz)
+            currentBuffer = Storage.getFeatureBuffer(c)
+            currentBlocks = Storage.getChunkData(c).Shape
             cx,cz = ncx,ncz
         end
         local to1d = to1d[lx][ly][lz]
-        writter(currentBuffer, (to1d-1)*4, 0)
+        if block == -1 then
+            local idx_ = (to1d-1)*4
+            if not currentBlocks then continue end 
+            writter(currentBuffer, idx_,buffer.readu32(currentBlocks, idx_))
+        else
+            writter(currentBuffer, (to1d-1)*4, key[block])
+        end
+    end
+end
+
+function Carver.noiseSphere(cx,cz,lx,ly,lz,block,carverTable,noise,scale,minR,maxR)
+    local rx,ry,rz = cx*8+lx-1,ly,lz+cz*8-1
+    local r =  minR + (maxR - minR)
+ 
+    local currentBuffer = Storage.getFeatureBuffer(Vector3.new(cx,0,cz))
+
+    local ChunkData = Storage.getChunkData(Vector3.new(cx,0,cz))
+
+    local currentBlocks = ChunkData.Shape
+    
+    local writter = buffer.writeu32
+
+    for x = -maxR, maxR do
+        local xx = rx+x
+        local xSq = x*x
+        for y = -maxR, maxR do
+            local yy = ry+y
+            local ySq = y*y
+            for z = -maxR, maxR do
+                local zz = rz+z
+                if yy <1 or yy >256 then continue end 
+                local distanceFromCenter = math.sqrt(xSq+ySq+z*z)
+                local noiseValue =NoiseHandler.sample(noise,xx/scale,yy/scale,zz/scale)
+                local normalized = (noiseValue + 1) / 2
+                local radius = r* normalized
+                if distanceFromCenter <= radius then
+                    local ncx,ncz,lx,ly,lz = ConverstionUtils.gridToLocalAndChunk(xx, yy, zz)
+                    if ncx ~= cx or ncz ~= cz then
+                        local c = Vector3.new(ncx,0,ncz)
+                        currentBuffer = Storage.getFeatureBuffer(c)
+                        currentBlocks = Storage.getChunkData(c).Shape
+                        cx,cz = ncx,ncz
+                    end
+                    local to1d = to1d[lx][ly][lz]
+                    if not currentBlocks or buffer.readu32(currentBlocks,(to1d-1)*4) == 0 then continue end 
+                    writter(currentBuffer, (to1d-1)*4,block)
+                end
+            end
+        end
     end
 end
 return Carver

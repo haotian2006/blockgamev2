@@ -1,6 +1,7 @@
 local helper = {}
-local Chunk = require(game.ReplicatedStorage.Chunk)
 local Queue = require(game.ReplicatedStorage.Libarys.DataStructures.Queue)
+
+local AntiLag = require(script.Parent.Parent.Config).ANTI_LAG
 
 local camera= game.Workspace.CurrentCamera
 local data = require(game.ReplicatedStorage.Data)
@@ -42,7 +43,7 @@ local frustumOffset = {
     Vector3.new(8,8,8),
 }
 
-local directions = {
+local Faces = {
     Vector3.xAxis,
     -Vector3.xAxis,
     Vector3.yAxis,
@@ -51,7 +52,6 @@ local directions = {
     -Vector3.zAxis,
 }
 
-local Faces = directions
 local facesIndex = {}
 local oppsiteFaces = {}
 do
@@ -71,7 +71,7 @@ end
 local function getSubChunk(loc)
     local chunk = data.getChunk(loc.X,loc.Z)
     if not chunk or not chunk.SubChunks  then return end
-    return chunk.SubChunks[loc.Y]
+    return chunk.SubChunks[loc.Y+1]
 end
 
 local function canSee(subB,from,to)
@@ -116,7 +116,8 @@ function helper.startSearch(start,direaction)
     local minY,maxY = 0,31
     local visitedTotal = 0
     while searchQueue.S <= searchQueue.E  and visitedTotal <=maxVisited do
-        if os.clock()-Start_Time >=.014 then
+        if os.clock()-Start_Time >=.015  then
+            if not AntiLag then break end 
             Paused = coroutine.running()
             coroutine.yield()
         end
@@ -124,6 +125,7 @@ function helper.startSearch(start,direaction)
         if not top then break end 
         local current = getSubChunk(top.fromVector)
         if not current then continue end 
+
         local function vist(vector,throughFace)
             local x,y,z = vector.X,vector.Y,vector.Z
             if top.dirs[oppsiteFaces[throughFace]] == 1 then
@@ -153,19 +155,21 @@ function helper.startSearch(start,direaction)
             Queue.enqueue(searchQueue, {fromVector = vector,fromDir = oppsiteFaces[throughFace],dirs =clone})
             return true 
         end
-        for i,v in Faces do
-            vist(top.fromVector+v,i) 
+
+        for face,dirVector in Faces do
+            vist(top.fromVector+dirVector,face) 
         end
     end
     return visited
 end
 
-function helper.update(force,StartTime)
+function helper.update(force,StartTime,Update)
     Start_Time = StartTime
     if Paused then
         helper.resume(StartTime)
         return 
     end
+    Update.Value +=1
     local direaction = camera.CFrame.LookVector
     local chunk = getChunkLocation(camera.CFrame.Position/3-Vector3.yAxis)
     if direaction ~= lastDir or lastChunk ~= chunk  or force then

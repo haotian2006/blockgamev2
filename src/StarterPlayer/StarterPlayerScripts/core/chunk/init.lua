@@ -33,14 +33,15 @@ local RenderHandler = require(script.Rendering.Handler)
 local Builder = require(script.Rendering.Helper.Build)
 
 RemoteEvent.OnClientEvent:Connect(function(chunk,blocks,biome)  
+    if not blocks then
+        Asked[chunk] = nil
+        return
+    end
     if destroyed[chunk] then return end 
     local decomp,transparencyTable =  ChunkWorkers:DoWork("deCompress",blocks)
     local newchunk = ChunkClass.new(chunk.X, chunk.Z,decomp,biome,transparencyTable)
     Data.insertChunk(chunk.X, chunk.Z, newchunk)
-    if not once then
-        once = true 
-    end
-    Asked[chunk] = false
+    Asked[chunk] = nil
     Recieved[chunk] = true
     RenderHandler.renderNewChunk(chunk)
     -- BlockRender.Destroyed[chunk] = nil

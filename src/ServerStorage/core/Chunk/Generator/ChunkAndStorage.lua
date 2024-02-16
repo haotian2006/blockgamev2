@@ -12,6 +12,7 @@ indexUtils.preComputeAll()
 
 local MaxTime =  Config.MaxTimeDebris
 local Storage = {}
+local Chunk = {}
 local DestroyStack = Stack.new(10000)
 
 local carvedBufferSize =  2*8*256*8
@@ -42,7 +43,6 @@ end
 
 local ChunkData = setmetatable({}, {__mode = 'v'}) 
 local Chunks = {}
-local Chunk = {}
 local InUse = {}
 
 --//Storage
@@ -61,17 +61,11 @@ end
 local function OnDestroy(chunk)
     local obj = Chunks[chunk]
     if not obj then return end 
-    -- if obj[2] then--or not InUse[chunk]  then
-    --     obj[1] = task.delay(MaxTime,OnDestroy,chunk)
-    --     obj[2] = false
-    --     return
-    -- end
     Chunks[chunk] = nil
     Stack.push(DestroyStack, obj)
 end
 
 function Storage.add(name,value)
-   -- value[1] = task.delay(MaxTime, OnDestroy,name)
     Chunks[name] = value
 end
 
@@ -92,6 +86,11 @@ end
 function Storage.getChunkData(chunk)
     return ChunkData[chunk]
 end
+
+function Storage.removeChunkData(chunk)
+     ChunkData[chunk] = nil
+end
+
 
 function Storage.getOrCreateChunkData(chunk)
     local obj = ChunkData[chunk]

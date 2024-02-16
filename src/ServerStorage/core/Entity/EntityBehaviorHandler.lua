@@ -27,6 +27,7 @@ function BehaviorManager.getAndCacheAll(self)
             local name = BehaviorManager.checkIsBehavior(key)
             if not name or BehaviorsFound[name] then continue end
             BehaviorsFound[name] = value
+            if value == "NIL" then continue end 
             table.insert(Behaviors,{name,value.priority or DEAFULT_PRIORITY})
         end
     end

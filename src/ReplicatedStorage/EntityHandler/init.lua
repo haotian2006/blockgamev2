@@ -62,8 +62,6 @@ function Entity.new(type:string,ID)
     return self
 end
 
-
-
 function Entity.addComponent(self,component,index)
     table.clear(self.__cachedData )
     local entityData =  BehaviorHandler.getEntity(self.Type)
@@ -72,7 +70,7 @@ function Entity.addComponent(self,component,index)
     componentData.Name = component
     Entity.removeComponent(self,component)
     table.insert(self.__components,index or 1,componentData)
-
+    self.__changed["__components"] = true
     if IS_SERVER then
         EntityContainerManager.changedComponets(self)
     end

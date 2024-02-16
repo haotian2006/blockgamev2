@@ -18,7 +18,9 @@ end
 script.Parent:BindToMessageParallel("Run", function(ID)
     local data = Tasks[ID]
     Tasks[ID] = nil
-    coroutine.resume(data[1],data[2](unpack(data[3])))
+    local packed = {data[1],data[2](unpack(data[3]))}
+    task.synchronize()
+    coroutine.resume(unpack(packed))
     --task.synchronize() --Not really needed for my case
 end)
 
@@ -26,5 +28,5 @@ return function(x,...)
     local ID = GetId()
     Tasks[ID] = {coroutine.running(),x,{...}}
     script.Parent:SendMessage("Run",ID)
-    return coroutine.yield()
+    return coroutine.yield() 
 end

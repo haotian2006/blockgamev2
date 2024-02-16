@@ -12,16 +12,20 @@ local Camera = workspace.CurrentCamera
 local CurrentArms
 
 function Arms.update(dt)
-    local CurrentEntity = PlayerEntity()
+    local CurrentEntity = PlayerEntity() 
     if not CurrentArms or not  CurrentEntity then return end 
     local Model = CurrentArms.__model
     local Head =  Model.Head
     Head.Anchored = true
     Head.CFrame = Camera.CFrame*CFrame.new(-.6,1.7,2.5)
-    Model:ScaleTo(1)
     local aw = Model.Body["Right Arm"]
-    local Holding,data = EntityRender.renderHolding(CurrentArms,CurrentEntity.Holding,.5)
-    Model:ScaleTo(.15)
+    local Holding,data = EntityRender.renderHolding(CurrentArms,CurrentEntity.Holding,function(item)
+        if not item then
+            Model:ScaleTo(1)
+        else
+            Model:ScaleTo(.15)
+        end
+    end)
     if Holding and Holding ~= "" and data then
         if type(data) == "table" then
             if data.RenderHand == false then
@@ -61,10 +65,17 @@ function Arms.Init()
         
 end
 
+function Arms.playerAnimation(ani)
+    Animator.playLocal(CurrentArms, "Attack")
+    local Entity = PlayerEntity()
+    if not Entity then return end 
+    Animator.play(Entity, ani)
+end
+
 game:GetService("UserInputService").InputBegan:Connect(function(k)
     if not CurrentArms or k.UserInputType ~= Enum.UserInputType.MouseButton1 then return end 
 
-    Animator.playLocal(CurrentArms, "Attack")
+    Arms.playerAnimation("Attack")
 end)
 
 game:GetService("RunService").RenderStepped:Connect(Arms.update)

@@ -6,7 +6,6 @@ local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 
 Actor:BindToMessage("Init", function(bindable)
     DataHandler = bindable
-    BehaviorHandler.loadComponet("Biomes")
 end)
 Actor:BindToMessageParallel("M", function(Idx,task,...)
     local func = Tasks[task]

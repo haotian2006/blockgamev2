@@ -1,3 +1,4 @@
+--!nocheck
 local Shaper = {}
 
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
@@ -12,6 +13,7 @@ local NoiseManager = require(game.ServerStorage.Generation.math.noise)
 local layers = require(game.ServerStorage.Generation.generation.biomes.layers)
 local Biomes = require(game.ReplicatedStorage.Biomes)
 local Utils = require(Generation.math.utils)
+local Regirstry = require(script.Parent.Parent.Registry)
 local UInt32 = 2^32-1
 
 local to1D = IndexUtils.to1D
@@ -51,14 +53,22 @@ end
 
 function Shaper.color(cx,cz,Shape,Surface,Biome)
     local ISBUFFER = type(Biome) ~= "number"
-    local currentBiome 
+    local currentBiome  = {}
     if not ISBUFFER then
-        currentBiome = Biomes.getBiomeData(Biome)
+        local BiomeName = Biomes.getBiomeFrom(Biome)
+        currentBiome = Regirstry.getBiome(BiomeName)
     end
-    local Cache = {}
-    local function getBiome(idx)
+    local Cache = {} 
+    local MainBlock = currentBiome.MainBlock 
+    local SurfaceBlock = currentBiome.SurfaceBlock 
+    local SecondaryBlock = currentBiome.SecondaryBlock
+    local SecondaryLength = (currentBiome.SecondaryLength )
+
+    local function getBiome(idx):Regirstry.Biome
         if Cache[idx] then return Cache[idx] end 
-        local b = Biomes.getBiomeData(buffer.readu16(Biome, (idx-1)*2))
+        local BiomeName = Biomes.getBiomeFrom(buffer.readu16(Biome, (idx-1)*2))
+        local b = Regirstry.getBiome(BiomeName)
+
         Cache[idx] = b or currentBiome
         return b
     end
@@ -67,8 +77,16 @@ function Shaper.color(cx,cz,Shape,Surface,Biome)
     for x = 1,8 do
         for z = 1,8 do
             local idx2D = IndexUtils.to1DXZ[x][z]
+            local Surfacey = buffer.readu8(Surface, idx2D-1)
             if ISBUFFER then
-                currentBiome = getBiome(idx2D)
+                local biome = getBiome(idx2D)
+                if currentBiome ~= biome then
+                    MainBlock = biome.MainBlock
+                    SurfaceBlock = biome.SurfaceBlock
+                    SecondaryBlock = biome.SecondaryBlock 
+                    SecondaryLength = (biome.SecondaryLength)
+                end
+                currentBiome = biome
             end
             for y = 256,1,-1 do
                 local idx = to1D[x][y][z]
@@ -76,7 +94,13 @@ function Shaper.color(cx,cz,Shape,Surface,Biome)
                 local value = buffer.readu32(Shape, idx_)
                 local color = 0
                 if value == UInt32 then
-                    color = currentBiome.Color or 0
+                    local diff = Surfacey-y
+                    color = MainBlock
+                    if Surfacey == y then
+                        color = SurfaceBlock
+                    elseif diff < SecondaryLength and diff>0 then
+                        color = SecondaryBlock
+                    end
                     times+=1
                 end
                 buffer.writeu32(Shape, idx_, color)
@@ -141,23 +165,26 @@ function Shaper.sampleDensityNoise(cx,cz,qx,qz,biome)
     local SurfaceScale = 1
     local ISBUFFER = type(biome) ~= "number"
     if not ISBUFFER then
-        local b = Biomes.getBiomeData(biome)
-        height = b.Elevation or height
-        Factor = b.Factor or Factor
-        noise_scale = b.NoiseScale or noise_scale
-        SurfaceScale = b.SurfaceScale or SurfaceScale
+        local BiomeName = Biomes.getBiomeFrom(biome)
+        local b = Regirstry.getBiome(BiomeName)
+        height = b.Elevation 
+        Factor = b.Factor 
+        noise_scale = b.NoiseScale 
+        SurfaceScale = b.SurfaceScale 
     end
     debug.profilebegin("sample Density For SubChuck")
     local bufferObject = buffer.create(maxBufferSize)
     local x= qx*4+1
     local z = qz*4+1
+
     if ISBUFFER then
         local idx = IndexUtils.to1DXZ[x][z]
-        local b = Biomes.getBiomeData(buffer.readu16(biome, (idx-1)*2))
-        height = b.Elevation or height
-        Factor = b.Factor or Factor
-        noise_scale = b.NoiseScale or noise_scale
-        SurfaceScale = b.SurfaceScale or SurfaceScale
+        local BiomeName = Biomes.getBiomeFrom(buffer.readu16(biome, (idx-1)*2))
+        local b = Regirstry.getBiome(BiomeName)
+        height = b.Elevation 
+        Factor = b.Factor 
+        noise_scale = b.NoiseScale 
+        SurfaceScale = b.SurfaceScale 
     end
 
     local nx = x-1 + startX
@@ -168,6 +195,7 @@ function Shaper.sampleDensityNoise(cx,cz,qx,qz,biome)
         local min = NoiseManager.sample(MinNoise, nx, y, nz)/noise_scale
         local max = NoiseManager.sample(MaxNoise, nx, y, nz)/noise_scale
         surface = (surface / 10.0 + 1) / surface
+
         local noise = clampedLerp(min, max, surface) -calculateFallOff(height, Factor, y) --+(height-y)*scale
         buffer.writef32(bufferObject, ly*4, noise)
     end

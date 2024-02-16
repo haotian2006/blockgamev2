@@ -3,7 +3,10 @@ Chunk.Width = 16
 Chunk.Height = 256
 
 local IndexConverter = require(game.ReplicatedStorage.Utils.IndexUtils)
+IndexConverter.preCompute2D()
+local ResourchHandler = require(game.ReplicatedStorage.ResourceHandler)
 local IS_CLIENT = game:GetService("RunService"):IsClient()
+local to1d = IndexConverter.to1D
 
 function Chunk.new(x,z,Block:buffer?,biomes:nil|buffer|number,transparencyData)
     local self = {
@@ -18,7 +21,7 @@ function Chunk.new(x,z,Block:buffer?,biomes:nil|buffer|number,transparencyData)
         Version = 0; 
     }
     self.Data = {
-        
+         
     }
     if IS_CLIENT then
         self.SubChunks = {}
@@ -48,6 +51,7 @@ end
 function Chunk.getBiome(self,idx) 
     return if typeof(self.BiomeMap) =='buffer' then buffer.readu16(self.BiomeMap, (idx-1)*2) else self.BiomeMap
 end
+
 function Chunk.getBiomeAt(self,x,z)
     local idx = IndexConverter.to1DXZ[x][z]
     return if typeof(self.BiomeMap) =='buffer' then buffer.readu16(self.BiomeMap, (idx-1)*2) else self.BiomeMap
@@ -57,13 +61,30 @@ end
 function Chunk.insertBlock(self,idx,block)
     buffer.writeu32(self.Blocks, (idx-1)*4, block)
 end 
-function Chunk.insertBlockAt(self,x,y,z,block)
-    Chunk.insertBlock(self, IndexConverter.to1D[x][y][z], block)
+
+if IS_CLIENT then
+    local function getTransparency(block)
+        return if block == 0 then 1 else 0
+    end
+    local function UpdateTransparency(self,idx,block)
+        local tBuffer = self.TransparencyBuffer
+        buffer.writeu8(tBuffer, idx-1, getTransparency(block))
+    end
+    function Chunk.insertBlock(self,idx,block)
+        buffer.writeu32(self.Blocks, (idx-1)*4, block)
+        UpdateTransparency(self,idx,block)
+    end 
 end
+
+function Chunk.insertBlockAt(self,x,y,z,block)
+    Chunk.insertBlock(self, to1d[x][y][z], block)
+end
+
 function Chunk.getblock(self,idx)
    return buffer.readu32(self.Blocks, (idx-1)*4)
 end
+
 function Chunk.getBlockAt(self,x,y,z)
-    return Chunk.getblock(self, IndexConverter.to1D[x][y][z])
+    return Chunk.getblock(self, to1d[x][y][z])
 end
 return table.freeze(Chunk)

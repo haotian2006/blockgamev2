@@ -2,7 +2,7 @@ local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
 local Blocks = {
     
 
-    ['c:grass'] = {
+    ['c:grassBlock'] = {
         components = {
            --//Deafult values
         },
@@ -13,7 +13,12 @@ local Blocks = {
             
         }
     },
-    
+    ['c:foodBlock'] = {
+
+    },
+    ['c:purpleOre'] = {
+
+    },
     ['c:dirt'] = {
         components = {}
     },
@@ -23,6 +28,9 @@ local Blocks = {
     },
 
     ['c:wood'] = {
+        components = {}
+    },
+    ['c:leaf'] = {
         components = {}
     },
 

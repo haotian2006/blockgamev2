@@ -1,0 +1,200 @@
+Date : 2024-02-13 01:19:58
+Directory : c:\Users\haoti\Documents\GitHub\blockgamev2
+Total : 100 files,  1396 codes, 67 comments, 385 blanks, all 1848 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Luau     |         95 |      1,379 |         67 |        384 |      1,830 |
+| JSON     |          5 |         17 |          0 |          1 |         18 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                                        | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                           |        100 |      1,396 |         67 |        385 |      1,848 |
+| src                                                                                                                                         |        100 |      1,396 |         67 |        385 |      1,848 |
+| src\ReplicatedStorage                                                                                                                       |         27 |        307 |         -3 |        126 |        430 |
+| src\ReplicatedStorage (Files)                                                                                                               |          2 |       -277 |         -8 |        -13 |       -298 |
+| src\ReplicatedStorage\BehaviorPacks                                                                                                         |          3 |         15 |          2 |         20 |         37 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic                                                                                                   |          3 |         15 |          2 |         20 |         37 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic (Files)                                                                                           |          1 |         31 |          1 |         10 |         42 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic\Biomes                                                                                            |          1 |        -12 |          1 |          9 |         -2 |
+| src\ReplicatedStorage\BehaviorPacks\Cubic\Entities                                                                                          |          1 |         -4 |          0 |          1 |         -3 |
+| src\ReplicatedStorage\Block                                                                                                                 |          2 |         47 |          0 |         11 |         58 |
+| src\ReplicatedStorage\BridgeNet                                                                                                             |          1 |         -7 |          0 |          1 |         -6 |
+| src\ReplicatedStorage\Chunk                                                                                                                 |          1 |         22 |          0 |          3 |         25 |
+| src\ReplicatedStorage\CollisionHandler                                                                                                      |          2 |        429 |         11 |         48 |        488 |
+| src\ReplicatedStorage\Container                                                                                                             |          1 |         -1 |         -1 |          0 |         -2 |
+| src\ReplicatedStorage\Data                                                                                                                  |          1 |          9 |          0 |          6 |         15 |
+| src\ReplicatedStorage\EntityHandler                                                                                                         |          8 |        -10 |         -7 |         30 |         13 |
+| src\ReplicatedStorage\EntityHandler (Files)                                                                                                 |          4 |        -10 |         -8 |         17 |         -1 |
+| src\ReplicatedStorage\EntityHandler\EntityReplicator                                                                                        |          4 |          0 |          1 |         13 |         14 |
+| src\ReplicatedStorage\Libarys                                                                                                               |          2 |         10 |         -1 |          1 |         10 |
+| src\ReplicatedStorage\Libarys (Files)                                                                                                       |          1 |         10 |         -1 |          2 |         11 |
+| src\ReplicatedStorage\Libarys\DataStructures                                                                                                |          1 |          0 |          0 |         -1 |         -1 |
+| src\ReplicatedStorage\Synchronizer                                                                                                          |          3 |         54 |          0 |         14 |         68 |
+| src\ReplicatedStorage\Utils                                                                                                                 |          1 |         16 |          1 |          5 |         22 |
+| src\ServerScriptService                                                                                                                     |          1 |          3 |          7 |          2 |         12 |
+| src\ServerStorage                                                                                                                           |         42 |       -506 |         10 |          0 |       -496 |
+| src\ServerStorage\Generation                                                                                                                |         21 |       -279 |         -1 |          1 |       -279 |
+| src\ServerStorage\Generation\generation                                                                                                     |         19 |       -326 |         -1 |        -14 |       -341 |
+| src\ServerStorage\Generation\generation\biomes                                                                                              |          2 |          9 |          0 |          4 |         13 |
+| src\ServerStorage\Generation\generation\biomes\layers                                                                                       |          2 |          9 |          0 |          4 |         13 |
+| src\ServerStorage\Generation\generation\biomes\layers (Files)                                                                               |          1 |          0 |          0 |          3 |          3 |
+| src\ServerStorage\Generation\generation\biomes\layers\land                                                                                  |          1 |          9 |          0 |          1 |         10 |
+| src\ServerStorage\Generation\generation\chunk                                                                                               |         14 |       -350 |         -1 |        -24 |       -375 |
+| src\ServerStorage\Generation\generation\chunk\GenerationLayer                                                                               |         12 |       -325 |          0 |        -25 |       -350 |
+| src\ServerStorage\Generation\generation\chunk\GenerationLayer (Files)                                                                       |          1 |        -59 |          0 |         -3 |        -62 |
+| src\ServerStorage\Generation\generation\chunk\GenerationLayer\Features                                                                      |          3 |        -70 |          0 |         -6 |        -76 |
+| src\ServerStorage\Generation\generation\chunk\GenerationLayer\biome                                                                         |          1 |        -10 |          0 |         -2 |        -12 |
+| src\ServerStorage\Generation\generation\chunk\GenerationLayer\caves                                                                         |          1 |        -11 |          0 |         -2 |        -13 |
+| src\ServerStorage\Generation\generation\chunk\GenerationLayer\color                                                                         |          1 |         -9 |          0 |         -3 |        -12 |
+| src\ServerStorage\Generation\generation\chunk\GenerationLayer\lerp                                                                          |          2 |       -125 |          0 |         -4 |       -129 |
+| src\ServerStorage\Generation\generation\chunk\GenerationLayer\noise                                                                         |          1 |        -12 |          0 |         -2 |        -14 |
+| src\ServerStorage\Generation\generation\chunk\GenerationLayer\other                                                                         |          2 |        -29 |          0 |         -3 |        -32 |
+| src\ServerStorage\Generation\generation\chunk\Generator                                                                                     |          2 |        -25 |         -1 |          1 |        -25 |
+| src\ServerStorage\Generation\generation\chunk\Generator\Actor                                                                               |          1 |         -1 |          0 |          0 |         -1 |
+| src\ServerStorage\Generation\generation\chunk\Generator\Tasks                                                                               |          1 |        -24 |         -1 |          1 |        -24 |
+| src\ServerStorage\Generation\generation\features                                                                                            |          3 |         15 |          0 |          6 |         21 |
+| src\ServerStorage\Generation\generation\features\foliage                                                                                    |          1 |          1 |          0 |          1 |          2 |
+| src\ServerStorage\Generation\generation\features\ore                                                                                        |          1 |         11 |          0 |          3 |         14 |
+| src\ServerStorage\Generation\generation\features\structures                                                                                 |          1 |          3 |          0 |          2 |          5 |
+| src\ServerStorage\Generation\math                                                                                                           |          2 |         47 |          0 |         15 |         62 |
+| src\ServerStorage\core                                                                                                                      |         21 |       -227 |         11 |         -1 |       -217 |
+| src\ServerStorage\core\Chunk                                                                                                                |         19 |       -229 |         11 |        -13 |       -231 |
+| src\ServerStorage\core\Chunk (Files)                                                                                                        |          4 |       -197 |         -4 |         -7 |       -208 |
+| src\ServerStorage\core\Chunk\Generator                                                                                                      |         15 |        -32 |         15 |         -6 |        -23 |
+| src\ServerStorage\core\Chunk\Generator (Files)                                                                                              |         10 |        -57 |         11 |        -15 |        -61 |
+| src\ServerStorage\core\Chunk\Generator\Actor                                                                                                |          3 |          6 |          2 |          3 |         11 |
+| src\ServerStorage\core\Chunk\Generator\ChunkLayer                                                                                           |          1 |         -1 |          1 |          2 |          2 |
+| src\ServerStorage\core\Chunk\Generator\Tasks                                                                                                |          1 |         20 |          1 |          4 |         25 |
+| src\ServerStorage\core\Entity                                                                                                               |          1 |          2 |          0 |         11 |         13 |
+| src\ServerStorage\core\ServerContainer                                                                                                      |          1 |          0 |          0 |          1 |          1 |
+| src\StarterPlayer                                                                                                                           |         30 |      1,592 |         53 |        257 |      1,902 |
+| src\StarterPlayer\StarterPlayerScripts                                                                                                      |         30 |      1,592 |         53 |        257 |      1,902 |
+| src\StarterPlayer\StarterPlayerScripts (Files)                                                                                              |          1 |          3 |          0 |          1 |          4 |
+| src\StarterPlayer\StarterPlayerScripts\AssetManager                                                                                         |          3 |         90 |         17 |         16 |        123 |
+| src\StarterPlayer\StarterPlayerScripts\Controller                                                                                           |          2 |         93 |          0 |         25 |        118 |
+| src\StarterPlayer\StarterPlayerScripts\InputHandler                                                                                         |          1 |          0 |          0 |         10 |         10 |
+| src\StarterPlayer\StarterPlayerScripts\Render                                                                                               |          5 |        -20 |          3 |         19 |          2 |
+| src\StarterPlayer\StarterPlayerScripts\core                                                                                                 |         18 |      1,426 |         33 |        186 |      1,645 |
+| src\StarterPlayer\StarterPlayerScripts\core\Rendering                                                                                       |          1 |          4 |          0 |          0 |          4 |
+| src\StarterPlayer\StarterPlayerScripts\core\Replication                                                                                     |          1 |         11 |          0 |          4 |         15 |
+| src\StarterPlayer\StarterPlayerScripts\core\Ui                                                                                              |          1 |        -14 |          1 |         -5 |        -18 |
+| src\StarterPlayer\StarterPlayerScripts\core\chunk                                                                                           |         15 |      1,425 |         32 |        187 |      1,644 |
+| src\StarterPlayer\StarterPlayerScripts\core\chunk (Files)                                                                                   |          2 |         21 |          5 |          8 |         34 |
+| src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering                                                                                 |         13 |      1,404 |         27 |        179 |      1,610 |
+| src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering (Files)                                                                         |          5 |        574 |          9 |         79 |        662 |
+| src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Actor                                                                           |          3 |         23 |          0 |          1 |         24 |
+| src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Helper                                                                          |          5 |        807 |         18 |         99 |        924 |
++---------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                                                    | language | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Biomes\init.lua                                       | Luau     |        -12 |          1 |          9 |         -2 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Blocks.lua                                            | Luau     |         31 |          1 |         10 |         42 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BehaviorPacks\Cubic\Entities\Player.lua                                   | Luau     |         -4 |          0 |          1 |         -3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Biomes.lua                                                                | Luau     |         34 |          2 |          9 |         45 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Block\BlockPool.lua                                                       | Luau     |         -2 |          0 |          0 |         -2 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Block\init.lua                                                            | Luau     |         49 |          0 |         11 |         60 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\BridgeNet\init.lua                                                        | Luau     |         -7 |          0 |          1 |         -6 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Chunk\init.lua                                                            | Luau     |         22 |          0 |          3 |         25 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\CollisionHandler\Ray.lua                                                  | Luau     |        118 |          1 |         26 |        145 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\CollisionHandler\init.lua                                                 | Luau     |        311 |         10 |         22 |        343 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\CollisonHandler.lua                                                       | Luau     |       -311 |        -10 |        -22 |       -343 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Container\init.lua                                                        | Luau     |         -1 |         -1 |          0 |         -2 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Data\init.lua                                                             | Luau     |          9 |          0 |          6 |         15 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityHandler\EntityCollisionHandler.lua                                  | Luau     |          0 |          0 |          3 |          3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityHandler\EntityReplicator\AnimatorR.lua                              | Luau     |          0 |          0 |          8 |          8 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityHandler\EntityReplicator\Client.lua                                 | Luau     |          0 |          0 |          3 |          3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityHandler\EntityReplicator\ReplicatorUtils.lua                        | Luau     |          0 |          0 |          1 |          1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityHandler\EntityReplicator\TaskReplicator.lua                         | Luau     |          0 |          1 |          1 |          2 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityHandler\Render.lua                                                  | Luau     |          4 |          0 |          0 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityHandler\Utils.lua                                                   | Luau     |         -1 |         -2 |         16 |         13 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\EntityHandler\init.lua                                                    | Luau     |        -13 |         -6 |         -2 |        -21 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\DataStructures\Queue.lua                                          | Luau     |          0 |          0 |         -1 |         -1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Libarys\Debris.lua                                                        | Luau     |         10 |         -1 |          2 |         11 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Synchronizer\Bindable.model.json                                          | JSON     |          3 |          0 |          0 |          3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Synchronizer\Remote.model.json                                            | JSON     |          3 |          0 |          0 |          3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Synchronizer\init.lua                                                     | Luau     |         48 |          0 |         14 |         62 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ReplicatedStorage\Utils\OtherUtils.lua                                                      | Luau     |         16 |          1 |          5 |         22 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerScriptService\__init__.server.lua                                                     | Luau     |          3 |          7 |          2 |         12 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\biomes\layers\init.lua                                  | Luau     |          0 |          0 |          3 |          3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\biomes\layers\land\JustLandLayer.lua                    | Luau     |          9 |          0 |          1 |         10 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\Features\combineLayer.lua         | Luau     |        -48 |          0 |         -2 |        -50 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\Features\oreSampleLayer.lua       | Luau     |        -11 |          0 |         -2 |        -13 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\Features\structureSampleLayer.lua | Luau     |        -11 |          0 |         -2 |        -13 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\biome\biomeLayer.lua              | Luau     |        -10 |          0 |         -2 |        -12 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\caves\sampleWorm.lua              | Luau     |        -11 |          0 |         -2 |        -13 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\color\surfaceColorLayer.lua       | Luau     |         -9 |          0 |         -3 |        -12 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\init.lua                          | Luau     |        -59 |          0 |         -3 |        -62 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\lerp\airStoneLayer.lua            | Luau     |        -79 |          0 |         -3 |        -82 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\lerp\biomeBlendLayer.lua          | Luau     |        -46 |          0 |         -1 |        -47 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\noise\surfaceNoiseLayer.lua       | Luau     |        -12 |          0 |         -2 |        -14 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\other\shapeCombineLayer.lua       | Luau     |        -18 |          0 |         -1 |        -19 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\GenerationLayer\other\surfaceCombineLayer.lua     | Luau     |        -11 |          0 |         -2 |        -13 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\Generator\Actor\Main.server.lua                   | Luau     |         -1 |          0 |          0 |         -1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\chunk\Generator\Tasks\init.lua                          | Luau     |        -24 |         -1 |          1 |        -24 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\features\foliage\init.lua                               | Luau     |          1 |          0 |          1 |          2 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\features\ore\init.lua                                   | Luau     |         11 |          0 |          3 |         14 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\generation\features\structures\init.lua                            | Luau     |          3 |          0 |          2 |          5 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\math\Carver2.lua                                                   | Luau     |         47 |          0 |         10 |         57 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\Generation\math\utils.lua                                                     | Luau     |          0 |          0 |          5 |          5 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\ChunkBuilder.lua                                                   | Luau     |        -27 |         -4 |          1 |        -30 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\Actor\GenerationMain.server.lua                          | Luau     |          4 |          0 |          2 |          6 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\Actor\Info.model.json                                    | JSON     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\Actor\ParallelRunner.lua                                 | Luau     |         -1 |          2 |          0 |          1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\ChunkAndStorage.lua                                      | Luau     |        267 |          6 |         42 |        315 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\ChunkDataLocal.lua                                       | Luau     |       -100 |          0 |        -19 |       -119 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\ChunkLayer\init.lua                                      | Luau     |         -1 |          1 |          2 |          2 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\Communicator.lua                                         | Luau     |         -1 |          0 |         -2 |         -3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\Handler.lua                                              | Luau     |         75 |          8 |         14 |         97 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\LocalChunk.lua                                           | Luau     |       -152 |         -2 |        -24 |       -178 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\LocalChunkold.lua                                        | Luau     |       -179 |         -4 |        -34 |       -217 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\OverworldActorLayer.lua                                  | Luau     |         28 |          3 |          3 |         34 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\RegionHelper.lua                                         | Luau     |          7 |          0 |          3 |         10 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\Tasks\Shaper.lua                                         | Luau     |         20 |          1 |          4 |         25 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\init.lua                                                 | Luau     |         -7 |         -1 |          1 |         -7 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\Generator\initializer.lua                                          | Luau     |          5 |          1 |          1 |          7 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\OverworldBiome.lua                                                 | Luau     |          0 |          0 |          1 |          1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\OverworldStack.lua                                                 | Luau     |        -15 |          0 |         -4 |        -19 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Chunk\init.lua                                                           | Luau     |       -155 |          0 |         -5 |       -160 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\Entity\EntityBehaviorHandler.lua                                         | Luau     |          2 |          0 |         11 |         13 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\ServerStorage\core\ServerContainer\init.lua                                                 | Luau     |          0 |          0 |          1 |          1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\AssetManager\Block.lua                                   | Luau     |         45 |         17 |          9 |         71 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\AssetManager\BlockTexture.lua                            | Luau     |         33 |          0 |          5 |         38 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\AssetManager\init.lua                                    | Luau     |         12 |          0 |          2 |         14 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Controller\init.lua                                      | Luau     |         44 |          0 |         14 |         58 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Controller\mouse.lua                                     | Luau     |         49 |          0 |         11 |         60 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\InputHandler\init.lua                                    | Luau     |          0 |          0 |         10 |         10 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\BlockTexture.lua                                  | Luau     |        -15 |          0 |          1 |        -14 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\GreedyMesh.lua                                    | Luau     |          0 |          0 |          1 |          1 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\RenderStuff.lua                                   | Luau     |        -13 |          0 |          3 |        -10 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\SubChunkHelper.lua                                | Luau     |          6 |          0 |         10 |         16 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\Render\init.lua                                          | Luau     |          2 |          3 |          4 |          9 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\__init__.client.lua                                      | Luau     |          3 |          0 |          1 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\Rendering\Arms.lua                                  | Luau     |          4 |          0 |          0 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\Replication\Block.lua                               | Luau     |         11 |          0 |          4 |         15 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\Ui\ContainerHandler.lua                             | Luau     |        -14 |          1 |         -5 |        -18 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\ChunkTasks.lua                                | Luau     |         17 |          0 |          6 |         23 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Actor\Main.client.lua               | Luau     |         15 |          0 |          1 |         16 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Actor\Main.meta.json                | JSON     |          5 |          0 |          0 |          5 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Actor\init.meta.json                | JSON     |          3 |          0 |          0 |          3 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\BlockTexture.lua                    | Luau     |        191 |          1 |         12 |        204 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Config.lua                          | Luau     |          4 |          0 |          0 |          4 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Handler.lua                         | Luau     |        287 |          8 |         48 |        343 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Helper\Build.lua                    | Luau     |        170 |         17 |         39 |        226 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Helper\FloodFill.lua                | Luau     |        210 |          0 |         20 |        230 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Helper\GreedyMesh.lua               | Luau     |        155 |          1 |          3 |        159 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Helper\Search.lua                   | Luau     |        177 |          0 |         24 |        201 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Helper\SimpleCull.lua               | Luau     |         95 |          0 |         13 |        108 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\RenderCache.lua                     | Luau     |         60 |          0 |         11 |         71 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\Rendering\Tasks.lua                           | Luau     |         32 |          0 |          8 |         40 |
+| c:\Users\haoti\Documents\GitHub\blockgamev2\src\StarterPlayer\StarterPlayerScripts\core\chunk\init.lua                                      | Luau     |          4 |          5 |          2 |         11 |
+| Total                                                                                                                                       |          |      1,396 |         67 |        385 |      1,848 |
++---------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

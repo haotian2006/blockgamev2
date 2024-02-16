@@ -120,9 +120,9 @@ end
 function container.resize(self,newSize)
     local diff = newSize-(#self-2)
     if diff == 0 then return end 
-    local fx = if diff > 0 then table.insert else table.remove
+    local func = if diff > 0 then table.insert else table.remove
     for i =1,diff do
-        fx(self,#self-1,"")
+        func(self,#self-1,"")
     end
 end
 
@@ -293,8 +293,7 @@ end
 function container.find(self,Item,canBeOutput,CannotBeFull)
     local size = #self
     for i,v in self do
-        if i == 1 or v == '' or i == size  then continue end 
-
+        if i == 1 or v == '' or i == size  then continue end
         if container.isOutput(self, i-1) and not canBeOutput then continue end 
         local ItemAt = v[1]
         if not ItemClass.equals(ItemAt, Item) then continue end 

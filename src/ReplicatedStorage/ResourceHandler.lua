@@ -1,18 +1,42 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local Data = {}
+local Data = {
+    Animations = {},
+    Items = {},
+    Ui = {},
+    Assets = {},
+    Containers = {},
+    Crafting = {},
+    Blocks = {},
+    Entities = {},
+    EntityModels = {}
+}
+
 local ResourceHandler = {}
 local ResourcePacks = game.ReplicatedStorage.ResourcePacks or Instance.new("Folder",game.ReplicatedStorage)
 ResourcePacks.Name = "ResourcePacks"
-function ResourceHandler.AddInstanceChildren(Object,AssetObj)
+
+local function addTo(to,from)
+    for i,v in from do
+        if to[i] then continue end 
+        to[i] = v
+    end
+end
+
+function ResourceHandler.AddInstanceChildren(Object,AssetObj,depth)
     local Folder = AssetObj
     for i,stuff in Object:GetChildren() do
+        Folder[stuff.Name] = Folder[stuff.Name] or {}
         if stuff:IsA("Folder") then
-            Folder[stuff.Name] = Folder[stuff.Name] or {}
-            ResourceHandler.AddInstanceChildren(stuff,Folder[stuff.Name])
+            --Folder[stuff.Name].ISFOLDER = true
+            ResourceHandler.AddInstanceChildren(stuff,Folder[stuff.Name],depth+1)
         elseif stuff:IsA("ModuleScript") then
-            Folder[stuff.Name] = require(stuff)
+            if depth <=0 then
+                addTo(Folder[stuff.Name] , require(stuff))
+            else
+                Folder[stuff.Name] = require(stuff)
+            end
         else
             Folder[stuff.Name] = stuff
         end
@@ -29,13 +53,13 @@ function ResourceHandler.LoadPack(PackName:string,loadComponet)
     local function x(v)
         if v:IsA("Folder") then
             Data[v.Name] = Data[v.Name] or {}
-            ResourceHandler.AddInstanceChildren(v, Data[v.Name])
+            ResourceHandler.AddInstanceChildren(v, Data[v.Name],0)
         elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
             Data[v.Name] = Data[v.Name] or {}
-            for i,data in require(v)do
-                Data[v.Name][i] = data
-            end
-            ResourceHandler.AddInstanceChildren(v, Data[v.Name])
+            addTo(Data[v.Name] , require(v))
+
+            ResourceHandler.AddInstanceChildren(v, Data[v.Name],0)
+            
         end
     end
     if loadComponet then
@@ -64,9 +88,11 @@ end
 function ResourceHandler.getBlock(Name)
     return Data["Blocks"] and Data["Blocks"][Name] or nil
 end
+
 function ResourceHandler.getAllBlocks()
     return Data["Blocks"]
 end
+
 function ResourceHandler.getEntity(Name)
     return Data["Entities"] and Data["Entities"][Name] or nil 
 end

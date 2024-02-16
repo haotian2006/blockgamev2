@@ -135,9 +135,11 @@ local function sampleSection(blocks,section)
     debug.profileend()
 
     if isAir then
+        debug.profileend()
         return airBuffer
     end
     if allWalls then
+        debug.profileend()
         return wallBuffer
     end
 

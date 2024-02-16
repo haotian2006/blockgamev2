@@ -13,9 +13,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local resourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local ItemHandler = require(game.ReplicatedStorage.Item)
-local ContinerClass = require(game.ReplicatedStorage.Container)
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
-local Data = require(game.ReplicatedStorage.Data)
 
 local Events = game:GetService("ReplicatedStorage").Events.Container
 local Send:RemoteEvent = Events.Send
@@ -44,13 +42,13 @@ end
 function handler.getOrCreateFrame(name,isContainer)
     if frames[name] then return frames[name] end 
     if isContainer then 
-        local F = resourceHandler.getUiContainer(name)
-        if not F then return end 
-        frames[name] = F.Frame:Clone()
+        local uiContainter = resourceHandler.getUiContainer(name)
+        if not uiContainter then return end 
+        frames[name] = uiContainter.Frame:Clone()
     else
-        local F = resourceHandler.getUI(name):Clone()
-        if not F then return end 
-        frames[name] = F:Clone()
+        local uiContainter = resourceHandler.getUI(name):Clone()
+        if not uiContainter then return end 
+        frames[name] = uiContainter:Clone()
     end
     if not frames[name] then return end 
     frames[name].Parent =  Player.PlayerGui
@@ -62,21 +60,6 @@ function handler.getOrCreateFrame(name,isContainer)
     return frames[name]
 end
  
-
-local Containers = {
-    Crafting = {
-        {"c:GrassBlock",2}
-    },
-    Holding =  {"c:GrassBlock",2}
-}
-local function getTextureId(c)
-    if typeof(c) == "Instance" then 
-        if c:IsA("Texture") or c:IsA("Decal") then
-            return c.Texture
-        end
-    end
-    return c
-end
 
 local function getFrameParentAndData(frame:Frame)
     local screenGui = frame:FindFirstAncestorWhichIsA("ScreenGui")
@@ -102,8 +85,6 @@ function handler.getContainerAt(x,y)
     end
     return 
 end
-
-
 
 local LastDisplayed
 function handler.displayInfo(x,y)

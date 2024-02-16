@@ -7,7 +7,11 @@ local Data = {
     Blocks = {},
     Biomes = {},
     Entities = {},
-    BlockCollisionBoxes = {}
+    BlockCollisionBoxes = {},
+    Behaviors = {},
+    Foliage = {},
+    Ores = {},
+    Structures = {},
 }
 local BehaviorPacks = game.ReplicatedStorage.BehaviorPacks or Instance.new("Folder",game.ReplicatedStorage)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,9 +20,15 @@ local ResourcePacks = require(ReplicatedStorage.ResourceHandler)
 
 BehaviorPacks.Name = "BehaviorPacks"
 
+local function addTo(to,from)
+    for i,v in from do
+        if to[i] then continue end 
+        to[i] = v
+    end
+end
 
 local function FormatTable(x,p)
-    local p = p or {}
+    p = p or {}
     for i,v in x do
         if type(v) == "table" and v.NameSpace then
             i = v.NameSpace
@@ -27,16 +37,22 @@ local function FormatTable(x,p)
     end 
     return p
 end
-local function AddInstanceChildren(Object,Folder)
+local function AddInstanceChildren(Object,Folder,depth)
     for i,stuff in Object:GetChildren() do
+        Folder[stuff.Name] = Folder[stuff.Name] or {}
         if stuff:IsA("Folder") then
-            Folder[stuff.Name] = Folder[stuff.Name] or {}
-            Folder[stuff.Name].ISFOLDER = true
-            AddInstanceChildren(stuff,Folder[stuff.Name])
+           -- Folder[stuff.Name].ISFOLDER = true
+            AddInstanceChildren(stuff,Folder[stuff.Name],depth+1)
         elseif stuff:IsA("ModuleScript") then
             local data = require(stuff)
-            Folder[(type(data) == "table" and data.NameSpace) or stuff.Name] = type(data) =="table" and FormatTable(data) or data
-            AddInstanceChildren(stuff,Folder[stuff.Name])
+            local key = (type(data) == "table" and data.NameSpace) or stuff.Name
+            local touse =  type(data) =="table" and FormatTable(data) or data
+            if depth <=0 then
+                addTo(Folder[key] , touse)
+            else
+                Folder[key] = touse
+            end
+            AddInstanceChildren(stuff,Folder[stuff.Name],depth+1)
         else
             Folder[stuff.Name] = stuff
         end
@@ -46,12 +62,12 @@ local function loop(v)
     if v:IsA("Folder") then
         Data[v.Name] = Data[v.Name] or {}
         Data[v.Name].ISFOLDER = true
-        AddInstanceChildren(v, Data[v.Name])
+        AddInstanceChildren(v, Data[v.Name],0)
     elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
         Data[v.Name] = Data[v.Name] or {}
         local data = require(v)
-        Data[v.Name] = type(data) =="table" and FormatTable(data) or data
-        AddInstanceChildren(v, Data[v.Name])
+        addTo(Data[v.Name], type(data) =="table" and FormatTable(data) or data)
+        AddInstanceChildren(v, Data[v.Name],0)
     end
 end
 function BehaviorHandler.LoadPack(PackName:string,loadComponet)

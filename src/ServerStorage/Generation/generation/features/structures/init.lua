@@ -2,49 +2,58 @@
 local SEED = 12345
 
 local Utils = require(script.Parent.Parent.Parent.math.utils)
+local Distributions = require(script.Parent.Parent.Parent.math.Distributions)
 local NoiseHandler = require(script.Parent.Parent.Parent.math.noise)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local Carver = require(script.Parent.Parent.Parent.math.Carver2)
 local Storage = unpack(require(game.ServerStorage.core.Chunk.Generator.ChunkAndStorage))
+local BlockHandler = require(game.ReplicatedStorage.Block)
+local BiomeHelper = require(game.ReplicatedStorage.Biomes)
+local Biomes 
+
 local to1dXZ = IndexUtils.to1DXZ
 local to1d = IndexUtils.to1D
 local structure = {}
 local v3 = Vector3.new
-local tree =   {
-    name = "c:tree",
-    chance = 10,
-    override = 2,
-    layout = {
-        key = {
-            3,2
-        },
-        shape = {
-            [v3(0, 0, 0)] = -1,
-            [v3(0, 1, 0)] = 1,
-            [v3(0, 2, 0)] = 1,
-            [v3(0, 3, 0)] = 1,
-            [v3(0, 4, 0)] = 1,
-            [v3(-1, 4, 0)] = 2, [v3(-2, 4, 0)] = 2, [v3(-1, 4, 1)] = 2, [v3(-2, 4, 1)] = 2,
-            [v3(-1, 4, -1)] = 2, [v3(-2, 4, -1)] = 2, [v3(-1, 4, 2)] = 2, [v3(-1, 4, -2)] = 2,
-            [v3(1, 4, 0)] = 2, [v3(2, 4, 0)] = 2, [v3(1, 4, 1)] = 2, [v3(2, 4, 1)] = 2,
-            [v3(1, 4, -1)] = 2, [v3(2, 4, -1)] = 2, [v3(1, 4, 2)] = 2, [v3(1, 4, -2)] = 2,
-            [v3(0, 4, 1)] = 2, [v3(0, 4, 2)] = 2, [v3(0, 4, -1)] = 2, [v3(0, 4, -2)] = 2,
-            [v3(0, 5, 0)] = 1,
-            [v3(-1, 5, 0)] = 2, [v3(-2, 5, 0)] = 2, [v3(-1, 5, 1)] = 2, [v3(-2, 5, 1)] = 2,
-            [v3(-1, 5, -1)] = 2, [v3(-2, 5, -1)] = 2, [v3(-1, 5, 2)] = 2, [v3(-1, 5, -2)] = 2,
-            [v3(1, 5, 0)] = 2, [v3(2, 5, 0)] = 2, [v3(1, 5, 1)] = 2, [v3(2, 5, 1)] = 2,
-            [v3(1, 5, -1)] = 2, [v3(2, 5, -1)] = 2, [v3(1, 5, 2)] = 2, [v3(1, 5, -2)] = 2,
-            [v3(0, 5, 1)] = 2, [v3(0, 5, 2)] = 2, [v3(0, 5, -1)] = 2, [v3(0, 5, -2)] = 2,
-            [v3(0, 6, 0)] = 2,
-            [v3(-1, 6, 0)] = 2, [v3(-1, 6, 1)] = 2, [v3(-1, 6, -1)] = 2,
-            [v3(1, 6, 0)] = 2, [v3(1, 6, 1)] = 2, [v3(1, 6, -1)] = 2,
-            [v3(0, 6, -1)] = 2, [v3(0, 6, 1)] = 2,
-            [v3(0, 7, 0)] = 2,
-         }
+local tree 
+task.spawn(function()
+    tree =   {
+        name = "c:tree",
+        chance = 10,
+        override = 2,
+        layout = {
+            key = {
+                BlockHandler.awaitBlock("c:wood"),BlockHandler.awaitBlock("c:leaf"),3
+            },
+            shape = {
+                [v3(0, 0, 0)] = 3,
+                [v3(0, 1, 0)] = 1,
+                [v3(0, 2, 0)] = 1,
+                [v3(0, 3, 0)] = 1,
+                [v3(0, 4, 0)] = 1,
+                [v3(-1, 4, 0)] = 2, [v3(-2, 4, 0)] = 2, [v3(-1, 4, 1)] = 2, [v3(-2, 4, 1)] = 2,
+                [v3(-1, 4, -1)] = 2, [v3(-2, 4, -1)] = 2, [v3(-1, 4, 2)] = 2, [v3(-1, 4, -2)] = 2,
+                [v3(1, 4, 0)] = 2, [v3(2, 4, 0)] = 2, [v3(1, 4, 1)] = 2, [v3(2, 4, 1)] = 2,
+                [v3(1, 4, -1)] = 2, [v3(2, 4, -1)] = 2, [v3(1, 4, 2)] = 2, [v3(1, 4, -2)] = 2,
+                [v3(0, 4, 1)] = 2, [v3(0, 4, 2)] = 2, [v3(0, 4, -1)] = 2, [v3(0, 4, -2)] = 2,
+                [v3(0, 5, 0)] = 1,
+                [v3(-1, 5, 0)] = 2, [v3(-2, 5, 0)] = 2, [v3(-1, 5, 1)] = 2, [v3(-2, 5, 1)] = 2,
+                [v3(-1, 5, -1)] = 2, [v3(-2, 5, -1)] = 2, [v3(-1, 5, 2)] = 2, [v3(-1, 5, -2)] = 2,
+                [v3(1, 5, 0)] = 2, [v3(2, 5, 0)] = 2, [v3(1, 5, 1)] = 2, [v3(2, 5, 1)] = 2,
+                [v3(1, 5, -1)] = 2, [v3(2, 5, -1)] = 2, [v3(1, 5, 2)] = 2, [v3(1, 5, -2)] = 2,
+                [v3(0, 5, 1)] = 2, [v3(0, 5, 2)] = 2, [v3(0, 5, -1)] = 2, [v3(0, 5, -2)] = 2,
+                [v3(0, 6, 0)] = 2,
+                [v3(-1, 6, 0)] = 2, [v3(-1, 6, 1)] = 2, [v3(-1, 6, -1)] = 2,
+                [v3(1, 6, 0)] = 2, [v3(1, 6, 1)] = 2, [v3(1, 6, -1)] = 2,
+                [v3(0, 6, -1)] = 2, [v3(0, 6, 1)] = 2,
+                [v3(0, 7, 0)] = 2,
+             }
+        }
+    
     }
-
-}
+end)
+--[[
 local village = {
     name = "c:village",
     chance = 100,
@@ -135,11 +144,12 @@ local village = {
     }
 
 }
+
+]]
 local function getStructure(biome)
-  return  {
-    tree,
-    
-    }
+    local b = BiomeHelper.getBiomeFrom(biome)
+    if not b then return {} end 
+  return  Biomes[b].Structures
 end
 --[[
     {
@@ -150,6 +160,33 @@ end
     layout : table|function,
     }
 ]]
+export type Structure = {
+    salt : number?,
+    chance : number,
+    override : number,
+    layout : {
+        key : {[number]:number},
+        shape: {}
+    },
+    randomY :Distributions.Distribution
+}
+
+function structure.parse(info)
+    local parsed = {
+        salt = info.salt,
+        chance = info.chance or 10,
+        override = info.override or 2,
+        layout = info.layout or {},
+        randomY = info.randomY and Distributions.parse(info.randomY)
+    }
+
+    if not parsed.layout.key or not parsed.layout.shape then return {} end 
+    for i,v in parsed.layout.key do
+        parsed.layout.key[i] = BlockHandler.parse(v)
+    end
+    return parsed
+end
+
 local writter = buffer.writeu32
 function structure.sample(cx,cz)
     local currentChunk = Vector3.new(cx,0,cz)
@@ -161,19 +198,19 @@ function structure.sample(cx,cz)
         biome = buffer.readu16(biome, 2)
     end
     local strucutres = getStructure(biome)
-    local random = Utils.createRandom(SEED+2341, cx, cz)
     local CarvedOut = {}
     local cofx,cofz = cx*8,cz*8 
     debug.profilebegin("sampleStructures")
-    local finished = tree
+
     local currentBuffer = Storage.getFeatureBuffer(Vector3.new(cx,0,cz))
     local currentBlocks = blocks
     for i,stru in strucutres do
+        local random = Utils.createRandom(SEED+2341, cx, cz,stru.salt or i)
         if random:NextInteger(1, stru.chance or 10) ~= 1 then continue end
         local ofx = random:NextInteger(1, 8)
         local ofz = random:NextInteger(1, 8)
         local idx = to1dXZ[ofx][ofz]
-        local height = buffer.readu8(surface, idx-1)
+        local height = math.clamp(buffer.readu8(surface, idx-1), 1, 256)
         local blockAt = buffer.readu32(blocks, (to1d[ofx][height][ofz]-1)*4)
         if blockAt == 0 then continue end 
         local key = stru.layout.key
@@ -207,5 +244,9 @@ function structure.sample(cx,cz)
         end
     end
     debug.profileend()
+end
+
+function structure.addRegirstry(b)
+    Biomes = b
 end
 return structure 

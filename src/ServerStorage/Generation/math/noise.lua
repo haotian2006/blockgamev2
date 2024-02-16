@@ -17,6 +17,12 @@ end
 Noise.newBasic = BasicNoise.new
 Noise.basicSample = BasicNoise.sample
 
+local basicSample = BasicNoise.sample
+
+export type Noise = {
+    
+}
+
 function Noise.new(seed,firstOctave,amplitudes,persistance,lacunarity,salt)
     local inputFactor = 2^firstOctave
     local valueFactor = 2^ (#amplitudes - 1) / ((2^ #amplitudes) - 1)
@@ -30,10 +36,16 @@ function Noise.new(seed,firstOctave,amplitudes,persistance,lacunarity,salt)
 end
 
 function Noise.parse(seed,setting)
+    if setting.type == "basic" then
+        return {true,BasicNoise.new(seed)}
+    end
     return Noise.new(seed, setting.firstOctave, setting.amplitudes, setting.persistance, setting.lacunarity,setting.salt)
 end
 
 function Noise.sample(self,x,y,z)
+    if self[1] == true then
+        return basicSample(self, x, y, z)
+    end
     local inputFactor = self[2]
     local valueFactor = self[3]
     local value = 0
@@ -43,7 +55,7 @@ function Noise.sample(self,x,y,z)
     for i,basicNoise in self[4] do
         if basicNoise then 
             local ampt = self[1][i] or 1
-            value += ampt*valueFactor*BasicNoise.sample(basicNoise, x*inputFactor, y*inputFactor, z*inputFactor)
+            value += ampt*valueFactor*basicSample(basicNoise, x*inputFactor, y*inputFactor, z*inputFactor)
         end 
         valueFactor*=persistance
         inputFactor*=lacunarity
@@ -52,4 +64,6 @@ function Noise.sample(self,x,y,z)
     return value
 end
 
-return Noise
+Noise.DEFAULT = BasicNoise.new(1234, 1234)
+
+return table.freeze(Noise)

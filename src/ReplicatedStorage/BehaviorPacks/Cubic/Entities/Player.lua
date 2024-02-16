@@ -1,6 +1,6 @@
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local entity = {
-
+    class = "c:Player",
     components ={
         MaxNeckRotation = Vector2.new(60,310),
         Name = "Player",

@@ -42,12 +42,21 @@ function Data.getChunkOrCreate(x,y)
     end
     return c
 end 
+
+function Data.getBiome(x,y,z)
+    local cx,cz,lx,ly,lz = ConversionUtils.gridToLocalAndChunk(x, y, z)
+    local chunk = Data.getChunk(cx,cz)
+    if not chunk then  return  end
+    return Chunk.getBiomeAt(chunk, lx, lz)
+end
+
 function Data.getBlock(x,y,z)
     local cx,cz,lx,ly,lz = ConversionUtils.gridToLocalAndChunk(x, y, z)
     local chunk = Data.getChunk(cx,cz)
     if not chunk then  return BlockUtils.CONST_NULL end
     return Chunk.getBlockAt(chunk, lx, ly, lz)
 end 
+
 function Data.insertBlock(x,y,z,block)
     local cx,cz,lx,ly,lz = ConversionUtils.gridToLocalAndChunk(x, y, z)
     local chunk = Data.getChunk(cx,cz)

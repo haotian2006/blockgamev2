@@ -1,5 +1,7 @@
 local Handler = {}
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
 local Configs = require(script.Parent.Config)
 
 local began = debug.profilebegin
@@ -42,11 +44,13 @@ local RequestBuildR = {}
 local SendCarve = {}
 local SendFeatures = {}
 local RequestMain = {}
+local MainFailed = {}
 local RequestBuildTable = {}
 local ToReplicateBuilt = {}
 local SendMain = {}
 
 local ChunksRequested = {}
+local numOfPlayers = 0
 
 local function QuickReplicator(toReplicate,task)
     local new = {}
@@ -209,10 +213,8 @@ local function ResumeLoop()
         if os.clock()-Start_Time >= 0.015 then break end 
         local chunk = Queue.dequeue(ResumeQueue)
         if not chunk  then break end 
-        began("resumeChunk")
         local ChunkObj = Storage.getOrCreate(chunk)
         coroutine.resume(ChunkObj.MainThread)
-        close()
     end
     close()
     return os.clock()-Start_Time <= .013
@@ -243,6 +245,7 @@ local function FeatureLoop()
 end
 
 local ReplicateOrder:{[number]:()->()|{}} = {
+    {MainFailed,"MainFailed"},
     replicateToMain,
     replicateBuiltHandler,
    -- {RequestBuildR, "RequestBuildR"},
@@ -293,10 +296,32 @@ local function MainHandler(chunk)
     if ChunkObj.InQueue then return end 
     ChunkObj.InQueue = true
     local IsInActor = not ChunkObj.NotInRegion
+    local internalStep = 0
 
    -- Storage.pause(chunk) --Pause collection 
 
     local running = coroutine.running()
+    local Failed = task.delay(25+(numOfPlayers-1)*5, function()
+        if IsInActor then
+            for Actor,_ in ChunkObj.ActorsToSend do
+                if not MainFailed[Actor] then 
+                    MainFailed[Actor] = {}
+                end
+                MainFailed[Actor][chunk] = true
+            end
+            --return back to main thread 
+            SendMain[chunk] =  {false,false,false,chunk}
+        end
+        print(chunk, internalStep,ChunkObj.NotInRegion )
+        Storage.removeChunkData(chunk)
+        ChunkObj.Failed  = nil
+        task.cancel(running)
+        task.wait(.5)
+        ChunkObj.Step = -1
+        ChunkObj.InQueue = false
+        Storage.remove(chunk)
+    end)
+    ChunkObj.Failed = Failed 
     ChunkObj.MainThread = running
     
     local nChunks = ChunkObj.Chunks --Nearby chunks 
@@ -329,7 +354,7 @@ local function MainHandler(chunk)
         end      
 
     end
-
+    internalStep = 1
     ChunkObj.Step = 1 --Building Step
     if ChunkObj.BuildAmmount < AreaSize then --If not finished build 
         for nChunk,_ in nChunks do
@@ -338,7 +363,7 @@ local function MainHandler(chunk)
         end
         coroutine.yield()
     end
-
+    internalStep = 2
     ChunkObj.Step = 2 --Carving Step
     if ChunkObj.CarveAmmount < ChunkObj.Required then --If not finished carve 
         for _,nChunk in ChunkObj.ToQueue do
@@ -347,6 +372,7 @@ local function MainHandler(chunk)
         end
         coroutine.yield() --Wait for nearby chunks to carve
     end
+    internalStep = 3
     --handle Cave Replication
     if not IsInActor then
         --Send carved data 
@@ -358,11 +384,12 @@ local function MainHandler(chunk)
     elseif  IsInActor and not ChunkObj.FCarve then
         coroutine.yield() --Wait for stuff to be replicated 
     end
+    internalStep = 4
   --  print("done")
     if IsInActor then
         LocalChunk.finishCarve(ChunkObj) -- combine carve with shape 
     end
-
+    internalStep = 5
     ChunkObj.Step = 3 --Feature Step
     if ChunkObj.FeatureAmmount < ChunkObj.Required then --If not finished Feature 
         for _,nChunk in ChunkObj.ToQueue do
@@ -371,6 +398,7 @@ local function MainHandler(chunk)
         end
         coroutine.yield() --Wait for nearby chunks to add Features
     end
+    internalStep = 6
     --handle Features Replication
     if not IsInActor then
         --Send carved data 
@@ -382,6 +410,7 @@ local function MainHandler(chunk)
     elseif  IsInActor and not ChunkObj.FFeature then
         coroutine.yield() --Wait for stuff to be replicated 
     end
+    internalStep = 7
    -- print("done")
     if IsInActor then
         LocalChunk.finishFeatures(ChunkObj) -- combine features with shape 
@@ -391,13 +420,15 @@ local function MainHandler(chunk)
     -- for c,data in nChunks do 
     --     Storage.decrement(c) --tells the system that its not being used
     -- end
-
+    internalStep = 8
     if IsInActor then
         --return back to main thread 
         SendMain[chunk] =  {chunkData.Shape,chunkData.Surface,chunkData .Biome,chunk}
     end
     ChunkObj.InQueue = false
     Storage.remove(chunk) -- resume collection 
+    task.cancel(Failed)
+    ChunkObj.Failed  = nil
 end
   
 local function MainLoop()
@@ -449,9 +480,14 @@ function Handler.getInfo()
 end
 
 RunService.Heartbeat:Connect(function()
+    if not Communicator.Ready then return end 
+    numOfPlayers = #Players:GetPlayers()
     iter_ = 0
     if not ResumeLoop() then return end 
-    Communicator.runParallel(RecursiveRunner)
+    local s,e = pcall(function(...)  
+        Communicator.runParallel(RecursiveRunner)
+    end)
+    if not s then print(e) end 
 end)
 
 RunService.Stepped:Connect(function()
@@ -463,6 +499,15 @@ Communicator.bindToMessage("Q",function(From,cx,cz)
     local chunk = Vector3.new(cx,0,cz)
     Queue.enqueue(MainQueue,chunk)
     --MainHandler(chunk)
+end)
+
+Communicator.bindToMessage("MainFailed",function(from,requested)
+    for _,chunk in requested do
+        local c = Storage.get(chunk)
+        if not c or not c.Failed then continue end 
+        coroutine.resume(c.Failed)
+     -- task.spawn(MainHandler,chunk)
+    end
 end)
 
 Communicator.bindToMessage("RequestMain",function(from,requested)

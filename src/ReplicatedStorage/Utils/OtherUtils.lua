@@ -64,4 +64,26 @@ function Utils.preComputeCircle(r)
     return precomputed
 end
 
+--(WARNIN THIS METHOD IS ACUTALLY SLOWER FOR LARGER TABLES)
+function Utils.chunkDictToArrayV2(dict, center)
+    local sortedKeys = {}
+
+    for key, _ in dict do
+        local index = 1
+        local toInsert = {key,(center-key).Magnitude}
+        local current =  sortedKeys[index]
+        while index <= #sortedKeys and toInsert[2] > current[2] do
+            index = index + 1
+        end
+
+        table.insert(sortedKeys, index, toInsert)
+    end
+
+    for i,v in sortedKeys do
+        sortedKeys[i] = v[1]
+    end
+
+    return sortedKeys
+end
+
 return Utils

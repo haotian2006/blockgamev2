@@ -31,13 +31,6 @@ function Utils.createRandom(seed,x,z,salt)
     return Random.new(seed)
 end
 
-function Utils.choose(random:Random,x,y)
-    return if random:NextInteger(1, 2) == 1 then x else y
-end
-function Utils.choose4(random:Random,a,b,c,d)
-    local r =  random:NextInteger(0, 3)
-    return if r == 0 then a else if r == 1 then b else if r == 2 then c else d
-end
 local function toTwosComplement(n)
     return 4294967296 + n 
 end
@@ -61,13 +54,16 @@ function Utils.bor(x, y)
     end
     return result
 end
+
 function Utils.lerp(a, b, c)
     return b + a * (c - b)
 end
+
 function Utils.lerp2(a, b, c, d, e, f)
     local x = c + a * (d - c)
     return x+ b* (e + a * (f- e)- x)
 end
+
 function Utils.lerp3(a, b, c, d, e, f, g, h, i, j, k)
     local x1 =  d + a * (e - d)
     local x =   x1 + b * ((f + a * (g - f)) - x1)
@@ -103,4 +99,13 @@ do
         Utils.YprecentageCache8[y] = (((y-1) % 8 + 8) % 8) / 8
     end
 end
+
+function Utils.choose(random:Random,x,y)
+    return if random:NextInteger(1, 2) == 1 then x else y
+end
+function Utils.choose4(random:Random,a,b,c,d)
+    local r =  random:NextInteger(0, 3)
+    return if r == 0 then a else if r == 1 then b else if r == 2 then c else d
+end
+
 return Utils

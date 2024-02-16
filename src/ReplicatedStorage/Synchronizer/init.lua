@@ -59,4 +59,4 @@ function Synchronizer.Init() -- We assume that only main will call this
     return Synchronizer
 end
 
-return table.freeze(Synchronizer)
+return table.freeze(Synchronizer) 

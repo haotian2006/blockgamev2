@@ -1,13 +1,16 @@
 --// for stuff like grass flowers
-local math = script.Parent.Parent.Parent.math
-local NoiseHandler = require(math.noise)
-local Range = require(math.range)
+local mathUtils = script.Parent.Parent.Parent.math
+local NoiseHandler = require(mathUtils.noise)
+local Range = require(mathUtils.range)
 local BiomeHandler = require(game.ReplicatedStorage.Biomes)
+local blockHandler = require(game.ReplicatedStorage.Block)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local Storage = unpack(require(game.ServerStorage.core.Chunk.Generator.ChunkAndStorage))
 local to1d = IndexUtils.to1D
 local to1DXZ = IndexUtils.to1DXZ
+local BiomeHelper = require(game.ReplicatedStorage.Biomes)
 local foliage = {}
+local Biomes = {}
 --[[
     noiseSetting:NoiseSetting,
     range: Range,
@@ -16,22 +19,37 @@ local foliage = {}
 
 ]]
 local function getfoliageFromBiome(biome)
-    return {
-        {
-            noiseSettings = NoiseHandler.new(12345, -7, {1}),
-            range = Range.parse(
-                {
-                    multiplier  = 30, 
-                   min = -.6,
-                   max = 0
-                }
-            ),
-            block = 3,
-        }
-    }
+    local b = BiomeHelper.getBiomeFrom(biome)
+    if not b then return {} end 
+    return  Biomes[b].Foliage
+    -- return {
+    --     {
+    --         noiseSettings = NoiseHandler.new(12345, -7, {1}),
+    --         range = Range.parse(
+    --             {
+    --                 multiplier  = 30, 
+    --                min = -.6,
+    --                max = 0
+    --             }
+    --         ),
+    --         block = 3,
+    --     }
+    -- }
 end
-function foliage.new(noise,block,salt)
-    
+
+export type Foliage = {
+    noiseSettings : {},
+    range : Range.Range,
+    block : number,
+}
+
+function foliage.parse(settings)
+    local parsed =  {
+        noiseSettings = settings.noiseSettings and NoiseHandler.parse(1234, settings.noiseSettings) or NoiseHandler.DEFAULT,
+        range = settings.range and Range.parse(settings.range) or Range.DEFAULT,
+        block = blockHandler.parse(settings.block) or 1,
+    }
+    return parsed
 end
 function foliage.addfoliage(cx,cz)
     local currentChunk = Vector3.new(cx,0,cz)
@@ -62,8 +80,10 @@ function foliage.addfoliage(cx,cz)
         for z = 1,8 do
             local rz = z+ofz
             if Updatefoliage then Updatefoliage(x, z) end 
-            local height = buffer.readu8(surface, to1DXZ[x][z]-1)
-            local blockAt = buffer.readu32(blocks, (to1d[x][height+1][z]-1)*4)
+            local height = math.clamp(buffer.readu8(surface, to1DXZ[x][z]-1),1,255)
+            local above = height+1
+            
+            local blockAt = buffer.readu32(blocks, (to1d[x][above][z]-1)*4)
             local blockBelow = buffer.readu32(blocks, (to1d[x][height][z]-1)*4)
             for i,v in foliage do
                 local noise = NoiseHandler.sample(v.noiseSettings, rx*5, 0, rz*5)
@@ -77,4 +97,9 @@ function foliage.addfoliage(cx,cz)
     debug.profileend()
     return blocks
 end
+
+function foliage.addRegirstry(b)
+    Biomes = b
+end
+
 return foliage

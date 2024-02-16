@@ -5,7 +5,7 @@ local TotalActors = Config.Actors
 local RegionSize = Config.RegionSize
 
 local Debirs = require(game.ReplicatedStorage.Libarys.Debris)
-local RegionFolder = Debirs.getOrCreateFolder("RegionHelper", 10)
+local RegionFolder = Debirs.getFolder("RegionHelper", 10)
 
 function Region.getIndexFromRegion(x, y)
     local index = ((x % TotalActors) + (y % TotalActors)) % TotalActors + 1
@@ -23,7 +23,7 @@ function Region.GetIndexFromChunk(chunk)
     local region = chunk//RegionSize
     local x,y = region.X,region.Y
     local index = ((x % TotalActors) + (y % TotalActors)) % TotalActors + 1
-    RegionFolder:add(chunk,index)
+    RegionFolder:set(chunk,index)
     return  index
 end
 

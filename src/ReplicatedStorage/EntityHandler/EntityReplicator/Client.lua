@@ -27,6 +27,7 @@ function Client.getUpdateEvent(key)
     UpdateEvents[key] = event
     return event
 end
+
 function Client.getGuidFrom(Key)
     return key[Key]
 end
@@ -92,12 +93,15 @@ function Client.handleData(data)
         local Updated = Client.updateEntity(Guid,data)
         if not Updated then return end 
         if data.__components then
-            Render.createModel(Updated)
+            print("changed")
             table.clear(Updated.__cachedData)
+            Render.createModel(Updated)
+
         end
     --slow 
     end
 end
+
 function Client.readKey(keyData)
     for idx,key_ in keyData do
         local id,todo = key_:match("([^,]*),?([^,]*)")
@@ -113,6 +117,7 @@ function Client.readKey(keyData)
 end
 local Const = 6
 local TIME = .1
+
 function Client.updateInterpolate(dt)
     local LerpRate = dt*Const
     for guid,target in toInterpolate do
@@ -156,6 +161,7 @@ function Client.updateInterpolate(dt)
         if next(target) == nil then toInterpolate[guid] = nil end 
     end
 end
+
 local TaskReplicator = require(script.Parent.TaskReplicator)
 function Client.replicateToServer()
     local toReplicate = {}

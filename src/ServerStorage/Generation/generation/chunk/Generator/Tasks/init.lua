@@ -8,31 +8,7 @@ local Biomes = require(game.ReplicatedStorage.Biomes)
 local Utils = require(script.Parent.Parent.Parent.Parent.math.utils)
 local features = script.Parent.Parent.Parent.features
 local worms = require(script.Parent.Parent.Parent.features.caves.perlineWorms)
-local ore = require(features.ore)
-local foliage = require(features.foliage)
-local structures = require(features.structures)
-local cave = worms.parse(123,{
-    maxDistance = 200,
-    amplitude = .008,
-    weight = .5,
-    interval = 6,
-    maxSections = 1,
-    chance = 10 
-})
-Tasks.computefoliage = function(cx,cz,block,biome,surface)
-    return foliage.addfoliage(cx, cz, block, biome, surface)
-end
-Tasks.computeStructures = function(cx,cz,blocks,biomeAndSurface)
-    return structures.sample(cx, cz, blocks, biomeAndSurface)
-end
-Tasks.computeOre = function(cx,cz,surface,biome)
-    return ore.sample(cx, cz, surface, biome)
-end
-Tasks.computeWorms = function(cx,cz)
-   -- task.synchronize()
-    local a = worms.sample(cave, cx, cz,false)
-    return a
-end
+
 
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 IndexUtils.preCompute()

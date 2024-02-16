@@ -94,7 +94,15 @@ function Controller.setGui(bool)
     InGui = bool
 end
 
+local enabled = true
+UserInputService.InputBegan:Connect(function(keycode)
+    if keycode.KeyCode == Enum.KeyCode.Y then
+        enabled = not enabled
+    end
+end)
+
 local function HandleInputBegan(input,IsTyping)
+    if not enabled then return end 
    local actions = KeyBinds.getActionsFromKey(input)
    for v,keys in actions do
         ActionsDown[v] = true
@@ -112,6 +120,7 @@ local function HandleInputBegan(input,IsTyping)
    end
 end
 local function HandleInputEnded(input,IsTyping)
+    if not enabled then return end 
     local actions = KeyBinds.getActionsFromKey(input)
    for v,keys in actions do
         ActionsDown[v] = nil

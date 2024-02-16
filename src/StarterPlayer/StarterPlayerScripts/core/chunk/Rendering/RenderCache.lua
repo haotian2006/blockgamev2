@@ -2,15 +2,15 @@ local Storage = {}
 local Cahce = workspace.RenderCache
 
 local FarCFrame = CFrame.new(0,99999999,0)
-local maxBlocks  = 10000
+local maxBlocks  = 30000
 local NotInUseB = {}
 
-local maxTextures  = 10000
+local maxTextures  = 30000
 local NotInUseT = {}
 
 local texture = Instance.new("Texture")
-texture.StudsPerTileU = 3
-texture.StudsPerTileV = 3
+texture.StudsPerTileU = 3.02
+texture.StudsPerTileV = 3.02
 
 local toClone = Instance.new("Part")
 toClone.Anchored = true
@@ -21,6 +21,7 @@ do
         NotInUseB[i] = toClone:Clone()
         NotInUseB[i].Parent = script
     end
+    task.wait()
     for i =1,maxTextures do
         NotInUseT[i] = texture:Clone()
         NotInUseT[i].Parent = script

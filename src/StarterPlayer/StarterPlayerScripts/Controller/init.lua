@@ -1,15 +1,28 @@
 local Controller = {}
 local InputHandler = require(script.Parent:WaitForChild("InputHandler"))
+local UIS = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
 local IsMoving = false 
 local Data = require(game.ReplicatedStorage.Data)
 local LPE = Data.getPlayerEntity
-local EntityV2 = game.ReplicatedStorage.EntityHandler
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local EntityUtils = EntityHandler.Utils
 local MathLib = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local Mouse = require(script.mouse)
 local EntityTaskReplicator = require(game.ReplicatedStorage.EntityHandler.EntityReplicator.EntityTaskReplicator)
-local Animator = require(EntityV2.Animator)
+
+local DataHandler = require(game.ReplicatedStorage.Data)
+local ConversionUtil = require(game.ReplicatedStorage.Utils.ConversionUtils)
+local Chunk = require(game.ReplicatedStorage.Chunk)
+local Runner = require(game.ReplicatedStorage.Runner)
+
+local Helper = require(script.Parent.Helper)
+
+
+task.wait()
+local RenderHandler = require(script.Parent.core.chunk.Rendering.Handler)
+
+
 local Funcs = {}
 function Funcs.Crouch(key,IsDown,GPE,inputs)
     local Player = LPE()
@@ -23,16 +36,14 @@ end
 
 local ray = require(game.ReplicatedStorage.CollisionHandler.Ray)
 
-
-local hitPos = Instance.new("Part",workspace)
-hitPos.Size = Vector3.one 
-hitPos.Color = Color3.new(0.960784, 0.803922, 0.513725)
-hitPos.Anchored = true
 local heightlight = Instance.new("Part",workspace)
 heightlight.Size = Vector3.new(3,3,3)
 heightlight.Anchored = true
+heightlight.Transparency = 1
 local H = Instance.new("Highlight",heightlight)
 H.Adornee = heightlight
+H.DepthMode = "Occluded"
+H.FillTransparency = 1
 
 function Funcs.HitBoxs(key,IsDown,GPE,inputs)
     if not IsDown then return end 
@@ -40,8 +51,26 @@ function Funcs.HitBoxs(key,IsDown,GPE,inputs)
     local block,Blockpos,hitpos,normal =  ray.cast(Camera.CFrame.Position/3, (Camera.CFrame.LookVector*Vector3.new(1,1,1)).Unit*100)
     if block == -1 or not block then return end 
     heightlight.Position = Blockpos*3
-   -- hitPos.Position = hitpos*3
+    Blockpos+=normal
+ 
 
+end
+
+function Funcs.Attack(key,IsDown,GPE,inputs)
+    if not IsDown then return end 
+    local RayData = Mouse.getRay()
+    if not RayData.Block then return end 
+    local Blockpos = RayData.BlockPosition
+    Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,0)
+
+end
+
+function Funcs.Interact(key,IsDown,GPE,inputs)
+    if not IsDown then return end 
+    local RayData = Mouse.getRay()
+    if not RayData.Block then return end 
+    local Blockpos = RayData.BlockPosition+RayData.Normal
+    Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,2)
 end
 
 function  Controller.createBinds()
@@ -73,7 +102,7 @@ function  Controller.createBinds()
         
         EntityHandler.setMoveDireaction(Entity,velocity) 
         local pitch,yaw = MathLib.GetP_YawFromVector3((CameraCFrame.LookVector))
-        EntityUtils.rotateHeadTo(Entity,Vector2.new(pitch,yaw))
+        EntityUtils.rotateHeadTo(Entity,pitch,yaw)
         if InputHandler.isDown("Jump") then
             EntityHandler.jump(Entity)
         end
@@ -94,4 +123,11 @@ function Controller.destroyBinds()
         InputHandler.unbindFunction(`{i}-Controller`)
     end
 end
+
+local function Update()
+    Mouse.update()
+end
+
+game:GetService("RunService").RenderStepped:Connect(Update)
+
 return Controller

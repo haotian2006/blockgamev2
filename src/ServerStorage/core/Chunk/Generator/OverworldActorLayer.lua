@@ -36,7 +36,7 @@ function Overworld.Biome(chunk)
 end
 
 function Overworld.AddFeatures(chunk)
-   -- ore.sample(chunk.X, chunk.Z)
+    ore.sample(chunk.X, chunk.Z)
     foliage.addfoliage(chunk.X, chunk.Z)
     structures.sample(chunk.X, chunk.Z)
 end
@@ -47,6 +47,7 @@ end
 
 local size0 = buffer.tostring(buffer.create(8*8*256*4))
 
+--This is used for debugging
 function compressBlockBuffer(b)
     local t = {}
     local current
@@ -72,11 +73,11 @@ function compressBlockBuffer(b)
     end
     return t
 end
+
 function Overworld.Build(chunk)
     local Biomes = Layers.get(self.Biome,chunk)
     local terrain = Layers.get(self.Terrain,chunk)
     local shape,surface = terrain[1],terrain[2]
-    local c = compressBlockBuffer(shape)
     local Colored = Layers.get(self.Colored,chunk,shape,surface,Biomes)
 
     -- if buffer.tostring(Colored) == size0 then 

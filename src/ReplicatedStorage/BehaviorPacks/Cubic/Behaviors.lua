@@ -1,17 +1,27 @@
 local Utils = require(game.ReplicatedStorage.EntityHandler.Utils)
-local part = Instance.new("Part")
-part.Size = Vector3.new(2,.1,2)
-part.Anchored = true
-part.Parent = workspace
+local Handler = require(game.ReplicatedStorage.EntityHandler)
+
 return {
     ['c:lookAtPlayer'] = {
         Function = function(entity,info)
-           for i,v in Utils.getEntitiesNear(entity,10) do
+           for i,v in Utils.getEntitiesNear(entity,info.MaxRange or 20) do
            -- part.Position = Utils.getEyePosition(v)*3
             Utils.lookAt(entity,v)
+            break
            end
         end,
         Type = {"Movement","Turning"},
     }, 
+    ['c:ManFaceManSwitch'] = {
+        Function = function(entity,info)
+           for i,v in Utils.getEntitiesNear(entity,2) do
+           -- part.Position = Utils.getEyePosition(v)*3
+            --Utils.lookAt(entity,v)
+            Handler.addComponent(entity, "ManFaceMan")
+            break
+           end
+        end,
+        Type = {},
+    }, 
    
-}
+} 

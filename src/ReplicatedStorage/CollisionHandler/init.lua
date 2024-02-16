@@ -26,7 +26,7 @@ function collisions.getBlock(x,y,z)
     local localgrid = Vector3.new(round(x)%ChunkWidth+1,round(y),round(z)%ChunkWidth+1)
     local Grid = Vector3.new(round(x),round(y),round(z))
     if chunk then
-        if localgrid.Y >= ChunkHeight or localgrid.Y <=0 then
+        if localgrid.Y > ChunkHeight or localgrid.Y <=0 then
             return false,localgrid
         end
         local b = ChunkHandler.getBlockAt(chunk,localgrid.X,localgrid.Y,localgrid.Z)
