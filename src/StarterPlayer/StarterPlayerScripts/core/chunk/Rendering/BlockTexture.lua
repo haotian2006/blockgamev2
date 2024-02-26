@@ -6,8 +6,8 @@ local BlockHandler = require(game.ReplicatedStorage.Block)
 local RenderStorage = require(script.Parent.RenderCache)
 
 local LocalPlayer = game:GetService("Players").LocalPlayer
-local AssetManager = require(LocalPlayer.PlayerScripts:WaitForChild("AssetManager"))
-local BlocksAssets = AssetManager.Blocks
+local ResourcePacks = require(game.ReplicatedStorage.ResourceHandler)
+
 
 
 local function split(string:string)
@@ -146,7 +146,7 @@ function Texture.CreateTexture(texture:string,face)
 end 
 
 function Texture.GetTextures(blockName,walls,Orientation,Id,part)
-     local info = BlocksAssets.getBlockData(blockName,Id)
+     local info = ResourcePacks.getBlockData(blockName,Id)
      local texture = info["Texture"]
      if typeof(texture) == "BrickColor" then
          part.BrickColor = info["Texture"]
@@ -191,7 +191,7 @@ function Texture.GetTextures(blockName,walls,Orientation,Id,part)
  function Texture.CreateBlock(blockName,walls,ori,Id,PartToUse)
 
     local p = PartToUse or RenderStorage.getNextBlock()
-    local info = BlocksAssets.getBlockData(blockName,Id) 
+    local info = ResourcePacks.getBlockData(blockName,Id) 
     if info.Material then 
         p.Material = info.Material 
     end

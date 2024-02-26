@@ -36,12 +36,12 @@ function Overworld.Biome(chunk)
 end
 
 function Overworld.AddFeatures(chunk)
-    ore.sample(chunk.X, chunk.Z)
     foliage.addfoliage(chunk.X, chunk.Z)
     structures.sample(chunk.X, chunk.Z)
 end
 
 function Overworld.Carve(chunk)
+    ore.sample(chunk.X, chunk.Z)
     return Carver.sample(CarverObject, chunk.X, chunk.Z)
 end
 

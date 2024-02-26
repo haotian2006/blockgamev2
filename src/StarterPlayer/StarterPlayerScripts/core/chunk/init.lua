@@ -31,7 +31,8 @@ local once = false
 local RenderHandler = require(script.Rendering.Handler)
 
 local Builder = require(script.Rendering.Helper.Build)
-
+local Https = game:GetService("HttpService")
+local highest = 0
 RemoteEvent.OnClientEvent:Connect(function(chunk,blocks,biome)  
     if not blocks then
         Asked[chunk] = nil
@@ -40,6 +41,11 @@ RemoteEvent.OnClientEvent:Connect(function(chunk,blocks,biome)
     if destroyed[chunk] then return end 
     local decomp,transparencyTable =  ChunkWorkers:DoWork("deCompress",blocks)
     local newchunk = ChunkClass.new(chunk.X, chunk.Z,decomp,biome,transparencyTable)
+    local y = #Https:JSONEncode(blocks)
+    if y >highest then
+        print("new Highest", y)
+        highest =y
+    end
     Data.insertChunk(chunk.X, chunk.Z, newchunk)
     Asked[chunk] = nil
     Recieved[chunk] = true

@@ -111,7 +111,7 @@ function worms.sample(self,cx,cz,DEBUG)
                     Lcx,Lcz = ncx,ncz
                 end
                 local to1d = to1d[lx][ly][lz]
-                buffer.writeu16(currentBuffer, (to1d-1)*2, 0)
+                buffer.writeu32(currentBuffer, (to1d-1)*4, 0)
             end
             debug.profileend()
             current+= direaction 

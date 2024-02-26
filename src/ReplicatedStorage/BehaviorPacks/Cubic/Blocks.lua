@@ -3,15 +3,8 @@ local Blocks = {
     
 
     ['c:grassBlock'] = {
-        components = {
-           --//Deafult values
-        },
-        component_groups = {
-        
-        },
-        events = {
-            
-        }
+        Default = {},
+        Variants = {}
     },
     ['c:foodBlock'] = {
 
@@ -20,22 +13,22 @@ local Blocks = {
 
     },
     ['c:dirt'] = {
-        components = {}
+       
     },
 
     ['c:stone'] = {
-        components = {}
+      
     },
 
     ['c:wood'] = {
-        components = {}
+
     },
     ['c:leaf'] = {
-        components = {}
+      
     },
 
     ['c:sand'] = {
-        components = {}
+       
     },
   
 }

@@ -13,10 +13,13 @@ local events = {}
 local TempEvents = {}
 local RenderEvents = {}
 local InGui = false
-export type ControllerEvent = Signal.Signal<EnumItem,boolean,string,{number:string}>
-export type TempControllerEvent = ControllerEvent & {
-    Destroy: (self: any) -> (),
-}
+
+local Core = require(game.ReplicatedStorage.Core)
+
+export type ControllerEvent = Core.ControllerEvent
+export type TempControllerEvent = Core.TempControllerEvent
+
+
 Controller.getKeyFromInput = KeyBinds.getKeyFromInput
 
 
@@ -35,7 +38,7 @@ function Controller.getOrCreateEventTo(Action): ControllerEvent
     events[Action] = si
     return si
 end
-function Controller.destroyAllEventsFrom(Action)
+function Controller.destroyAllEventsFor(Action)
     local data =  events[Action]
     if not data then return end 
     data:DisconnectAll()
@@ -53,8 +56,8 @@ function  Controller.unbindFromRender(Name)
 end
 
 function Controller.bindFunctionTo(Name,func,action,priority)
-    if BindedFunctions[Name] then  warn("Name already Binded") end 
-    local d = {action,func,priority or 2000}
+    if BindedFunctions[Name] then  warn(`{Name} is already Binded`) end 
+    local d = {action,func,priority or 20}
     BindedFunctions[Name] = d
     keyPairsBinded[action] = keyPairsBinded[action] or {}
     table.insert(keyPairsBinded[action],d)
@@ -67,6 +70,7 @@ function Controller.unbindFunction(name)
     local d = BindedFunctions[name]
     if not d then return end 
     local parent = keyPairsBinded[d[1]]
+    BindedFunctions[name] = nil
     table.remove(parent,table.find(parent,d))
     if next(parent) == nil then
         keyPairsBinded[d[1]] = nil
@@ -80,7 +84,7 @@ local function runFunctions(action,input,down,IsTyping,keys)
             break
         end
     end
-end
+end 
 
 function Controller.isDown(action)
     return ActionsDown[action] or false
@@ -152,6 +156,7 @@ UserInputService.LastInputTypeChanged:Connect(function(lastInputType)
     if lastvalue == 8 then--keyboard
         State = KeyBinds.setCurrentState("Keyboard")
     elseif lastvalue >=0 and lastvalue <=4 then--mouse
+    
     elseif lastvalue == 7 then--touch
         State = KeyBinds.setCurrentState("Touch")
     elseif lastvalue >=12 and lastvalue<=19 then--gamepad

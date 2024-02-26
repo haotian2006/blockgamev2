@@ -1,6 +1,12 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local defaultParse = require(script.defaultParser)
+local BlockParse = require(script.Block)
+local BTexture = require(script.BlockTexture)
+local Other = require(script.Other)
+local ItemParser = require(script.Item)
+
 local Data = {
     Animations = {},
     Items = {},
@@ -10,8 +16,12 @@ local Data = {
     Crafting = {},
     Blocks = {},
     Entities = {},
-    EntityModels = {}
+    EntityModels = {},
+    Family = {}
 }
+
+local Blocks = Data.Blocks
+local Items = Data.Items
 
 local ResourceHandler = {}
 local ResourcePacks = game.ReplicatedStorage.ResourcePacks or Instance.new("Folder",game.ReplicatedStorage)
@@ -80,6 +90,11 @@ function ResourceHandler.Init()
     for i,v in ResourcePacks:GetChildren()do
         ResourceHandler.LoadPack(v.Name)
     end
+
+    Other.init(Data)
+    BTexture.init(Blocks)
+    BlockParse.init(Blocks)
+    ItemParser.Init(Data.Items,Data.Family)
 end
 
 function ResourceHandler.getAsset(id)
@@ -89,6 +104,25 @@ function ResourceHandler.getBlock(Name)
     return Data["Blocks"] and Data["Blocks"][Name] or nil
 end
 
+function ResourceHandler.getBlockData(name,id)
+    local blockData = Blocks[name]
+    if not blockData then 
+        return 
+    end 
+    if blockData.__NoDefault then
+        return blockData
+    end
+    
+    -- if biome and blockData[biome] then
+    --     return blockData[biome]
+    -- end
+    if not id or id == 0 then
+        return  blockData.Default
+    end
+
+    return blockData[(id and id or "1")] or blockData.Default
+end
+
 function ResourceHandler.getAllBlocks()
     return Data["Blocks"]
 end
@@ -96,8 +130,23 @@ end
 function ResourceHandler.getEntity(Name)
     return Data["Entities"] and Data["Entities"][Name] or nil 
 end
-function ResourceHandler.getItem(name)
-    return Data.Items and Data.Items[name]
+function ResourceHandler.getItem(name,id)
+    local itemData = Items[name]
+    if not itemData then 
+        return 
+    end 
+    if itemData.__NoDefault then
+        return itemData
+    end
+    
+    -- if biome and blockData[biome] then
+    --     return blockData[biome]
+    -- end
+    if not id or id == 0 then
+        return  itemData.Default
+    end
+
+    return itemData[(id and id or "1")] or itemData.Default
 end
 function ResourceHandler.getUiContainer(name)
     if Data.Containers then
@@ -114,8 +163,14 @@ end
 function ResourceHandler.getEntityModel(name)
     return (Data.EntityModels or {})[name]
 end
+
+function ResourceHandler.getFamily(name)
+    return Data.Family[name]
+end
+
 function ResourceHandler.getAllData()
     return Data
 end
+
 return table.freeze(ResourceHandler)
 

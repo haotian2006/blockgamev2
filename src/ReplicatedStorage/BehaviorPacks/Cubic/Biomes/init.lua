@@ -2,9 +2,9 @@ return {
    {
       NameSpace = 'c:plains',
 
-      Elevation  = 10, -- handles height
-      Factor = 100, -- handles how much combined????
-      NoiseScale = .3, -- scales noise
+      Elevation  = 10, 
+      Factor = 100, 
+      NoiseScale = .3, 
       SurfaceScale = .1,
 
       SecondaryBlock = 'c:dirt',
@@ -37,10 +37,16 @@ return {
       Factor = 300,
       SurfaceBlock = {'c:grassBlock',0,1},
       NoiseScale = .5,
+      SurfaceScale = 1,
+      Caves = true,
+      Structures = {
+         "c:tree"
+      },
       Ores = {
          {
-            structure = "c:purple",
+            Parent = "c:purple",
             chance = 12,
+            
       }
       }
 

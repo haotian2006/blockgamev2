@@ -14,11 +14,15 @@ local CurrentArms
 function Arms.update(dt)
     local CurrentEntity = PlayerEntity() 
     if not CurrentArms or not  CurrentEntity then return end 
-    local Model = CurrentArms.__model
+    local Model:Model = CurrentArms.__model
     local Head =  Model.Head
     Head.Anchored = true
     Head.CFrame = Camera.CFrame*CFrame.new(-.6,1.7,2.5)
     local aw = Model.Body["Right Arm"]
+    local scale = Model:GetScale()
+    if scale >=.9 then
+        Model:ScaleTo(.15)
+    end
     local Holding,data = EntityRender.renderHolding(CurrentArms,CurrentEntity.Holding,function(item)
         if not item then
             Model:ScaleTo(1)

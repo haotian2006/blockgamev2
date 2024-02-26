@@ -14,29 +14,24 @@ local ClientUtils = require(script.Parent.ClientUtils)
 local DEFAULT_ROTATION = Vector2.new(360,360)
 local function createAselectionBox(parent,color) 
     local sb = Instance.new("SelectionBox",parent) 
-    sb.Visible = false
+    sb.Visible = true
+    sb.Transparency = .9
     sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) 
     sb.Adornee = parent sb.LineThickness = 0.025 
     return sb 
 end
 local Humanoid
 
-local function CreateTexture(texture,face)
-    local new
-    if texture:IsA("Decal") or texture:IsA("Texture") or type(texture) == "string" then
-        new = Instance.new("Decal")
-        new.Texture = type(texture) == "string" and texture or texture.Texture
-        new.Face = face
-    elseif texture:IsA("SurfaceGui") then
-        new = texture:Clone()
-        new.Face = face 
-    end
-
-        return new
+local function CreateTexture(texture,face) 
+ 
+    local new = Instance.new("Decal")
+    new.Texture = type(texture) == "string" and texture or texture.Texture
+    new.Face = face
+    return new
 end 
 
+local sides = {Right = true,Left = true,Top = true,Bottom = true,Back = true,Front =true}
 local function createItemModel(Item)
-    local sides = {Right = true,Left = true,Top = true,Bottom = true,Back = true,Front =true}
     local itemdata = ItemClass.getItemInfoR(Item)
     if not itemdata  then return end 
     local stuff = {}
@@ -45,6 +40,9 @@ local function createItemModel(Item)
     if not mesh then return end 
     mesh = mesh:Clone()
     if not texture then return mesh,itemdata end 
+    if type(texture) == "function" then
+        texture = texture(Item)
+    end
     if mesh:IsA("MeshPart") and type(texture) == "string" then 
         (mesh::MeshPart).TextureID = texture
         return mesh
@@ -114,6 +112,10 @@ end
 
 local function createEntityModel(self,hitbox)
     local model = ClientUtils.getAndCache(self, "Model")
+    if not model then return end 
+    if type(model) == "function" then
+        model = model(self)
+    end
     if not model then return end 
     model = model:Clone()
     local humanoid = model:FindFirstChildWhichIsA("Humanoid")  or CreateHumanoid(model)
@@ -244,9 +246,9 @@ function Render.createModel(self)
     if self.__model then self.__model:Destroy() self.__model = nil end 
     local hitbox = createHitBox(self)
     createEntityModel(self,hitbox)
-    hitbox.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
+    --hitbox.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
+    --hitbox:PivotTo( CFrame.new(self.Position*Settings.GridSize ))
     self.__model = hitbox
-    hitbox.Parent = workspace.Entities
     if Entity.isOwner(self,game.Players.LocalPlayer) then
         require(game.Players.LocalPlayer.PlayerScripts.Controller).setCameraTo(self)
     end
@@ -255,6 +257,7 @@ function Render.createModel(self)
     if Data.getPlayerEntity() == self then
         Render.setTransparency(self,1) 
     end
+    hitbox.Parent = workspace.Entities
     return hitbox
 end
 
@@ -285,7 +288,7 @@ end
 
 function Render.updatePosition(self)
     local model = self.__model
-    if not model then return end 
+    if not model or not model.PrimaryPart then return end 
     model.PrimaryPart.CFrame = CFrame.new((self.Position)*Settings.GridSize )
 end 
 
@@ -297,6 +300,7 @@ function Render.updateRotation(self,bypass)
     local neck:Motor6D = self.__cachedData["Neck"] or model:FindFirstChild("Neck",true)
     self.__cachedData["Neck"] = neck
     local mainWeld:Motor6D = self.__cachedData["MainWeld"] or model:FindFirstChild("MainWeld",true)
+    if not mainWeld then return end 
     self.__cachedData["MainWeld"] = mainWeld
     local rotation = self.Rotation or 0
     local headRotation = self.HeadRotation or Vector2.zero
@@ -311,6 +315,9 @@ function Render.update(entity)
     Render.updateRotation(entity)
     Render.updateHitbox(entity)
     Render.updatePosition(entity)
+    local Update = ClientUtils.getAndCache(entity, "Update")
+    if not Update then return end 
+    Update(entity)
 end
 
 return table.freeze(Render)

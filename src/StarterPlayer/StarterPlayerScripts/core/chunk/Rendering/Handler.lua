@@ -76,7 +76,10 @@ local function HandleSubChunk(chunk)
     Chunk.SubChunks[y] = Data
     Updated = true
     local newC = Vector3.new(x,0,z)
-    ForceCull[newC] = SearchIDX.Value
+    task.delay(1/20, function()
+        ForceCull[newC] = SearchIDX.Value
+        Updated = true
+    end)
     return true
 end
 
@@ -92,9 +95,15 @@ local function HandleLargeSubChunk(chunk)
         local info = Data[i]
         Chunk.SubChunks[i+offset] = info
     end
+    if #Chunk.SubChunks >= 32 then
+        Chunk.SubChunks.DONE = true
+    end
     Updated = true
     local newC = Vector3.new(x,0,z)
-    ForceCull[newC] = SearchIDX.Value
+    task.delay(1/20, function()
+        ForceCull[newC] = SearchIDX.Value
+        Updated = true
+    end)
     return true
 end
 
@@ -123,14 +132,15 @@ local function HandlerSearch()
   --  print("start")
     local data = Search.update(Updated, Start_Time,SearchIDX)
   --  print("done",data and true or false)
-    Updated = false
 
     if not data then return data == false and 1 end 
+    Updated = false
     local checked = {}
     for loc,sectionBuffer in data do
         checked[loc] = true
         local chunk = DataHandler.getChunk(loc.X,loc.Z)
         if not chunk then continue end 
+        if not chunk.SubChunks.DONE then continue end 
         local sections = chunk.CurrentlyLoaded
         local changed = false
         for i =0,31 do
@@ -149,9 +159,9 @@ local function HandlerSearch()
             continue
         end
         CullQueue[loc]  = true
-        if ForceCull[loc] and ForceCull[loc]> SearchIDX.Value then
-            continue
-        end
+        -- if ForceCull[loc] and ForceCull[loc]+2> SearchIDX.Value then
+        --     continue
+        -- end
         ForceCull[loc] = nil 
     end
 

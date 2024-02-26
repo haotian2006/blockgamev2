@@ -2,13 +2,12 @@ local container = {}
 local RunService = game:GetService("RunService")
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ItemClass = require(game.ReplicatedStorage.Item)
-
 local Changed = {}
 
-function container.new(type,size,parent,callBack)
+function container.new(type,size,parent,name,callBack)
     local t = table.create(size+1,"")
     t[1] = type 
-    t[#t+1] = {__Parent = parent,__Opened = {},__Call = callBack}
+    t[#t+1] = {__Parent = parent,__Opened = {},__Call = callBack,__Name = name}
     return t
 end
 
@@ -61,6 +60,10 @@ function container.setParent(self,parent)
 end
 function container.getParent(self)
     return  self[#self].__Parent
+end
+
+function container.getName(self)
+    return self[#self].__Name
 end
 
 function container.setOpened(self,player)
@@ -297,7 +300,7 @@ function container.find(self,Item,canBeOutput,CannotBeFull)
         if container.isOutput(self, i-1) and not canBeOutput then continue end 
         local ItemAt = v[1]
         if not ItemClass.equals(ItemAt, Item) then continue end 
-        local Count = ItemClass.getData(Item)
+        local Count = ItemClass.getMaxCount(Item)
         if CannotBeFull and v[2] >= (Count or 64) then
             continue
         end

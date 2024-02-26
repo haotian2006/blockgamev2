@@ -1,7 +1,5 @@
 local BTexture = {}
 
-local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
-
 local function parseTexture(t)
     local type_ = typeof(t)
 
@@ -15,8 +13,7 @@ local function parseTexture(t)
     return t
 end
 
-function BTexture.init()
-    local AllBlocks = ResourceHandler.getAllBlocks()
+function BTexture.init(AllBlocks)
     for block,BlockInfo in AllBlocks do
         if block == "ISFOLDER" then continue end 
         if not BlockInfo.Default then 

@@ -31,8 +31,8 @@ function block.getBlockId(str)
     end
     local loc = table.find(Blocks, str)
     if not loc  then
-        warn(`'{str}' is not a valid block`)
         loc = 1
+        return nil
     end
     Cache[str] = loc-1 
     return loc-1
@@ -64,7 +64,9 @@ function block.getResourceFrom(compressedBlock)
 end
 
 function block.compress(blockID, rotation, otherData)
-    if otherData == 0 and rotation == 0 then return blockID end 
+    otherData = otherData or 0
+    rotation = rotation or 0
+    if otherData == 0  and rotation == 0 then return blockID end 
     local packedValue = bit32.bor(bit32.lshift(otherData, 22), bit32.lshift(rotation, 16), blockID)
     return packedValue
 end

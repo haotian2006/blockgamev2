@@ -9,6 +9,10 @@ function Utils.getResource(self)
     return Entities[self.Type]
 end
 
+function Utils.getModel(self)
+    return self.__model
+end
+
 local function getKey(key)
     if type(key) == "string" then
         return OFFSETKEY..key

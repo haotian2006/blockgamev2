@@ -1,7 +1,6 @@
 local Other = {}
 
-local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
-local AllData = ResourceHandler.getAllData()
+local AllData 
 
 local Order = {"EntityModels","Entities"}
 
@@ -12,7 +11,7 @@ local function getModel(name)
 end
 
 local function UnpackModel(cont,model)
-    if typeof(model) == "Instance" then
+    if typeof(model) == "Instance" or typeof(model) == "function" then
         cont.Model = model
         return 
     end
@@ -50,7 +49,8 @@ function parser.Entities(name,data)
     return parsed
  end
 
-function Other.init()
+function Other.init(_AllData)
+    AllData = _AllData
     for _,v in Order do
         local Data = AllData[v]
         local f = parser[v]
@@ -59,7 +59,7 @@ function Other.init()
             Data[name] =  f(name,value) or value
         end
     end
-    print(AllData)
+
 end
 
 return Other

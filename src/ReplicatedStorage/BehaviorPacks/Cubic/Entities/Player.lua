@@ -14,7 +14,7 @@ local entity = {
         AutoJump = false,
         CrouchLower = 0.3,
         Containers = {
-            Crafting = 5,
+            Crafting = {"Crafting",5},
             Holding = 1,
             Inventory = 36
         },

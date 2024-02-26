@@ -247,6 +247,7 @@ function Server.Init()
     end)
 end
 
+
 SlotRemote.OnServerEvent:Connect(function(plr,newSlot)
     local Entity = EntityHolder.getEntity(tostring(plr.UserId))
     if not Entity or not tonumber(newSlot) then return end 

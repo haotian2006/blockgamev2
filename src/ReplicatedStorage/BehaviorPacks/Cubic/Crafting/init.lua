@@ -3,7 +3,7 @@ recipes.Test = {
     Type = "Crafting",
     Key = {
         d = {
-            Item ='c:Dirt',
+            Item ='c:dirt',
             }
     },
     Shape = {
@@ -22,7 +22,7 @@ recipes.KBStick = {
     Type = "Crafting",
     Key = {
         d = {
-            Item ='c:Dirt',
+            Item ='c:dirt',
             }
     },
     Shape = {

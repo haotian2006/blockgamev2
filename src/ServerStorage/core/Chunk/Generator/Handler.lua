@@ -164,7 +164,9 @@ local function HandleCarve(chunk)
         SubChunk.CarveAmmount += 1
         if SubChunk.CarveAmmount < SubChunk.Required then continue end 
         SubChunk.FCarve = true
-        if SubChunk.Step ~= 2 then continue end 
+        if SubChunk.Step ~= 2 then 
+            continue 
+        end 
         Queue.enqueue(ResumeQueue,newLoc)
     end
     close()
@@ -312,7 +314,7 @@ local function MainHandler(chunk)
             --return back to main thread 
             SendMain[chunk] =  {false,false,false,chunk}
         end
-        print(chunk, internalStep,ChunkObj.NotInRegion )
+        print(chunk, internalStep,ChunkObj.NotInRegion ,ChunkObj.CarveAmmount,ChunkObj.Required,ChunkObj)
         Storage.removeChunkData(chunk)
         ChunkObj.Failed  = nil
         task.cancel(running)
@@ -371,17 +373,22 @@ local function MainHandler(chunk)
             RequestCarve(nChunk)
         end
         coroutine.yield() --Wait for nearby chunks to carve
+    else
+        ChunkObj.FCarve = true
     end
     internalStep = 3
     --handle Cave Replication
     if not IsInActor then
         --Send carved data 
+        internalStep = 3.1
         local Actor = ChunkObj.NotInRegion
         if not SendCarve[Actor] then 
             SendCarve[Actor] = {}
         end
+        internalStep = 3.2
         SendCarve[Actor][chunk] = chunkData.CarveBuffer or false 
     elseif  IsInActor and not ChunkObj.FCarve then
+        internalStep = 3.3
         coroutine.yield() --Wait for stuff to be replicated 
     end
     internalStep = 4
@@ -397,6 +404,8 @@ local function MainHandler(chunk)
             RequestFeature(nChunk)
         end
         coroutine.yield() --Wait for nearby chunks to add Features
+    else
+        ChunkObj.FFeature = true
     end
     internalStep = 6
     --handle Features Replication
@@ -484,10 +493,7 @@ RunService.Heartbeat:Connect(function()
     numOfPlayers = #Players:GetPlayers()
     iter_ = 0
     if not ResumeLoop() then return end 
-    local s,e = pcall(function(...)  
-        Communicator.runParallel(RecursiveRunner)
-    end)
-    if not s then print(e) end 
+    Communicator.runParallel(RecursiveRunner)
 end)
 
 RunService.Stepped:Connect(function()

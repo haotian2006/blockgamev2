@@ -71,7 +71,9 @@ end
 local function getSubChunk(loc)
     local chunk = data.getChunk(loc.X,loc.Z)
     if not chunk or not chunk.SubChunks  then return end
-    return chunk.SubChunks[loc.Y+1]
+    local sub = chunk.SubChunks 
+    if not sub.DONE then return  end
+    return sub[loc.Y+1]
 end
 
 local function canSee(subB,from,to)
@@ -173,6 +175,7 @@ function helper.update(force,StartTime,Update)
     local direaction = camera.CFrame.LookVector
     local chunk = getChunkLocation(camera.CFrame.Position/3-Vector3.yAxis)
     if direaction ~= lastDir or lastChunk ~= chunk  or force then
+        
         lastDir = direaction
         lastChunk = chunk
         fov = math.cos(camera.FieldOfView+math.rad(15))

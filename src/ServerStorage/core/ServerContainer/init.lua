@@ -6,6 +6,7 @@ local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ItemClass = require(game.ReplicatedStorage.Item)
 local Container = require(game.ReplicatedStorage.Container)
 local Data = require(game.ReplicatedStorage.Data)
+local EntityUtils = require(game.ReplicatedStorage.EntityHandler.Utils)
 
 local Events = game:GetService("ReplicatedStorage").Events.Container
 local Send:RemoteEvent = Events.Send
@@ -219,10 +220,26 @@ game:GetService("RunService").Heartbeat:Connect(function(dt)
     end
 end)
 
+local function Throw(player,which)
+    local Entity = Data.getEntity(tostring(player.UserId))
+    if not Entity then return end 
+    local Container_ = Entity.__containers["Holding"]
+    local Item = Container_[2]
+    if Item == "" then return end 
+    local count = Item[2]
+    if which == 2 then
+        count = Item[2]>0 and 1 or 0
+    end
+    Container.set(Container_, 1, Item[1], Item[2]-count)
+    if count == 0 then return end 
+    EntityUtils.dropItem(Entity,Item[1],count)
+end
+
 local tasks ={
     ServerContainer.place,
     ServerContainer.split, 
-    ServerContainer.playerCloseUi
+    ServerContainer.playerCloseUi,
+    Throw
 }
 
 Send.OnServerEvent:Connect(function(player,task,...)

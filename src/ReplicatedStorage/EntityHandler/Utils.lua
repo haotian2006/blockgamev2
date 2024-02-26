@@ -108,6 +108,24 @@ function Utils.getMagnitudeBetween(entity,entity2)
     return (entity.Position-entity2.Position).magnitude
 end
 
+function Utils.createItemEntity(Item,count,lifetime)
+    count = count or 1
+    local Item_ = Entity.new("c:Item")
+    Item_.Item = Item[1]
+    Item_.ItemId = Item[2]
+    Item_.ItemCount =count
+    Entity.setTemp(Item_,"AliveTime",time()+(lifetime or 0))
+    return Item_
+end
+
+function Utils.dropItem(self,item,count,velocity)
+    velocity = velocity or Utils.calculateLookAt(self)*20
+    local Item = Utils.createItemEntity(item, count, 1)
+    Entity.applyVelocity(Item,velocity)
+    Item.Position = Utils.getEyePosition(self)
+    EntityHolder.addEntity(Item)
+end
+
 --//Turning
 local DEAFULT_TURN = Vector2.new(180,180)
 function Utils.setRotation(self,target)
@@ -140,13 +158,13 @@ function Utils.rotateHeadTo(self,pitch,yaw)
         ry = target.Y
     end
     if offset then
-        local R = Rotation+ offset
-        if  R< -180 then
-            R +=360
-        elseif R> 180 then
-            R-=360
+        local newRotation = Rotation + offset
+        if  newRotation < -180 then
+            newRotation += 360
+        elseif newRotation > 180 then
+            newRotation -= 360
         end
-        self.__localData.Rotation = R
+        self.__localData.Rotation = newRotation
     end
     local new = vector3(rx,ry)
     self.__localData.HeadRotation = new

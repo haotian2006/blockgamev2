@@ -78,8 +78,8 @@ local function loopFeaturesAndAdd(feature,children,parser)
             end
             children[i] = Struc
         elseif type(v) == "table" then
-            if type(v.structure) == "string" then
-                local Struc = Registered[feature][v.structure]
+            if type(v.Parent) == "string" then
+                local Struc = Registered[feature][v.Parent]
                 if not Struc then
                     children[i] = false
                     continue

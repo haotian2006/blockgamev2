@@ -166,4 +166,4 @@ function r.calculateRotationFromData(block,blockHitData,rayData)
     end
     return orientation
 end
-return r
+return table.freeze(r)

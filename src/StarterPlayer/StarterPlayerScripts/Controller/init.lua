@@ -72,8 +72,13 @@ function Funcs.Interact(key,IsDown,GPE,inputs)
     local Blockpos = RayData.BlockPosition+RayData.Normal
     Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,2)
 end
-
+local Binded = false
 function  Controller.createBinds()
+    if Binded then 
+        warn(`Controller Is already Binded`)
+        return 
+    end 
+    Binded = true
     InputHandler.bindToRender("#Controller-Handler",function(dt)
         local Entity = LPE()
         if EntityHandler.isDead(Entity) then return end 
@@ -117,7 +122,14 @@ function Controller.setCameraTo(entity)
     Camera.CameraSubject = entity.__model.Eye
    end
 end
+
+function Controller.getMouse()
+    return Mouse
+end
+
 function Controller.destroyBinds()
+    if not Binded then return end 
+    Binded = false
     InputHandler.unbindFromRender("#Controller-Handler")
     for i,v in Funcs do
         InputHandler.unbindFunction(`{i}-Controller`)
@@ -130,4 +142,4 @@ end
 
 game:GetService("RunService").RenderStepped:Connect(Update)
 
-return Controller
+return table.freeze(Controller)

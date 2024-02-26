@@ -152,8 +152,8 @@ end
 function Storage.getCarvedBuffer(chunk)
     local chunkobj = Storage.getOrCreateChunkData(chunk)
     if not chunkobj.CarveBuffer then
-        local fBuffer = buffer.create(carvedBufferSize)
-        buffer.fill(fBuffer, 0,255,carvedBufferSize)
+        local fBuffer = buffer.create(FeatureBufferSize)
+        buffer.fill(fBuffer, 0,255,FeatureBufferSize)
         chunkobj.CarveBuffer = fBuffer
     end
     return chunkobj.CarveBuffer
@@ -226,10 +226,10 @@ local function AttempCombineCave(self,data)
     end 
     local carved = cData.CarveBuffer
     for i =0,BufferRange do
-        i*=2
-        local value = buffer.readu16(data, i)
-        if value == UINT16 then continue end 
-        buffer.writeu16(carved, i, value)
+        i*=4
+        local value = buffer.readu32(data, i)
+        if value == UINT32 then continue end 
+        buffer.writeu32(carved, i, value)
     end
 end
 
@@ -295,10 +295,10 @@ function Chunk.finishCarve(self)
     local Shape = cData.Shape
    -- cData.CarveBuffer = nil --removes from mem
     for i =0,BufferRange do
-        i*=2
-        local value = buffer.readu16(carved, i)
-        if value == UINT16 then continue end 
-        buffer.writeu32(Shape, i*2, value)
+        i*=4
+        local value = buffer.readu32(carved, i)
+        if value == UINT32 then continue end 
+        buffer.writeu32(Shape, i, value)
     end
 end
 

@@ -17,9 +17,13 @@ function manager.init(self)
         if Containers[Container] then continue end 
         Containers[Container] = data
     end
-    self.__containers = {}
+    self.__containers = {} 
     for i,v in Containers do 
-        self.__containers[i] = ContainerManager.new(i, v,self.Guid,self.__containerUpdate)
+        local count,name =v,i
+        if type(v) == "table" then
+            name,count = v[1],v[2]
+        end
+        self.__containers[i] = ContainerManager.new(name, count,self.Guid,i,self.__containerUpdate)
         if IS_SERVER then
             ServerContainer.registerNewContainer(self.Guid,  self.__containers[i])
         end
@@ -47,8 +51,12 @@ function manager.changedComponets(self)
 
     for i,v in Containers do
         local myC = my[i]
-        if not myC and v ~= "NIL" then
-            my[i] = ContainerManager.new(i, v,self.Guid)
+        local count,name =v,i
+        if type(v) == "table" then
+            name,count = v[1],v[2]
+        end
+        if not myC and count ~= "NIL" then
+            my[i] = ContainerManager.new(name, count,self.Guid,i,self.__containerUpdate)
             if IS_SERVER then
                 ServerContainer.registerNewContainer(self.Guid,  my[i])
             end
@@ -60,9 +68,9 @@ function manager.changedComponets(self)
             continue
         end
         local size = ContainerManager.size(myC)
-        if size ~= v then
-            ServerContainer.setUpdateData(myC,v)
-            ContainerManager.resize(self, v)
+        if size ~= count then
+            ServerContainer.setUpdateData(myC,count)
+            ContainerManager.resize(self, count)
         end
     end
 end

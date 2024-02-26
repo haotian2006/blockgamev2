@@ -13,6 +13,7 @@ function Updater.Init()
     if IS_CLIENT then 
         RunService.Heartbeat:Connect(function(deltaTime)
             for guid,entity in EntityHolder.getAllEntities() do
+                if entity.__destroyed then continue end 
                task.spawn(Render.update,entity)
             end
         end)
@@ -20,6 +21,7 @@ function Updater.Init()
     Runner.bindToStepped("Updater",function(p,deltaTime)
         fixedTick += deltaTime
         for guid,entity in EntityHolder.getAllEntities() do
+            if entity.__destroyed then continue end 
             task.spawn(Handler.update,entity,deltaTime,fixedTick)
         end
         if fixedTick > FixedTime then

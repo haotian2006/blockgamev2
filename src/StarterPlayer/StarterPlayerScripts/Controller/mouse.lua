@@ -20,12 +20,21 @@ local H = Instance.new("SelectionBox",heightlight)
 H.Adornee = heightlight
 H.LineThickness = .05
 
-function mouse.enableHighlighting()
-    EnableHighlight = true
+local length = 5
+
+function mouse.setHighlighting(value)
+    EnableHighlight = value or false
 end
 
-function mouse.disableHightlighting()
-    EnableHighlight = false
+function mouse.getHighlighting()
+    return EnableHighlight  
+end
+
+
+
+function mouse.setRayLength(Length)
+    length = Length or 5
+    mouse.updateRay()
 end
 
 function mouse.getRay()
@@ -34,14 +43,14 @@ end
 
 function mouse.updateRay()
     local Entity = CurrentEntity()
-    local block,Blockpos,hitpos,normal =  Ray.cast(EntityUtils.getEyePosition(Entity), (Camera.CFrame.LookVector*Vector3.new(1,1,1)).Unit*100)
+    local block,Blockpos,hitpos,normal =  Ray.cast(EntityUtils.getEyePosition(Entity), (Camera.CFrame.LookVector*Vector3.new(1,1,1)).Unit*length)
     if block == -1 or not block then 
         CurrentRay = {}
-        heightlight.Parent = script
+        H.Visible = false
         return 
     end 
     heightlight.Position = Blockpos*3
-    heightlight.Parent = workspace
+    H.Visible = EnableHighlight
     CurrentRay = {
         Block = block,
         BlockPosition = Blockpos,

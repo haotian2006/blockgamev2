@@ -50,13 +50,13 @@ end
 function Client.updateEntity(Guid,data)
     local Entity = EntityHolder.getEntity(Guid)
     if not Entity then return end 
-    local toInterpolate = toInterpolate[Guid] or {}
+    local toInterpolate_ = toInterpolate[Guid] or {}
     local hasOwner = EntityHandler.isOwner(Entity,LOCAL_PLAYER)
     for i,v in data do
         if hasOwner and ReplicationUtils.REPLICATE_LEVEL[i] == 3 then continue end 
         Entity[i] = v
         if UpdateEvents[i] then UpdateEvents[i]:Fire(Entity,v) end 
-        if overRide[i] then toInterpolate[i] = nil end --Prevents lerping from messing up stuff
+        if overRide[i] then toInterpolate_[i] = nil end --Prevents lerping from messing up stuff
     end
     return Entity
 end
@@ -65,35 +65,60 @@ function Client.handleFast(data,id)
     if not old then return end 
     local normal = ReplicationUtils.fastDecode(data,old)
     old.Chunk = normal.Chunk or old.Chunk
+    if normal.Position then
+        if normal.Position.Y == 0 then
+            normal.Position = Vector3.new(normal.Position.X,old.Position.Y,normal.Position.Z)
+        end
+    end
     for i,v in normal do
         if not toInterpolate[id] then toInterpolate[id] = {} end 
                             --{target,origiank}
-        toInterpolate[id][i] = {v,old[i]}
+                            --old[i] = v
+        toInterpolate[id][i] = {v,old[i] or v}
     end
 end
 function Client.handleData(data)
-    if data[1] then --fast
-        local id = key[data[1].X+32767]
-        Client.handleFast(data,id)
+    if type(data) == "number" then
+        local Entity = EntityHolder.getEntityFromLink(data)
+        if not Entity then return end 
+
+        local Guid = Entity.Guid
+        EntityHolder.removeEntity(Guid)
+        EntityHolder.unLink(data)
+        if Entity and Entity.__model then
+            Entity.__model:Destroy()
+        end
         return
     end
-    local type,idx = data._.X,data._.Y
-    local Guid = key[idx]
-    data.Guid = Guid
-    if type == 1 then -- all
+    if data[1] then --fast
+        local Entity = EntityHolder.getEntityFromLink(data[1].X+32767)
+        if not Entity then return end 
+        local Guid = Entity.Guid
+        Client.handleFast(data,Guid)
+        return
+    end
+    local IsNew = data.Guid 
+    local idx = data.I
+    data.I = nil
+    if IsNew then -- all
         local Entity = Client.createEntityFrom(data)
         if not Entity then return end 
+        Entity.__NetworkId = idx
         EntityHolder.addEntity(Entity)
+        EntityHolder.linkEntity(idx,Entity)
         Render.createModel(Entity)
     else
-        if data.f then
-            Client.handleFast(data.f,Guid)
-            data.f = nil
+        local Entity = EntityHolder.getEntityFromLink(idx)
+        if not Entity then return end 
+        local Guid = Entity.Guid
+        data.Guid = Guid
+        if data.F then
+            Client.handleFast(data.F,Guid)
+            data.F = nil
         end
         local Updated = Client.updateEntity(Guid,data)
         if not Updated then return end 
         if data.__components then
-            print("changed")
             table.clear(Updated.__cachedData)
             Render.createModel(Updated)
 
@@ -108,21 +133,32 @@ function Client.readKey(keyData)
         if todo == '1' then
             table.insert(key,id)
         else
-            local idx = table.find(key,id)
-            if not idx then continue end 
-            table.remove(key,idx)
+            local idx_ = table.find(key,id)
+            if not idx_ then continue end 
+            local Guid = key[idx_]
+            table.remove(key,idx_)
+            local Entity = EntityHolder.getEntity(Guid)
+            EntityHolder.removeEntity(Guid)
+            if Entity and Entity.__model then
+                Entity.__model:Destroy()
+            end
             --delete entity
         end
     end
 end
 local Const = 6
 local TIME = .1
-
+local p = Instance.new("Part")
+p.Parent = workspace
+p.Anchored = true
 function Client.updateInterpolate(dt)
     local LerpRate = dt*Const
     for guid,target in toInterpolate do
         local Entity = EntityHolder.getEntity(guid)
-        if not Entity then return end 
+        if not Entity then 
+            toInterpolate[guid] = nil
+            continue 
+        end 
         if EntityHandler.isOwner(Entity,LOCAL_PLAYER) then
             toInterpolate[guid] = nil 
             continue
@@ -134,12 +170,14 @@ function Client.updateInterpolate(dt)
             local moveDistance =rate*dt
             local direction = (targetV - Entity.Position)
             local new = Entity.Position + direction.Unit * moveDistance
+          --  p.Position = target.Position[2]*3
             if (target.Position[2]- new).Magnitude < maxDistance then 
                 Entity.Position = new
             else
                 Entity.Position = targetV
                 target.Position = nil
             end
+            
         end
         if target.Rotation then
             local targetV = target.Rotation[1]
@@ -171,21 +209,22 @@ function Client.replicateToServer()
         if not EntityHandler.isOwner(entity,game.Players.LocalPlayer) or entity.doReplication == false then continue end 
         local data = ReplicationUtils.fastEncode(entity)
         local tasks = TaskReplicator.encode(id)
+        local ReplicationId = entity.__NetworkId
         TaskReplicator.clearDataFor(id)
         if not data then 
             if tasks then
-                table.insert(OtherTasks,{tasks,if id == tostring(LOCAL_PLAYER.UserId) then false else id})
+                table.insert(OtherTasks,{tasks,if id == tostring(LOCAL_PLAYER.UserId) then false else ReplicationId})
             end
             continue 
         end 
         if id == tostring(LOCAL_PLAYER.UserId)  then
             data[1] = data[1][2] and Vector2.new(-69,data[1][2]) or false 
         else
-            data[1] = data[1][2] and {data[1],Vector2.new(0,data[1][2])} or data[1]
+            data[1] = data[1][2] and {Vector2.new(ReplicationId,data[1][2]),Vector2.new(0,data[1][2])} or data[1]
         end
         table.insert(toReplicate,data)
         if tasks then
-            table.insert(OtherTasks,{tasks,if id == tostring(LOCAL_PLAYER.UserId) then false else id})
+            table.insert(OtherTasks,{tasks,if id == tostring(LOCAL_PLAYER.UserId) then false else ReplicationId})
         end
     end
     if #toReplicate >0 then
@@ -197,19 +236,23 @@ function Client.replicateToServer()
 end
 
 local Connection 
-function Client.readData(Entities,Key,taskData)
-    if Key then Client.readKey(Key) end 
+function Client.readData(Entities,taskData)
+    --if Key then Client.readKey(Key) end 
     for i:number,v in Entities or {} do
         Client.handleData(v)
     end
     for i,v in taskData or {} do
-        EntityTasks.decode(key[tonumber(i) or 1],v)
+        local entity_ = EntityHolder.getEntityFromLink(tonumber(i))
+        if not entity_ then continue end 
+        local id = entity_.Guid
+        EntityTasks.decode(id,v)
     end
 end
 function Client.Init()
     if Connection then return end 
     TCP.OnClientEvent:Connect(Client.readData)
     UDP.OnClientEvent:Connect(function(entityEncoded)
+      --  print(entityEncoded)
         for i,v in entityEncoded or {} do
             Client.handleData(v)
         end

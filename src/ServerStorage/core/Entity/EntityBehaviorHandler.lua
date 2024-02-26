@@ -115,6 +115,7 @@ function BehaviorManager.Init()
     Init = true
     Runner.bindToStepped("Behavior",function(step,dt)
         for uuid,entity in EntityHolder.getAllEntities() do
+            if entity.__destroyed then continue end 
             task.spawn(BehaviorManager.run,entity)
         end
     end,4)

@@ -38,7 +38,7 @@ function Hotbar.UpdateSlot(slot)
     local Inventory = ClientContainer.getContainer("Inventory")
     if not Entity or not Inventory then return end
     local Item = Inventory[slot+1]
-    Entity.Holding = type(Item) == "table" and Item[1] or ""
+    EntityHandler.hold(Entity,type(Item) == "table" and Item[1] or "")
     Hotbar.UpdateRender(Entity)
     if HotBarSelect then
         local Frame = HotBarGUI:FindFirstChild(`Container.Inventory.{slot}`,true)

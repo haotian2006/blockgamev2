@@ -16,7 +16,6 @@ local ItemHandler = require(game.ReplicatedStorage.Item)
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
 
 local Events = game:GetService("ReplicatedStorage").Events.Container
-local Send:RemoteEvent = Events.Send
 
 local ClientContainer = {}
 
@@ -109,11 +108,11 @@ function handler.displayInfo(x,y)
     end
     local data = ItemHandler.getItemInfoR(info[1])
     ItemInfoFrame.Main.DisplayName.Text = data.DisplayName 
-    ItemInfoFrame.Main.RealName.Text =  data.Name
+    ItemInfoFrame.Main.RealName.Text =  `{data.Name } | {data.Id}`
     ItemInfoFrame.Enabled  = true
     LastDisplayed = info[1]
 end
-
+ 
 local LastFrame
 function handler.displayHover(x,y,override)
     local HoverFrame = handler.getOrCreateFrame("HoverFrame",false)
@@ -273,7 +272,7 @@ function handler.close(name,forceClose,fromOpen)
             table.remove(OpenedGUi,Index)
         end
         if #OpenedGUi == 0 and not fromOpen then
-            Send:FireServer(3)
+            ClientContainer.send(3)
         end
     end
 end
@@ -288,25 +287,32 @@ game:GetService("UserInputService").InputBegan:Connect(function(a0: InputObject,
         end
         open = not open
     end
-end)
+end) 
 
 function handler.processLeft(frame,mainFound)
+    if not mainFound and not frame then
+        ClientContainer.send(4,1)
+        ClientContainer.send(4,1)
+    end
     if not frame then return end 
     local container,idx = getFrameInfo(frame.Name)
     local click = ClientContainer.getContainer(container)
     local Holding = ClientContainer.getContainer("Holding")
 
-    Send:FireServer(1,ClientContainer.getPath(Holding),ClientContainer.getPath(click),1,idx)
+    ClientContainer.send(1,ClientContainer.getPath(Holding),ClientContainer.getPath(click),1,idx)
 
     --ContinerClass.swap(Holding, click, 1, idx, true)
 end
 
 function handler.processRight(frame,mainFound)
+    if not mainFound and not frame then
+        ClientContainer.send(4,2)
+    end
     if not frame then return end 
     local container,idx = getFrameInfo(frame.Name)
     local click = ClientContainer.getContainer(container)
    
-    Send:FireServer(2,ClientContainer.getPath(click),idx)
+    ClientContainer.send(2,ClientContainer.getPath(click),idx)
 end
 
 local Debounce = 1/20

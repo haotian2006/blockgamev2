@@ -12,12 +12,21 @@ local Data = {
     Foliage = {},
     Ores = {},
     Structures = {},
+    Family = {}
 }
+
+local Blocks = Data.Blocks
+local Items = Data.Items
+local Families = Data.Family
+
+
 local BehaviorPacks = game.ReplicatedStorage.BehaviorPacks or Instance.new("Folder",game.ReplicatedStorage)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ResourcePacks = require(ReplicatedStorage.ResourceHandler) 
 
+--Parsers
+local parser = require(script.defaultParser)
 BehaviorPacks.Name = "BehaviorPacks"
 
 local function addTo(to,from)
@@ -95,6 +104,8 @@ function BehaviorHandler.Init()
     for i,v in BehaviorPacks:GetChildren()do
         BehaviorHandler.LoadPack(v.Name)
     end
+    parser(Blocks,Families)
+    parser(Items,Families)
     Init = true
     return BehaviorHandler 
 end
@@ -117,25 +128,46 @@ function BehaviorHandler.getItem(name)
     if not Data.Items then return end
     return Data.Items[name]
 end
-function BehaviorHandler.getBlock(Name)
-    if not Data.Blocks then return end
-    return Data.Blocks[Name]
+
+function BehaviorHandler.getBlock (name,id)
+    local blockData = Blocks[name]
+    if not blockData then 
+        return 
+    end 
+    if blockData.__NoDefault then
+        return blockData
+    end
+    
+    if not id or id == 0 then
+        return  blockData.Default
+    end
+
+    return blockData[(id and id or "1")] or blockData.Default
 end
+
 function BehaviorHandler.getBlockCollisionBox(Name)
     if not Data.BlockCollisionBoxes then return end
     return Data.BlockCollisionBoxes[Name]
 end
+
 function BehaviorHandler.getfunction(name)
     return Data.Functions and  Data.Functions[name]
 end
+
 function BehaviorHandler.getBiome(path)
     local gen = Data.Biomes or {}
     return gen[path]
 end
+
 function BehaviorHandler.getContainer(type)
     return Data.Containers[type]
 end
+
 function BehaviorHandler.getAllData()
     return Data
+end
+
+function BehaviorHandler.getFamily(name)
+    return Families[name]
 end
 return table.freeze(BehaviorHandler)

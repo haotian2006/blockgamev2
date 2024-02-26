@@ -9,12 +9,14 @@ local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local Chunk = require(game.ReplicatedStorage.Chunk)
 local MathUtils = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local Animator = require(script.Animator)
+local Holder = require(script.EntityHolder)
 local Utils = require(script.Utils)
 local CollisionHandler = require(script.EntityCollisionHandler)
 local EntityTaskReplicator = require(script.EntityReplicator.EntityTaskReplicator)
 local Container = require(game.ReplicatedStorage.Container)
 local EntityContainerManager = require(script.EntityContainerManager)
 local Data = require(game.ReplicatedStorage.Data)
+local Itemhandler = require(game.ReplicatedStorage.Item)
 
 local slerp = MathUtils.slerpAngle 
 
@@ -23,6 +25,7 @@ EntityTaskReplicator.Init(Entity)
 Utils.Init(Entity) 
 CollisionHandler.Init(Entity)
 
+Entity.Container = EntityContainerManager
 Entity.Animator = Animator
 Entity.Utils = Utils
 Entity.Gravity = 32--9.81
@@ -59,7 +62,12 @@ function Entity.new(type:string,ID)
         end
         EntityContainerManager.init(self)
     end
+    Entity.updateChunk(self)
     return self
+end
+
+function Entity.isType(entity,type)
+    return entity.Type == type 
 end
 
 function Entity.addComponent(self,component,index)
@@ -98,25 +106,46 @@ function Entity.removeComponent(self,name)
     end
 end
 --//Get/seters
+function Entity.hold(self,Item)
+    local lastHold = self.__localData["Holding"]
+    if Itemhandler.equals(lastHold,Item) then return end 
+    local Holding = self.Holding
+    Itemhandler.onDequip(Holding,self)
+    Entity.set(self, "Holding", Item or "")
+    Itemhandler.onEquip(Item,self)
+    self.__localData["Holding"] = Item
+end
+
+function Entity.getHolding(self)
+    local holding = self.Holding 
+    return if holding == "" then nil else holding
+end
 
 function Entity.setSlot(self,slot)
     slot = slot or ""
     self.Slot = slot
     local container, index = slot:match("^(.-)%.([^%.]+)$")
-
     if not container then
-        Entity.set(self, "Holding", "")
+        Entity.hold(self,"")
         return
     end
 
     local containerToLook = EntityContainerManager.getContainer(self,container)
-
     if not containerToLook then
-        Entity.set(self, "Holding", "")
+        Entity.hold(self,"")
         return
     end
-    Entity.set(self, "Holding", Container.get(containerToLook, tonumber(index)) or "")
+    local Item = Container.get(containerToLook, tonumber(index)) or {}
+    Entity.hold(self,Item[1] or "")
 
+end
+
+function Entity.getTemp(self,key)
+    return self.__localData[key]
+end
+
+function Entity.setTemp(self,key,value)
+    self.__localData[key] = value
 end
 
 function Entity.getCache(self)
@@ -200,6 +229,11 @@ end
 
 function Entity.getVelocity(self,name)
     return self.__velocity[name]
+end
+
+function Entity.applyVelocity(self,velocity)
+    local current = Entity.getVelocity(self,"Physics") or Vector3.zero
+    Entity.setVelocity(self,"Physics",current+velocity)
 end
 
 function Entity.setMoveDireaction(self,Direaction)
@@ -287,7 +321,8 @@ function Entity.crouch(self,isDown,fromClient)
 end
 --//Updates
 function Entity.updateChunk(self)
-    local chunk = Vector2.new(Utils.getChunk(self))
+    local chunk = Utils.getChunk(self)
+    self.Chunk = Vector2.new(chunk.X,chunk.Z)
     if chunk ~= self.Chunk then
         if self.Chunk ~= nil then
             local OldChunk = Data.getChunk(self.Chunk.X,self.Chunk.Y)
@@ -295,7 +330,6 @@ function Entity.updateChunk(self)
                 Chunk.removeEntity(OldChunk, self)
             end
         end
-        self.Chunk = chunk
         local newChunk =  Data.getChunk( chunk.X,chunk.Y)
         if newChunk then
             Chunk.addEntity(newChunk, self)
@@ -414,6 +448,22 @@ function Entity.updateMovement(self,dt,normal)
     Entity.setVelocity(self,"Physics",Vector3.new(newX,bodyVelocity.Y,newZ))
 end
 
+local DEBUGSERVER = true
+local function Server_visualiser(self)
+    local model = self.__model
+    local hb =  Entity.getAndCache(self, "Hitbox")
+    if not model then
+        model = Instance.new("Part")
+        model.Anchored = true
+        model.Parent = workspace
+        model.Transparency = .6
+        model.Color = Color3.new(1.000000, 0.560784, 0.560784)
+        model.Name = self.Guid
+        self.__model = model
+    end
+    model.Size = Vector3.new(hb.X,hb.Y,hb.X) *3
+    model.Position = self.Position*3
+end
 function Entity.update(self,dt,fixedDt)
     if Entity.isOwner(self,LOCAL_PLAYER) then
         local direationVector,normal,shouldJump = Entity.updatePosition(self,dt)
@@ -423,9 +473,16 @@ function Entity.update(self,dt,fixedDt)
         Entity.updateTurning(self,dt)
         Entity.updateMovement(self,fixedDt,normal)
     end
+    if DEBUGSERVER and IS_SERVER then
+        Server_visualiser(self)
+    end
 end 
 
 function Entity.destroy(self)
+    if self.__model then
+        self.__model:Destroy()
+    end
     self.__destroyed = true
+    Holder.removeEntity(self.Guid)
 end
 return Entity

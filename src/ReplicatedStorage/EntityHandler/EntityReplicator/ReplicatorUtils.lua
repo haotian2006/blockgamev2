@@ -20,10 +20,10 @@ local temp = Replication.temp
 ]]
 Replication.REPLICATE_LEVEL = {
     __main = 1,__velocity = 1,__changed = 1,__cachedData = 1,__localData = 1,
-    Chunk = 1,Grounded = 1,Guid = 1,__running = 1,__containers = 1,slot = 1,
-    __class = 1,
+    Grounded = 1,__running = 1,__containers = 1,slot = 1,__model = 1,
+    __class = 1,__NetworkId = 1,
     --__components = 2,
-    __animations = 2,
+    __animations = 2,Guid = 2,
     Crouching = 3, Position = 3,Hitbox = 3, EyeLevel = 3,Rotation = 3,HeadRotation = 3,Holding = 3
 }
 
@@ -138,12 +138,12 @@ function Replication.fastEncode(self,idk)
         local lx,ly,lz = pos.X%CHX,pos.Y,pos.Z%CHX
         local chunk = Vector2.new(cx,cz)
         toUpdate[2],ly = encodePosition(lx,ly,lz)
-        if self.__localData.Old.Chunk ~= chunk then 
+      --  if self.__localData.Old.Chunk ~= chunk then 
             Chunk = chunk
             self.__localData.Old.Chunk = chunk
             toUpdate[4] = chunk
             toUpdate[3] = false
-        end
+       -- end
         toUpdate[1][2] = ly
         Changed = true
     end
@@ -170,7 +170,9 @@ function Replication.fastDecode(data,old)
     if data[2] then
         local ch =data[4] or old.Chunk or Vector2.zero
         old.Chunk = ch
-        lP = decodePosition(data[2],data[1].Y)
+        local oldP = old.Position
+        lP = decodePosition(data[2] ,data[1].Y)
+        
         local nx,ny,nz = ConversionUtils.localToGrid(ch.X,ch.Y,lP.X,lP.Y,lP.Z)
         update.Position = Vector3.new(nx,lP.Y,nz)
       --  print(ch)

@@ -1,38 +1,29 @@
 local entity = {
     ['c:Item'] = {
-        ["description"] = {
-            is_spawnable = false,
-            is_summonable = false,
-        }, 
         components ={
-            MinTpHeight = 9999999,
-            JumpHeight = 0,
-            Name = "c:Item",
-            EyeLevel = .1,
-            Hitbox = Vector2.new(0.25,0.25),
-            DoGravity = true,
-            God = true,
-            DisableNameTag = true,
-            CanCollideWithEntities = false,
-
+            MaxNeckRotation = Vector2.new(60,310),
+            Name = "Player",
+            EyeLevel = 0,
+            Hitbox = Vector2.new(0.3,.3),
+            Health = 10000,
+            MaxHealth = 10000,
+            ["c:Item_Loop.behavior"] = {
+                
+            }
         },
         component_groups = {
     
         },
         events ={
             OnDeath = {
-                
+                 
             }
         },
-        functions = {
+        functions = { 
     
         }
     },
     ["Special:Arm"] = {
-        ["description"] = {
-            is_spawnable = false,
-            is_summonable = false,
-        }, 
         components ={
             EyeLevel = 1.5,
             Hitbox = Vector2.new(0.6,1.79),

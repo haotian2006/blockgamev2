@@ -7,9 +7,9 @@ local Blocks = require(game.ReplicatedStorage.Block).Init()
 local controller = require(script.Parent:WaitForChild("Controller"))
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 BehaviorHandler.Init()
+
+require(game.ReplicatedStorage.ResourceHandler).Init()
 require(game.ReplicatedStorage.Biomes).init()
-local AssetManager = require(script.Parent.AssetManager)
-AssetManager.init()
 
 local EntityV2 = game.ReplicatedStorage.EntityHandler
 local Client = require(EntityV2.EntityReplicator.Client)
@@ -26,3 +26,8 @@ require(game.Players.LocalPlayer.PlayerScripts.core.ClientContainer)
 
 require(game:GetService("Players").LocalPlayer.PlayerScripts.core.Rendering.Arms).Init()
 require(game:GetService("Players").LocalPlayer.PlayerScripts.core.Ui.HotbarManager).Init()
+
+local core = require(game.ReplicatedStorage.Core)
+if core[`{"init"}`] then
+    core[`{"init"}`]()
+end
