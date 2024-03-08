@@ -86,7 +86,7 @@ function ore.sample(cx,cz)
         biome = buffer.readu16(biome, 2)
     end
     local ores = getOreFrom(biome)
-    local carver = {}
+    local carver = {} 
     for i,ore:Ore in ores do
         local random = Utils.createRandom(SEED, cx, cz,ore.salt or i*2+3)
         local chance = ore.chance
@@ -99,7 +99,7 @@ function ore.sample(cx,cz)
         local idx = to1dXZ[ofx][ofz]
         local height = buffer.readu8(surface, idx-1)
         if yHeight > height then continue end 
-        Carver2.noiseSphere(cx,cz,ofx,yHeight,ofz,ore.block,carver,ore.noiseSettings,ore.noiseScale,ore.minRange,ore.maxRange)
+        Carver2.noiseSphere(cx,cz,ofx,yHeight,ofz,ore.block,carver,ore.noiseSettings,ore.noiseScale,ore.minRange,ore.maxRange,true)
     end
     debug.profileend()
 end

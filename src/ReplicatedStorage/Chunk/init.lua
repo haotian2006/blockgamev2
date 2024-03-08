@@ -27,6 +27,7 @@ function Chunk.new(x,z,Block:buffer?,biomes:nil|buffer|number,transparencyData)
         self.SubChunks = {}
         self.CurrentlyLoaded = buffer.create(32)
     end
+    self.Changes = {}
     self.Cache = {}
     return table.freeze(self)
 end
@@ -59,6 +60,7 @@ end
 
 --// THESE ARE LOCAL POSITIONS
 function Chunk.insertBlock(self,idx,block)
+    self.Changes[idx] = block
     buffer.writeu32(self.Blocks, (idx-1)*4, block)
 end 
 
@@ -71,6 +73,7 @@ if IS_CLIENT then
         buffer.writeu8(tBuffer, idx-1, getTransparency(block))
     end
     function Chunk.insertBlock(self,idx,block)
+        self.Changes[idx] = block
         buffer.writeu32(self.Blocks, (idx-1)*4, block)
         UpdateTransparency(self,idx,block)
     end 

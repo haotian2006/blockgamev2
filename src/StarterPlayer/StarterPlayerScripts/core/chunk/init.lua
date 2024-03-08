@@ -26,13 +26,15 @@ end
  
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local ChunkClass = require(game.ReplicatedStorage.Chunk)
-local once = false
+local times_ = 0
 
 local RenderHandler = require(script.Rendering.Handler)
 
 local Builder = require(script.Rendering.Helper.Build)
 local Https = game:GetService("HttpService")
 local highest = 0
+local Other 
+
 RemoteEvent.OnClientEvent:Connect(function(chunk,blocks,biome)  
     if not blocks then
         Asked[chunk] = nil
@@ -41,11 +43,41 @@ RemoteEvent.OnClientEvent:Connect(function(chunk,blocks,biome)
     if destroyed[chunk] then return end 
     local decomp,transparencyTable =  ChunkWorkers:DoWork("deCompress",blocks)
     local newchunk = ChunkClass.new(chunk.X, chunk.Z,decomp,biome,transparencyTable)
-    local y = #Https:JSONEncode(blocks)
+   --[[
+     local y = #Https:JSONEncode(blocks)
+    if times_ <= 6400  then
+     
+        times_ +=1
+        local decomp = blocks
+        if not Other then
+            Other = decomp
+        else
+            local buf = buffer.create(buffer.len(Other)+buffer.len(decomp))
+            local offset = buffer.len(Other)
+            buffer.copy(buf, offset, decomp,0)
+            local start =  os.clock()
+            local decoded = Https:JSONEncode(buf)
+            local ms =( os.clock()-start)*1000
+           -- print(times_,#decoded,buffer.len(buf),ms)
+            Other = buf
+            if times_ == 6400 then
+                local enclde = Https:JSONDecode(decoded)
+                local temp = buffer.create(buffer.len(decomp))
+                buffer.copy(temp, 0, enclde, offset)
+                print("____")
+                print(buffer.tostring(temp)==buffer.tostring(decomp))
+
+            end
+        end
+    
+
+    end
     if y >highest then
-        print("new Highest", y)
+      --  print("new Highest", y)
         highest =y
     end
+
+   ]]
     Data.insertChunk(chunk.X, chunk.Z, newchunk)
     Asked[chunk] = nil
     Recieved[chunk] = true
@@ -58,7 +90,7 @@ end)
 local utils = require(game.ReplicatedStorage.Utils.EntityUtils)
 local offsets = {}
 local Inrange = {}
-local r =  16
+local r =  12
 r+=2
 for dist = 0, r do
     for x = -dist, dist do
@@ -73,8 +105,23 @@ for dist = 0, r do
         end
     end
 end
-    
+local Config = require(script.Rendering.Config)
+do
+    task.spawn(function()
+        while  not Entity() do task.wait() end 
+        local cheedc = {}
+        for i =0,31 do
+            for z =0,31 do
+                Chunk.requestChunk(Vector3.new(i,0,z))
+                cheedc[Vector3.new(i,0,z)] = true
+            end
+        end
+        Config.InRadius = cheedc
+    end)
+    return Chunk
+end
 local last = Vector3.new(0,-1,0)
+
 game:GetService("RunService").Heartbeat:Connect(function(a0: number)  
     local CEntity = Entity()
     if CEntity then
@@ -90,12 +137,13 @@ game:GetService("RunService").Heartbeat:Connect(function(a0: number)
             checked[c] = true
         end 
         for i,v in Recieved do
-            if checked[i] then continue end 
+            if checked[i] then continue end  
             destroyed[i] = true
             Recieved[i] = nil
            -- Render.deloadChunk(i)
            -- RenderHandler.requestDeload(i)
         end
+        Config.InRadius = checked
         for i,v in Builder.Rendered do
             if checked[i] then continue end 
             RenderHandler.requestDeload(i)

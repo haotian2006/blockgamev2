@@ -115,7 +115,7 @@ function helper.startSearch(start,direaction)
     visited[start] = 1
     local minX,maxX= start.X-maxRenderDistance,start.X+maxRenderDistance
     local minZ,maxZ = start.Z-maxRenderDistance,start.Z+maxRenderDistance
-    local minY,maxY = 0,31
+    local minY,maxY = 0,32
     local visitedTotal = 0
     while searchQueue.S <= searchQueue.E  and visitedTotal <=maxVisited do
         if os.clock()-Start_Time >=.015  then

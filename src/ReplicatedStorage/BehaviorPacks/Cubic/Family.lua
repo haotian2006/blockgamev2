@@ -15,7 +15,7 @@ return {
                 if Block then 
                     Block =BlockService.parse(Block)
                 else
-                    local Id = BlockService.getBlockId(self[1])
+                    local Id = BlockService.getBlockId(ItemService.getName(self))
                     if not Id then return end 
                     Block = BlockService.compress(Id,nil,self[2])
                 end

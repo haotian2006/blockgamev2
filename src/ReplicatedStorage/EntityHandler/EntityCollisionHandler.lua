@@ -22,7 +22,7 @@ function Collision.stayOnEdge(self,targetPosition)
     local CurrentY = self.Position.Y
     local CurrentX = CurrentPosition.X
     local CurrentZ = CurrentPosition.Z
-    local Copy = {Hitbox = Entity.getAndCache(self,"Hitbox")}
+    local Copy = {Hitbox = Entity.getHitbox(self)}
     local HitBox = Copy.Hitbox
     local diffrence = targetPosition*vector3(1,0,1)-CurrentPosition
     local onGround,block,LastData = Collision.isGrounded(self)
@@ -77,7 +77,7 @@ local ZERO = -9.99999993922529e-09
 
 function Collision.shouldjump(entity,bp,bs)
     local pos = entity.Position
-    local hitbox = Entity.get(entity,"Hitbox") 
+    local hitbox = Entity.getHitbox(entity)
     local feetpos = pos.Y - hitbox.y/2 
     local blockfeet = bp.Y - bs.Y/2
     local jumpneeded = bs.Y -(feetpos - blockfeet)
@@ -167,16 +167,16 @@ end
 function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
     local shouldjump = false
     
-    local hitbox = Entity.get(entity,"Hitbox")
+    local hitbox = Entity.getHitbox(entity)
     local min = vector3(
         position.X-hitbox.X/2+(velocity.X <0 and velocity.X or 0)   ,
         position.Y-hitbox.Y/2+(velocity.Y <0 and velocity.Y or 0), 
-        position.Z-hitbox.X/2+(velocity.Z <0 and velocity.Z or 0)   
+        position.Z-hitbox.Z/2+(velocity.Z <0 and velocity.Z or 0)   
     )   
     local max = vector3(
         position.X+hitbox.X/2 +(velocity.X >0 and velocity.X or 0),
         position.Y+hitbox.Y/2+(velocity.Y >0 and velocity.Y or 0), 
-        position.Z+hitbox.X/2+(velocity.Z >0 and velocity.Z or 0)   
+        position.Z+hitbox.Z/2+(velocity.Z >0 and velocity.Z or 0)   
     )
     
     local normal = Vector3.zero
@@ -273,19 +273,19 @@ end
 
 function  Collision.isGrounded(entity,CheckForBlockAboveInstead)
     local position = entity.Position
-    local hitbox = Entity.get(entity,"Hitbox")
+    local hitbox = Entity.getHitbox(entity)
     local invert = CheckForBlockAboveInstead and -1 or 1
     local aa = CheckForBlockAboveInstead and 0 or 1
     local bb = CheckForBlockAboveInstead and 1 or 0
     local min = vector3(
         position.X-hitbox.X/2,
         position.Y-(hitbox.Y/2+0.0225*aa)*invert,
-        position.Z-hitbox.X/2
+        position.Z-hitbox.Z/2
     )   
     local max = vector3(
         position.X+hitbox.X/2,
         position.Y-(hitbox.Y/2+0.0225*bb)*invert,
-        position.Z+hitbox.X/2 
+        position.Z+hitbox.Z/2 
 )
     local gridsize = .5
 --a

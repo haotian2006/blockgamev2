@@ -52,6 +52,21 @@ return {
             if not Core.Client then return end 
             local Mouse = Core.Client.Controller.getMouse()
             Mouse.setRayLength(nil)
-        end
+        end,
+        MaxCount = 1,
+    },
+    ["c:LongStick"] = {
+        OnEquipped = function(self,entity)
+            if not Core.Client then return end 
+            local Mouse = Core.Client.Controller.getMouse()
+            Mouse.setRayLength(100)
+        end,
+        
+        OnDequipped = function(self,entity)
+            if not Core.Client then return end 
+            local Mouse = Core.Client.Controller.getMouse()
+            Mouse.setRayLength(nil)
+        end,
+        MaxCount = 1,
     }
 }  

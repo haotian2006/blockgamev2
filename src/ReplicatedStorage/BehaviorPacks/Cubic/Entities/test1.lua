@@ -1,0 +1,3 @@
+return {
+    NameSpace = "c:test"
+}

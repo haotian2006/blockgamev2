@@ -9,6 +9,7 @@ local UINT32 = 2^32-1
 local BUFFERRANGE = 8*256*8-1
 local BUFFERSIZE = 4*8*256*8
 
+
 local function resetBuffer(b)
     buffer.fill(b, 0,255,BUFFERSIZE)
     return b

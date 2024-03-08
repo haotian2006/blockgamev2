@@ -1,21 +1,58 @@
 local Item = {}
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
+local Synchronizer = require(game.ReplicatedStorage.Synchronizer)
 
 local Items = BehaviorHandler.getAllData().Items
 
 local RunService = game:GetService("RunService")
 local IsClient = RunService:IsClient()
 
+local ItemsIndex = {}
+local ItemKeys = {}
+
+local function update(types)
+    local t = ItemsIndex 
+    for i,v in types or {} do
+        if t[i] then continue end 
+        t[i] = v
+    end
+end
+function Item.getTables()
+    return ItemsIndex,ItemKeys
+end
+
+
+function Item.getNameFromIndex(idx)
+    return ItemsIndex[idx]
+end
+
+function Item.getIndexFromName(Name)
+    return ItemKeys[Name]
+end
+
+function Item.getName(item)
+    return Item.getNameFromIndex(item[1])
+end
+
 function Item.new(Name,Id)
+    if type(Name) == "string" then
+        local n = Name
+        Name = Item.getIndexFromName(Name)
+        if not Name then
+            warn(`Item Name: {n} Was Not Found`)
+            return {0,Id or 0}
+        end
+    end
     return {Name,Id or 0}
 end
 
 function Item.getItemInfoR(self)
-    local data = ResourceHandler.getItem(self[1],self[2])
+    local Name = Item.getName(self)
+    local data = ResourceHandler.getItem(Name,self[2])
     if not data then
         return {
-            Name = self[1],
+            Name = Name,
             DisplayName = "No Data Found",
             Id = self[2],
             Icon = "",
@@ -31,8 +68,8 @@ function Item.getItemInfoR(self)
         data.Icon = data.Icon(self)
     end
     return {
-        Name = self[1],
-        DisplayName = data.DisplayName or string.match(self[1], "%a:(%w+)"),
+        Name = Name,
+        DisplayName = data.DisplayName or string.match(Name, "%a:(%w+)"),
         Id = self[2],
         Icon = data.Icon,
         Texture = data.Texture,
@@ -89,6 +126,9 @@ function Item.tostring(item)
 end
 
 function Item.equals(x,y,Id:number?)
+    if type(y) == "string" then
+        y = Item.getIndexFromName(y)
+    end
     local type1 = type(x)
     local type2 = type(y)
     if type1 ~= "table" then return type1 == type2  end 
@@ -133,7 +173,7 @@ function Item.onDequip(self,entity)
 end
 local getDataFrom = Item.getDataFrom 
 function Item.getData(item)
-    return getDataFrom(item[1],item[2])
+    return getDataFrom(Item.getName(item),item[2])
 end
 local getData = Item.getData
 
@@ -145,6 +185,39 @@ end
 
 function Item.getMaxCount(item)
     return ( getData(item)  or {}).MaxCount or 64 
+end
+
+local initAlready = false
+function Item.Init()
+    if initAlready then return end 
+    initAlready = true
+    local itemindex 
+    if Synchronizer.isActor() then
+        itemindex = Synchronizer.getDataActor("ItemData")
+    elseif Synchronizer.isClient() then
+        itemindex = Synchronizer.getDataClient("ItemData")
+    else
+        local Saved = Synchronizer.getSavedData("ItemData")
+        if Saved then
+            itemindex = Saved
+        end
+        local newAdded = false
+        update(itemindex)
+        for blockName,_ in Items do
+            if table.find(ItemsIndex, blockName) then continue end 
+            table.insert(ItemsIndex,blockName)
+            newAdded = true
+        end
+        if newAdded then
+            Synchronizer.updateSavedData("ItemData",ItemsIndex)
+        end
+        Synchronizer.setData("ItemData",ItemsIndex)
+    end
+    update(itemindex)
+    for i,v in ItemsIndex do
+        ItemKeys[v] = i
+    end
+    return Item
 end
 
 return Item 

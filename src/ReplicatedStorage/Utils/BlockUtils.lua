@@ -56,4 +56,5 @@ function Utils.equalStr(self,str)
     return  self == str or self[2] == str[2]
 end
 
+
 return Utils

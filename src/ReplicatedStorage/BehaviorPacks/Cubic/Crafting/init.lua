@@ -39,7 +39,7 @@ recipes.LongStick = {
     Type = "Crafting",
     Key = {
         d = {
-            Item ='c:Stone',
+            Item ='c:stone',
             }
     },
     Shape = {

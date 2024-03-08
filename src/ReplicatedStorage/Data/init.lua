@@ -13,9 +13,15 @@ local PlayerEntity = nil
 function Data.addEntity(Entity)
     EntityHolder.addEntity(Entity)
 end
+
 function Data.getEntity(Guid)
     return EntityHolder.getEntity(Guid)
 end
+
+function Data.getEntityFromPlayer(Player)
+    return EntityHolder.getEntity(tostring(Player.UserId))
+end
+
 function Data.getAllEntities()
     return EntityHolder.getAllEntities()
 end

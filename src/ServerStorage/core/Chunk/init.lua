@@ -4,6 +4,8 @@ local Data = require(game.ReplicatedStorage.Data)
 local Generator2 = require(script.Generator)
 local ChunkClass = require(game.ReplicatedStorage.Chunk)
 local Builder = require(script.ChunkBuilder)
+local RegionHandler = require(script.RegionManager)
+
 local waitingPlayers = {}
 local requested = {}
 
@@ -17,24 +19,27 @@ local function sendDataToClients(chunk,...)
 end
 
 
-
-Generator2.Init().Event:Connect(function(data)
-    for i,v in data do
-        local block,surface,biomes,chunk = unpack(v)
-        if not block then
-            sendDataToClients(chunk,false)
+Generator2.Init().Event:Connect(function(msgType,data)
+    if msgType == "Generator" then
+        for i,v in data do
+            local block,biomes,chunk,compressed = unpack(v)
+            if not block then
+                sendDataToClients(chunk,false)
+                requested[chunk] = nil
+                continue
+            end
+            local newChunk = ChunkClass.new(data.X,data.Z,block,biomes)
+            Data.insertChunk(chunk.X,chunk.Z,newChunk)
+            sendDataToClients(chunk,compressed,biomes)
             requested[chunk] = nil
-            continue
         end
-        local newChunk = ChunkClass.new(data.X,data.Z,block,biomes)
-        Data.insertChunk(chunk.X,chunk.Z,newChunk)
-        sendDataToClients(chunk,Builder.compress(block),biomes)
-        requested[chunk] = nil
     end
+
     --Remote:FireAllClients(chunk,Builder.compress(shape))
 end)
 --mainQueue[Vector3.new(0,0,0)] = true
 Remote.OnServerEvent:Connect(function(player,requestedChunk)
+    RegionHandler.addChunk(requestedChunk)
     local found = Data.getChunk(requestedChunk.X,requestedChunk.Z)
     if found then
         Remote:FireClient(player,requestedChunk,Builder.compress(found.Blocks),found.BiomeMap)

@@ -9,6 +9,7 @@ local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local EntityUtils = EntityHandler.Utils
 local MathLib = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local Mouse = require(script.mouse)
+local CustomCamera = require(script.Camera)
 local EntityTaskReplicator = require(game.ReplicatedStorage.EntityHandler.EntityReplicator.EntityTaskReplicator)
 
 local DataHandler = require(game.ReplicatedStorage.Data)
@@ -45,15 +46,10 @@ H.Adornee = heightlight
 H.DepthMode = "Occluded"
 H.FillTransparency = 1
 
+local hb = false
 function Funcs.HitBoxs(key,IsDown,GPE,inputs)
     if not IsDown then return end 
-    local Camera = workspace.CurrentCamera
-    local block,Blockpos,hitpos,normal =  ray.cast(Camera.CFrame.Position/3, (Camera.CFrame.LookVector*Vector3.new(1,1,1)).Unit*100)
-    if block == -1 or not block then return end 
-    heightlight.Position = Blockpos*3
-    Blockpos+=normal
- 
-
+    hb = not hb
 end
 
 function Funcs.Attack(key,IsDown,GPE,inputs)
@@ -64,13 +60,23 @@ function Funcs.Attack(key,IsDown,GPE,inputs)
     Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,0)
 
 end
+local Order = {"First","Second","Third"}
+local orderIdx = 1
+function Funcs.CameraMode(key,IsDown,GPE,input)
+    if not IsDown then return end 
+    orderIdx +=1
+    if orderIdx >3 then
+        orderIdx = 1
+    end
+    CustomCamera.setMode(Order[orderIdx])
+end
 
 function Funcs.Interact(key,IsDown,GPE,inputs)
     if not IsDown then return end 
     local RayData = Mouse.getRay()
     if not RayData.Block then return end 
     local Blockpos = RayData.BlockPosition+RayData.Normal
-    Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,2)
+  --  Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,2)
 end
 local Binded = false
 function  Controller.createBinds()
@@ -79,14 +85,14 @@ function  Controller.createBinds()
         return 
     end 
     Binded = true
-    InputHandler.bindToRender("#Controller-Handler",function(dt)
+    InputHandler.bindToRender("#Controller-Handler",20,function(dt)
         local Entity = LPE()
         if EntityHandler.isDead(Entity) then return end 
         local F = InputHandler.isDown("Foward")
         local B = InputHandler.isDown("Back")
         local L = InputHandler.isDown("Left")
         local R = InputHandler.isDown("Right")
-        local CameraCFrame = Camera.CFrame
+        local CameraCFrame = CustomCamera.getCFrame()
         local LookVector = CameraCFrame.LookVector
         local RightVector = CameraCFrame.RightVector
         LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit -- Vector3.new(1,0,0)
@@ -119,12 +125,16 @@ function  Controller.createBinds()
 end
 function Controller.setCameraTo(entity)
    if entity and entity.__model and entity.__model:FindFirstChild("Eye") then
-    Camera.CameraSubject = entity.__model.Eye
+        CustomCamera.bindToEntity(entity)
    end
 end
 
 function Controller.getMouse()
     return Mouse
+end
+
+function Controller.getCamera()
+    return CustomCamera
 end
 
 function Controller.destroyBinds()

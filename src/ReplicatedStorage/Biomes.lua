@@ -30,7 +30,7 @@ function Biome.exists(str)
     if Cache[str] then
         return true
     end 
-    local loc = table.find(Biome, str)
+    local loc = table.find(Biomes, str)
     Cache[str] = if loc then loc-1 else nil
     return if loc then true else false 
 end
@@ -63,9 +63,18 @@ function Biome.init()
     elseif Synchronizer.isClient() then
         Biomes = Synchronizer.getDataClient("Biomes")
     else
+        local Saved = Synchronizer.getSavedData("Biomes")
+        if Saved then
+            Biomes = Saved
+        end
+        local newAdded = false
         for biomeName,biomeData in BehaviorHandler.getAllData().Biomes do
             if Biome.exists(biomeName) then continue end 
             table.insert(Biomes,biomeName)
+            newAdded = true
+        end
+        if newAdded then
+            Synchronizer.updateSavedData("Biomes",Biomes)
         end
         Synchronizer.setData("Biomes",Biomes)
     end

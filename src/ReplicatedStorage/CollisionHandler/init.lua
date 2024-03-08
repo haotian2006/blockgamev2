@@ -10,7 +10,13 @@ local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local ChunkWidth,ChunkHeight = GameSettings.getChunkSize()
 local rotationLib = require(game.ReplicatedStorage.Utils.RotationUtils)
 local DataH = require(game.ReplicatedStorage.Data)
-
+local Core = require(game.ReplicatedStorage.Core)
+local Shared:Core.Shared
+local EntityService:Core.EntityService
+task.spawn(function()
+    Shared = Core.await("Shared")::Core.Shared
+    EntityService = Shared.awaitModule("EntityService")::Core.EntityService
+end)
 local function getincreased(min,goal2,increased2)
 	local direaction = min - goal2
 	return goal2 +increased2*-math.sign(direaction)
@@ -27,7 +33,7 @@ function collisions.getBlock(x,y,z)
     local Grid = Vector3.new(round(x),round(y),round(z))
     if chunk then
         if localgrid.Y > ChunkHeight or localgrid.Y <=0 then
-            return false,localgrid
+            return false,localgrid,Grid
         end
         local b = ChunkHandler.getBlockAt(chunk,localgrid.X,localgrid.Y,localgrid.Z)
         return b,localgrid,Grid
@@ -35,6 +41,58 @@ function collisions.getBlock(x,y,z)
        return -1,localgrid,Grid
     end
 end
+
+function collisions.createEntityParams(Guids,Types)
+    local guids = {}
+    local types = {}
+    for i,v in Guids or {} do
+        guids[v] = true
+    end
+    for i,v in Types or {} do
+        types[v] = true
+    end
+    return {
+        Guids = guids,
+        Types = types,
+    }
+end
+
+function collisions.getEntitiesInBox(center,size,EntityParams)
+
+    EntityParams = EntityParams or collisions.createEntityParams()
+    local entitiesInBox = {}
+    local halfSize = size / 2
+
+    local minCorner = center - halfSize
+    local maxCorner = center + halfSize
+
+    local minX, minY, minZ = minCorner.X, minCorner.Y, minCorner.Z
+    local maxX, maxY, maxZ = maxCorner.X, maxCorner.Y, maxCorner.Z
+
+    local index = 1
+    
+    local Guids = EntityParams.Guids
+    local types = EntityParams.Types
+    for _, entity:Core.Entity in     DataH.getAllEntities() do
+        if Guids[entity.Guid] or types[entity.Type] then continue end 
+        local HitBox = EntityService.getHitbox(entity)
+        local Size = HitBox/2
+        local entityMinCorner = entity.Position - Size
+        local entityMaxCorner = entity.Position + Size
+      if entityMaxCorner.X > minX and
+           entityMinCorner.X < maxX and
+           entityMaxCorner.Y > minY and
+           entityMinCorner.Y < maxY and
+           entityMaxCorner.Z > minZ and
+           entityMinCorner.Z < maxZ then
+            entitiesInBox[index] = entity
+            index+=1
+        end
+    end
+
+    return entitiesInBox
+end
+
 function  collisions.newSettings()
     return {
         BlackList = {},

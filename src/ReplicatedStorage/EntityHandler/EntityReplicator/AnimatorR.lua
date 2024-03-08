@@ -52,6 +52,25 @@ local decodeFunc = {
     end,
 }
 
+local decodeFuncLocal = {
+    play = function(entity,data)
+        local a = data[3] or {}
+        Animator.playLocal(entity,data[2],a.X,a.Y,data[1].Y)
+    end,
+    stop = function(entity,data)
+        Animator.stopLocal(entity,data[2],data[1].Y)
+    end,
+    stopAll = function(entity,data)
+        Animator.stopAll(entity,data.Y)
+    end,
+    adjustSpeed = function(entity,data)
+        Animator.adjustSpeedLocal(entity,data[2],data[1].Y)
+    end,
+    adjustWeight = function(entity,data)
+        Animator.adjustWeightLocal(entity,data[2],data[1].Y)
+    end,
+}
+
 function AnimatorR.sendTask(entity,task,SendToOwner,...)
     if entity.doReplication == false then return end 
     local func = encodeFunc[task]
@@ -76,6 +95,12 @@ local function Recieve(uuid,data)
         end
         decodefunc(Entity,data)
     else
+        if type(data) == "table" then
+            decodefunc= decodeFuncLocal[Tasks[data[1].X]]
+        else
+            decodefunc= decodeFuncLocal[Tasks[data.X]]
+        end
+        decodefunc(Entity,data)
         TaskReplicator.attachDataTo(uuid,"Animator",data)
     end
 end

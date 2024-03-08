@@ -40,11 +40,6 @@ function Client.createEntityFrom(data)
     for i,v in data do
         Entity[i] = v
     end
-    if data.__animations then
-        for i,v in data.__animations do
-            Animator.play(Entity,i)
-        end
-    end
     return Entity
 end
 function Client.updateEntity(Guid,data)
@@ -107,6 +102,12 @@ function Client.handleData(data)
         EntityHolder.addEntity(Entity)
         EntityHolder.linkEntity(idx,Entity)
         Render.createModel(Entity)
+
+        if data.__animations then
+            for i,v in data.__animations do
+                Animator.play(Entity,i,v)
+            end
+        end
     else
         local Entity = EntityHolder.getEntityFromLink(idx)
         if not Entity then return end 

@@ -17,6 +17,8 @@ local Container = require(game.ReplicatedStorage.Container)
 local EntityContainerManager = require(script.EntityContainerManager)
 local Data = require(game.ReplicatedStorage.Data)
 local Itemhandler = require(game.ReplicatedStorage.Item)
+local FieldType = require(script.EntityFieldTypes)
+
 
 local slerp = MathUtils.slerpAngle 
 
@@ -25,9 +27,11 @@ EntityTaskReplicator.Init(Entity)
 Utils.Init(Entity) 
 CollisionHandler.Init(Entity)
 
+Entity.FieldTypes = FieldType
 Entity.Container = EntityContainerManager
 Entity.Animator = Animator
 Entity.Utils = Utils
+--DEFAULTS
 Entity.Gravity = 32--9.81
 Entity.Speed = 0
 Entity.RotationSpeedMultiplier = 6*2
@@ -50,6 +54,7 @@ function Entity.new(type:string,ID)
     self.__animations = {}
     self.__cachedData = {}
     self.__localData = {}
+    self.__IsEntity = true
     self.Holding = ""
     self.Position = Vector3.zero
     self.Grounded = true
@@ -61,6 +66,8 @@ function Entity.new(type:string,ID)
             Entity.setSlot(self, self["Slot"])
         end
         EntityContainerManager.init(self)
+    else
+        self.__loadedAnimations = {}
     end
     Entity.updateChunk(self)
     return self
@@ -176,13 +183,43 @@ function Entity.getAndCache(self,string)
     return cached
 end
 
+local function convertv2tov3(vector)
+    if typeof(vector) == "Vector2" then
+         return Vector3.new(vector.X,vector.Y,vector.X)
+    end
+    return vector
+end
+
+function Entity.getHitbox(self)
+    local HString = "Hitbox"
+    if self[HString] then
+        return convertv2tov3(self[HString])
+    end
+    local Cahced = self.__cachedData[HString]
+    if Cahced then
+        if typeof(Cahced) == "Vector2" then
+            local v3 = Vector3.new(Cahced.X,Cahced.Y,Cahced.X)
+            self.__cachedData[HString] = v3
+            return v3
+        end
+        return Cahced
+    end
+
+    local HitBox = Entity.get(self,HString)
+    HitBox = convertv2tov3(HitBox)
+    self.__cachedData[HString] = HitBox
+    return HitBox
+end
+
 function Entity.get(self,string) 
     if self[string] ~= nil then
         return self[string]
     end
-    for i,v in self.__components do
-        if v[string] ~= nil then 
-            return v[string]
+    if #self.__components > 0 then
+        for i,v in self.__components do
+            if v[string] ~= nil then 
+                return v[string]
+            end
         end
     end
     if self.__main[string] ~= nil then 
@@ -298,7 +335,7 @@ function Entity.crouch(self,isDown,fromClient)
     self.Crouching = self.Crouching or false
     if isDown~=nil and self.Crouching == isDown then return end 
     self.Crouching = not self.Crouching
-    local currentHitBox = Entity.get(self,"Hitbox")
+    local currentHitBox = Entity.getHitbox(self)
     local EyeLevel = Entity.get(self,"EyeLevel")
     if self.Crouching then
         self.Hitbox = Vector2.new(currentHitBox.X, currentHitBox.Y-CrouchHeight)
@@ -418,7 +455,7 @@ function Entity.updateGravity(self,dt)
     local yValue = 0
     local FramesInAir = self.FramesInAir or 0
     if not self.Grounded and (not CollisionHandler.isGrounded(self,true) or FramesInAir == 0) then
-        local Gravity = Entity.getAndCache(self,"Gravity")
+        local Gravity = Entity.get(self,"Gravity")
         yValue = bodyVelocity.Y + (-Gravity)*dt
         FramesInAir = FramesInAir +1
     else
@@ -448,10 +485,10 @@ function Entity.updateMovement(self,dt,normal)
     Entity.setVelocity(self,"Physics",Vector3.new(newX,bodyVelocity.Y,newZ))
 end
 
-local DEBUGSERVER = true
+local DEBUGSERVER = false
 local function Server_visualiser(self)
     local model = self.__model
-    local hb =  Entity.getAndCache(self, "Hitbox")
+    local hb =  Entity.getHitbox(self)
     if not model then
         model = Instance.new("Part")
         model.Anchored = true
@@ -461,7 +498,7 @@ local function Server_visualiser(self)
         model.Name = self.Guid
         self.__model = model
     end
-    model.Size = Vector3.new(hb.X,hb.Y,hb.X) *3
+    model.Size = hb*3
     model.Position = self.Position*3
 end
 function Entity.update(self,dt,fixedDt)

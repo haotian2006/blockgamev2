@@ -33,12 +33,15 @@ function Communicator.getActor()
     return Actor,ActorID 
 end
 
-function Communicator.getRunner():(any)->(any)
+function Communicator.getRunner():{
+    Run:(fx:()->(),...any)->(any),
+    RunParallel:(fx:()->(),...any)->(any),
+}
     return Runner
 end
 
 function Communicator.runParallel(task:(any)->(any),...:any):(any)
-    return Runner(task,...)
+    return Runner.RunParallel(task,...)
 end
 
 function Communicator.bindToMessage(message,callBack)
@@ -51,6 +54,14 @@ function Communicator.sendMessageToId(Id,MessageType,...)
    end
    Actors[Id]:SendMessage("Message",ActorID,MessageType,...)
    debug.profileend()
+end
+
+function Communicator.sendMessageToAll(MessageType,...)
+    for _,actor in Actors do
+        task.spawn(function(...)
+            actor:SendMessage("Message",ActorID,MessageType,...)
+        end,...)
+    end
 end
 
 function Communicator.delayMessageToId(Id,MessageType,...)

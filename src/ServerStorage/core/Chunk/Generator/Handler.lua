@@ -7,6 +7,8 @@ local Configs = require(script.Parent.Config)
 local began = debug.profilebegin
 local close = debug.profileend
 
+
+
 --//Settings
 local MaxResume = Configs.MaxResume
 local MaxBuild = Configs.MaxBuild
@@ -21,6 +23,8 @@ local Communicator = require(script.Parent.Communicator)
 local Storage,LocalChunk = unpack(require(script.Parent.ChunkAndStorage))
 local Overworld = require(script.Parent.OverworldActorLayer)
 local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
+local Manipulator = require(script.Parent.Parent.ChunkDataManipulator)
+local RegionManager = require(script.Parent.Saver.RegionHandler)
 
 local Start_Time = os.clock()
 local _,ACTORID = Communicator.getActor()
@@ -144,7 +148,7 @@ local function replicateToMain()
     end
     if #new ~= 0 then
         table.clear(SendMain)
-        Communicator.sendMessageMain(new)
+        Communicator.sendMessageMain("Generator",new)
     end
 end
 
@@ -294,6 +298,14 @@ end
 
 --//Main
 local function MainHandler(chunk)
+    local InRegion = RegionHelper.GetIndexFromChunk(chunk) == ACTORID
+    if InRegion and false then
+        local Shape,Compressed,Biome = RegionManager.getChunkData(chunk)
+        if Shape then
+            SendMain[chunk] =  {Shape,Biome,chunk,Compressed}
+            return 
+        end
+    end
     local ChunkObj = Storage.getOrCreate(chunk)
     if ChunkObj.InQueue then return end 
     ChunkObj.InQueue = true
@@ -303,7 +315,7 @@ local function MainHandler(chunk)
    -- Storage.pause(chunk) --Pause collection 
 
     local running = coroutine.running()
-    local Failed = task.delay(25+(numOfPlayers-1)*5, function()
+    local Failed = task.delay(120+(numOfPlayers-1)*5, function()
         if IsInActor then
             for Actor,_ in ChunkObj.ActorsToSend do
                 if not MainFailed[Actor] then 
@@ -312,7 +324,7 @@ local function MainHandler(chunk)
                 MainFailed[Actor][chunk] = true
             end
             --return back to main thread 
-            SendMain[chunk] =  {false,false,false,chunk}
+            SendMain[chunk] =  {false,false,chunk}
         end
         print(chunk, internalStep,ChunkObj.NotInRegion ,ChunkObj.CarveAmmount,ChunkObj.Required,ChunkObj)
         Storage.removeChunkData(chunk)
@@ -432,14 +444,21 @@ local function MainHandler(chunk)
     internalStep = 8
     if IsInActor then
         --return back to main thread 
-        SendMain[chunk] =  {chunkData.Shape,chunkData.Surface,chunkData .Biome,chunk}
+
+        local compressed = Manipulator.compressBlockBuffer(chunkData.Shape)
+        RegionManager.addChunk(chunk, chunkData.Shape,chunkData.Biome)
+        SendMain[chunk] =  {chunkData.Shape,chunkData.Biome,chunk,compressed}
     end
     ChunkObj.InQueue = false
     Storage.remove(chunk) -- resume collection 
     task.cancel(Failed)
     ChunkObj.Failed  = nil
 end
-  
+sa = game:GetService("HttpService")
+timesaa = 0
+palletBuffer = buffer.create(2_500_000)
+blockBuffer = buffer.create(2_500_000)
+bs,ps = 0,0
 local function MainLoop()
     for i =1 , 5 do
         local chunk = Queue.dequeue(MainQueue)
@@ -448,6 +467,7 @@ local function MainLoop()
     end
     --return times == 0
 end
+local RegionUpdateLoop = RegionManager.Loop
 
 --//Runner
 local RunnerOrder = {
@@ -492,6 +512,10 @@ RunService.Heartbeat:Connect(function()
     if not Communicator.Ready then return end 
     numOfPlayers = #Players:GetPlayers()
     iter_ = 0
+    if Configs.OnClose or Configs.HasToCompress then
+        Communicator.runParallel(RegionUpdateLoop)
+        return
+    end
     if not ResumeLoop() then return end 
     Communicator.runParallel(RecursiveRunner)
 end)
@@ -501,11 +525,14 @@ RunService.Stepped:Connect(function()
 end)
 
 --//Message Binds
+local DataManager = require(script.Parent.Parent.ChunkDataManipulator)
 Communicator.bindToMessage("Q",function(From,cx,cz)
     local chunk = Vector3.new(cx,0,cz)
     Queue.enqueue(MainQueue,chunk)
     --MainHandler(chunk)
 end)
+
+
 
 Communicator.bindToMessage("MainFailed",function(from,requested)
     for _,chunk in requested do

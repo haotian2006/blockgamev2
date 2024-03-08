@@ -4,7 +4,7 @@ return {
 
       Elevation  = 10, 
       Factor = 100, 
-      NoiseScale = .3, 
+      NoiseScale = .4, 
       SurfaceScale = .1,
 
       SecondaryBlock = 'c:dirt',
@@ -41,7 +41,7 @@ return {
       Caves = true,
       Structures = {
          "c:tree"
-      },
+      }, 
       Ores = {
          {
             Parent = "c:purple",

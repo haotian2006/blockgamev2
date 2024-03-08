@@ -10,6 +10,7 @@ local Animator = require(game.ReplicatedStorage.EntityHandler.Animator)
 local Camera = workspace.CurrentCamera
 
 local CurrentArms
+local RenderHand 
 
 function Arms.update(dt)
     local CurrentEntity = PlayerEntity() 
@@ -24,6 +25,9 @@ function Arms.update(dt)
         Model:ScaleTo(.15)
     end
     local Holding,data = EntityRender.renderHolding(CurrentArms,CurrentEntity.Holding,function(item)
+        if CurrentArms.__CameraMode ~= "First" and item then
+            EntityRender.setTransparencyOfModel(item.Parent,1)
+        end
         if not item then
             Model:ScaleTo(1)
         else
@@ -32,15 +36,20 @@ function Arms.update(dt)
     end)
     if Holding and Holding ~= "" and data then
         if type(data) == "table" then
-            if data.RenderHand == false then
+            RenderHand = data.RenderHand
+            if data.RenderHand == false or CurrentArms.__CameraMode ~= "First" then
                 aw.Part1.LocalTransparencyModifier = 1
             else
                 aw.Part1.LocalTransparencyModifier = 0
             end
+        else
+            RenderHand = true
         end
            aw.C0 = CurrentArms.OriginalC0 *CFrame.new(.85,-2,-3) *CFrame.Angles(math.rad(90),0,math.rad(20)) -- *CFrame.new(.85,-2,-3)
     elseif  not Holding or Holding == "" then
         aw.C0 = CurrentArms.OriginalC0*CFrame.new(.85,-2.1,-3) *CFrame.Angles(math.rad(130),0,math.rad(20))*CFrame.Angles(0,math.rad(70),0)
+        RenderHand = true
+        if CurrentArms.__CameraMode ~= "First" then return end 
         aw.Part1.LocalTransparencyModifier = 0
     end
 end
@@ -67,6 +76,21 @@ function Arms.Init()
     CurrentArms.OriginalC0 = aw.C0
 
         
+end
+
+function Arms.setTransparency(value)
+    if not CurrentArms then return end 
+    EntityRender.setTransparency(CurrentArms, value)
+
+    if value == 0 and   (RenderHand == false)  then
+        CurrentArms.__model["Right Arm"].LocalTransparencyModifier = 1
+    end
+end
+
+function Arms.setMode(mode)
+    if CurrentArms then 
+        CurrentArms.__CameraMode = mode
+    end
 end
 
 function Arms.playerAnimation(ani)

@@ -9,7 +9,22 @@ local function f(co,i)
     if not co[i] then return "" end 
     return co[i] ~= "" and {co[i],i} or ""
 end
+
+local function parseOrder(Order) 
+	for i,v in Order do
+		if type(v) == "table" then
+			if type(v[1]) == "number" then
+				v = table.clone(v)
+				v[1] = ItemHandler.getNameFromIndex(v[1])
+				Order[i] = v
+			end
+		end
+	end
+end
+
 function Crafting.GetOutResult(Order)
+	parseOrder(Order)
+	
 	local shape = {
 		{},
 		{},

@@ -1,5 +1,5 @@
 return {
-    RegionSize = 50,
+    RegionSize = 32,
     Actors = 2, 
 
     --//Debris
@@ -11,4 +11,7 @@ return {
     MaxResume = 300,
 
     StructureRange = 10,
+
+    OnClose = false,
+    HasToCompress = false,
 } 

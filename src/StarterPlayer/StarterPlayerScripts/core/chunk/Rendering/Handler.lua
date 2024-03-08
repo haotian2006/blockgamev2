@@ -76,7 +76,7 @@ local function HandleSubChunk(chunk)
     Chunk.SubChunks[y] = Data
     Updated = true
     local newC = Vector3.new(x,0,z)
-    task.delay(1/20, function()
+    task.delay(1/10, function()
         ForceCull[newC] = SearchIDX.Value
         Updated = true
     end)
@@ -95,15 +95,14 @@ local function HandleLargeSubChunk(chunk)
         local info = Data[i]
         Chunk.SubChunks[i+offset] = info
     end
-    if #Chunk.SubChunks >= 32 then
-        Chunk.SubChunks.DONE = true
-    end
-    Updated = true
     local newC = Vector3.new(x,0,z)
-    task.delay(1/20, function()
-        ForceCull[newC] = SearchIDX.Value
-        Updated = true
-    end)
+    if #Chunk.SubChunks >= 32 then
+        task.delay(1/10, function()
+            Chunk.SubChunks.DONE = true
+            ForceCull[newC] = SearchIDX.Value
+            Updated = true
+        end)
+    end
     return true
 end
 

@@ -1,10 +1,20 @@
 local Synchronizer = {}
 
+
 local RunService = game:GetService("RunService")
 local SynchronizerShared = game:GetService("SharedTableRegistry"):GetSharedTable("Synchronizer")
 
 local ISACTOR = true
 local ISCLIENT = RunService:IsClient()
+
+local Options = Instance.new("DataStoreGetOptions")
+Options.UseCache = false
+
+local DataStore
+if not ISCLIENT then 
+    local DataStoreService = game:GetService("DataStoreService")
+    DataStore = DataStoreService:GetDataStore("tes2t",1)
+end
 
 local BINDABLE:BindableFunction = script.Bindable
 local REMOTE:RemoteFunction = script.Remote
@@ -28,6 +38,29 @@ function Synchronizer.setData(for_,data)
         task.spawn(v,data)
     end
     AwaitingThreads[for_] = nil
+end
+
+function Synchronizer.getSavedData(for_)
+    local sus,info = pcall(function()
+        return DataStore:GetAsync(`Synchronize-{for_}`,Options)
+    end)
+    if not sus then
+        warn(info)
+        return 
+     end
+     print(for_,info)
+    return info
+end
+
+function Synchronizer.updateSavedData(for_,ToSave)
+     task.spawn(function()
+        local sus,er = pcall(function()
+            DataStore:SetAsync(`Synchronize-{for_}`,ToSave)
+         end)
+         if not sus then
+            warn(er)
+         end
+     end)
 end
 
 function Synchronizer.getDataClient(for_)

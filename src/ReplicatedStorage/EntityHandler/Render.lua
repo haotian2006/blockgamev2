@@ -10,11 +10,12 @@ local ItemClass = require(game.ReplicatedStorage.Item)
 local Render = {}
 local Player = game:GetService("Players").LocalPlayer
 local ClientUtils = require(script.Parent.ClientUtils)
+local Core = require(game.ReplicatedStorage.Core)
 
 local DEFAULT_ROTATION = Vector2.new(360,360)
 local function createAselectionBox(parent,color) 
     local sb = Instance.new("SelectionBox",parent) 
-    sb.Visible = true
+    sb.Visible = false
     sb.Transparency = .9
     sb.Color3 = color or Color3.new(0.023529, 0.435294, 0.972549) 
     sb.Adornee = parent sb.LineThickness = 0.025 
@@ -96,8 +97,8 @@ end
 local function createHitBox(data)
     local model = Instance.new("Model")
     local hitbox = Instance.new("Part",model)
-    local hitboxSize = Entity.get(data,"Hitbox")
-    hitbox.Size = (Vector3.new(hitboxSize.X,hitboxSize.Y,hitboxSize.X) or Vector3.new(1,1,1))*Settings.GridSize 
+    local hitboxSize = Entity.getHitbox(data)
+    hitbox.Size = (hitboxSize or Vector3.new(1,1,1))*Settings.GridSize 
     local eye = createEye(Entity.get(data,"EyeLevel"),hitbox)
     createAselectionBox(hitbox)
     createAselectionBox(eye,Color3.new(1, 0, 0)).Parent = hitbox
@@ -205,7 +206,7 @@ function Render.renderHolding(self,holding,special)
             special(item)
             return item,ItemData
         end
-        if Data.getPlayerEntity() == self and item then
+        if self.__CameraMode == "First" then
             Render.setTransparencyOfModel(item.Parent,1)
         end
         return item,ItemData
@@ -249,13 +250,13 @@ function Render.createModel(self)
     --hitbox.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
     --hitbox:PivotTo( CFrame.new(self.Position*Settings.GridSize ))
     self.__model = hitbox
-    if Entity.isOwner(self,game.Players.LocalPlayer) then
-        require(game.Players.LocalPlayer.PlayerScripts.Controller).setCameraTo(self)
+    if Entity.isOwner(self,game.Players.LocalPlayer) and  Core.Client then
+        Core.Client.Controller.getCamera().bindToEntity(self)
     end
     Render.renderHolding(self)
 
     if Data.getPlayerEntity() == self then
-        Render.setTransparency(self,1) 
+       -- Render.setTransparency(self,1) 
     end
     hitbox.Parent = workspace.Entities
     return hitbox
@@ -268,8 +269,8 @@ function Render.updateHitbox(self,targetH,targetE)
     local EntityModel = model:FindFirstChild("EntityModel")
     if not EntityModel then return end 
     local PrimaryPart =   model.PrimaryPart
-    targetH = targetH or Entity.getAndCache(self,"Hitbox")
-    PrimaryPart.Size = Vector3.new(targetH.X,targetH.Y,targetH.X)*Settings.GridSize 
+    targetH = targetH or Entity.getHitbox(self)
+    PrimaryPart.Size = targetH*Settings.GridSize 
     local MiddleOffset = PrimaryPart.Size.Y-(PrimaryPart.Size.Y/2+EntityModel.PrimaryPart.Size.Y/2)
     local pos =PrimaryPart.Position 
     EntityModel.PrimaryPart.CFrame = CFrame.new(pos.X,pos.Y-MiddleOffset,pos.Z)

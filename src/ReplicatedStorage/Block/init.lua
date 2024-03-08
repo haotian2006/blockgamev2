@@ -111,9 +111,18 @@ function block.Init()
     elseif Synchronizer.isClient() then
         Blocks = Synchronizer.getDataClient("BlockData")
     else
+        local Saved = Synchronizer.getSavedData("BlockData")
+        if Saved then
+            Blocks = Saved
+        end
+        local newAdded = false
         for blockName,_ in BehaviorHandler.getAllData().Blocks do
             if block.exists(blockName) then continue end 
             table.insert(Blocks,blockName)
+            newAdded = true
+        end
+        if newAdded then
+            Synchronizer.updateSavedData("BlockData",Blocks)
         end
         Synchronizer.setData("BlockData",Blocks)
     end

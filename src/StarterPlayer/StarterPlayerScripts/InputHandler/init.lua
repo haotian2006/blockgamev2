@@ -46,13 +46,13 @@ function Controller.destroyAllEventsFor(Action)
 end
 local BindedFunctions = {}
 local keyPairsBinded = {}
-function  Controller.bindToRender(Name,fx)
-    if RenderEvents[Name] then  warn(`{Name} is binded already`) end 
-    RenderEvents[Name] = fx
+
+function  Controller.bindToRender(Name,priority,fx)
+   RunService:BindToRenderStep(`InputHandler|{Name}`, priority, fx)
 end
 
 function  Controller.unbindFromRender(Name)
-    RenderEvents[Name] = nil
+    RunService:UnbindFromRenderStep(`InputHandler|{Name}`)
 end
 
 function Controller.bindFunctionTo(Name,func,action,priority)
@@ -76,7 +76,7 @@ function Controller.unbindFunction(name)
         keyPairsBinded[d[1]] = nil
     end
 end
-
+ 
 local function runFunctions(action,input,down,IsTyping,keys)
     for i,v in keyPairsBinded[action] or {} do 
         local status =  v[2](input,down,IsTyping,keys)
@@ -141,12 +141,6 @@ local function HandleInputEnded(input,IsTyping)
         end
    end
 end
-
-RunService.RenderStepped:Connect(function(deltaTime)
-    for i,v in RenderEvents do
-        task.spawn(v,deltaTime)
-    end
-end)
 
 UserInputService.InputChanged:Connect(HandleInputBegan)
 UserInputService.InputBegan:Connect(HandleInputBegan)

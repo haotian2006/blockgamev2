@@ -84,12 +84,13 @@ function Utils.getEntitiesNear(self,radius)
     end
     return entities
 end
-
+local MaxY = math.rad(80)
 function Utils.calculateLookAt(self,bRot,hRot)
     local rotation = bRot or self.Rotation or 0
     local headRotation = hRot or self.HeadRotation or Vector2.zero
     local xRot = math.rad(rotation + headRotation.X)
     local yRot = math.rad(headRotation.Y)
+    yRot = math.clamp(yRot, -MaxY, MaxY)
     local directionX = math.cos(yRot) * math.sin(xRot)
     local directionY = math.sin(yRot)
     local directionZ = math.cos(yRot) * math.cos(xRot)
@@ -119,7 +120,12 @@ function Utils.createItemEntity(Item,count,lifetime)
 end
 
 function Utils.dropItem(self,item,count,velocity)
-    velocity = velocity or Utils.calculateLookAt(self)*20
+    local mag = 29
+    if type(velocity) == "number" then
+        mag = velocity
+        velocity = nil
+    end
+    velocity = velocity or Utils.calculateLookAt(self)*mag
     local Item = Utils.createItemEntity(item, count, 1)
     Entity.applyVelocity(Item,velocity)
     Item.Position = Utils.getEyePosition(self)

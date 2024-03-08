@@ -1,3 +1,9 @@
+local core = require(game.ReplicatedStorage.Core)
+if core[`{"init"}`] then
+    core[`{"init"}`]()
+end
+
+
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 BehaviorHandler.Init()
 local RunService = game:GetService("RunService")
@@ -5,7 +11,8 @@ local RunService = game:GetService("RunService")
 local Synchronizer = require(game.ReplicatedStorage.Synchronizer).Init()
 
 require(game.ServerStorage.core.Replication.Block)
-
+local FieldType = require(game.ReplicatedStorage.EntityHandler.EntityFieldTypes)
+FieldType.Init()
 local resource =require(game.ReplicatedStorage.ResourceHandler)
 local ServerReplicator = require(game.ServerStorage.core.Entity.EntityReplicator)
 local Utils = require(game.ReplicatedStorage.EntityHandler.Utils)
@@ -24,7 +31,7 @@ require(game.ServerStorage.core.Chunk)
 local NPC = Handler.new("Npc")
 NPC.Guid = "t"
 NPC.Position = Vector3.new(254, 257.395999908447266, 140)
-hold.addEntity(NPC)
+--hold.addEntity(NPC)
 
 local Item = Handler.new("c:Item")
 Item.Position = Vector3.new(254, 257.395999908447266, 143)
@@ -36,30 +43,56 @@ local ItemHandler = require(game.ReplicatedStorage.Item)
 local Container = require(game.ReplicatedStorage.Container)
 require(game.ReplicatedStorage.Libarys.Crafting).Init()
 
+ItemHandler.Init()
+
 local Blocks = require(game.ReplicatedStorage.Block).Init()
 require(game.ReplicatedStorage.Biomes).init()
 
-local core = require(game.ReplicatedStorage.Core)
-if core[`{"init"}`] then
-    core[`{"init"}`]()
+local ByteNet = require(game.ReplicatedStorage.Core.ByteNet)
+local EntityWrapper = ByteNet.wrap(ByteNet.Types.entity)
+local function OnPlayerAdded(player)
+  local entity = Handler.new("Player",player.UserId)
+  --entity.Position = Vector3.new(522//3, 257.395999908447266, -671.44//3)
+  entity.Position = Vector3.new(254, 257.395999908447266, 132)
+--  entity.Position = Vector3.new(1, 257.395999908447266, 1)
+  Handler.setOwner(entity,player)
+  hold.addEntity(entity)
+
+  local craftingContainer = EntityContainer.getContainer(entity, "Crafting")
+  Container.set(craftingContainer, 2, ItemHandler.new("c:dirt"), 75)
+  -- local p = Instance.new("Part",workspace)
+  -- p.Size = Vector3.new(2,3,2)
+  -- p.Anchored = true
+  -- while task.wait() do
+  --     p.Position = entity.Position*3 
+  -- end
+
+ -- Handler.addComponent(NPC,"ManFaceMan")
+ print(entity)
+ local buf = EntityWrapper.sterilize(entity)
+ local e,l = EntityWrapper.desterilize(buf)
+ print("Entity Buffer Length",l)
+ local a = game:GetService("HttpService"):JSONEncode(buf)
+ print("JSON of entity Buffer",#a)
+ local clone = table.clone(entity)
+ clone.__cachedData = nil
+ clone.__changed = nil
+ clone.__main = nil
+ clone.__components = nil
+ clone.__localData = nil
+ clone.__IsEntity = nil
+ clone.__NetworkId = nil
+ clone.__animations = nil
+ clone.__containerUpdate = nil
+ clone.__velocity = nil
+ clone.Chunk = nil
+ 
+
+ local a = game:GetService("HttpService"):JSONEncode(clone)
+ print("JSON of entity table",#a)
 end
 
-game.Players.PlayerAdded:Connect(function(player: Player)  
-    local entity = Handler.new("Player",player.UserId)
-    --entity.Position = Vector3.new(522//3, 257.395999908447266, -671.44//3)
-    entity.Position = Vector3.new(254, 257.395999908447266, 132)
-    Handler.setOwner(entity,player)
-    hold.addEntity(entity)
-
-    local craftingContainer = EntityContainer.getContainer(entity, "Crafting")
-    Container.set(craftingContainer, 2, ItemHandler.new("c:dirt"), 75)
-    -- local p = Instance.new("Part",workspace)
-    -- p.Size = Vector3.new(2,3,2)
-    -- p.Anchored = true
-    -- while task.wait() do
-    --     p.Position = entity.Position*3 
-    -- end
-    task.wait(7)
-    print("changing")
-   -- Handler.addComponent(NPC,"ManFaceMan")
-end)
+for i,v in game:GetService("Players"):GetPlayers() do
+  OnPlayerAdded(v)
+end
+game.Players.PlayerAdded:Connect(OnPlayerAdded)

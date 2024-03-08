@@ -8,8 +8,9 @@ local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
 local Queue = require(game.ReplicatedStorage.Libarys.DataStructures.Queue)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local ChunkClass = require(game.ReplicatedStorage.Chunk)
+local Config = require(script.Parent.Parent.Config)
 
-local AntiLag = require(script.Parent.Parent.Config).ANTI_LAG
+local AntiLag = Config.ANTI_LAG
 local StartTime = os.clock()
 
 local CurrentlyBuilding 
@@ -161,9 +162,7 @@ function Builder.addToQueue(chunk,Mesh)
         CurrentlyBuilding = nil
     end
 
-    if not InQueue[chunk] then
-      --  Queue.enqueue(BuildQueue, chunk)
-    end
+
     InQueue[chunk] = Mesh
 end
 
@@ -171,7 +170,7 @@ function Builder.deload(chunk)
     if not RenderedChunks[chunk] then
         return 
     end
-    Builder.addToQueue(chunk,1)
+    Builder.addToQueue(chunk,-1)
 end
 
 -- function Builder.buildNext()
@@ -197,14 +196,18 @@ function Builder.buildNext()
     local camera = workspace.CurrentCamera.CFrame.Position/3
     local cx,cy = ConversionUtils.getChunk(camera.X,camera.Y,camera.Z)
     local Center = Vector3.new(cx,0,cy)
-
+    local InRadius = Config.InRadius
     local ComputeBuild = OtherUtils.chunkDictToArray(InQueue, Center)
     for _,Chunk in ComputeBuild do
         if times >= 8 then break end 
         local Data = InQueue[Chunk]
-        if Data == 1 then
+        if Data == -1 then
             Builder.destroy(Chunk)
-        else
+        elseif Data then
+            if not InRadius[Chunk] then
+                InQueue[Chunk] = nil
+                continue
+            end
             Builder.build(Chunk, Data)
         end
         InQueue[Chunk] = nil

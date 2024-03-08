@@ -98,7 +98,7 @@ function Server.replicate(IsSecondTick)
         Entities[Player] = PlayerEntities
         PlayerTaskData[Player] = PlayerTasks
 
-        local Nearby = Utils.getEntitiesNear(ClientEntity,10)
+        local Nearby = Utils.getEntitiesNear(ClientEntity,8*5)
         table.insert(Nearby,ClientEntity)
         for _,entity in Nearby do
             if entity.doReplication == false then continue end 

@@ -170,11 +170,15 @@ function ServerContainer.EntityClose(entity)
     end
     if not main then
         --//DropAll
+        --// I do not remember what to do here
         return
     end
     for i,v in tobePushedBack do
         if v == "" then continue end 
         local extra = Container.add(main, v[1], v[2])
+        if extra and extra >0 then
+            EntityUtils.dropItem(entity, v[1], extra,10)
+        end
         --//Drop Extra
     end
 end

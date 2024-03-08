@@ -1,25 +1,38 @@
-local ReplicatedStorage = game.ReplicatedStorage
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local Entities = require(script.entity)
+local ByteNet = require(script.ByteNet)
+local ByteNetTypes = require(script.ByteNet.types)
 
 local ISCLIENT = RunService:IsClient()
-
 local Modules = {
-
+    Shared = {
+        ByteNet = require(script:FindFirstChild("ByteNet"))
+    },
+    DataTypes = ByteNet.Types,
+    Initiated = false
 }
 
 local Server = {}
 local Shared = {
     Ray = "CollisionHandler.Ray",
     ItemService = "Item",
-    BlockService = "Block"
+    BlockService = "Block",
+    EntityService = "EntityHandler",
+    
 }
 local Client = {
     InputService = "InputHandler",
     Controller = "Controller",
     Helper = "Helper",
-    ResourceHandler = ReplicatedStorage.ResourceHandler,
+    ResourceHandler = ReplicatedStorage:FindFirstChild("ResourceHandler"),
 }
 
+export type dataTypeInterface<T> = ByteNetTypes.dataTypeInterface<T>
+export type ByteNet = ByteNet.ByteNet
+
+export type Entity = Entities.Entity
+export type EntityService = Entities.EntityHandler
 
 export type Connection = {
 	Disconnect: (self: any) -> ()
@@ -76,17 +89,20 @@ export type Mouse = {
     setHighlighting : (Value:boolean) ->(),
     getHighlighting : () -> boolean,
     update : () -> (),
+}
 
+export type Camera = {
+    bindToEntity : (Entity:Entity?) -> (),
+    setPos : (pos:Vector3) ->(),
+    getCFrame : () -> CFrame,
+    setMode : (Mode: "First"|"Second"|"Third") -> (),
+    getMode : () -> "First"|"Second"|"Third"
 }
-type x<t> = {
-    t
-}
-local y:x<number> = {
-     1
-}
-local y = {}::{x<number>}
+
+
 export type Controller = {
-    getMouse : () -> Mouse
+    getMouse : () -> Mouse,
+    getCamera : () -> Camera
 }
 
 export type Ray = {
@@ -116,7 +132,10 @@ export type ItemClass = {
     getMaxCount:(Item:Item) -> number,
     get : (Item:Item,Key:string) -> any,
     getItemInfoR : (Item:Item) -> ItemInfo,
-    createItemModel : (Item:Item) -> (BasePart?,ItemInfo)
+    createItemModel : (Item:Item) -> (BasePart?,ItemInfo),
+    getName : (Item:Item) -> string,
+    getIndexFromName : (name:string) -> number,
+    getNameFromIndex : (idx:number) -> string,
 }
 
 export type BlockClass = {
@@ -131,6 +150,7 @@ export type BlockClass = {
 
 
 export type Client = {
+    awaitModule:(module:string)->{},
     InputService : InputService,
     Controller : Controller,
     Helper : ClientHelper,
@@ -138,21 +158,52 @@ export type Client = {
 }
 
 export type Shared = {
+    awaitModule:(module:string)->{},
     Ray : Ray,
     ItemService : ItemClass,
     BlockService : BlockClass,
+    EntityService : Entities.EntityHandler,
+    ByteNet : ByteNet.ByteNet,
+
 }
 
 export type Server = {
+    awaitModule:(module:string)->{},
+}
 
+
+
+export type Types =  {
+    entity:Entity
 }
 
 export type core = {
     Client:Client?,
     Server:Server?,
     Shared:Shared,
+    await:(core:"Client"|"Server"|"Shared") -> {Client|Server|Shared},
+    Initiated : boolean,
+
 }
 
+
+local toResume = {}
+local Init = false
+local function awaitWrapper(toWait)
+    return function(module)
+        if not Init then
+            local running = coroutine.running()
+            table.insert(toResume,running)
+            coroutine.yield()
+          end
+          return toWait[module] 
+    end
+end
+
+
+
+Modules.await = awaitWrapper(Modules)
+Modules.Shared.awaitModule = awaitWrapper(Modules.Shared)
 
 function Modules.init()
     local function requireFromPath(parent,path)
@@ -180,6 +231,7 @@ function Modules.init()
             else
                 Modules.Client[i] = data
             end
+            Modules.Client.awaitModule = awaitWrapper(Modules.Client)
         end
     else
         Modules.Server = {}
@@ -190,9 +242,9 @@ function Modules.init()
             else
                 Modules.Server[i] = data
             end
+            Modules.Server.awaitModule = awaitWrapper(Modules.Server)
         end
     end
-    Modules.Shared = {}
     for i,v in Shared do
         local pass,data = requireFromPath(game.ReplicatedStorage, v)
         if not pass then
@@ -202,6 +254,12 @@ function Modules.init()
         end
     end
 
+
+    Modules.Initiated = true
+    Init = true
+    for i,v in toResume do
+        task.spawn(v)
+    end
     Modules[`{"init"}`] = nil -- to get pass typechecking  
     table.freeze(Modules)
 end

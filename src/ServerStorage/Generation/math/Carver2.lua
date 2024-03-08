@@ -17,7 +17,7 @@ end
 
 function Carver.getChunkData(chunk)
     return Storage.get(chunk)
-end
+end 
 
 function Carver.checkBounds(lx,ly,lz)
     if ly >=255 or ly<0 then
@@ -103,12 +103,12 @@ function Carver.addStructure(cx,cz,x,y,z,shape,key)
     end
 end
 
-function Carver.noiseSphere(cx,cz,lx,ly,lz,block,carverTable,noise,scale,minR,maxR)
+function Carver.noiseSphere(cx,cz,lx,ly,lz,block,carverTable,noise,scale,minR,maxR,UseCarveBuffer)
     local rx,ry,rz = cx*8+lx-1,ly,lz+cz*8-1
     local r =  minR + (maxR - minR)
  
-    local currentBuffer = Storage.getFeatureBuffer(Vector3.new(cx,0,cz))
-
+    local getter = UseCarveBuffer and Storage.getCarvedBuffer or Storage.getFeatureBuffer
+    local currentBuffer = getter(Vector3.new(cx,0,cz))
     local ChunkData = Storage.getChunkData(Vector3.new(cx,0,cz))
 
     local currentBlocks = ChunkData.Shape
@@ -132,7 +132,7 @@ function Carver.noiseSphere(cx,cz,lx,ly,lz,block,carverTable,noise,scale,minR,ma
                     local ncx,ncz,lx,ly,lz = ConverstionUtils.gridToLocalAndChunk(xx, yy, zz)
                     if ncx ~= cx or ncz ~= cz then
                         local c = Vector3.new(ncx,0,ncz)
-                        currentBuffer = Storage.getFeatureBuffer(c)
+                        currentBuffer = getter(c)
                         currentBlocks = Storage.getChunkData(c).Shape
                         cx,cz = ncx,ncz
                     end

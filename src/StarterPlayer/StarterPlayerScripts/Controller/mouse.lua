@@ -3,6 +3,8 @@ local mouse = {}
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local Ray = require(game.ReplicatedStorage.CollisionHandler.Ray)
 local DataHandler = require(game.ReplicatedStorage.Data)
+local CustomCamera = require(script.Parent.Camera)
+
 local CurrentEntity = DataHandler.getPlayerEntity
 
 local Camera = workspace.CurrentCamera
@@ -43,7 +45,10 @@ end
 
 function mouse.updateRay()
     local Entity = CurrentEntity()
-    local block,Blockpos,hitpos,normal =  Ray.cast(EntityUtils.getEyePosition(Entity), (Camera.CFrame.LookVector*Vector3.new(1,1,1)).Unit*length)
+    if not Entity then return end 
+    local RayParams = Ray.createEntityParams({Entity.Guid})
+    local CameraCFrame = CustomCamera.getCFrame()
+    local block,Blockpos,hitpos,normal =  Ray.cast(EntityUtils.getEyePosition(Entity), (CameraCFrame.LookVector*Vector3.new(1,1,1)).Unit*length,RayParams)
     if block == -1 or not block then 
         CurrentRay = {}
         H.Visible = false

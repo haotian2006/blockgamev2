@@ -86,4 +86,25 @@ function Utils.chunkDictToArrayV2(dict, center)
     return sortedKeys
 end
 
+function Utils.findKeyDiffrences(old,new)
+    local ToRemove = {}
+    local ToAdd = {}
+    local same = {}
+
+    for key in old do
+        if not new[key] then
+            ToRemove[key] = true
+        else
+            same[key] = true
+        end
+    end
+
+    for key in new do
+        if not old[key] then
+            ToAdd[key] = true
+        end
+    end
+    return ToAdd,ToRemove,same
+end
+
 return Utils

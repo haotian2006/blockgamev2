@@ -12,7 +12,8 @@ local Data = {
     Foliage = {},
     Ores = {},
     Structures = {},
-    Family = {}
+    Family = {},
+    FieldTypes = {}
 }
 
 local Blocks = Data.Blocks
@@ -29,8 +30,18 @@ local ResourcePacks = require(ReplicatedStorage.ResourceHandler)
 local parser = require(script.defaultParser)
 BehaviorPacks.Name = "BehaviorPacks"
 
+local function CheckKeyLength(Key)
+    if not Key then return end 
+    if #Key > 50 then
+        Key = string.sub(Key, 1,50)
+    end
+    return Key
+end
+
+
 local function addTo(to,from)
     for i,v in from do
+        i = CheckKeyLength(i)
         if to[i] then continue end 
         to[i] = v
     end
@@ -40,7 +51,7 @@ local function FormatTable(x,p)
     p = p or {}
     for i,v in x do
         if type(v) == "table" and v.NameSpace then
-            i = v.NameSpace
+            i = CheckKeyLength(v.NameSpace)
         end
         p[i] = v
     end 
@@ -48,35 +59,39 @@ local function FormatTable(x,p)
 end
 local function AddInstanceChildren(Object,Folder,depth)
     for i,stuff in Object:GetChildren() do
-        Folder[stuff.Name] = Folder[stuff.Name] or {}
+        local Key = CheckKeyLength(stuff.Name)
         if stuff:IsA("Folder") then
+            Folder[Key] = Folder[Key] or {}
            -- Folder[stuff.Name].ISFOLDER = true
-            AddInstanceChildren(stuff,Folder[stuff.Name],depth+1)
+            AddInstanceChildren(stuff,Folder[Key],depth+1)
         elseif stuff:IsA("ModuleScript") then
             local data = require(stuff)
-            local key = (type(data) == "table" and data.NameSpace) or stuff.Name
+            local key = (type(data) == "table" and CheckKeyLength(data.NameSpace)) or Key
+            Folder[key] = Folder[key] or {}
             local touse =  type(data) =="table" and FormatTable(data) or data
-            if depth <=0 then
+
+            if depth <=0 and false then
                 addTo(Folder[key] , touse)
             else
                 Folder[key] = touse
             end
-            AddInstanceChildren(stuff,Folder[stuff.Name],depth+1)
+            AddInstanceChildren(stuff,Folder[key],depth+1)
         else
-            Folder[stuff.Name] = stuff
+            Folder[Key] = stuff
         end
     end
 end
 local function loop(v)
+    local Key = CheckKeyLength(v.Name)
     if v:IsA("Folder") then
-        Data[v.Name] = Data[v.Name] or {}
-        Data[v.Name].ISFOLDER = true
-        AddInstanceChildren(v, Data[v.Name],0)
-    elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
+        Data[Key] = Data[Key] or {}
+        Data[Key].ISFOLDER = true
+        AddInstanceChildren(v, Data[Key],0)
+    elseif v:IsA("ModuleScript") and Key ~= "Info" then
         Data[v.Name] = Data[v.Name] or {}
         local data = require(v)
-        addTo(Data[v.Name], type(data) =="table" and FormatTable(data) or data)
-        AddInstanceChildren(v, Data[v.Name],0)
+        addTo(Data[Key], type(data) =="table" and FormatTable(data) or data)
+        AddInstanceChildren(v, Data[Key],0)
     end
 end
 function BehaviorHandler.LoadPack(PackName:string,loadComponet)
@@ -106,6 +121,7 @@ function BehaviorHandler.Init()
     end
     parser(Blocks,Families)
     parser(Items,Families)
+    print(Data.Entities)
     Init = true
     return BehaviorHandler 
 end

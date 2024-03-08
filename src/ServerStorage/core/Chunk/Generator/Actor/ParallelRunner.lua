@@ -16,21 +16,42 @@ local function GetId()
 end
 
 
-script.Parent:BindToMessageParallel("Run", function(ID)
+script.Parent:BindToMessageParallel("RunParallel", function(ID)
     local data = Tasks[ID]
     Tasks[ID] = nil
     local packed = {data[1],data[2](unpack(data[3]))}
     task.synchronize()
     local error ,msg = coroutine.resume(unpack(packed))
     if not error then
-        print(msg)
+        warn(msg)
     end
-    --task.synchronize() --Not really needed for my case
 end)
 
-return function(x,...)
+script.Parent:BindToMessage("Run", function(ID)
+    task.synchronize()
+    local data = Tasks[ID]
+    Tasks[ID] = nil
+    local packed = {data[1],data[2](unpack(data[3]))}
+    local error ,msg = coroutine.resume(unpack(packed))
+    if not error then
+        print(msg)
+    end
+end)
+
+local Runner = {}
+
+function Runner.Run (x,...)
     local ID = GetId()
     Tasks[ID] = {coroutine.running(),x,{...}}
     script.Parent:SendMessage("Run",ID)
     return coroutine.yield() 
 end
+
+function Runner.RunParallel (x,...)
+    local ID = GetId()
+    Tasks[ID] = {coroutine.running(),x,{...}}
+    script.Parent:SendMessage("RunParallel",ID)
+    return coroutine.yield() 
+end
+
+return Runner

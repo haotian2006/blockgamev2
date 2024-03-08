@@ -27,8 +27,17 @@ local ResourceHandler = {}
 local ResourcePacks = game.ReplicatedStorage.ResourcePacks or Instance.new("Folder",game.ReplicatedStorage)
 ResourcePacks.Name = "ResourcePacks"
 
+local function CheckKeyLength(Key)
+    if not Key then return end 
+    if #Key > 50 then
+        Key = string.sub(Key, 1,50)
+    end
+    return Key
+end
+
 local function addTo(to,from)
     for i,v in from do
+         i = CheckKeyLength(i)
         if to[i] then continue end 
         to[i] = v
     end
@@ -37,18 +46,21 @@ end
 function ResourceHandler.AddInstanceChildren(Object,AssetObj,depth)
     local Folder = AssetObj
     for i,stuff in Object:GetChildren() do
-        Folder[stuff.Name] = Folder[stuff.Name] or {}
+        local key = CheckKeyLength(stuff.Name)
         if stuff:IsA("Folder") then
             --Folder[stuff.Name].ISFOLDER = true
-            ResourceHandler.AddInstanceChildren(stuff,Folder[stuff.Name],depth+1)
+            Folder[key] = Folder[key] or {}
+            ResourceHandler.AddInstanceChildren(stuff,Folder[key],depth+1)
         elseif stuff:IsA("ModuleScript") then
-            if depth <=0 then
-                addTo(Folder[stuff.Name] , require(stuff))
+            local data = require(stuff)
+            key = data.NameSpace or key
+            if depth <=0 and false then
+                addTo(Folder[key] , data)
             else
-                Folder[stuff.Name] = require(stuff)
+                Folder[key] = data
             end
         else
-            Folder[stuff.Name] = stuff
+            Folder[key] = stuff
         end
     end
 end 
@@ -62,13 +74,15 @@ function ResourceHandler.LoadPack(PackName:string,loadComponet)
     if not pack then return end 
     local function x(v)
         if v:IsA("Folder") then
-            Data[v.Name] = Data[v.Name] or {}
-            ResourceHandler.AddInstanceChildren(v, Data[v.Name],0)
+            local key = CheckKeyLength(v.Name)
+            Data[key] = Data[key] or {}
+            ResourceHandler.AddInstanceChildren(v, Data[key],0)
         elseif v:IsA("ModuleScript") and v.Name ~= "Info" then
-            Data[v.Name] = Data[v.Name] or {}
-            addTo(Data[v.Name] , require(v))
+            local key = CheckKeyLength(v.Name)
+            Data[key] = Data[key] or {}
+            addTo(Data[key] , require(v))
 
-            ResourceHandler.AddInstanceChildren(v, Data[v.Name],0)
+            ResourceHandler.AddInstanceChildren(v, Data[key],0)
             
         end
     end
