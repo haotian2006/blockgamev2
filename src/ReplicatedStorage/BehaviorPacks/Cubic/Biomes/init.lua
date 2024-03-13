@@ -1,6 +1,6 @@
 return {
    {
-      NameSpace = 'c:plains',
+      RealName = 'c:plains',
 
       Elevation  = 10, 
       Factor = 100, 
@@ -26,13 +26,13 @@ return {
       }
    },
    { 
-    NameSpace = 'c:ocean',
+    RealName = 'c:ocean',
     Elevation = 11,
     Factor = 100,
 
    },
    { 
-      NameSpace = 'c:snow',
+      RealName = 'c:snow',
       Elevation = 14,
       Factor = 300,
       SurfaceBlock = {'c:grassBlock',0,1},
@@ -52,7 +52,7 @@ return {
 
    },
    { 
-      NameSpace = 'c:hill',
+      RealName = 'c:hill',
       Elevation = 14,
       Factor = 100,
       SurfaceScale = .1;
@@ -62,7 +62,7 @@ return {
 
    },
      { 
-      NameSpace = 'c:desert',
+      RealName = 'c:desert',
       Elevation = 7,
       Factor = 50,
   

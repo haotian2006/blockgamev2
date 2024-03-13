@@ -24,6 +24,8 @@ local Corners = {
 
 local function UpdateRegion(region,toRemove)
     local chunksInRegion = RegionHelper.getAllChunksInRegion(region.X, region.Z)
+    local RegionId = RegionHelper.getIndexFromRegion(region.X, region.Z)
+    local Entities,hadChanges =  EntityRegionManager.saveRegion(region, chunksInRegion, toRemove)
     local AllChanges = {}
     local HadUpdates = false
     for _,chunk in chunksInRegion do
@@ -49,9 +51,7 @@ local function UpdateRegion(region,toRemove)
     end
 
 
-    local RegionId = RegionHelper.getIndexFromRegion(region.X, region.Z)
-    Communicator.sendMessageToId(RegionId,"UpdateRegion",region,HadUpdates and AllChanges,toRemove)
-    EntityRegionManager.saveRegion(region, chunksInRegion, toRemove)
+    Communicator.sendMessageToId(RegionId,"UpdateRegion",region,HadUpdates and AllChanges,toRemove,Entities,hadChanges)
 end
 
 game.ReplicatedStorage.Events.DoSmt.OnServerEvent:Connect(function()
@@ -96,9 +96,9 @@ function Regions.Update(ov)
     for key in removed do 
         UpdateRegion(key,true)
     end
-    LoadedRegions = toLoad
+    LoadedRegions = toLoad 
     Communicator.sendMessageToAll("UpdateAllRegions")
-    EntityRegionManager.SaveAll()
+   -- EntityRegionManager.SaveAll()
 end
 
 local Last = os.time()
@@ -123,7 +123,7 @@ game:BindToClose(function()
 
     Runner.runParallel(Regions.Update,true)
     task.wait(.5)
-    EntityRegionManager.OnClose()
+   -- EntityRegionManager.OnClose()
     while #AwaitingOnClose < Config.Actors do
         task.wait()
     end

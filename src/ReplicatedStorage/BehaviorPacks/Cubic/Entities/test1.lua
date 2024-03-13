@@ -1,3 +1,3 @@
 return {
-    NameSpace = "c:test"
+    RealName = "c:test"
 }

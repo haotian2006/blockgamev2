@@ -50,8 +50,8 @@ end
 local function FormatTable(x,p)
     p = p or {}
     for i,v in x do
-        if type(v) == "table" and v.NameSpace then
-            i = CheckKeyLength(v.NameSpace)
+        if type(v) == "table" and v.RealName then
+            i = CheckKeyLength(v.RealName)
         end
         p[i] = v
     end 
@@ -66,7 +66,7 @@ local function AddInstanceChildren(Object,Folder,depth)
             AddInstanceChildren(stuff,Folder[Key],depth+1)
         elseif stuff:IsA("ModuleScript") then
             local data = require(stuff)
-            local key = (type(data) == "table" and CheckKeyLength(data.NameSpace)) or Key
+            local key = (type(data) == "table" and CheckKeyLength(data.RealName)) or Key
             Folder[key] = Folder[key] or {}
             local touse =  type(data) =="table" and FormatTable(data) or data
 

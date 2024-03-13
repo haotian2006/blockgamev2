@@ -26,11 +26,11 @@ local isServer = RunService:IsServer()
 	@function CreateBridgeTree
 	@within BridgeNet
 	
-	This function creates a series of Bridges with a preset configuration. This function supports namespaces- it takes either a BridgeNet.Bridge() function, or a dictionary.
+	This function creates a series of Bridges with a preset configuration. This function supports RealNames- it takes either a BridgeNet.Bridge() function, or a dictionary.
 	```lua
 	local MyBridgeTree = BridgeNet.CreateBridgeTree({
 		BridgeNameHere = BridgeNet.Bridge()
-		NamespaceHere = {
+		RealNameHere = {
 			BridgeHere = BridgeNet.Bridge({
 				ReplicationRate = 20
 			})

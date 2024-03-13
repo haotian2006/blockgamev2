@@ -72,6 +72,10 @@ function Communicator.sendMessageMain(...)
     Main:Fire(...)
 end
 
+function Communicator.getMainEvent(...)
+    return Main.Event
+end
+
 function Communicator.Init(Main_,Actor_)
     local ChunkFolder = game.ServerScriptService:WaitForChild("ChunkWorkers")
     for i,v in ChunkFolder:GetChildren() do

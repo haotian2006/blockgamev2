@@ -13,7 +13,7 @@ local Config = require(script.Parent.Parent.Config)
 
 local Options = Instance.new("DataStoreGetOptions")
 Options.UseCache = false
-local dss = game:GetService("DataStoreService"):GetDataStore("test232",91192)
+local dss = game:GetService("DataStoreService"):GetDataStore("test232",9123192)
 
 local Runner = Communicator.getRunner()
 
@@ -36,7 +36,8 @@ local function createBaseRegionData(region)
         if not err then 
             warn(Compressed)
         end
-        Chunks.CompressedString = Compressed
+        Chunks.CompressedString = Compressed and Compressed[1]
+        Chunks.CompressedEntity = Compressed and Compressed[2]
         Chunks.Signal = nil
         s:Fire()
 
@@ -80,7 +81,7 @@ local function AttempToSaveBlock(region,toRemove)
                 dss:SetAsync(tostring(region),data)
             end)
             ToSave[region] = nil 
-            print("SAVED REGION",region,"|",regionNum,#data,"BYTES")
+            print("SAVED REGION",region,"|",regionNum,#data[1]+#data[2])
             if not sus then
                 warn(err)
             end
@@ -111,7 +112,7 @@ end
 
 local CompressRegionsQueue = Queue.new(1000)
 local CurrentlyUpdating = 0
-local function UpdateChunk(region,toRemove)
+local function UpdateChunk(region,toRemove,Entities,hadChanges)
     local start = os.clock()
     local Data = Regions_Loaded[region]
     local NewChunks = Data.NewChunks
@@ -146,6 +147,12 @@ local function UpdateChunk(region,toRemove)
     debug.profileend()
     table.clear(Changed)
     if not HadUpdates then 
+        if hadChanges then
+            ToSave[region] = {Data.CompressedString,Entities}
+            task.spawn(function()
+                AttempToSaveBlock(region,toRemove)
+            end)
+        end
         if toRemove then
             ActorRegionData:remove(region)
             Regions_Loaded[region] = nil
@@ -194,8 +201,8 @@ local function UpdateChunk(region,toRemove)
     -- print("Frames",e*60)
     Data.CompressedString = json
     ActorRegionData:remove(region)
-    task.synchronize()
-    ToSave[region] = json
+
+    ToSave[region] = {json,Entities}
     task.spawn(function()
         AttempToSaveBlock(region,toRemove)
     end)
@@ -239,6 +246,7 @@ function Region.getChunkData(chunk)
     return  shape,biome
 end
 
+
 local ToUpdate = {}
 
 function Region.Loop()
@@ -273,16 +281,22 @@ Communicator.bindToMessage("UpdateAllRegions",function(from)
 end)
 
 
-Communicator.bindToMessage("UpdateRegion",function(from,region,Changed,toRemove)
+Communicator.bindToMessage("UpdateRegion",function(from,region,Changed,toRemove,Entities,hadChanges)
     local Data = awaitRegion(region)
     if not Data then return end 
     local c = Data.Changed
     for i,v in Changed or {} do
         c[v[1]] = v[2]
     end
-    UpdateChunk(region,toRemove)
+    UpdateChunk(region,toRemove,Entities,hadChanges)
 end)
 
+
+Communicator.bindToMessage("GetEntitiesInRegion",function(from,region)
+    Regions_Loaded[region] = awaitRegion(region) or createBaseRegionData(region)
+    awaitRegion(region)
+    Communicator.sendMessageMain("EntityData",region,Regions_Loaded[region].CompressedEntity)
+end)
 Communicator.bindToMessage("AddRegion",function(from,region)
     Regions_Loaded[region] = awaitRegion(region) or createBaseRegionData(region)
 end)
@@ -308,7 +322,7 @@ game:BindToClose(function()
             local sus,err = pcall(function(...)  
                 dss:SetAsync(tostring(i),v)
             end)
-            print("BINDTOCLOSE SAVED REGION",i,"|",regionNum,#v,"BYTES")
+            print("BINDTOCLOSE SAVED REGION",i,"|",regionNum,#v[1]+#v[2])
             if not sus then
                 warn(err)
             end

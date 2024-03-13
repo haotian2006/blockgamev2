@@ -11,6 +11,7 @@ local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
 local Runner  =require(game.ReplicatedStorage.Runner)
 local Debirs = require(game.ReplicatedStorage.Libarys.Debris)
+local communicator = require(Generator.Communicator)
 
 local ActorRegionData = Debirs.getFolder("ActorRegionData", 3)
 
@@ -31,6 +32,7 @@ local OnCloseSave = {}
 
 local Regions_Loaded = {}
 
+local Recieved = {}
 local function createBaseRegionData(region)
     local s = Signal.new()
     local Chunks = {
@@ -38,15 +40,21 @@ local function createBaseRegionData(region)
         LastSave = 0,
     }
     task.spawn(function()
-        local err,Compressed = pcall(function(...)  
-            return dss:GetAsync(tostring(region),Options)
-        end)
-        if not err then 
-            warn(Compressed)
+       
+        local d = Recieved[region]
+        if not d then
+            print("requested ",region)
+            d = Signal.new()
+            Recieved[region] = d
+            local Id = RegionHelper.getIndexFromRegion(region.X,region.Z)
+            communicator.sendMessageToId(Id, "GetEntitiesInRegion",region)
+            d = d:Wait()
         end
-        Chunks.CompressedString = Compressed
+        print("Recieved",region,#d)
+        Chunks.CompressedString = d
         Chunks.Signal = nil
         s:Fire()
+        Recieved[region] = nil
 
     end)
     return  Chunks
@@ -62,42 +70,6 @@ local function awaitRegion(region)
 end
 
 
-local function AttempToSaveBlock(region,toRemove)
-    local data =  ToSave[region]
-    if data == 1 or not data then return end 
-    ToSave[region] = 1
-    local rdata = Regions_Loaded[region]
-    if not rdata then 
-        ToSave[region] = nil 
-        return 
-    end 
-    local LastSave = rdata.LastSave
-    if os.time()-LastSave>=50 or Config.OnClose then
-        if Config.OnClose then
-            ToSave[region] = nil
-            OnCloseSave[region] = data 
-            return
-        end
-        rdata.LastSave = os.time()
-        Runner.run(function()
-            if not ToSave[region] then return end 
-            local sus,err = pcall(function(...)  
-                dss:SetAsync(tostring(region),data)
-            end)
-            ToSave[region] = nil 
-            print("SAVED ENTITIES IN REGION",region,"|",Config.OnClose,#data,"BYTES")
-            if not sus then
-                warn(err)
-            end
-        end)
-        if toRemove then
-            Regions_Loaded[region] = nil
-        end
-    else
-        ToSave[region] = data
-    end
-
-end
 
 function Saver.getData(region)
     local data = ActorRegionData:get(region)
@@ -120,7 +92,7 @@ function Saver.saveRegion(Region,chunks,deload)
     EntityParser = EntityParser or ByteNet.wrap(ByteNet.Types.entity)
     local allChunks = {}
     local totalSize = 0
-
+    local s = os.clock()
     for i,v in chunks do
         local ChunkData = Data.getChunkFrom(v)
         local idx = RTo1d[RegionHelper.localizeChunk(v)]
@@ -164,20 +136,26 @@ function Saver.saveRegion(Region,chunks,deload)
     end
     local Data = Regions_Loaded[Region]
     local json = Https:JSONEncode(RegionBuffer)
+    print((os.clock()-s)*1000,"ms",#json)
+
     if json ==  Data.CompressedString  then 
         if deload then
             ActorRegionData:remove(Region)
             Regions_Loaded[Region] = nil
         end
-        return
+        return  Data.CompressedString
      end 
     Data.CompressedString = json
     ActorRegionData:remove(Region)
-    ToSave[Region] = json
+    -- ToSave[Region] = json
 
-    task.spawn(function()
-        AttempToSaveBlock(Region,deload)
-    end)
+    -- task.spawn(function()
+    --     AttempToSaveBlock(Region,deload)
+    -- end)
+    if deload then
+        Regions_Loaded[Region] = nil
+    end
+    return json,true
 end
 
 function Saver.addChunk(chunk)
@@ -191,6 +169,7 @@ end
 
 function Saver.getEntitiesFromChunk(chunk)
     EntityParser = EntityParser or ByteNet.wrap(ByteNet.Types.entity)
+    Saver.addChunk(chunk)
     local region = RegionHelper.getRegion(chunk)
     local Data = awaitRegion(region)
     if not Data then return end 
@@ -209,6 +188,7 @@ function Saver.getEntitiesFromChunk(chunk)
     local numOfentities = buffer.readu16(LargerEntityBuffer, cursor)
     local Entities = {}
     cursor+=2
+    debug.profilebegin("UnpackEntities")
     while #Entities < numOfentities do
         local entityLength = buffer.readu16(LargerEntityBuffer, cursor) 
 
@@ -217,11 +197,20 @@ function Saver.getEntitiesFromChunk(chunk)
         local e = EntityParser.desterilize(b)
         cursor +=entityLength
         table.insert(Entities,EntityHandler.fromData(e))
-        
     end
+    debug.profileend()
   --  print(Entities)
     return Entities
 end
+
+Generator.Event.Event:Connect(function(type,Region,Entity)
+    if type ~= "EntityData" then return end 
+    if Recieved[Region] then
+        Recieved[Region]:Fire(Entity)
+    else
+        Recieved[Region] = Entity
+    end
+end)
 
 function Saver.SaveAll()
     for i,v in ToSave do
@@ -231,6 +220,7 @@ function Saver.SaveAll()
         end)
     end
 end
+
 
 function Saver.OnClose()
     Config.OnClose = true
