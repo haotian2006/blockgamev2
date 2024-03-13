@@ -22,7 +22,12 @@ local FieldTypesTable = {
     Speed = DataTypes.float32,
 
     Slot = DataTypes.string,
-    Holding = DataTypes.item
+    Holding = DataTypes.item,
+    
+    --<C:ITEM>
+    ItemId = DataTypes.uint16,
+    ItemVariant = DataTypes.uint8,
+    ItemCount = DataTypes.uint16,
     
 }
 

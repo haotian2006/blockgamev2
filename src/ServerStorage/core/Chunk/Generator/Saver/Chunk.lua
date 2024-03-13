@@ -193,16 +193,14 @@ function Chunk.Ster(blocks,biome)
             cursor+=l
         end
     end
-    buffer.writeu8(LightBuffer, math.random(0,1024), math.random(0,255))
-    local compressedLight = Https:JSONEncode(LightBuffer)
-    local length = buffer.len(LightBuffer)--#compressedLight+2
+    --buffer.writeu8(LightBuffer, math.random(0,1024), math.random(0,255))
+    local Lightlength = 0--#compressedLight+2
     local BiomeLength = buffer.len(biomeBuffer)
-    local BlockData = buffer.create(cursor+BiomeLength+length)
+    local BlockData = buffer.create(cursor+BiomeLength+2+Lightlength)
     buffer.copy(BlockData,0,biomeBuffer)
-    --buffer.writeu16(BlockData,BiomeLength,#compressedLight)
+    buffer.writeu16(BlockData,BiomeLength,Lightlength)
    -- buffer.writestring(BlockData,BiomeLength+2,compressedLight)
-    buffer.copy(BlockData, BiomeLength, LightBuffer)
-    buffer.copy(BlockData, BiomeLength+length, LargeBlockBuffer,0,cursor)
+    buffer.copy(BlockData, BiomeLength+2+Lightlength, LargeBlockBuffer,0,cursor)
     debug.profileend()
     return BlockData
 
@@ -211,13 +209,13 @@ end
 
 local biomeLength = 2*8*8
 function Chunk.Des(b,cursor)
-    local Biome = buffer.readu16(b, 0)
-    local blockBuffer = buffer.create(8*8*256*4)
     local Cursor = cursor or 0
+    local Biome = buffer.readu16(b, Cursor)
+    local blockBuffer = buffer.create(8*8*256*4)
     local start = Cursor
     if Biome == ENDPOINT then
         Cursor+=2
-        Biome = buffer.readu16(b, 2)
+        Biome = buffer.readu16(b, Cursor)
         Cursor+=2
     else
         Biome = buffer.create(biomeLength)

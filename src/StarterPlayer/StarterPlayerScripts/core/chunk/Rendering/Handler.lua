@@ -97,7 +97,7 @@ local function HandleLargeSubChunk(chunk)
     end
     local newC = Vector3.new(x,0,z)
     if #Chunk.SubChunks >= 32 then
-        task.delay(1/10, function()
+        task.delay(1, function()
             Chunk.SubChunks.DONE = true
             ForceCull[newC] = SearchIDX.Value
             Updated = true

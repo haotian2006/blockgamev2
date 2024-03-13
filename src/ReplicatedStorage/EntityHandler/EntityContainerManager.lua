@@ -17,6 +17,7 @@ function manager.init(self)
         if Containers[Container] then continue end 
         Containers[Container] = data
     end
+    if next(Containers) == nil then return end 
     self.__containers = {} 
     for i,v in Containers do 
         local count,name =v,i
@@ -47,7 +48,11 @@ function manager.changedComponets(self)
         if Containers[Container] then continue end 
         Containers[Container] = data
     end
-    local my = self.__containers or {}
+    local my = self.__containers 
+    if not my then
+        manager.init(self)
+        return
+    end
 
     for i,v in Containers do
         local myC = my[i]
@@ -71,6 +76,15 @@ function manager.changedComponets(self)
         if size ~= count then
             ServerContainer.setUpdateData(myC,count)
             ContainerManager.resize(self, count)
+        end
+    end
+end
+
+function manager.OnDeath(self)
+    if not  self.__containers  then return end 
+    if IS_SERVER then
+        for i,v in  self.__containers  do
+            ServerContainer.removeAll(self.Guid)
         end
     end
 end

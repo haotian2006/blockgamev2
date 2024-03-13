@@ -113,11 +113,11 @@ local Runner = require(game.ReplicatedStorage.Runner)
 function BehaviorManager.Init()
     if Init then return end 
     Init = true
-    Runner.bindToStepped("Behavior",function(step,dt)
-        for uuid,entity in EntityHolder.getAllEntities() do
-            if entity.__destroyed then continue end 
-            task.spawn(BehaviorManager.run,entity)
-        end
-    end,4)
+    -- Runner.bindToStepped("Behavior",function(step,dt)
+    --     for uuid,entity in EntityHolder.getAllEntities() do
+    --         if entity.__destroyed then continue end 
+    --         task.spawn(BehaviorManager.run,entity)
+    --     end
+    -- end,4)
 end
 return BehaviorManager

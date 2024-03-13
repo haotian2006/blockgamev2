@@ -20,7 +20,7 @@ function Runner.bindToStepped(Name,callback,priority)
         table.insert(steppedCallbacks,priority,Name)
     end
 end
-
+ 
 function Runner.bindToHeartbeat(Name,callback,priority)
     if table.find(heartbeatCallbacks,Name) then 
         warn(`Name {Name} already Binded`)
@@ -37,6 +37,10 @@ end
 
 function Runner.runParallel(fx,...)
     return ParallelRunner.RunParallel(fx,...)
+end
+
+function Runner.run(fx,...)
+    return ParallelRunner.Run(fx,...)
 end
 RunService.Stepped:Connect(function(time,deltaTime)
     -- debug.profilebegin("RUNNNER STEPPED")

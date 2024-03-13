@@ -106,7 +106,7 @@ for dist = 0, r do
     end
 end
 local Config = require(script.Rendering.Config)
-do
+if false then
     task.spawn(function()
         while  not Entity() do task.wait() end 
         local cheedc = {}

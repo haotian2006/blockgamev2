@@ -26,6 +26,7 @@ local Entity = {}
 EntityTaskReplicator.Init(Entity)
 Utils.Init(Entity) 
 CollisionHandler.Init(Entity)
+Holder.init(Entity)
 
 Entity.FieldTypes = FieldType
 Entity.Container = EntityContainerManager
@@ -40,7 +41,13 @@ Entity.RotationSpeedMultiplier = 6*2
 local NILVALUE = {"__NILVALUE__"}
 local DEFAULTS = {"__DEFAULTS__"}
 
-function Entity.new(type:string,ID)
+local UpdateCallbacks = {
+    Position = function(self)
+        Entity.updateChunk(self)
+    end
+}
+
+function Entity.new(type:string,ID,from)
     ID = ID and tostring(ID)
     local info = BehaviorHandler.getEntity(type)
     if not info then return warn(`Entity '{type}' does not exist`) end 
@@ -60,7 +67,22 @@ function Entity.new(type:string,ID)
     self.Grounded = true
     self.Rotation = 0 
     self.HeadRotation = Vector2.zero
+    if not from then 
+        Entity.initialize(self)
+        return self 
+    end 
+    for i,v in from do
+        self[i] = v
+    end
+    Entity.initialize(self)
+    return self
+end
 
+function Entity.fromData(data)
+    return  Entity.new(data.Type,data.Guid,data)
+end
+
+function Entity.initialize(self)
     if IS_SERVER then
         self.__containerUpdate = function()
             Entity.setSlot(self, self["Slot"])
@@ -70,7 +92,6 @@ function Entity.new(type:string,ID)
         self.__loadedAnimations = {}
     end
     Entity.updateChunk(self)
-    return self
 end
 
 function Entity.isType(entity,type)
@@ -233,6 +254,10 @@ function Entity.set(self,key,value)
         self.__changed[key] = IS_SERVER and true or nil
     end
     self[key] = value
+    local cb = UpdateCallbacks[key]
+    if cb then
+        cb(self)
+    end
 end
 
 function Entity.rawSet(self,key,value)
@@ -271,6 +296,10 @@ end
 function Entity.applyVelocity(self,velocity)
     local current = Entity.getVelocity(self,"Physics") or Vector3.zero
     Entity.setVelocity(self,"Physics",current+velocity)
+end
+
+function Entity.setPosition(self,pos)
+    Entity.set(self, "Position", pos)
 end
 
 function Entity.setMoveDireaction(self,Direaction)
@@ -356,21 +385,22 @@ function Entity.crouch(self,isDown,fromClient)
         EntityTaskReplicator.doTask(self,"Crouch",not fromClient and IS_SERVER,self.Crouching,true)
     end
 end
+
 --//Updates
 function Entity.updateChunk(self)
     local chunk = Utils.getChunk(self)
-    self.Chunk = Vector2.new(chunk.X,chunk.Z)
     if chunk ~= self.Chunk then
         if self.Chunk ~= nil then
-            local OldChunk = Data.getChunk(self.Chunk.X,self.Chunk.Y)
+            local OldChunk = Data.getChunkFrom(self.Chunk)
             if OldChunk then
                 Chunk.removeEntity(OldChunk, self)
             end
         end
-        local newChunk =  Data.getChunk( chunk.X,chunk.Y)
+        local newChunk =  Data.getChunkFrom(chunk)
         if newChunk then
             Chunk.addEntity(newChunk, self)
         end
+        self.Chunk = chunk
     end
 end
 
@@ -470,16 +500,18 @@ function Entity.updateMovement(self,dt,normal)
     local newX = bodyVelocity.X
     local newZ = bodyVelocity.Z
     local dir = self.moveDir or Vector3.zero
-
-    if  dt >= 1/20 or (dir.Magnitude >.1 and Vector2.new(bodyVelocity.X,bodyVelocity.Z).Magnitude<=.01) then
+    local total = (self.__localData.DT or 0) + dt
+    if  total >= 1/20 or (dir.Magnitude >.1 and Vector2.new(bodyVelocity.X,bodyVelocity.Z).Magnitude<=.01) then
         local Speed = Entity.getAndCache(self,"getSpeed")(self)--4.3/2--Entity.getAndCache(self,"Speed") or 0 
-        local s = .6
+        local s = .6--.6
         local accelerationX = Speed*(.6/s)^3 * dir.X/1
         local accelerationZ = Speed*(.6/s)^3 * dir.Z/1
         
          newX = newX * s *.91 + accelerationX
          newZ = newZ* s *.91 + accelerationZ
+         total = 0
     end
+    self.__localData.DT = total
     if normal.X ~= 0 then newX = 0 end
     if normal.Z ~= 0 then newZ = 0 end
     Entity.setVelocity(self,"Physics",Vector3.new(newX,bodyVelocity.Y,newZ))
@@ -491,7 +523,7 @@ local function Server_visualiser(self)
     local hb =  Entity.getHitbox(self)
     if not model then
         model = Instance.new("Part")
-        model.Anchored = true
+        model.Anchored = true 
         model.Parent = workspace
         model.Transparency = .6
         model.Color = Color3.new(1.000000, 0.560784, 0.560784)
@@ -501,14 +533,17 @@ local function Server_visualiser(self)
     model.Size = hb*3
     model.Position = self.Position*3
 end
-function Entity.update(self,dt,fixedDt)
+function Entity.update(self,dt)
+    if self.__destroyed then return end 
     if Entity.isOwner(self,LOCAL_PLAYER) then
         local direationVector,normal,shouldJump = Entity.updatePosition(self,dt)
         Entity.updateChunk(self)
         Entity.updateGrounded(self,dt)
         Entity.updateGravity(self,dt)
         Entity.updateTurning(self,dt)
-        Entity.updateMovement(self,fixedDt,normal)
+        Entity.updateMovement(self,dt,normal)
+    else
+        Entity.updateChunk(self)
     end
     if DEBUGSERVER and IS_SERVER then
         Server_visualiser(self)
@@ -521,5 +556,12 @@ function Entity.destroy(self)
     end
     self.__destroyed = true
     Holder.removeEntity(self.Guid)
+
+    local OldChunk = Data.getChunkFrom(self.Chunk)
+
+    EntityContainerManager.OnDeath(self)
+    if OldChunk then
+        Chunk.removeEntity(OldChunk, self)
+    end
 end
 return Entity

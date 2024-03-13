@@ -1,3 +1,4 @@
+--!nocheck
 local Https = game:GetService("HttpService")
 
 local RegionHelper = require(script.Parent.RegionHelper)

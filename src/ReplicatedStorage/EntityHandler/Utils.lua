@@ -3,6 +3,7 @@ local Collisions = require(game.ReplicatedStorage.CollisionHandler)
 local CUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local MathUtils = require(game.ReplicatedStorage.Libarys.MathFunctions)
 local GameSetting = require(game.ReplicatedStorage.GameSettings)
+local Data = require(game.ReplicatedStorage.Data)
 local Chx,ChY = GameSetting.getChunkSize()
 local Entity 
 local EntityHolder = require(script.Parent.EntityHolder)
@@ -74,16 +75,76 @@ function Utils.getPlayersNearEntity(self,radius)
 end
 
 function Utils.getEntitiesNear(self,radius)
-    --//change to search in nearby chunks 
+    local position = self.Position
+    local centerX = (position.X // 8)
+    local centerZ = (position.Z // 8)
+
+    local divided = radius/8
+    local minX = centerX - math.ceil(divided)
+    local maxX = centerX + math.ceil(divided)
+    local minZ = centerZ - math.ceil(divided)
+    local maxZ = centerZ + math.ceil(divided)
     local entities = {}
-    for i,v in EntityHolder.getAllEntities() do
-        if v == self then continue end 
-        if Utils.getMagnitudeBetween(self,v) < radius then
-            table.insert(entities,v)
+    
+    for x = minX, maxX do
+        for z = minZ, maxZ do
+            local coords = vector3(x,0,z)
+            local chunk = Data.getChunkFrom(coords)
+            if not chunk then continue end 
+            for i,v in chunk.Entities do
+                if v == self then continue end 
+                if Utils.getMagnitudeBetween(self,v) < radius then
+                    table.insert(entities,v)
+                end
+            end
         end
     end
+
+
+    -- for i,v in EntityHolder.getAllEntities() do
+    --     if v == self then continue end 
+    --     if Utils.getMagnitudeBetween(self,v) < radius then
+    --         table.insert(entities,v)
+    --     end
+    -- end
     return entities
 end
+
+function Utils.getEntitiesNearChunk(self,radius)
+    local position = self.Position
+    local centerX = (position.X // 8)
+    local centerZ = (position.Z // 8)
+
+    local divided = radius
+    local minX = centerX - (divided)
+    local maxX = centerX + (divided)
+    local minZ = centerZ - (divided)
+    local maxZ = centerZ + (divided)
+    local entities = {}
+    local idx = 1
+    for x = minX, maxX do
+        for z = minZ, maxZ do
+            local coords = vector3(x,0,z)
+            local chunk = Data.getChunkFrom(coords)
+            if not chunk then continue end 
+            for i,v in chunk.Entities do
+                if v == self then continue end 
+                entities[idx] = v
+                idx +=1
+            end
+        end
+    end
+
+
+    -- for i,v in EntityHolder.getAllEntities() do
+    --     if v == self then continue end 
+    --     if Utils.getMagnitudeBetween(self,v) < radius then
+    --         table.insert(entities,v)
+    --     end
+    -- end
+    return entities
+end
+
 local MaxY = math.rad(80)
 function Utils.calculateLookAt(self,bRot,hRot)
     local rotation = bRot or self.Rotation or 0
@@ -112,8 +173,8 @@ end
 function Utils.createItemEntity(Item,count,lifetime)
     count = count or 1
     local Item_ = Entity.new("c:Item")
-    Item_.Item = Item[1]
-    Item_.ItemId = Item[2]
+    Item_.ItemId = Item[1]
+    Item_.ItemVariant = Item[2]
     Item_.ItemCount =count
     Entity.setTemp(Item_,"AliveTime",time()+(lifetime or 0))
     return Item_
@@ -128,6 +189,7 @@ function Utils.dropItem(self,item,count,velocity)
     velocity = velocity or Utils.calculateLookAt(self)*mag
     local Item = Utils.createItemEntity(item, count, 1)
     Entity.applyVelocity(Item,velocity)
+    -- Entity.setPosition(Item,Utils.getEyePosition(self))
     Item.Position = Utils.getEyePosition(self)
     EntityHolder.addEntity(Item)
 end

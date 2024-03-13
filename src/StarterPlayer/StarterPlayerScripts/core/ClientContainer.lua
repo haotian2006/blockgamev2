@@ -1,8 +1,11 @@
 local ClientContainer = {}
 local Item = require(game.ReplicatedStorage.Item)
+
 local loadedContainers = {
    
 }
+
+
 
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
@@ -112,6 +115,10 @@ function ClientContainer.getAndLoadFromServer(uuid,name)
 end
 
 Send.OnClientEvent:Connect(function(name,CData,uuid,containerName)
+    if not CData then
+        ClientContainer.deloadContainer(name)
+        return
+    end
     CData[#CData+1] = {__Parent = uuid,__Name = containerName}
     ClientContainer.loadContainer(name, CData)
 end)

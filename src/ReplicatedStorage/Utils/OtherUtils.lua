@@ -1,5 +1,13 @@
 local Utils = {}
 
+function Utils.flip(t)
+    local a = {}
+    for i,v in t do
+        a[v] = i
+    end
+    return a
+end
+
 function Utils.chunkDictToArray(dict,center)
     local array = table.create(100)
     local idx =0

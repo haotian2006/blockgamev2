@@ -11,7 +11,7 @@ local EntityTasks = require(Entity.EntityReplicator.TaskReplicator)
 local UDP = Entity.EntityReplicator.EntityUDP
 local TCP = Entity.EntityReplicator.EntityTCP
 
-
+ 
 local Server = {}
 
 local function replicateAll(entity)
@@ -78,6 +78,7 @@ function Server.isRenderedOnClient(player,guid)
     return e and e[guid]
 end
 
+local RenderDistance = 8
 function Server.replicate(IsSecondTick)
     table.clear(temp)
     local Entities = {}
@@ -98,7 +99,7 @@ function Server.replicate(IsSecondTick)
         Entities[Player] = PlayerEntities
         PlayerTaskData[Player] = PlayerTasks
 
-        local Nearby = Utils.getEntitiesNear(ClientEntity,8*5)
+        local Nearby = Utils.getEntitiesNearChunk(ClientEntity,RenderDistance)
         table.insert(Nearby,ClientEntity)
         for _,entity in Nearby do
             if entity.doReplication == false then continue end 
@@ -137,6 +138,7 @@ function Server.replicate(IsSecondTick)
     for Player,data in Entities do
         local PlayerData = {}
         local PlayerDataUDP = {}
+        local current 
         EntityReplicateData[Player] = PlayerData
         EntityReplicateDataUDP[Player] = PlayerDataUDP
         local _,toRemove = FindDiffrences(Player,data,IsSecondTick)
@@ -153,7 +155,14 @@ function Server.replicate(IsSecondTick)
                 table.insert(PlayerData,eData) 
             else
                 eData[1] = Vector2.new(Id-32767,eData[1][2])
-                table.insert(PlayerDataUDP,eData) 
+                if not current then
+                    current = {}
+                    table.insert(PlayerDataUDP,current)
+                elseif #current > 10 then
+                    current = {}
+                    table.insert(PlayerDataUDP,current)
+                end
+                table.insert(current,eData) 
                 
             end
         end
@@ -175,8 +184,10 @@ function Server.replicate(IsSecondTick)
         if (next(playerD or {}) or next(newTaskData[v] or {})) then
             TCP:FireClient(v,playerD,newTaskData[v])
         end
-        if (next(udpData or {})) then
-            UDP:FireClient(v,udpData)
+        if udpData and (next(udpData)) then
+           for i,packets in udpData do
+                UDP:FireClient(v,packets)
+           end
         end
     end
     if IsSecondTick then

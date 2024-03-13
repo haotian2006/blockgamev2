@@ -8,10 +8,18 @@ debug.setmemorycategory("CUBICAL STORAGE")
 local Chunks = {}
 local Other = {}
 local PlayerEntity = nil 
+local Simulated = {}
 
+function Data.getSimulated()
+    return Simulated
+end
 
 function Data.addEntity(Entity)
     EntityHolder.addEntity(Entity)
+end
+
+function Data.removeEntity(guid)
+    EntityHolder.removeEntity(guid)
 end
 
 function Data.getEntity(Guid)
@@ -32,6 +40,10 @@ end
 function Data.getChunk(x,y)
     return Chunks[Vector3.new(x,0,y)]
 end 
+
+function Data.deloadChunk(x,z)
+    Chunks[Vector3.new(x,0,z)] = nil
+end
 
 function Data.getChunkFrom(vector)
     return Chunks[vector]

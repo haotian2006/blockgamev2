@@ -8,6 +8,7 @@ local Chunk = require(game.ReplicatedStorage.Chunk)
 local Data = require(game.ReplicatedStorage.Data)
 local Entity = require(game.ReplicatedStorage.EntityHandler)
 local BlockClass = require(game.ReplicatedStorage.Block)
+local ItemClass =require(game.ReplicatedStorage.Item)
 local Block = {}
 
 function Block.update(x,y,z,id)
@@ -26,8 +27,8 @@ BlockR.OnServerInvoke = function(player,loc,id)
         local Item = Entity.new("c:Item")
         local Block,_,Id = BlockClass.decompressCache(at)
         Entity.set(Item, "Position", Vector3.new(x,y,z))
-        Item.Item = BlockClass.getBlock(Block)
-        Item.ItemId = Id
+        Item.ItemId = ItemClass.getIndexFromName(BlockClass.getBlock(Block))
+        Item.ItemVariant = Id
         Item.ItemCount = 1
         Entity.setTemp(Item,"AliveTime",time()+.15)
         Data.addEntity(Item)

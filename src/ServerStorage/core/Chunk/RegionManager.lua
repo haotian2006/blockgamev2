@@ -6,7 +6,11 @@ local EntityUtils = require(game.ReplicatedStorage.Utils.EntityUtils)
 local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
 local Communicator = require(script.Parent.Generator.Communicator)
 local Config = require(script.Parent.Generator.Config)
+local Runner = require(game.ReplicatedStorage.Runner)
 local Generator = require(script.Parent.Generator)
+local Players = game:GetService("Players")
+
+local EntityRegionManager = require(script.Parent.Parent.Entity.EntityRegionSaver)
 
 local LoadedRegions = {}
 
@@ -24,6 +28,9 @@ local function UpdateRegion(region,toRemove)
     local HadUpdates = false
     for _,chunk in chunksInRegion do
         local ChunkData = DataHandler.getChunkFrom(chunk)
+        if toRemove then
+            DataHandler.deloadChunk(chunk.X, chunk.Z)
+        end
         if not ChunkData then continue end 
         local Changes = ChunkData.Changes
         if not next(Changes) then continue end 
@@ -37,8 +44,14 @@ local function UpdateRegion(region,toRemove)
         table.insert(AllChanges,{chunk,t})
         table.clear(Changes)
     end
+    if toRemove then
+        print("DELOADED REGION",region)
+    end
+
+
     local RegionId = RegionHelper.getIndexFromRegion(region.X, region.Z)
     Communicator.sendMessageToId(RegionId,"UpdateRegion",region,HadUpdates and AllChanges,toRemove)
+    EntityRegionManager.saveRegion(region, chunksInRegion, toRemove)
 end
 
 game.ReplicatedStorage.Events.DoSmt.OnServerEvent:Connect(function()
@@ -47,6 +60,7 @@ end)
 
 function Regions.addChunk(chunk)
     local Region = RegionHelper.getRegion(chunk)
+    EntityRegionManager.addChunk(chunk)
     if not LoadedRegions[Region] then
         print("LOADED REGION",Region)
         local RegionId = RegionHelper.getIndexFromRegion(Region.X, Region.Z)
@@ -54,11 +68,12 @@ function Regions.addChunk(chunk)
     end
     LoadedRegions[Region] = true
 end
+
 local Close = false
 function Regions.Update(ov)
     if not ov and Close then return end 
     local toLoad = {}
-    for _,player in game:GetService("Players"):GetPlayers() do
+    for _,player in Players:GetPlayers() do
         local Entity = DataHandler.getEntityFromPlayer(player)
         if not Entity then continue end 
         local CurrentChunk = EntityUtils.getChunk(Entity)
@@ -77,19 +92,20 @@ function Regions.Update(ov)
         local RegionId = RegionHelper.getIndexFromRegion(key.X, key.Z)
         Communicator.sendMessageToId(RegionId,"AddRegion",key)
     end
-    
+
     for key in removed do 
         UpdateRegion(key,true)
     end
     LoadedRegions = toLoad
     Communicator.sendMessageToAll("UpdateAllRegions")
+    EntityRegionManager.SaveAll()
 end
 
 local Last = os.time()
 game:GetService("RunService").Heartbeat:Connect(function(a0: number)  
     if os.time()-Last >= 30 then
-       -- print("-----AUTOSAVE-----")
-       -- Regions.Update()
+        print("-----AUTOSAVE-----")
+        Runner.runParallel(Regions.Update)
         Last= os.time()
     end
 end)
@@ -103,11 +119,11 @@ script.Parent.Generator.Event.Event:Connect(function(msgType,data)
 end)
 
 game:BindToClose(function()
-    do
-        return
-    end
     Close = true
-    --Regions.Update(true)
+
+    Runner.runParallel(Regions.Update,true)
+    task.wait(.5)
+    EntityRegionManager.OnClose()
     while #AwaitingOnClose < Config.Actors do
         task.wait()
     end

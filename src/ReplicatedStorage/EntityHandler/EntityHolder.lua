@@ -5,6 +5,7 @@ local IdEntity = {}
 local runservice = game:GetService("RunService")
 local IsServer = runservice:IsServer()
 local getNextId,returnId
+local Handler
 local Removed
 if IsServer then
     Removed = {}
@@ -46,8 +47,12 @@ function Holder.addEntity(Guid,entity)
         Holder.linkEntity(Id, toUse)
     end
     if not entity then
-        Entities[Guid.Guid] = Guid 
-        return
+        local temp = Guid
+        Guid = Guid.Guid
+        entity = temp
+    end
+    if entity then
+        Handler.updateChunk(entity)
     end
     Entities[Guid] = entity
 end
@@ -57,9 +62,15 @@ function Holder.getEntity(Guid)
 end
 
 function Holder.removeEntity(Guid)
-    if IsServer then
+    if type(Guid) == "table" then
+        Guid =  Guid.Guid
+    end
+    if IsServer and Entities[Guid]  then
         Holder.unLink( Entities[Guid].__NetworkId)
     end
+    local e =  Entities[Guid]
+    if not e then return end 
+    Handler.updateChunk(e)
     Entities[Guid] = nil
 end
 
@@ -92,5 +103,8 @@ function Holder.getIdFromGuid(Guid)
     return e.__NetworkId
 end
 
+function Holder.init(entity)
+    Handler = entity
+end
 
 return Holder

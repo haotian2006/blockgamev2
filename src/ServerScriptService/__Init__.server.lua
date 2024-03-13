@@ -68,28 +68,7 @@ local function OnPlayerAdded(player)
   -- end
 
  -- Handler.addComponent(NPC,"ManFaceMan")
- print(entity)
- local buf = EntityWrapper.sterilize(entity)
- local e,l = EntityWrapper.desterilize(buf)
- print("Entity Buffer Length",l)
- local a = game:GetService("HttpService"):JSONEncode(buf)
- print("JSON of entity Buffer",#a)
- local clone = table.clone(entity)
- clone.__cachedData = nil
- clone.__changed = nil
- clone.__main = nil
- clone.__components = nil
- clone.__localData = nil
- clone.__IsEntity = nil
- clone.__NetworkId = nil
- clone.__animations = nil
- clone.__containerUpdate = nil
- clone.__velocity = nil
- clone.Chunk = nil
- 
 
- local a = game:GetService("HttpService"):JSONEncode(clone)
- print("JSON of entity table",#a)
 end
 
 for i,v in game:GetService("Players"):GetPlayers() do

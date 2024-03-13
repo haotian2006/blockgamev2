@@ -23,7 +23,7 @@ local Communicator = require(script.Parent.Communicator)
 local Storage,LocalChunk = unpack(require(script.Parent.ChunkAndStorage))
 local Overworld = require(script.Parent.OverworldActorLayer)
 local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
-local Manipulator = require(script.Parent.Parent.ChunkDataManipulator)
+local Manipulator = require(script.Parent.Saver.RegionDataHandler)
 local RegionManager = require(script.Parent.Saver.RegionHandler)
 
 local Start_Time = os.clock()
@@ -299,10 +299,11 @@ end
 --//Main
 local function MainHandler(chunk)
     local InRegion = RegionHelper.GetIndexFromChunk(chunk) == ACTORID
-    if InRegion and false then
-        local Shape,Compressed,Biome = RegionManager.getChunkData(chunk)
+    if InRegion  then
+        local Shape,Biome = RegionManager.getChunkData(chunk)
         if Shape then
-            SendMain[chunk] =  {Shape,Biome,chunk,Compressed}
+            local compressed = Manipulator.compressBlockBuffer(Shape)
+            SendMain[chunk] =  {Shape,Biome,chunk,compressed}
             return 
         end
     end
@@ -525,7 +526,7 @@ RunService.Stepped:Connect(function()
 end)
 
 --//Message Binds
-local DataManager = require(script.Parent.Parent.ChunkDataManipulator)
+
 Communicator.bindToMessage("Q",function(From,cx,cz)
     local chunk = Vector3.new(cx,0,cz)
     Queue.enqueue(MainQueue,chunk)

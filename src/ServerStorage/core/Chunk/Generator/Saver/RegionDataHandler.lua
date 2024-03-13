@@ -1,6 +1,7 @@
 local Data = {}
 local Settings = require(script.Parent.Parent.Config)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
+local ChunkComp = require(script.Parent.Chunk)
 local RegionSize = Settings.RegionSize
 --  ChunkData {4b: Offset 4b: length,128b:biome}
 
@@ -41,18 +42,10 @@ function Data.getLoc(info,ChunkId)
 end
 
 
-function Data.getChunkInfo(info,blocksBuffer,ChunkId,Decompressed)
+function Data.getChunkInfo(info,blocksBuffer,ChunkId)
     local blockOffset,blockLength = Data.getLoc(info,ChunkId)
     if not blockOffset then return end 
-    local Offset = blockOffset
-    local tempBuffer
-    if not Decompressed then
-        tempBuffer = buffer.create(blockLength)
-        buffer.copy(tempBuffer, 0, blocksBuffer, Offset,blockLength)
-    else
-        tempBuffer = Data.decompressBlockBufferFromSource(blocksBuffer,Offset,blockLength)
-    end 
-    return tempBuffer
+    return ChunkComp.Des(blocksBuffer,blockOffset)
 end
 
 function Data.SeparateData(b)
