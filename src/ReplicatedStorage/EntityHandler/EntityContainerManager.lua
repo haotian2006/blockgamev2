@@ -18,13 +18,17 @@ function manager.init(self)
         Containers[Container] = data
     end
     if next(Containers) == nil then return end 
-    self.__containers = {} 
+    self.__containers = self.__containers or {} 
     for i,v in Containers do 
         local count,name =v,i
         if type(v) == "table" then
             name,count = v[1],v[2]
         end
-        self.__containers[i] = ContainerManager.new(name, count,self.Guid,i,self.__containerUpdate)
+        if not self.__containers[i]  then 
+            self.__containers[i] = ContainerManager.new(name, count,self.Guid,i,self.__containerUpdate)
+        else
+            self.__containers[i] = ContainerManager.fromData(self.__containers[i], self.Guid, name, self.__containerUpdate)
+        end
         if IS_SERVER then
             ServerContainer.registerNewContainer(self.Guid,  self.__containers[i])
         end

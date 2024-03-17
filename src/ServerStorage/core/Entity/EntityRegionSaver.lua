@@ -43,14 +43,14 @@ local function createBaseRegionData(region)
        
         local d = Recieved[region]
         if not d then
-            print("requested ",region)
+            --print("requested ",region)
             d = Signal.new()
             Recieved[region] = d
             local Id = RegionHelper.getIndexFromRegion(region.X,region.Z)
             communicator.sendMessageToId(Id, "GetEntitiesInRegion",region)
             d = d:Wait()
         end
-        print("Recieved",region,#d)
+       -- print("Recieved",region,#d)
         Chunks.CompressedString = d
         Chunks.Signal = nil
         s:Fire()
@@ -97,6 +97,12 @@ function Saver.saveRegion(Region,chunks,deload)
         local ChunkData = Data.getChunkFrom(v)
         local idx = RTo1d[RegionHelper.localizeChunk(v)]
         if not ChunkData then 
+            local rawBuffer =Saver.getrawEntitiesBuffer(v)
+            if not rawBuffer then continue end 
+
+            allChunks[idx] = rawBuffer
+            totalSize += buffer.len(rawBuffer)
+
             continue 
         end 
         local ChunkT = {}
@@ -115,12 +121,13 @@ function Saver.saveRegion(Region,chunks,deload)
         end
         local eBuffer = buffer.create(length+2)
         local cursor = 2
-        buffer.writeu16(eBuffer, 0, #ChunkT)
+        buffer.writeu16(eBuffer, 0, length)
         for i,v in ChunkT do
             local len =  buffer.len(v)
             buffer.copy(eBuffer, cursor, v)
             cursor += len
         end
+       -- print(#ChunkT,buffer.len(eBuffer))
         allChunks[idx] = eBuffer
         totalSize += buffer.len(eBuffer)
     end
@@ -128,7 +135,7 @@ function Saver.saveRegion(Region,chunks,deload)
     local RegionBuffer = buffer.create(CHUNK_INFO_LENGTH+totalSize)
     local Entity_cursor = 0
     for i,v in allChunks do
-
+ 
         local len = buffer.len(v)
         buffer.writeu32(RegionBuffer,(i-1)*4,Entity_cursor+1)
         buffer.copy(RegionBuffer, CHUNK_INFO_LENGTH+Entity_cursor, v)
@@ -136,7 +143,7 @@ function Saver.saveRegion(Region,chunks,deload)
     end
     local Data = Regions_Loaded[Region]
     local json = Https:JSONEncode(RegionBuffer)
-    print((os.clock()-s)*1000,"ms",#json)
+   -- print((os.clock()-s)*1000,"ms",#json)
 
     if json ==  Data.CompressedString  then 
         if deload then
@@ -185,22 +192,48 @@ function Saver.getEntitiesFromChunk(chunk)
     -- print(chunk)
     -- print(cursor)
     -- print(buffer.len(LargerEntityBuffer))
-    local numOfentities = buffer.readu16(LargerEntityBuffer, cursor)
+    local maxLength = buffer.readu16(LargerEntityBuffer, cursor)
     local Entities = {}
+    local rawCursor = 0
     cursor+=2
     debug.profilebegin("UnpackEntities")
-    while #Entities < numOfentities do
+
+    while rawCursor < maxLength do
         local entityLength = buffer.readu16(LargerEntityBuffer, cursor) 
 
         local b = buffer.create(entityLength)
         buffer.copy(b, 0, LargerEntityBuffer,cursor,entityLength)
         local e = EntityParser.desterilize(b)
         cursor +=entityLength
+        rawCursor+=entityLength
         table.insert(Entities,EntityHandler.fromData(e))
     end
     debug.profileend()
-  --  print(Entities)
     return Entities
+end
+function Saver.getrawEntitiesBuffer(chunk)
+    EntityParser = EntityParser or ByteNet.wrap(ByteNet.Types.entity)
+    Saver.addChunk(chunk)
+    local region = RegionHelper.getRegion(chunk)
+    local Data = awaitRegion(region)
+    if not Data then return end 
+  
+    local LargerEntityBuffer = Saver.getData(region)
+    if not LargerEntityBuffer then return end 
+    local localized = RegionHelper.localizeChunk(chunk)
+    local id = RegionHelper.To1DVector[localized]
+    local offset = buffer.readu32(LargerEntityBuffer,(id-1)*4)
+    if offset == 0 then return end 
+
+    local cursor = CHUNK_INFO_LENGTH+offset-1
+    -- print(chunk)
+    -- print(cursor)
+    -- print(buffer.len(LargerEntityBuffer))
+    local maxLength = buffer.readu16(LargerEntityBuffer, cursor)+2
+
+    local temp = buffer.create(maxLength)
+    buffer.copy(temp, 0, LargerEntityBuffer,cursor,maxLength)
+    return temp
 end
 
 Generator.Event.Event:Connect(function(type,Region,Entity)
@@ -212,42 +245,5 @@ Generator.Event.Event:Connect(function(type,Region,Entity)
     end
 end)
 
-function Saver.SaveAll()
-    for i,v in ToSave do
-        if v == 1 then continue end 
-        task.spawn(function()
-            AttempToSaveBlock(i, true)
-        end)
-    end
-end
-
-
-function Saver.OnClose()
-    Config.OnClose = true
-    for i,v in ToSave do
-        if v == 1 then continue end 
-        task.spawn(function()
-            AttempToSaveBlock(i, true)
-        end)
-    end
-    while next(ToSave) do
-        task.wait() 
-    end
-    for i,v in OnCloseSave do
-        task.spawn(function()
-            local sus,err = pcall(function(...)  
-                dss:SetAsync(tostring(i),v)
-            end)
-            print("BINDTOCLOSE SAVED ENTITY",i,"|",#v,"BYTES")
-            if not sus then
-                warn(err)
-            end
-            OnCloseSave[i] = nil
-        end)
-    end
-    while next(OnCloseSave) do
-        task.wait()
-    end
-end
 
 return Saver

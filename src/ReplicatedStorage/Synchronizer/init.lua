@@ -11,23 +11,35 @@ local Options = Instance.new("DataStoreGetOptions")
 Options.UseCache = false
 
 local DataStore
-if not ISCLIENT then 
-    local DataStoreService = game:GetService("DataStoreService")
-    DataStore = DataStoreService:GetDataStore("tes2t",1)
-end
 
 local BINDABLE:BindableFunction = script.Bindable
 local REMOTE:RemoteFunction = script.Remote
 
 local Data = {}
 local AwaitingThreads = {}
+local Client_Modifier = {}
 
-function Synchronizer.requestData(for_)
-    if Data[for_] then return Data[for_] end 
+function Synchronizer.setClientModifier(for_,callback)
+    Client_Modifier[for_] = callback
+end
+
+function Synchronizer.requestData(for_,fromClient)
+    local data = Data[for_]
+    if data then 
+        if Client_Modifier[for_] and fromClient then
+            return Client_Modifier[for_](data)
+        end
+        return data
+     end 
     local running = coroutine.running()
     AwaitingThreads[for_] = AwaitingThreads[for_] or {}
     table.insert(AwaitingThreads[for_],running)
-    return coroutine.yield()
+
+    data = coroutine.yield()
+    if Client_Modifier[for_] and fromClient then
+        return Client_Modifier[for_](data)
+    end
+    return data
 end
 
 local requestData = Synchronizer.requestData
@@ -79,15 +91,20 @@ function Synchronizer.isClient()
     return ISCLIENT
 end
 
-function Synchronizer.Init() -- We assume that only main will call this
+function Synchronizer.Init(guid) -- We assume that only main will call this
     if SynchronizerShared.Init then return warn("Attempted to Init From an Actor") end
     SynchronizerShared.Init = true
+
+    if  guid and not ISCLIENT then 
+        local DataStoreService = game:GetService("DataStoreService")
+        DataStore = DataStoreService:GetDataStore("WORLD",guid)
+    end
 
     ISACTOR = false
     BINDABLE.OnInvoke = requestData
     if ISCLIENT then return Synchronizer end 
     REMOTE.OnServerInvoke = function(player,from)
-        return requestData(from)
+        return requestData(from,true)
     end
     return Synchronizer
 end

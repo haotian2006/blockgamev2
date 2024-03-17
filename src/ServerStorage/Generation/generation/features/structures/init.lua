@@ -1,5 +1,5 @@
 --//trees etc
-local SEED = 12345
+
 
 local Utils = require(script.Parent.Parent.Parent.math.utils)
 local Distributions = require(script.Parent.Parent.Parent.math.Distributions)
@@ -16,43 +16,9 @@ local to1dXZ = IndexUtils.to1DXZ
 local to1d = IndexUtils.to1D
 local structure = {}
 local v3 = Vector3.new
-local tree 
-task.spawn(function()
-    tree =   {
-        name = "c:tree",
-        chance = 10,
-        override = 2,
-        layout = {
-            key = {
-                BlockHandler.awaitBlock("c:wood"),BlockHandler.awaitBlock("c:leaf"),3
-            },
-            shape = {
-                [v3(0, 0, 0)] = 3,
-                [v3(0, 1, 0)] = 1,
-                [v3(0, 2, 0)] = 1,
-                [v3(0, 3, 0)] = 1,
-                [v3(0, 4, 0)] = 1,
-                [v3(-1, 4, 0)] = 2, [v3(-2, 4, 0)] = 2, [v3(-1, 4, 1)] = 2, [v3(-2, 4, 1)] = 2,
-                [v3(-1, 4, -1)] = 2, [v3(-2, 4, -1)] = 2, [v3(-1, 4, 2)] = 2, [v3(-1, 4, -2)] = 2,
-                [v3(1, 4, 0)] = 2, [v3(2, 4, 0)] = 2, [v3(1, 4, 1)] = 2, [v3(2, 4, 1)] = 2,
-                [v3(1, 4, -1)] = 2, [v3(2, 4, -1)] = 2, [v3(1, 4, 2)] = 2, [v3(1, 4, -2)] = 2,
-                [v3(0, 4, 1)] = 2, [v3(0, 4, 2)] = 2, [v3(0, 4, -1)] = 2, [v3(0, 4, -2)] = 2,
-                [v3(0, 5, 0)] = 1,
-                [v3(-1, 5, 0)] = 2, [v3(-2, 5, 0)] = 2, [v3(-1, 5, 1)] = 2, [v3(-2, 5, 1)] = 2,
-                [v3(-1, 5, -1)] = 2, [v3(-2, 5, -1)] = 2, [v3(-1, 5, 2)] = 2, [v3(-1, 5, -2)] = 2,
-                [v3(1, 5, 0)] = 2, [v3(2, 5, 0)] = 2, [v3(1, 5, 1)] = 2, [v3(2, 5, 1)] = 2,
-                [v3(1, 5, -1)] = 2, [v3(2, 5, -1)] = 2, [v3(1, 5, 2)] = 2, [v3(1, 5, -2)] = 2,
-                [v3(0, 5, 1)] = 2, [v3(0, 5, 2)] = 2, [v3(0, 5, -1)] = 2, [v3(0, 5, -2)] = 2,
-                [v3(0, 6, 0)] = 2,
-                [v3(-1, 6, 0)] = 2, [v3(-1, 6, 1)] = 2, [v3(-1, 6, -1)] = 2,
-                [v3(1, 6, 0)] = 2, [v3(1, 6, 1)] = 2, [v3(1, 6, -1)] = 2,
-                [v3(0, 6, -1)] = 2, [v3(0, 6, 1)] = 2,
-                [v3(0, 7, 0)] = 2,
-             }
-        }
-    
-    }
-end)
+
+local SEED
+local WorldConfig = require(game.ReplicatedStorage.WorldConfig)
 --[[
 local village = {
     name = "c:village",
@@ -172,6 +138,7 @@ export type Structure = {
 }
 
 function structure.parse(info)
+    SEED = SEED or WorldConfig.Seed
     local parsed = {
         salt = info.salt,
         chance = info.chance or 10,
@@ -189,6 +156,7 @@ end
 
 local writter = buffer.writeu32
 function structure.sample(cx,cz)
+    SEED = SEED or WorldConfig.Seed
     local currentChunk = Vector3.new(cx,0,cz)
     local ChunkData = Storage.getChunkData(currentChunk)
     local biome = ChunkData.Biome

@@ -11,6 +11,11 @@ function container.new(type,size,parent,name,callBack)
     return t
 end
 
+function container.fromData(t,parent,name,callBack)
+    t[#t+1] = {__Parent = parent,__Opened = {},__Call = callBack,__Name = name}
+    return t
+end
+
 local function getValue(x)
     if not x then return end 
     if x == "" then 
@@ -137,7 +142,7 @@ function container.set(self,idx,item,count)
     end 
     idx =( idx or 1) + 1
     local old = self[idx]
-    if item == "" or count ==0 then
+    if item == "" or count <= 0 then
         self[idx] = ""
     else
         self[idx] = {item,count}
@@ -145,6 +150,25 @@ function container.set(self,idx,item,count)
     update(self,idx-1,old)
     return old
 end
+
+function container.setCount(self,idx,count)
+    if container.checkOutOfBounds(self,idx)then
+        error(`Index {idx} is out of bounds for size {#self-2}`) 
+        return 
+    end 
+   
+    local at =  container.get(self, idx)
+    if at == "" then
+        return
+    end
+
+    if count> 0 then
+        return container.setAt(self,idx,at[1],at[2]+count)
+    end
+    container.set(self, idx, at[1], at[2]+count)
+    return
+end
+
 
 --//checks if the data at is the same and adds to it instead, if its diffrent override it and return old 
 function container.setAt(self,index,Itemdata,count)

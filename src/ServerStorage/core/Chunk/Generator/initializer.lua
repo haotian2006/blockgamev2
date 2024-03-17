@@ -1,5 +1,6 @@
 return function()
     local Communicator = require(script.Parent.Communicator)
+    require(game.ReplicatedStorage.WorldConfig).Init()
     local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
     BehaviorHandler.loadComponet("Biomes")
     BehaviorHandler.loadComponet("Structures")

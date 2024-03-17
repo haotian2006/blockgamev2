@@ -20,7 +20,7 @@ local temp = Replication.temp
 ]]
 Replication.REPLICATE_LEVEL = {
     __main = 1,__velocity = 1,__changed = 1,__cachedData = 1,__localData = 1,
-    Grounded = 1,__running = 1,__containers = 1,slot = 1,__model = 1,__IsEntity = 1,
+    Grounded = 1,__running = 1,__containers = 1,slot = 2,__model = 1,__IsEntity = 1,
     __class = 1,__NetworkId = 1,
     --__components = 2,
     __animations = 2,Guid = 2,

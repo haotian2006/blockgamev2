@@ -15,10 +15,8 @@ local to1dXZ = IndexUtils.to1DXZ
 
 local Biomes 
 
-local SEED = 120
-function ore.init(seed)
-    SEED = seed
-end
+local SEED
+local WorldConfig = require(game.ReplicatedStorage.WorldConfig)
 
 local function getOreFrom(biome)
     local b = BiomeHelper.getBiomeFrom(biome)
@@ -64,6 +62,7 @@ export type Ore = {
 }
 
 function ore.parse(settings)
+    SEED = SEED or WorldConfig.Seed
      local parsed =  { 
         block = settings.block and BlockHandler.parse(settings.block) or 4,
         salt = settings.salt,
@@ -77,6 +76,7 @@ function ore.parse(settings)
     return parsed
 end
 function ore.sample(cx,cz)
+    SEED = SEED or WorldConfig.Seed
     debug.profilebegin("Create Ore") 
 
     local ChunkData = Storage.getChunkData(Vector3.new(cx,0,cz))

@@ -6,6 +6,9 @@ IndexUtils.preCompute()
 IndexUtils.preCompute2D()
 IndexUtils.preCompute2DChunkQuad()
 
+local WorldConfig = require(game.ReplicatedStorage.WorldConfig)
+local SEED = WorldConfig.Seed
+
 local Generation = game.ServerStorage.Generation
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
@@ -130,7 +133,7 @@ function Shaper.createBiomeMap(cx,cz)
     return b
 end
 
-local SEED = 12354
+
 local Amp = { 1.0,
 1.0,
 2.0,

@@ -43,9 +43,12 @@ export type Foliage = {
     block : number,
 }
 
+local WorldConfig = require(game.ReplicatedStorage.WorldConfig)
+local SEED 
 function foliage.parse(settings)
+    SEED = SEED or WorldConfig.Seed
     local parsed =  {
-        noiseSettings = settings.noiseSettings and NoiseHandler.parse(1234, settings.noiseSettings) or NoiseHandler.DEFAULT,
+        noiseSettings = settings.noiseSettings and NoiseHandler.parse(SEED, settings.noiseSettings) or NoiseHandler.DEFAULT,
         range = settings.range and Range.parse(settings.range) or Range.DEFAULT,
         block = blockHandler.parse(settings.block) or 1,
     }

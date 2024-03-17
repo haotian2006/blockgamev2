@@ -71,6 +71,7 @@ function Entity.new(type:string,ID,from)
         Entity.initialize(self)
         return self 
     end 
+    
     for i,v in from do
         self[i] = v
     end
@@ -83,6 +84,15 @@ function Entity.fromData(data)
 end
 
 function Entity.initialize(self)
+
+    for i,component in self.__components do
+        table.clear(self.__cachedData )
+        local entityData =  BehaviorHandler.getEntity(self.Type)
+        local componentData = entityData.component_groups[component]
+        if not componentData then warn(`component {component} is not a member or {self.Type}`) end 
+        componentData.Name = component
+    end
+
     if IS_SERVER then
         self.__containerUpdate = function()
             Entity.setSlot(self, self["Slot"])
@@ -165,7 +175,25 @@ function Entity.setSlot(self,slot)
     end
     local Item = Container.get(containerToLook, tonumber(index)) or {}
     Entity.hold(self,Item[1] or "")
+end
 
+function Entity.getSlot(self)
+    local slot =  self.Slot or ""
+
+    local container, index = slot:match("^(.-)%.([^%.]+)$")
+    local idx = tonumber(index)
+    if not container then
+        return "",idx
+    end
+
+    local containerToLook = EntityContainerManager.getContainer(self,container)
+    if not containerToLook then
+        return "",idx
+    end
+ 
+    local Item = Container.get(containerToLook, idx) or {}
+    Entity.hold(self,Item[1] or "")
+    return Item,idx,containerToLook
 end
 
 function Entity.getTemp(self,key)
@@ -312,8 +340,14 @@ function Entity.getMoveDireaction(self,Direaction)
 end
 
 --@Overridable
-function Entity.getSpeed(self)
-    return Entity.getAndCache(self,"Speed")
+function Entity.getSpeed(self,RAWGET)
+    if not RAWGET then
+        local x = Entity.get(self,"getSpeed")
+        if x then 
+            return x()
+        end 
+    end
+    return Entity.get(self,"Speed")
 end
 
 --4.9

@@ -1,6 +1,8 @@
 local layers = require(game.ServerStorage.Generation.generation.biomes.layers)
 layers.Init()
-local SEED = 1123456
+local WorldConfig = require(game.ReplicatedStorage.WorldConfig)
+local SEED = WorldConfig.Seed
+
 local stuff = {}
 local Noise = {}
 local function add(x)

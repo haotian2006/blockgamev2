@@ -28,6 +28,7 @@ function Hotbar.UpdateRender(Entity)
     Render.renderHolding(Entity)
 end
 
+local lastEntity 
 local lastSlot = 1
 function Hotbar.UpdateSlot(slot)
     slot = slot or lastSlot
@@ -35,6 +36,12 @@ function Hotbar.UpdateSlot(slot)
     SlotRemote:FireServer(slot)
 
     local Entity = GetLocalPlayer()
+    if Entity ~= lastEntity then
+        lastEntity = Entity
+        local _,s = EntityHandler.getSlot(Entity)
+        slot = s or slot
+        lastSlot = slot 
+    end
     local Inventory = ClientContainer.getContainer("Inventory")
     if not Entity or not Inventory then return end
     local Item = Inventory[slot+1]
@@ -47,6 +54,16 @@ function Hotbar.UpdateSlot(slot)
         HotBarSelect.Visible = true
     end
 end
+Data.PlayerEntityChanged:Connect(function()
+    
+    task.delay(.2,function()
+        Hotbar.UpdateSlot()
+    end)
+    task.delay(.5,function()
+        -- Hotbar.UpdateSlot(3)
+        -- Hotbar.UpdateSlot(1)
+    end)
+end)
 
 InputHandler.getOrCreateEventTo("HotBarUpdate"):Connect(function(input,isDown,isTyping,keys)
     if isTyping or not isDown then return end 

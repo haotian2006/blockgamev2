@@ -8,7 +8,11 @@ local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 BehaviorHandler.Init()
 local RunService = game:GetService("RunService")
 
-local Synchronizer = require(game.ReplicatedStorage.Synchronizer).Init()
+local WorldConfig = require(game.ReplicatedStorage.WorldConfig)
+
+
+local Synchronizer = require(game.ReplicatedStorage.Synchronizer).Init(WorldConfig.WorldGuid)
+WorldConfig.Init()
 
 require(game.ServerStorage.core.Replication.Block)
 local FieldType = require(game.ReplicatedStorage.EntityHandler.EntityFieldTypes)
@@ -48,6 +52,8 @@ ItemHandler.Init()
 local Blocks = require(game.ReplicatedStorage.Block).Init()
 require(game.ReplicatedStorage.Biomes).init()
 
+local PlayerManager = require(game.ServerStorage.core.Other.PlayerManager)
+
 local ByteNet = require(game.ReplicatedStorage.Core.ByteNet)
 local EntityWrapper = ByteNet.wrap(ByteNet.Types.entity)
 local function OnPlayerAdded(player)
@@ -68,10 +74,13 @@ local function OnPlayerAdded(player)
   -- end
 
  -- Handler.addComponent(NPC,"ManFaceMan")
+ task.wait(6)
+ print(entity)
 
 end
 
-for i,v in game:GetService("Players"):GetPlayers() do
-  OnPlayerAdded(v)
-end
-game.Players.PlayerAdded:Connect(OnPlayerAdded)
+
+-- for i,v in game:GetService("Players"):GetPlayers() do
+--   OnPlayerAdded(v)
+-- end
+-- game.Players.PlayerAdded:Connect(OnPlayerAdded)

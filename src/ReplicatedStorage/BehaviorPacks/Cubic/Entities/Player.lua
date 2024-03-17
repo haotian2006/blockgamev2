@@ -18,13 +18,18 @@ local entity = {
             Holding = 1,
             Inventory = 36
         },
-        getSpeed = function(self)
+        ["getSpeed"] = function(self)
              return EntityHandler.getAndCache(self,"Speed")/2*(self.Crouching and 0.3 or 1)
         end
     }, 
     component_groups = {
 
     },
+
+    behaviors = {
+
+    },
+    
     events ={
     },
     functions = {

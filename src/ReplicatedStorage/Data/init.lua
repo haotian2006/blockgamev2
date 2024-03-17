@@ -2,6 +2,7 @@ local Data = {}
 local EntityHolder = require(game.ReplicatedStorage.EntityHandler.EntityHolder)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils) 
 local BlockUtils = require(game.ReplicatedStorage.Utils.BlockUtils)
+local Signal = require(game.ReplicatedStorage.Libarys.Signal)
 local Chunk = require(game.ReplicatedStorage.Chunk)
 
 debug.setmemorycategory("CUBICAL STORAGE")
@@ -92,7 +93,13 @@ end
 function Data.getPlayerEntity()
     return PlayerEntity
 end
+
+local PlayerEntityChanged = Signal.new()
 function Data.setPlayerEntity(e)
     PlayerEntity = e
+    PlayerEntityChanged:Fire(e)
 end
+
+Data.PlayerEntityChanged = PlayerEntityChanged
+
 return table.freeze(Data)

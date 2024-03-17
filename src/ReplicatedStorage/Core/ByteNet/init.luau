@@ -20,6 +20,7 @@ local uint32 = require(script.dataTypes.uint32)
 local uint8 = require(script.dataTypes.uint8)
 local vec2 = require(script.dataTypes.vec2)
 local vec3 = require(script.dataTypes.vec3)
+local any = require(script.dataTypes.any)
 local Parser = require(script.Parser)
 local types = require(script.types)
 local Writter = require(script.bufferWriter)
@@ -52,8 +53,9 @@ return (
 			float64 = float64(),
 			cframe = cframe(),
 			string = string(),
+			any = any(),
 			vec2 = vec2(),
-			vec3 = vec3(),
+			vec3 = vec3(), 
 			buff = buff(),
 			
 			array = array,

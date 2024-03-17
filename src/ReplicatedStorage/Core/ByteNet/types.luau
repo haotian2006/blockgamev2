@@ -28,6 +28,7 @@ export type DataTypes = {
 	bool: boolean,
 	array: <T>(value: T) -> { dataTypeInterface<T> },
 	optional: <T>(value: T) -> dataTypeInterface<T>?,
+	any:dataTypeInterface<any>,
 	uint8: dataTypeInterface<number>,
 	uint16: dataTypeInterface<number>,
 	uint32: dataTypeInterface<number>,

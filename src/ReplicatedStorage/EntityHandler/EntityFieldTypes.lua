@@ -8,13 +8,14 @@ local Core = require(game.ReplicatedStorage.Core)
 local DataTypes = Core.Shared.ByteNet.Types
 
 local FieldTypesTable = {
-    Crouching = DataTypes.bool,
     Position = DataTypes.vec3,
     Rotation = DataTypes.float32,
     HeadRotation = DataTypes.vec2,
     Guid = DataTypes.string,
     Type = DataTypes.string,
     __containers = DataTypes.map(DataTypes.string, DataTypes.container),
+    __components = DataTypes.array(DataTypes.string),
+    __ownership = DataTypes.float64,
 
     --<BASIC>
     Gravity = DataTypes.float32,
@@ -22,7 +23,6 @@ local FieldTypesTable = {
     Speed = DataTypes.float32,
 
     Slot = DataTypes.string,
-    Holding = DataTypes.item,
     
     --<C:ITEM>
     ItemId = DataTypes.uint16,
@@ -79,6 +79,13 @@ function manager.Init()
     update(types)
     for i,v in Types do
         KeyPairs[v] = i
+    end
+    for i,v in FieldTypesTable do
+        if v [1] and v[2] ~= nil then
+            local c = table.clone(v[1])
+            c.CanNotSave = not v[2]
+            FieldTypesTable[i] = c
+        end
     end
     table.freeze(KeyPairs)
     table.freeze(FieldTypesTable)

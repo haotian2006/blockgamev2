@@ -206,7 +206,7 @@ function Render.renderHolding(self,holding,special)
             special(item)
             return item,ItemData
         end
-        if self.__CameraMode == "First" then
+        if self.__CameraMode == "First" or (self.__CameraMode == nil and Entity.isOwner(self, Player)) then
             Render.setTransparencyOfModel(item.Parent,1)
         end
         return item,ItemData

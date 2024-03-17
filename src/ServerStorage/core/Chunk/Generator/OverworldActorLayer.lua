@@ -12,7 +12,10 @@ local foliage = require(Generation.generation.features.foliage)
 local structures = require(Generation.generation.features.structures)
 local shaper = require(script.Parent.Tasks.Shaper)
 
-local CarverObject = Carver.parse(123,{
+local WorldConfig = require(game.ReplicatedStorage.WorldConfig)
+local SEED = WorldConfig.Seed
+
+local CarverObject = Carver.parse(SEED,{
     maxDistance = 200,
     amplitude = .008,
     weight = .5,

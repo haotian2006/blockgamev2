@@ -10,10 +10,12 @@ local Debirs = require(game.ReplicatedStorage.Libarys.Debris)
 local Queue = require(game.ReplicatedStorage.Libarys.DataStructures.Queue)
 local ActorRegionData = Debirs.getFolder("ActorRegionData", 3)
 local Config = require(script.Parent.Parent.Config)
+local DataStorehandler = require(game.ServerStorage.core.Other.DataStoreHandler)
+
+local dss = DataStorehandler.getWorldStore()
 
 local Options = Instance.new("DataStoreGetOptions")
 Options.UseCache = false
-local dss = game:GetService("DataStoreService"):GetDataStore("test232",9123192)
 
 local Runner = Communicator.getRunner()
 
@@ -115,6 +117,9 @@ local CurrentlyUpdating = 0
 local function UpdateChunk(region,toRemove,Entities,hadChanges)
     local start = os.clock()
     local Data = Regions_Loaded[region]
+    if not Entities and Data then
+        Entities =   Data.CompressedEntity
+    end
     local NewChunks = Data.NewChunks
     local Info,Bdata = Region.getData(region)
     if not Info then
@@ -156,7 +161,7 @@ local function UpdateChunk(region,toRemove,Entities,hadChanges)
         if toRemove then
             ActorRegionData:remove(region)
             Regions_Loaded[region] = nil
-        end
+        end 
         return 
     end 
     local NewData = {}

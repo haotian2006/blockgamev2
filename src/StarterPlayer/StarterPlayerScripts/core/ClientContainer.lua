@@ -139,6 +139,7 @@ Update.OnClientEvent:Connect(function(data)
     
     HotbarManager.UpdateSlot()
 end)
+task.wait(1)
 
 ClientContainer.getAndLoadFromServer(tostring(LocalPlayer.UserId),"Crafting")
 ClientContainer.getAndLoadFromServer(tostring(LocalPlayer.UserId),"Holding")

@@ -16,7 +16,7 @@ function Helper.insertBlock(x,y,z,block)
     local idx = to1d[lx][ly][lz]
     Chunk.insertBlock(chunk, idx, block)
     RenderHandler.blockUpdate(x, y, z)
-    BlockReplication.update(x,y,z,block)
+    BlockReplication.update(x,y,z,block == 0)
     return true
 end
 

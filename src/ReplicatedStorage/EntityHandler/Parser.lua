@@ -36,7 +36,7 @@ return function ()
             local startCursor = cursor
             local traversed = 0
             local size = buffer.readu16(b, startCursor)
-            startCursor+=2
+            startCursor+=2 
             traversed+=2
             while traversed <size do
                 local idx = buffer.readu16(b, startCursor)
@@ -48,7 +48,7 @@ return function ()
                 local parser = KeyType[key]
                 startCursor+=2
                 local value,offset = parser.read(b, startCursor)
-                constructed[key] = value
+                constructed[key] = if parser.CanNotSave then nil else value
                 startCursor+=offset
                 traversed+=offset+2
             end
@@ -63,6 +63,7 @@ return function ()
                 if not index then continue end 
                 local parser = KeyType[key]
                 if not parser.isType(value) then continue end 
+                if parser.CanNotSave then continue end 
                 alloc(2)
                 u16(index)
                 parser.write(value)
