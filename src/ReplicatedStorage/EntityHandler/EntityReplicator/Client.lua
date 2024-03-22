@@ -49,7 +49,7 @@ function Client.updateEntity(Guid,data)
     local hasOwner = EntityHandler.isOwner(Entity,LOCAL_PLAYER)
     for i,v in data do
         if hasOwner and ReplicationUtils.REPLICATE_LEVEL[i] == 3 then continue end 
-        Entity[i] = v
+        EntityHandler.set(Entity, i, v)
         if UpdateEvents[i] then UpdateEvents[i]:Fire(Entity,v) end 
         if overRide[i] then toInterpolate_[i] = nil end --Prevents lerping from messing up stuff
     end
@@ -75,6 +75,7 @@ end
 function Client.handleData(data)
     if type(data) == "number" then
         local Entity = EntityHolder.getEntityFromLink(data)
+
         if not Entity then return end 
 
         local Guid = Entity.Guid
@@ -97,9 +98,11 @@ function Client.handleData(data)
     data.I = nil
     if IsNew then -- all
         local Entity = Client.createEntityFrom(data)
+
         if not Entity then return end 
         Entity.__NetworkId = idx
         EntityHolder.addEntity(Entity)
+
         EntityHolder.linkEntity(idx,Entity)
         Render.createModel(Entity)
 

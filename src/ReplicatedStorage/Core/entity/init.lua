@@ -1,13 +1,7 @@
-local Types = require(script.Parent.ByteNet.types)
-export type Entity = {
-    [any]:any,
-    Position : Vector3,
-    Rotation : number,
-    HeadRotation : Vector2,
-    Type : string,
-    Guid : string,
-}
+local Types = require(script.Parent.Serializer.types)
+local CommonTypes = require(script.Parent.CommonTypes)
 
+type Entity = CommonTypes.Entity
 
 export type EntityHandler = {
     
@@ -19,6 +13,7 @@ export type EntityHandler = {
     rawSet : (self:Entity, key :string) ->(),
     isType : (self:Entity, type : string) -> boolean,
     new :(type:string,GUID:number?) -> Entity,
+    getPropertyChanged : (self:Entity,property:string) -> CommonTypes.ProtectedEvent<any>
 }
 
 export type FieldTypes = {

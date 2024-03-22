@@ -6,7 +6,7 @@ local Generator = script.Parent.Parent.Chunk.Generator
 local Config = require(Generator.Config)
 local RegionHelper = require(Generator.RegionHelper)
 local Data = require(game.ReplicatedStorage.Data)
-local ByteNet = require(game.ReplicatedStorage.Core.ByteNet)
+local Serializer = require(game.ReplicatedStorage.Core.Serializer)
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
 local Runner  =require(game.ReplicatedStorage.Runner)
@@ -89,7 +89,7 @@ end
 local RTo1d = RegionHelper.To1DVector
 
 function Saver.saveRegion(Region,chunks,deload)
-    EntityParser = EntityParser or ByteNet.wrap(ByteNet.Types.entity)
+    EntityParser = EntityParser or Serializer.wrap(Serializer.Types.entity)
     local allChunks = {}
     local totalSize = 0
     local s = os.clock()
@@ -175,7 +175,7 @@ end
 
 
 function Saver.getEntitiesFromChunk(chunk)
-    EntityParser = EntityParser or ByteNet.wrap(ByteNet.Types.entity)
+    EntityParser = EntityParser or Serializer.wrap(Serializer.Types.entity)
     Saver.addChunk(chunk)
     local region = RegionHelper.getRegion(chunk)
     local Data = awaitRegion(region)
@@ -212,7 +212,7 @@ function Saver.getEntitiesFromChunk(chunk)
     return Entities
 end
 function Saver.getrawEntitiesBuffer(chunk)
-    EntityParser = EntityParser or ByteNet.wrap(ByteNet.Types.entity)
+    EntityParser = EntityParser or Serializer.wrap(Serializer.Types.entity)
     Saver.addChunk(chunk)
     local region = RegionHelper.getRegion(chunk)
     local Data = awaitRegion(region)

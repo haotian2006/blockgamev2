@@ -1,15 +1,16 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Entities = require(script.entity)
-local ByteNet = require(script.ByteNet)
-local ByteNetTypes = require(script.ByteNet.types)
+local Serializer = require(script.Serializer)
+local SerializerTypes = require(script.Serializer.types)
+local CommonTypes = require(script.CommonTypes)
 
 local ISCLIENT = RunService:IsClient()
 local Modules = {
     Shared = {
-        ByteNet = require(script:FindFirstChild("ByteNet"))
+        Serializer = require(script:FindFirstChild("Serializer"))
     },
-    DataTypes = ByteNet.Types,
+    DataTypes = Serializer.Types,
     Initiated = false
 }
 
@@ -19,6 +20,7 @@ local Shared = {
     ItemService = "Item",
     BlockService = "Block",
     EntityService = "EntityHandler",
+    DataService = "Data"
     
 }
 local Client = {
@@ -28,26 +30,23 @@ local Client = {
     ResourceHandler = ReplicatedStorage:FindFirstChild("ResourceHandler"),
 }
 
-export type dataTypeInterface<T> = ByteNetTypes.dataTypeInterface<T>
-export type ByteNet = ByteNet.ByteNet
+export type dataTypeInterface<T> = SerializerTypes.dataTypeInterface<T>
+export type Serializer = Serializer.Serializer
 
-export type Entity = Entities.Entity
+export type Entity = CommonTypes.Entity
 export type EntityService = Entities.EntityHandler
 
-export type Connection = {
-	Disconnect: (self: any) -> ()
-}
+export type Connection = CommonTypes.Connection
 
-export type Signal<T...> = {
-	Fire: (self: any, T...) -> (),
-	Connect: (self: any, FN: (T...) -> ()) -> Connection,
-	Once: (self: any, FN: (T...) -> ()) -> Connection,
-	Wait: (self: any) -> T...,
-	DisconnectAll: (self: any) -> ()
-}
+export type Signal<T...> = CommonTypes.Signal<T...>
+
+export type ProtectedSignal<T...> = CommonTypes.ProtectedSignal<T...>
+export type ProtectedEvent<T...> = CommonTypes.ProtectedEvent<T...>
+
 
 
 export type Action = string | 'Foward' | 'Left' | 'Right' | 'Back' | 'Jump' | 'Attack' | 'Interact' | 'Crouch' | 'HitBoxs' | 'Freecam' | 'Inventory'
+
 export type ControllerEvent = Signal<EnumItem,boolean,string,{number:string}>
 export type TempControllerEvent = ControllerEvent & {
     Destroy: (self: any) -> (),
@@ -79,12 +78,7 @@ export type ClientHelper = {
 }
 
 export type Mouse = {
-    getRay : () -> {
-        Block : number,
-        BlockPosition : Vector3,
-        HitPosition : Vector3,
-        Normal : Vector3,
-    },
+    getRay : () -> RayResults,
     setRayLength : (Length:number) -> (),
     setHighlighting : (Value:boolean) ->(),
     getHighlighting : () -> boolean,
@@ -105,8 +99,16 @@ export type Controller = {
     getCamera : () -> Camera
 }
 
+export type RayResults = {
+    normal:Vector3,
+    entity:Entity?,
+    block:number?,
+    grid:Vector3,
+    hit:Vector3
+}
+
 export type Ray = {
-    cast : (Start:Vector3,Direction:Vector3) -> (number,Vector3,Vector3,Vector3)
+    cast : (Start:Vector3,Direction:Vector3) -> RayResults
 }
 
 export type Item = {
@@ -148,6 +150,9 @@ export type BlockClass = {
     parse : (Data:number|{}) -> number
 }
 
+export type DataService = {
+    getPlayerEntity: ()->Entity?,
+}
 
 export type Client = {
     awaitModule:(module:string)->{},
@@ -163,7 +168,8 @@ export type Shared = {
     ItemService : ItemClass,
     BlockService : BlockClass,
     EntityService : Entities.EntityHandler,
-    ByteNet : ByteNet.ByteNet,
+    Serializer : Serializer.Serializer,
+    DataService : DataService,
 
 }
 

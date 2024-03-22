@@ -5,6 +5,9 @@ return {
         Function = function(entity,info)
           local found = false
            for i,v in Utils.getEntitiesNear(entity,10) do
+            if not Handler.isType(v, 'Player') then
+              continue
+          end
            -- part.Position = Utils.getEyePosition(v)*3
             local direaction = ((v.Position-entity.Position )*Vector3.new(1,0,1)).Unit*.3
             Handler.setMoveDireaction(entity,direaction) 

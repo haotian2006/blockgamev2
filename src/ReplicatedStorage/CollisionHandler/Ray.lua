@@ -45,7 +45,7 @@ end
 
 local function createBroadPhase(start,direaction)
     local middle = (start + direaction/2)
-    return middle,Vector3.new(abs(direaction.X),abs(direaction.Y),abs(direaction.Z))
+    return middle,Vector3.new(abs(direaction.X),abs(direaction.Y),abs(direaction.Z))+Vector3.zero*2
 end
 
 local function precomputeEntityCorners(Entities)
@@ -98,6 +98,16 @@ local function getEntitiesInVoxel(voxel,EntitiesCorners)
     return entitiesInVoxel,has
 end
 
+local function createRayResult(Block,Entity,hit,grid,normal)
+    return {
+        normal = normal,
+        grid = grid,
+        hit = hit,
+        entity = Entity,
+        block = Block,
+    }
+end
+
 local function FindFirstEntityInRay(start:Vector3,direaction:Vector3,Entities)
     local TotalDistance = direaction.Magnitude
     local Increment = direaction.Unit*ENTITY_INTERVAL
@@ -131,6 +141,7 @@ local function traceRay(start,direction:Vector3,CheckForEntities,DEBUG)
     local EntitiesInRegion 
     if CheckForEntities then
         local middle,size = createBroadPhase(start,direction)
+        CheckForEntities.CheckGlobal = true
         EntitiesInRegion = collisionHandler.getEntitiesInBox(middle,size,CheckForEntities)
         EntitiesInRegion = precomputeEntityCorners(EntitiesInRegion)
         EntitiesInRegion = next(EntitiesInRegion) and EntitiesInRegion or nil
@@ -191,7 +202,7 @@ local function traceRay(start,direction:Vector3,CheckForEntities,DEBUG)
             end
 
             debug.profileend()
-            return block,grid,hitPos,normal
+            return createRayResult(block,nil,hitPos,grid,normal)
         end
         if (txMax<tyMax) then
             if (txMax<tzMax) then
@@ -222,11 +233,12 @@ local function traceRay(start,direction:Vector3,CheckForEntities,DEBUG)
         if EntitiesInRegion then
             local Entitys,hasEntity = getEntitiesInVoxel(grid,EntitiesInRegion)
             if hasEntity then
+                local normal = Vector3.new(steppedIndex == 0 and -stepx,steppedIndex == 1 and -stepy,steppedIndex == 2 and -stepz)
                 local endPos = Vector3.new(px+t*dx , py+t*dy , pz+t*dz)
 
                 local found,hit = FindFirstEntityInRay(hitPos, endPos-hitPos, Entitys)
                 if found then
-                    return nil,grid,hit,Vector3.zero
+                    return createRayResult(nil,found,hit,grid,normal)
                 end
             end
         end
@@ -241,7 +253,7 @@ local function traceRay(start,direction:Vector3,CheckForEntities,DEBUG)
         drawLine(start*3,hitPos*3)
     end
     debug.profileend()
-    return nil,grid,hitPos,Vector3.zero
+    return  createRayResult(nil,nil,hitPos,grid,Vector3.zero)
 end
 
 Ray.createEntityParams = collisionHandler.createEntityParams

@@ -24,9 +24,9 @@ return function ()
         local EntityFieldTypes = require(script.Parent.EntityFieldTypes)
         local IndexKey,KeyIndex,KeyType:{[string]:Core.dataTypeInterface<any>} = EntityFieldTypes.getAllInfo()
 
-        local ByteNet = Core.Shared.ByteNet
-        ByteNet = Core.Shared.awaitModule("ByteNet")
-        local bufferWriter = ByteNet.writter
+        local Serializer = Core.Shared.Serializer
+        Serializer = Core.Shared.awaitModule("Serializer")
+        local bufferWriter = Serializer.writter
 
         local alloc = bufferWriter.alloc
         local u16 = bufferWriter.u16

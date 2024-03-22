@@ -53,6 +53,7 @@ function Synchronizer.setData(for_,data)
 end
 
 function Synchronizer.getSavedData(for_)
+    if not DataStore then return nil end 
     local sus,info = pcall(function()
         return DataStore:GetAsync(`Synchronize-{for_}`,Options)
     end)
@@ -65,6 +66,7 @@ function Synchronizer.getSavedData(for_)
 end
 
 function Synchronizer.updateSavedData(for_,ToSave)
+    if not DataStore then return end 
      task.spawn(function()
         local sus,er = pcall(function()
             DataStore:SetAsync(`Synchronize-{for_}`,ToSave)
@@ -91,11 +93,12 @@ function Synchronizer.isClient()
     return ISCLIENT
 end
 
-function Synchronizer.Init(guid) -- We assume that only main will call this
+function Synchronizer.Init(Config) -- We assume that only main will call this
     if SynchronizerShared.Init then return warn("Attempted to Init From an Actor") end
     SynchronizerShared.Init = true
-
-    if  guid and not ISCLIENT then 
+    Config = Config or {}
+    local guid = Config.WorldGuid
+    if  guid and not ISCLIENT and Config.SavingEnabled then 
         local DataStoreService = game:GetService("DataStoreService")
         DataStore = DataStoreService:GetDataStore("WORLD",guid)
     end

@@ -36,9 +36,11 @@ local encodeFunc = {
 local decodeFunc = {
     play = function(entity,data)
         local a = data[3] or {}
+
         Animator.play(entity,data[2],a.X,a.Y,data[1].Y)
     end,
     stop = function(entity,data)
+
         Animator.stop(entity,data[2],data[1].Y)
     end,
     stopAll = function(entity,data)

@@ -5,7 +5,7 @@ local Synchronizer = require(game.ReplicatedStorage.Synchronizer)
 local AllFieldTypes = BehaviorHandler.getAllData().FieldTypes
 
 local Core = require(game.ReplicatedStorage.Core)
-local DataTypes = Core.Shared.ByteNet.Types
+local DataTypes = Core.Shared.Serializer.Types
 
 local FieldTypesTable = {
     Position = DataTypes.vec3,
@@ -14,10 +14,20 @@ local FieldTypesTable = {
     Guid = DataTypes.string,
     Type = DataTypes.string,
     __containers = DataTypes.map(DataTypes.string, DataTypes.container),
-    __components = DataTypes.array(DataTypes.string),
+    __components = DataTypes.array(DataTypes.parse(DataTypes.string,function(t)
+        return t and t.Name
+    end)),
     __ownership = DataTypes.float64,
+    __dead = DataTypes.bool,
 
     --<BASIC>
+    DespawnTime = DataTypes.parse(DataTypes.optional(DataTypes.float32),function(t)
+        if t == -9999999 then
+            return nil
+        end
+        return t
+    end),
+    Health = DataTypes.float32,
     Gravity = DataTypes.float32,
     Hitbox = DataTypes.vec3,
     Speed = DataTypes.float32,
@@ -30,6 +40,7 @@ local FieldTypesTable = {
     ItemCount = DataTypes.uint16,
     
 }
+
 
 local Types = {
 
@@ -48,7 +59,9 @@ local function update(types)
     end
 end
 function manager.Init()
-    if initAlready then return end 
+    if initAlready then return end
+    
+    local base = table.clone(FieldTypesTable) 
     initAlready = true
     local types 
     if Synchronizer.isActor() then
@@ -61,7 +74,7 @@ function manager.Init()
             types = Saved
         end
 
-        update(types)
+        update(types) 
         local newAdded = false
         for i,v in FieldTypesTable do
             AllFieldTypes[i] = v
@@ -80,6 +93,16 @@ function manager.Init()
     for i,v in Types do
         KeyPairs[v] = i
     end
+
+    for TypeName,Type in AllFieldTypes do
+       if FieldTypesTable[TypeName] then continue end 
+       if type(Type) == "boolean" then
+        Type = {DataTypes.any,types}
+       end
+       FieldTypesTable[TypeName] =Type
+    end
+
+
     for i,v in FieldTypesTable do
         if v [1] and v[2] ~= nil then
             local c = table.clone(v[1])

@@ -1,9 +1,9 @@
 local Config = {}
 
 local Info = {
-    Seed = 12345,
-    WorldGuid = "abcd",
-
+    Seed = 3456713,
+    WorldGuid = "avsade",
+    SavingEnabled = false,
 }
 Info.__index = Info
 Info.__newindex = Info

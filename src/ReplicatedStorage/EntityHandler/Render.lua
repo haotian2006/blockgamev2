@@ -307,8 +307,14 @@ function Render.updateRotation(self,bypass)
     local headRotation = self.HeadRotation or Vector2.zero
     local normalhRotX =headRotation.X+rotation
     local dir = Maths.calculateLookAt(normalhRotX ,headRotation.Y,self.Position)
-    mainWeld.C0 = CFrame.fromOrientation(0,math.rad(rotation+180),0)+mainWeld.C0.Position
-    neck.C0 = (Maths.worldCFrameToC0ObjectSpace(neck,CFrame.new(neck.C0.Position,neck.C0.Position+dir)))
+    local mainc0 = CFrame.fromOrientation(0,math.rad(rotation+180),0)+mainWeld.C0.Position
+    if mainc0 == mainc0 then
+        mainWeld.C0 = mainc0
+    end
+    local neckC0 =  (Maths.worldCFrameToC0ObjectSpace(neck,CFrame.new(neck.C0.Position,neck.C0.Position+dir)))
+    if neckC0 == neckC0 then
+        neck.C0 = neckC0
+    end
 
 end
 local Connection 

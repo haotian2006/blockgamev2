@@ -52,12 +52,21 @@ function Funcs.HitBoxs(key,IsDown,GPE,inputs)
     hb = not hb
 end
 
+local function AttackBlock(RayData)
+    if not RayData.block then return end 
+    local Blockpos = RayData.grid
+    Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,0)
+    return true
+end
+
 function Funcs.Attack(key,IsDown,GPE,inputs)
     if not IsDown then return end 
     local RayData = Mouse.getRay()
-    if not RayData.Block then return end 
-    local Blockpos = RayData.BlockPosition
-    Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,0)
+    if AttackBlock(RayData) then return end 
+
+    if RayData.entity then
+        Helper.AttackEntity(RayData.entity.Guid)
+    end
 
 end
 local Order = {"First","Second","Third"}
@@ -74,8 +83,8 @@ end
 function Funcs.Interact(key,IsDown,GPE,inputs)
     if not IsDown then return end 
     local RayData = Mouse.getRay()
-    if not RayData.Block then return end 
-    local Blockpos = RayData.BlockPosition+RayData.Normal
+    if not RayData.block then return end 
+    local Blockpos = RayData.grid+RayData.normal
   --  Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,2)
 end
 local Binded = false

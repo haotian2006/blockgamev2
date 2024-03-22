@@ -11,7 +11,7 @@ local Data = require(game.ReplicatedStorage.Data)
 local Block = {}
 
 function Block.update(x,y,z,id)
-    BlockR:InvokeServer(Vector3.new(x,y,z),id)
+    return BlockR:InvokeServer(Vector3.new(x,y,z),id)
 end
 
 Update.OnClientEvent:Connect(function(loc,id)

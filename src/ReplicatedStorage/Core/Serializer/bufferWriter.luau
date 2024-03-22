@@ -44,17 +44,16 @@ local function alloc(bytes: number)
 end
  
 local function dyn_alloc(bytes: number)
-	if cursor + bytes >= size then
-		while cursor + bytes >= size do
-			size = math.floor(size * 1.5)
-		end
-
-		local newBuffer = buffer.create(size)
-		buffer.copy(newBuffer, 0, buff)
-
-		buff = newBuffer
+	while cursor + bytes >= size do
+		size = math.floor(size * 1.5)
 	end
+
+	local newBuffer = buffer.create(size)
+	buffer.copy(newBuffer, 0, buff)
+
+	buff = newBuffer
 end
+
 
 local bufferWriter = {}
 
@@ -129,12 +128,10 @@ function bufferWriter.loadDefault()
 end
 
 function bufferWriter.load(channel: types.channelData)
-	if current ~= channel then
-		current = channel
-		size = channel.size
-		cursor = channel.cursor
-		buff = channel.buff
-	end
+	current = channel
+	size = channel.size
+	cursor = channel.cursor
+	buff = channel.buff
 end
 
 function bufferWriter.dump(channel: types.channelData): buffer

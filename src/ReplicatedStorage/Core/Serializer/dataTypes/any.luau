@@ -6,15 +6,16 @@ local bool = require(script.Parent.bool)
 local buff = require(script.Parent.buff)
 local cframe = require(script.Parent.cframe)
 local float64 = require(script.Parent.float64)
+local nothing = require(script.Parent.nothing)
 
 local string = require(script.Parent.string)
-local optional = require(script.Parent.optional)
+
 local vec2 = require(script.Parent.vec2)
 local vec3 = require(script.Parent.vec3)
 
 
 local DataTypes = {
-	{typeof(nil),optional(bool())},
+	{typeof(nil),nothing()},
 	{type(1),float64()},
 	{type(true),bool()},
 	{typeof(""),string()},

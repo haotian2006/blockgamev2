@@ -59,7 +59,7 @@ function Tasks.encode(uuid,isOwner)
                 subFolder  = {tostring(subFolderIndex)}
                 table.insert(newData,subFolder)
             end
-            newData[subTask] = subFolder
+            --newData[subTask] = subFolder
             table.insert(subFolder,tData[1])
             hasData = true
         end
@@ -68,6 +68,7 @@ function Tasks.encode(uuid,isOwner)
     if not isOwner then
         cache[uuid] = newData
     end
+
     return newData or nil
 end
 

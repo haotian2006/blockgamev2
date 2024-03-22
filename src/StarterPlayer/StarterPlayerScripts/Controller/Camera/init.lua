@@ -36,6 +36,19 @@ function Camera.bindToEntity(Entity)
           Subject.__CameraMode = nil
      end
      Subject = Entity
+     if Entity then
+          local dir = EntityUtils.calculateLookAt(Entity)
+          local cframe = CFrame.lookAt(Vector3.new(),dir)
+
+          local lookVector = cframe.lookVector
+
+          local rotationX = math.atan2(lookVector.Y, math.sqrt(lookVector.X^2 + lookVector.Z^2))
+          local rotationY = math.atan2(-lookVector.X, -lookVector.Z)
+   
+
+          CameraRotation = Vector2.new(-rotationY,-rotationX)
+
+     end
      Camera.setMode(Mode)
 end
 
@@ -68,6 +81,7 @@ local function Update()
      cameraRotationY = math.clamp(cameraRotationY, -MAX_ROTY, MAX_ROTY)
 
      CameraRotation = Vector2.new(CameraRotation.X, -cameraRotationY)
+
      if Subject  then
           loc = EntityUtils.getEyePosition(Subject)
           Subject.__CameraMode = Mode

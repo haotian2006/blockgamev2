@@ -78,7 +78,7 @@ function Server.isRenderedOnClient(player,guid)
     return e and e[guid]
 end
 
-local RenderDistance = 8
+local RenderDistance = 64
 function Server.replicate(IsSecondTick)
     table.clear(temp)
     local Entities = {}
@@ -99,7 +99,7 @@ function Server.replicate(IsSecondTick)
         Entities[Player] = PlayerEntities
         PlayerTaskData[Player] = PlayerTasks
 
-        local Nearby = Utils.getEntitiesNearChunk(ClientEntity,RenderDistance)
+        local Nearby = Utils.getEntitiesNear(ClientEntity,RenderDistance,true)
         table.insert(Nearby,ClientEntity)
         for _,entity in Nearby do
             if entity.doReplication == false then continue end 
@@ -129,12 +129,14 @@ function Server.replicate(IsSecondTick)
                 end
             end
         end
+
     end
     for i,v in EntitiesChecked do
         EntityTasks.clearDataFor(i)
     end
     local EntityReplicateData = {}
     local EntityReplicateDataUDP = {}
+    local checkedGUIDS = {}
     for Player,data in Entities do
         local PlayerData = {}
         local PlayerDataUDP = {}
@@ -144,16 +146,20 @@ function Server.replicate(IsSecondTick)
         local _,toRemove = FindDiffrences(Player,data,IsSecondTick)
         for Guid in toRemove do
             local id =  Holder.getIdFromGuid(Guid)
+            checkedGUIDS[Guid] = true
             table.insert(PlayerData,id)
         end
         for Guid,eData in data do
             if eData == 1 then continue end 
             local Id =  Holder.getIdFromGuid(Guid)
+            checkedGUIDS[Guid] = true
+            if not Id then continue end 
             if eData.M then
                 eData.I = Id
                 eData.M = nil
                 table.insert(PlayerData,eData) 
             else
+                --print(Id)
                 eData[1] = Vector2.new(Id-32767,eData[1][2])
                 if not current then
                     current = {}
@@ -167,7 +173,6 @@ function Server.replicate(IsSecondTick)
             end
         end
     end
-
     local newTaskData = {}
     for i,v in PlayerTaskData do
         if next(v) == nil then continue end 
@@ -181,8 +186,11 @@ function Server.replicate(IsSecondTick)
     for i,v in Players do
         local playerD = EntityReplicateData[v]
         local udpData = EntityReplicateDataUDP[v]
-        if (next(playerD or {}) or next(newTaskData[v] or {})) then
-            TCP:FireClient(v,playerD,newTaskData[v])
+        playerD = next(playerD or {}) and playerD or nil
+        local taskd = newTaskData[v]
+        taskd = next(taskd or {}) and taskd or nil
+        if (playerD or task) then
+            TCP:FireClient(v,playerD,taskd)
         end
         if udpData and (next(udpData)) then
            for i,packets in udpData do
@@ -214,6 +222,7 @@ UDP.OnServerEvent:Connect(function(player,data)
         for i,v in decode do
             rEntity[i] = v
         end
+        EntityHandler.updateChunk(rEntity)
     end
 end)
 TCP.OnServerEvent:Connect(function(player,otherData)
@@ -230,7 +239,6 @@ TCP.OnServerEvent:Connect(function(player,otherData)
             if not entity then continue end 
             uuid = entity.Guid
         end
-
         EntityTasks.decode(uuid,data[1])
     end
 end)

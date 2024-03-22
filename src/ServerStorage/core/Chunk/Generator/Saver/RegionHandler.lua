@@ -8,7 +8,7 @@ local Communicator = require(script.Parent.Parent.Communicator)
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
 local Debirs = require(game.ReplicatedStorage.Libarys.Debris)
 local Queue = require(game.ReplicatedStorage.Libarys.DataStructures.Queue)
-local ActorRegionData = Debirs.getFolder("ActorRegionData", 3)
+local ActorRegionData = Debirs.getFolder("ActorRegionData", 1 )
 local Config = require(script.Parent.Parent.Config)
 local DataStorehandler = require(game.ServerStorage.core.Other.DataStoreHandler)
 
@@ -73,6 +73,10 @@ local function AttempToSaveBlock(region,toRemove)
     if os.time()-LastSave>=50 or Config.OnClose then
         if Config.OnClose then
             ToSave[region] = nil
+            if not data[2] then
+                warn("No Dafound"..(if data[1] then "X" else "Z"))
+                error("No DataFound")
+            end
             OnCloseSave[region] = data
             return
         end
@@ -83,7 +87,7 @@ local function AttempToSaveBlock(region,toRemove)
                 dss:SetAsync(tostring(region),data)
             end)
             ToSave[region] = nil 
-            print("SAVED REGION",region,"|",regionNum,#data[1]+#data[2])
+            print("SAVED REGION",region,"|",regionNum,#(data[1] or {})+#(data[2]or{}))
             if not sus then
                 warn(err)
             end
@@ -117,6 +121,10 @@ local CurrentlyUpdating = 0
 local function UpdateChunk(region,toRemove,Entities,hadChanges)
     local start = os.clock()
     local Data = Regions_Loaded[region]
+    if  not Entities then
+        print("no Found")
+        print(toRemove)
+    end
     if not Entities and Data then
         Entities =   Data.CompressedEntity
     end
@@ -327,7 +335,7 @@ game:BindToClose(function()
             local sus,err = pcall(function(...)  
                 dss:SetAsync(tostring(i),v)
             end)
-            print("BINDTOCLOSE SAVED REGION",i,"|",regionNum,#v[1]+#v[2])
+            print("BINDTOCLOSE SAVED REGION",i,"|",regionNum,#(v[1] or {})+#(v[2]or{}))
             if not sus then
                 warn(err)
             end

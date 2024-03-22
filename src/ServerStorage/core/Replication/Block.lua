@@ -44,10 +44,8 @@ BlockR.OnServerInvoke = function(player,coord,isBreak)
         end
     end 
     
-
-
+    if not blockComp then return false end 
     Chunk.insertBlockAt(chunk, lx,ly,lz, blockComp)
-    if at == 0 then return false end 
     if blockComp == 0 then
         local Item = Entity.new("c:Item")
         local Block,_,Id = BlockClass.decompressCache(at)

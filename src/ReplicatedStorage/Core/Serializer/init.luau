@@ -1,5 +1,5 @@
 -- THIS IS A MODIFYED VERSION OF BYTENET MADE FOR TABLE TO BUFFER CONVERSION BY HAOTIAN2006
--- ORIGINAL VERSION BY ffrostfall https://devforum.roblox.com/t/bytenet-an-advanced-networking-library-w-buffer-serialization-strict-luau-and-absurd-optimization-031/2733365
+-- ORIGINAL VERSION BY ffrostfall https://devforum.roblox.com/t/Serializer-an-advanced-networking-library-w-buffer-serialization-strict-luau-and-absurd-optimization-031/2733365
 
 local array = require(script.dataTypes.array)
 local bool = require(script.dataTypes.bool)
@@ -21,12 +21,14 @@ local uint8 = require(script.dataTypes.uint8)
 local vec2 = require(script.dataTypes.vec2)
 local vec3 = require(script.dataTypes.vec3)
 local any = require(script.dataTypes.any)
+local nothing = require(script.dataTypes.nothing)
+local Parse = require(script.dataTypes.parse)
 local Parser = require(script.Parser)
 local types = require(script.types)
 local Writter = require(script.bufferWriter)
 
 
-export type ByteNet =  {
+export type Serializer =  {
 	
 	wrap : <T>(Value: T) -> types.Parser<T>,
 	writter : typeof(Writter),
@@ -53,11 +55,13 @@ return (
 			float64 = float64(),
 			cframe = cframe(),
 			string = string(),
+			nothing = nothing(),
 			any = any(),
 			vec2 = vec2(),
 			vec3 = vec3(), 
 			buff = buff(),
 			
+			parse = Parse,
 			array = array,
 			optional = optional,
 			struct = struct,
@@ -69,4 +73,4 @@ return (
 			container = require(game.ReplicatedStorage.Container.Parser)(),
 		})
 	}) :: any
-) :: ByteNet
+) :: Serializer

@@ -25,9 +25,9 @@ return function ()
 
         local indexKey,keyIndex = ItemHandler.getTables()
 
-        local ByteNet = Core.Shared.ByteNet
-        ByteNet = Core.Shared.awaitModule("ByteNet")
-        local bufferWriter = ByteNet.writter
+        local Serializer = Core.Shared.Serializer
+        Serializer = Core.Shared.awaitModule("Serializer")
+        local bufferWriter = Serializer.writter
 
         local alloc = bufferWriter.alloc
         local u16 = bufferWriter.u16
@@ -40,10 +40,10 @@ return function ()
             if size == 0 then return "",2 end 
             startCursor+=2
             local id = buffer.readu16(b, startCursor)
-            startCursor+=1
+            startCursor+=2
             local var = buffer.readu8(b, startCursor)
-            traversed+=3
-          
+            traversed+=5
+      
             return ItemHandler.new(id,var), size
         end
         funcx.write = function(Item)
@@ -57,7 +57,7 @@ return function ()
 
             bufferWriter.u16(Item[1])
             bufferWriter.u8(Item[2])
-
+          
             local size = bufferWriter.getCursor() - cursor
             if size > END then
                 warn("Item Size OverFlow")

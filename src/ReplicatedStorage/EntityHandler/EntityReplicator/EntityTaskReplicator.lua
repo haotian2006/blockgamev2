@@ -6,13 +6,27 @@ local EntityHolder = require(EntityV2.EntityHolder)
 local EntityHandler 
 local TaskReplicator = require(script.Parent.TaskReplicator)
 local TaskOrder = {
-    "Crouch"
+    "Crouch",
+    "SetVelocity",
+    "applyVelocity",
+    "death"
 }
 local decodeFunctions = {
     Crouch = function(Entity,data)
         local value1 = bit32.band(data.Y, 1)
         local value2 = bit32.band(bit32.rshift(data.Y, 1), 1)
         EntityHandler.crouch(Entity,value1 == 1, value2 == 1)
+    end,
+    SetVelocity = function(Entity,data)
+        if not IS_CLIENT then return end 
+        EntityHandler.setVelocity(Entity,data[2],data[3])
+    end,
+    applyVelocity = function(Entity,data)
+        if not IS_CLIENT then return end 
+        EntityHandler.applyVelocity(Entity,data[2])
+    end,
+    death = function(Entity)
+        
     end
 }
 local encodeFunctions = {
@@ -20,6 +34,15 @@ local encodeFunctions = {
         local v = isDown and 1 or 0
         local v2 = fromClient and 1 or 0
         return Vector2int16.new(1,bit32.bor(v, bit32.lshift(v2, 1)))
+    end,
+    SetVelocity = function(Entity,name,v)
+        return {{X=2},v}
+    end,
+    applyVelocity = function(Entity,data)
+        return {{X=3},data} 
+    end,
+    death = function(Entity)
+        return {x=4,true}
     end
 }
 

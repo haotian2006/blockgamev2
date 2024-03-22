@@ -7,6 +7,9 @@ return {
     ['c:lookAtPlayer'] = {
         Function = function(entity,info)
            for i,v in Utils.getEntitiesNear(entity,info.MaxRange or 20) do
+            if not Handler.isType(v, 'Player') then
+                continue
+            end
            -- part.Position = Utils.getEyePosition(v)*3
             Utils.lookAt(entity,v)
             break
@@ -14,9 +17,18 @@ return {
         end,
         Type = {"Movement","Turning"},
     }, 
+    ['c:regen'] = {
+        Function = function(entity,info)
+        
+        end,
+        Type = {"Movement","Turning"},
+    }, 
     ['c:ManFaceManSwitch'] = {
         Function = function(entity,info)
            for i,v in Utils.getEntitiesNear(entity,2) do
+            if not Handler.isType(v, 'Player') then
+                continue
+            end
            -- part.Position = Utils.getEyePosition(v)*3
             --Utils.lookAt(entity,v)
             Handler.addComponent(entity, "ManFaceMan")
@@ -57,6 +69,7 @@ return {
                     end
                     Handler.set(Entity, "ItemCount", sum)
                     Handler.set(v, "ItemCount", diffrence)
+                    Handler.setDespawnTime(Entity, nil)
                     if diffrence == 0 then
                         Handler.destroy(v)
                     end

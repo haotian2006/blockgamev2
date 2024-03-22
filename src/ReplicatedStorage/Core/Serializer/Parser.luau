@@ -13,26 +13,28 @@ local exportChannel = bufferWriter.export
 
 return function(value: types.dataTypeInterface<any>)
 
-	local writer = value.write
-	local reader = value.read
 
 	local exported = {}
 
 	exported.sterilize = function(data)
+		local writer = value.write
 		load()
 		writer(data)
 		return dump(exportChannel())
 	end
 
 	exported.write = function(data)
+		local writer = value.write
 		writer(data)
 	end
 
 	exported.read = function(incomingBuffer,cursor)
+		local reader = value.read
 		return reader(incomingBuffer, cursor)
 	end
 
 	exported.desterilize = function(incomingBuffer)
+		local reader = value.read
 		return reader(incomingBuffer, 0)
 	end
 

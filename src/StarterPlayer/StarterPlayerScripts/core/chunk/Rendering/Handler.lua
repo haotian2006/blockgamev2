@@ -312,7 +312,7 @@ function Handler.renderNewChunk(chunk)
         local pos = chunk + Vector3.yAxis*i
         Queue.enqueue(LargeSubChunkQueue, pos)
     end
-end
+end 
 
 function Handler.blockUpdate(x,y,z)
     local cx,cz,lx,ly,lz = ConversionUtils.gridToLocalAndChunk(x, y, z)
@@ -328,6 +328,7 @@ function Handler.blockUpdate(x,y,z)
         end
         CullQueue[chunk] = true
     end
+    return true
 end
 
 function Handler.requestDeload(chunk)

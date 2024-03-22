@@ -48,20 +48,16 @@ function mouse.updateRay()
     if not Entity then return end 
     local RayParams = Ray.createEntityParams({Entity.Guid})
     local CameraCFrame = CustomCamera.getCFrame()
-    local block,Blockpos,hitpos,normal =  Ray.cast(EntityUtils.getEyePosition(Entity), (CameraCFrame.LookVector*Vector3.new(1,1,1)).Unit*length,RayParams)
+    local Results =  Ray.cast(EntityUtils.getEyePosition(Entity), (CameraCFrame.LookVector*Vector3.new(1,1,1)).Unit*length,RayParams)
+    local block = Results.block
+    local Blockpos = Results.grid
     if block == -1 or not block then 
-        CurrentRay = {}
-        H.Visible = false
-        return 
+        H.Visible = false 
+    else
+        heightlight.Position = Blockpos*3
+        H.Visible = EnableHighlight
     end 
-    heightlight.Position = Blockpos*3
-    H.Visible = EnableHighlight
-    CurrentRay = {
-        Block = block,
-        BlockPosition = Blockpos,
-        HitPosition = hitpos,
-        Normal = normal
-    }   
+    CurrentRay = Results
 
 end
 

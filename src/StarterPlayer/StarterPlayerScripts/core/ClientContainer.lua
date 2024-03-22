@@ -13,6 +13,7 @@ local Container = require(game.ReplicatedStorage.Container)
 local UiContainer = require(script.Parent.Ui.ContainerHandler)
 local HotbarManager = require(script.Parent.Ui.HotbarManager)
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+local Datahandler = require(game.ReplicatedStorage.Data)
 
 local ContainerAdded = Signal.new()
 local ContainerRemoved = Signal.new()
@@ -139,10 +140,12 @@ Update.OnClientEvent:Connect(function(data)
     
     HotbarManager.UpdateSlot()
 end)
-task.wait(1)
 
-ClientContainer.getAndLoadFromServer(tostring(LocalPlayer.UserId),"Crafting")
-ClientContainer.getAndLoadFromServer(tostring(LocalPlayer.UserId),"Holding")
-ClientContainer.getAndLoadFromServer(tostring(LocalPlayer.UserId),"Inventory")
+Datahandler.PlayerEntityChanged:Connect(function(e)  
+    if not e then return end 
+    ClientContainer.getAndLoadFromServer(e.Guid,"Crafting")
+    ClientContainer.getAndLoadFromServer(e.Guid,"Holding")
+    ClientContainer.getAndLoadFromServer(e.Guid,"Inventory")
+end)
 
 return ClientContainer   

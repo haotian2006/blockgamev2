@@ -19,8 +19,8 @@ local temp = Replication.temp
     any attributes  not listed would be deafult to 0
 ]]
 Replication.REPLICATE_LEVEL = {
-    __main = 1,__velocity = 1,__changed = 1,__cachedData = 1,__localData = 1,
-    Grounded = 1,__running = 1,__containers = 1,slot = 2,__model = 1,__IsEntity = 1,
+    __main = 1,__velocity = 1,__changed = 1,__cachedData = 1,__localData = 1,__isPart = 1,
+    Grounded = 1,__running = 1,__containers = 1,slot = 2,__model = 1,__IsEntity = 1,__signals = 1,
     __class = 1,__NetworkId = 1,
     --__components = 2,
     __animations = 2,Guid = 2,
@@ -88,7 +88,7 @@ function Replication.getFastChanges(self)
             changes["Position"]  += Entity.getTotalVelocity(self)*1/30
         end
     end
-    old["Position"] =   changes["Position"] or self["Position"]
+    old["Position"] =   changes["Position"] or  self["Position"] 
     if localD["Rotation"] then
         if old["Rotation"] ~= localD["Rotation"] then
             changes["Rotation"] = localD["Rotation"] 
@@ -128,6 +128,7 @@ function Replication.fastEncode(self,idk)
     end 
     idk = idk or {}
     local changes = Replication.getFastChanges(self)
+
     local pos = changes.Position
     local Chunk 
     local toUpdate = table.create(2)
@@ -169,7 +170,9 @@ function Replication.fastDecode(data,old)
     local update = {}
     if data[2] then
         local ch =data[4] or old.Chunk or Vector2.zero
-        old.Chunk = ch
+        if not old.Chunk then 
+            old.Chunk = ch
+        end
         local oldP = old.Position
         lP = decodePosition(data[2] ,data[1].Y)
         

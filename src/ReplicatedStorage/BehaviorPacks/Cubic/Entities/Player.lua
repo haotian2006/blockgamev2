@@ -18,9 +18,12 @@ local entity = {
             Holding = 1,
             Inventory = 36
         },
-        ["getSpeed"] = function(self)
+        ["getSpeed.method"] = function(self)
              return EntityHandler.getAndCache(self,"Speed")/2*(self.Crouching and 0.3 or 1)
-        end
+        end,
+        ["c:regen.behavior"] = {
+            priority = 3
+        },
     }, 
     component_groups = {
 
@@ -32,9 +35,7 @@ local entity = {
     
     events ={
     },
-    functions = {
 
-    }
 
 }
 return entity

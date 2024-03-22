@@ -65,6 +65,11 @@ function Utils.getOwner(self)
     return plr
 end
 
+function Utils.ownerExists(self)
+    Utils.getOwner(self)
+    return  self.__localData["Owner"] and true or false
+end
+
 function Utils.getEyePosition(self)
     return self.Position + vector3(0,Entity.getAndCache(self,"EyeLevel") or 0,0)/2
 end
@@ -74,7 +79,7 @@ function Utils.getPlayersNearEntity(self,radius)
     return game.Players:GetPlayers()
 end
 
-function Utils.getEntitiesNear(self,radius)
+function Utils.getEntitiesNear(self,radius,RoundToNearestChunk)
     local position = self.Position
     local centerX = (position.X // 8)
     local centerZ = (position.Z // 8)
@@ -93,7 +98,7 @@ function Utils.getEntitiesNear(self,radius)
             if not chunk then continue end 
             for i,v in chunk.Entities do
                 if v == self then continue end 
-                if Utils.getMagnitudeBetween(self,v) < radius then
+                if RoundToNearestChunk or Utils.getMagnitudeBetween(self,v) < radius then
                     table.insert(entities,v)
                 end
             end
@@ -110,40 +115,6 @@ function Utils.getEntitiesNear(self,radius)
     return entities
 end
 
-function Utils.getEntitiesNearChunk(self,radius)
-    local position = self.Position
-    local centerX = (position.X // 8)
-    local centerZ = (position.Z // 8)
-
-    local divided = radius
-    local minX = centerX - (divided)
-    local maxX = centerX + (divided)
-    local minZ = centerZ - (divided)
-    local maxZ = centerZ + (divided)
-    local entities = {}
-    local idx = 1
-    for x = minX, maxX do
-        for z = minZ, maxZ do
-            local coords = vector3(x,0,z)
-            local chunk = Data.getChunkFrom(coords)
-            if not chunk then continue end 
-            for i,v in chunk.Entities do
-                if v == self then continue end 
-                entities[idx] = v
-                idx +=1
-            end
-        end
-    end
-
-
-    -- for i,v in EntityHolder.getAllEntities() do
-    --     if v == self then continue end 
-    --     if Utils.getMagnitudeBetween(self,v) < radius then
-    --         table.insert(entities,v)
-    --     end
-    -- end
-    return entities
-end
 
 local MaxY = math.rad(80)
 function Utils.calculateLookAt(self,bRot,hRot)
@@ -158,6 +129,8 @@ function Utils.calculateLookAt(self,bRot,hRot)
 
     return vector3(directionX,directionY,directionZ).Unit 
 end
+
+
 
 function Utils.getChunk(self)
     local Position = self.Position

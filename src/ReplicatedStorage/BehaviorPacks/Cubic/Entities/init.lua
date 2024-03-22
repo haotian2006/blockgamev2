@@ -7,6 +7,7 @@ local entity = {
             Hitbox = Vector2.new(0.3,.3),
             Health = 10000,
             MaxHealth = 10000,
+            DespawnTime = 10,
             ["c:Item_Loop.behavior"] = {
                 
             }
@@ -23,7 +24,7 @@ local entity = {
     
         }
     },
-    ["Special:Arm"] = {
+;    ["Special:Arm"] = {
         components ={
             EyeLevel = 1.5,
             Hitbox = Vector2.new(0.6,1.79),

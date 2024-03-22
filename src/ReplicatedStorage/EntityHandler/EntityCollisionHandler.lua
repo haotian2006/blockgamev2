@@ -73,7 +73,7 @@ function Collision.stayOnEdge(self,targetPosition)
     return vector3(CurrentX,CurrentY,CurrentZ),normal
 end
 
-local ZERO = -9.99999993922529e-09 
+local ZERO = 0--9.99999993922529e-09 
 
 function Collision.shouldjump(entity,bp,bs)
     local pos = entity.Position
@@ -195,7 +195,7 @@ function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
         local GridStr = tostring(Grid)
         if whitelist and whitelist[GridStr] then continue end
         if block then
-            if block == 0 or block == -1 then continue end 
+            if block == 0 then continue end 
             local typejump, heightneeded,maxheight
             local currentmin = 1
             local newpos ,newsize = Grid,Vector3.one

@@ -32,11 +32,7 @@ local entity = {
             },
         }
     },
-    events ={
-        OnDeath = function(self)
-        
-        end
-    },
+   
     functions = {
 
     }

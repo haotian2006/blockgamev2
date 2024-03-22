@@ -34,6 +34,9 @@ IndexUtils.preComputeAll()
 require(script.Parent.core.chunk)
 require(game.Players.LocalPlayer.PlayerScripts.core.ClientContainer)
 
-require(game:GetService("Players").LocalPlayer.PlayerScripts.core.Rendering.Arms).Init()
-require(game:GetService("Players").LocalPlayer.PlayerScripts.core.Ui.HotbarManager).Init()
+local Core = game:GetService("Players").LocalPlayer.PlayerScripts.core
+require(Core.Ui.HudManager).Init()
+require(Core.Rendering.Arms).Init()
+require(Core.Ui.HotbarManager).Init()
+
 

@@ -6,7 +6,7 @@ local alloc = bufferWriter.alloc
 
 local int16 = {
 	write = function(value: number)
-		alloc(8)
+		alloc(2)
 		i16(value)
 	end,
 

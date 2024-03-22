@@ -24,17 +24,17 @@ return function ()
         local ContainerHandler = require(script.Parent)
 
 
-        local ByteNet = Core.Shared.ByteNet
-        ByteNet = Core.Shared.awaitModule("ByteNet")
-        local bufferWriter = ByteNet.writter
+        local Serializer = Core.Shared.Serializer
+        Serializer = Core.Shared.awaitModule("Serializer")
+        local bufferWriter = Serializer.writter
 
-        local ItemWritter = ByteNet.Types.item.write
-        local StringWritter = ByteNet.Types.string.write
-        local ItemReader = ByteNet.Types.item.read
-        local StringReader = ByteNet.Types.string.read
+        local ItemWritter = Serializer.Types.item.write
+        local StringWritter = Serializer.Types.string.write
+        local ItemReader = Serializer.Types.item.read
+        local StringReader = Serializer.Types.string.read
         local alloc = bufferWriter.alloc
         local u16 = bufferWriter.u16
-        local u8 =  ByteNet.Types.uint8
+        local u8 =  Serializer.Types.uint8
         local u8Read = u8.read
         local u8Write = u8.write
         local u32 = bufferWriter.u32

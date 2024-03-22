@@ -4,6 +4,8 @@ local IS_CLIENT = RunService:IsClient()
 local IS_SERVER = not IS_CLIENT
 local LOCAL_PLAYER = game.Players.LocalPlayer or {UserId = "NAN"}
 
+
+local Signal = require(game.ReplicatedStorage.Libarys.Signal)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local Chunk = require(game.ReplicatedStorage.Chunk)
@@ -18,7 +20,9 @@ local EntityContainerManager = require(script.EntityContainerManager)
 local Data = require(game.ReplicatedStorage.Data)
 local Itemhandler = require(game.ReplicatedStorage.Item)
 local FieldType = require(script.EntityFieldTypes)
+local CommonTypes = require(game.ReplicatedStorage.Core.CommonTypes)
 
+local OwnersExists = Utils.ownerExists
 
 local slerp = MathUtils.slerpAngle 
 
@@ -37,13 +41,17 @@ Entity.Gravity = 32--9.81
 Entity.Speed = 0
 Entity.RotationSpeedMultiplier = 6*2
 
-
+--CONSTANDS
+local DEFAULT_DEATH_TIME = 10
 local NILVALUE = {"__NILVALUE__"}
 local DEFAULTS = {"__DEFAULTS__"}
 
 local UpdateCallbacks = {
     Position = function(self)
         Entity.updateChunk(self)
+    end,
+    Health = function(self,changed)
+      
     end
 }
 
@@ -61,6 +69,7 @@ function Entity.new(type:string,ID,from)
     self.__animations = {}
     self.__cachedData = {}
     self.__localData = {}
+    
     self.__IsEntity = true
     self.Holding = ""
     self.Position = Vector3.zero
@@ -89,8 +98,15 @@ function Entity.initialize(self)
         table.clear(self.__cachedData )
         local entityData =  BehaviorHandler.getEntity(self.Type)
         local componentData = entityData.component_groups[component]
-        if not componentData then warn(`component {component} is not a member or {self.Type}`) end 
-        componentData.Name = component
+        if not componentData then 
+            warn(`component {component} is not a member of {self.Type}`)
+            table.remove( self.__components,i)
+            return
+        else
+            componentData.Name = component 
+        end 
+
+        self.__components[i] = componentData
     end
 
     if IS_SERVER then
@@ -104,15 +120,15 @@ function Entity.initialize(self)
     Entity.updateChunk(self)
 end
 
-function Entity.isType(entity,type)
-    return entity.Type == type 
-end
 
 function Entity.addComponent(self,component,index)
     table.clear(self.__cachedData )
     local entityData =  BehaviorHandler.getEntity(self.Type)
     local componentData = entityData.component_groups[component]
-    if not componentData then warn(`component {component} is not a member or {self.Type}`) end 
+    if not componentData then 
+        warn(`component {component} is not a member of {self.Type}`) 
+        return
+    end 
     componentData.Name = component
     Entity.removeComponent(self,component)
     table.insert(self.__components,index or 1,componentData)
@@ -284,8 +300,23 @@ function Entity.set(self,key,value)
     self[key] = value
     local cb = UpdateCallbacks[key]
     if cb then
-        cb(self)
+        cb(self,value)
     end
+    local Signals = self.__signals 
+    if Signals and Signals[key] then
+        Signals[key]:Fire(value)
+    end
+end
+
+function Entity.getPropertyChanged(self,property)
+    local Signals = self.__signals or {}
+    self.__signals = Signals
+    if Signals[property] then
+        return Signals[property].Event
+    end
+    local s = Signal.protected()
+    Signals[property] = s
+    return s.Event
 end
 
 function Entity.rawSet(self,key,value)
@@ -302,18 +333,29 @@ function Entity.getTotalVelocity(self):Vector3
         end
     end
     if x == 0 then
-        x = -0.00000001
+      --  x = -0.00000001
     end
     if z == 0 then
-        z = -0.00000001
+       -- z = -0.00000001
     end
     return Vector3.new(x,y,z)
 end
 
-function Entity.setVelocity(self,name,vector)
+local MAX_MAG = 1000
+local MAX_VECTOR = Vector3.one*MAX_MAG
+local MIN_VECTOR = Vector3.one*-MAX_MAG
+
+function Entity.setVelocity(self,name,vector:Vector3?)
     if vector == Vector3.zero then
         vector = nil
     end
+    if vector and vector.Magnitude> MAX_MAG then
+        vector = vector:Max(MIN_VECTOR):Min(MAX_VECTOR)
+    end
+    if IS_SERVER and OwnersExists(self) then
+        EntityTaskReplicator.doTask(self, "SetVelocity",true,name,vector)
+        return
+   end
     self.__velocity[name] = vector
 end
 
@@ -322,6 +364,10 @@ function Entity.getVelocity(self,name)
 end
 
 function Entity.applyVelocity(self,velocity)
+    if IS_SERVER and OwnersExists(self) then
+         EntityTaskReplicator.doTask(self, "applyVelocity",true,velocity)
+         return
+    end
     local current = Entity.getVelocity(self,"Physics") or Vector3.zero
     Entity.setVelocity(self,"Physics",current+velocity)
 end
@@ -335,6 +381,14 @@ function Entity.setMoveDireaction(self,Direaction)
     self.moveDir = Direaction
 end
 
+function Entity.setDespawnTime(self,time)
+    self.DespawnTime = time
+end
+
+function Entity.disableDespawnTimer(self,time)
+    self.DespawnTime = -9999999
+end
+
 function Entity.getMoveDireaction(self,Direaction)
  return self.moveDir
 end
@@ -342,9 +396,19 @@ end
 --@Overridable
 function Entity.getSpeed(self,RAWGET)
     if not RAWGET then
-        local x = Entity.get(self,"getSpeed")
-        if x then 
-            return x()
+        local x = Entity.getAndCache(self,"getSpeed.method")
+        if x and x ~= Entity.getSpeed then 
+            return x(self)
+        end 
+    end
+    return Entity.get(self,"Speed")
+end
+
+function Entity.takeDamage(self,damage,RAWGET)
+    if not RAWGET then
+        local x = Entity.getAndCache(self,"takeDamage.method")
+        if x and x ~= Entity.takeDamage then 
+            return x(self)
         end 
     end
     return Entity.get(self,"Speed")
@@ -354,6 +418,7 @@ end
 
 
 --//OwnerShip
+Entity.ownerExists = OwnersExists
 Entity.isOwner = Utils.isOwner
 Entity.getOwner = Utils.getOwner
 
@@ -378,6 +443,10 @@ function Entity.jump(self,JumpPower)
     local JumpPower = JumpPower or Entity.get(self,"jumpPower")
     Entity.setVelocity(self,"Physics",bodyVelocity + Vector3.new(0,JumpPower,0))
     self.Grounded = false
+end
+
+function Entity.isType(entity,type)
+    return entity.Type == type 
 end
 
 function Entity.isDead(self)
@@ -423,15 +492,21 @@ end
 --//Updates
 function Entity.updateChunk(self)
     local chunk = Utils.getChunk(self)
-    if chunk ~= self.Chunk then
+    if chunk ~= self.Chunk or not self.__isPart then
         if self.Chunk ~= nil then
             local OldChunk = Data.getChunkFrom(self.Chunk)
             if OldChunk then
+                self.__isPart = nil
                 Chunk.removeEntity(OldChunk, self)
             end
         end
+        if IS_SERVER and not self.__NetworkId then 
+            self.Chunk = chunk
+            return 
+        end 
         local newChunk =  Data.getChunkFrom(chunk)
         if newChunk then
+            self.__isPart = true
             Chunk.addEntity(newChunk, self)
         end
         self.Chunk = chunk
@@ -506,6 +581,7 @@ function Entity.updatePosition(self,dt)
         self.Position = newPosition--interpolate(self.Position,newp,dt) 
         return direationVector,normal,shouldJump
     end
+    return
 end
 
 function Entity.updateGrounded(self,dt,shouldJump)
@@ -513,6 +589,21 @@ function Entity.updateGrounded(self,dt,shouldJump)
     self.Grounded = isGrounded
 end
 
+function Entity.updateDespawn(self,dt)
+    local t = self.DespawnTime
+    if not t then
+        t = Entity.get(self, "DespawnTime") or -9999999
+    end
+    if t == -1 or t == -9999999 then
+        self.DespawnTime= t
+        return
+    end
+    t-=dt
+    self.DespawnTime= t
+    if t <= 0 then
+        Entity.destroy(self)
+    end
+end
 
 function Entity.updateGravity(self,dt)
     local bodyVelocity = Entity.getVelocity(self,"Physics") or Vector3.zero
@@ -522,7 +613,7 @@ function Entity.updateGravity(self,dt)
         local Gravity = Entity.get(self,"Gravity")
         yValue = bodyVelocity.Y + (-Gravity)*dt
         FramesInAir = FramesInAir +1
-    else
+    else 
         FramesInAir = 0 
     end
     self.FramesInAir  = FramesInAir
@@ -536,8 +627,8 @@ function Entity.updateMovement(self,dt,normal)
     local dir = self.moveDir or Vector3.zero
     local total = (self.__localData.DT or 0) + dt
     if  total >= 1/20 or (dir.Magnitude >.1 and Vector2.new(bodyVelocity.X,bodyVelocity.Z).Magnitude<=.01) then
-        local Speed = Entity.getAndCache(self,"getSpeed")(self)--4.3/2--Entity.getAndCache(self,"Speed") or 0 
-        local s = .6--.6
+        local Speed = Entity.getSpeed(self)--4.3/2--Entity.getAndCache(self,"Speed") or 0 
+        local s = .6
         local accelerationX = Speed*(.6/s)^3 * dir.X/1
         local accelerationZ = Speed*(.6/s)^3 * dir.Z/1
         
@@ -567,6 +658,7 @@ local function Server_visualiser(self)
     model.Size = hb*3
     model.Position = self.Position*3
 end
+
 function Entity.update(self,dt)
     if self.__destroyed then return end 
     if Entity.isOwner(self,LOCAL_PLAYER) then
@@ -576,6 +668,7 @@ function Entity.update(self,dt)
         Entity.updateGravity(self,dt)
         Entity.updateTurning(self,dt)
         Entity.updateMovement(self,dt,normal)
+        Entity.updateDespawn(self,dt)
     else
         Entity.updateChunk(self)
     end
@@ -583,6 +676,16 @@ function Entity.update(self,dt)
         Server_visualiser(self)
     end
 end 
+
+function Entity.onDeath(self)
+    self.__dead = true
+
+    local DeathDespawn = Entity.get(self, "DeathDespawn")
+    if DeathDespawn ~= false then 
+        self.DespawnTime = DeathDespawn or DEFAULT_DEATH_TIME
+    end 
+
+end
 
 function Entity.destroy(self)
     if self.__model then
@@ -597,5 +700,9 @@ function Entity.destroy(self)
     if OldChunk then
         Chunk.removeEntity(OldChunk, self)
     end
+    for i,v in self.__signals or {} do
+        v:DisconnectAll() 
+    end
+    self.__signals = nil
 end
 return Entity

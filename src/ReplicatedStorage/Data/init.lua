@@ -72,7 +72,7 @@ end
 function Data.getBlock(x,y,z)
     local cx,cz,lx,ly,lz = ConversionUtils.gridToLocalAndChunk(x, y, z)
     local chunk = Data.getChunk(cx,cz)
-    if not chunk then  return BlockUtils.CONST_NULL end
+    if not chunk then  return 0 end --TODO: CHANGE THIS TO VOID
     return Chunk.getBlockAt(chunk, lx, ly, lz)
 end 
 
@@ -94,12 +94,13 @@ function Data.getPlayerEntity()
     return PlayerEntity
 end
 
-local PlayerEntityChanged = Signal.new()
+local PlayerEntityChanged = Signal.protected()
 function Data.setPlayerEntity(e)
     PlayerEntity = e
     PlayerEntityChanged:Fire(e)
 end
 
-Data.PlayerEntityChanged = PlayerEntityChanged
+Data.PlayerEntityChanged = PlayerEntityChanged.Event
+
 
 return table.freeze(Data)

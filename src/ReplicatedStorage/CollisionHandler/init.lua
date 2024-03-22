@@ -4,7 +4,6 @@ local behavior = require(game.ReplicatedStorage.BehaviorHandler)
 local vector3 = Vector3.new
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 
-local BlockUtils = require(game.ReplicatedStorage.Utils.BlockUtils)
 local ChunkHandler = require(game.ReplicatedStorage.Chunk)
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local ChunkWidth,ChunkHeight = GameSettings.getChunkSize()
@@ -42,7 +41,7 @@ function collisions.getBlock(x,y,z)
     end
 end
 
-function collisions.createEntityParams(Guids,Types)
+function collisions.createEntityParams(Guids,Types,checkGlobal)
     local guids = {}
     local types = {}
     for i,v in Guids or {} do
@@ -54,10 +53,12 @@ function collisions.createEntityParams(Guids,Types)
     return {
         Guids = guids,
         Types = types,
+        CheckGlobal = checkGlobal
     }
 end
 
 function collisions.getEntitiesInBox(center,size,EntityParams)
+
 
     EntityParams = EntityParams or collisions.createEntityParams()
     local entitiesInBox = {}
@@ -73,20 +74,56 @@ function collisions.getEntitiesInBox(center,size,EntityParams)
     
     local Guids = EntityParams.Guids
     local types = EntityParams.Types
-    for _, entity:Core.Entity in     DataH.getAllEntities() do
-        if Guids[entity.Guid] or types[entity.Type] then continue end 
-        local HitBox = EntityService.getHitbox(entity)
-        local Size = HitBox/2
-        local entityMinCorner = entity.Position - Size
-        local entityMaxCorner = entity.Position + Size
-      if entityMaxCorner.X > minX and
-           entityMinCorner.X < maxX and
-           entityMaxCorner.Y > minY and
-           entityMinCorner.Y < maxY and
-           entityMaxCorner.Z > minZ and
-           entityMinCorner.Z < maxZ then
-            entitiesInBox[index] = entity
-            index+=1
+
+    if not EntityParams.CheckGlobal then
+        local centerX = (center.X // 8)
+        local centerZ = (center.Z // 8)
+
+        local sizeX,sizeZ = (size/8).X,(size/8).Z
+        local minCX = centerX - math.ceil(sizeX)
+        local maxCX = centerX + math.ceil(sizeX)
+        local minCZ = centerZ - math.ceil(sizeZ)
+        local maxCZ = centerZ + math.ceil(sizeZ)
+
+        for x = minCX, maxCX do
+            for z = minCZ, maxCZ do
+                local coords = vector3(x,0,z)
+                local chunk = DataH.getChunkFrom(coords)
+                if not chunk then continue end 
+                for i,entity:Core.Entity in chunk.Entities do
+                    if Guids[entity.Guid] or types[entity.Type] then continue end 
+                    local HitBox = EntityService.getHitbox(entity)
+                    local Size = HitBox/2
+                    local entityMinCorner = entity.Position - Size
+                    local entityMaxCorner = entity.Position + Size
+                  if entityMaxCorner.X > minX and
+                       entityMinCorner.X < maxX and
+                       entityMaxCorner.Y > minY and
+                       entityMinCorner.Y < maxY and
+                       entityMaxCorner.Z > minZ and
+                       entityMinCorner.Z < maxZ then
+                        entitiesInBox[index] = entity
+                        index+=1
+                    end
+                end
+            end
+        end
+    else
+        for _, entity:Core.Entity in     DataH.getAllEntities() do
+            if Guids[entity.Guid] or types[entity.Type] then continue end 
+            local HitBox = EntityService.getHitbox(entity)
+            local Size = HitBox/2
+            local entityMinCorner = entity.Position - Size
+            local entityMaxCorner = entity.Position + Size
+          if entityMaxCorner.X > minX and
+               entityMinCorner.X < maxX and
+               entityMaxCorner.Y > minY and
+               entityMinCorner.Y < maxY and
+               entityMaxCorner.Z > minZ and
+               entityMinCorner.Z < maxZ then
+                entitiesInBox[index] = entity
+                index+=1
+            end
         end
     end
 

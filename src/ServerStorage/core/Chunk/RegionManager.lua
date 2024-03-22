@@ -18,7 +18,7 @@ local REGION_DISTANCE = 14
 local Corners = {
     Vector3.new(REGION_DISTANCE,0,REGION_DISTANCE),
     Vector3.new(-REGION_DISTANCE,0,REGION_DISTANCE),
-    Vector3.new(REGION_DISTANCE,0,-REGION_DISTANCE),
+    Vector3.new(REGION_DISTANCE,0,-REGION_DISTANCE), 
     Vector3.new(-REGION_DISTANCE,0,-REGION_DISTANCE)
 }
 
@@ -54,9 +54,6 @@ local function UpdateRegion(region,toRemove)
     Communicator.sendMessageToId(RegionId,"UpdateRegion",region,HadUpdates and AllChanges,toRemove,Entities,hadChanges)
 end
 
-game.ReplicatedStorage.Events.DoSmt.OnServerEvent:Connect(function()
-   UpdateRegion(Vector3.new(0,0))
-end)
 
 function Regions.addChunk(chunk)
     local Region = RegionHelper.getRegion(chunk)
@@ -104,9 +101,9 @@ end
 local Last = os.time()
 game:GetService("RunService").Heartbeat:Connect(function(a0: number)  
     if os.time()-Last >= 30 then
+        Last= os.time()
         print("-----AUTOSAVE-----")
         Runner.runParallel(Regions.Update)
-        Last= os.time()
     end
 end)
 local AwaitingOnClose = {}

@@ -20,8 +20,8 @@ return {
                     Block = BlockService.compress(Id,nil,self[2])
                 end
                 local RayData = Mouse.getRay()
-                if not RayData.Block then return end 
-                local Blockpos = RayData.BlockPosition + RayData.Normal
+                if not RayData.block then return end 
+                local Blockpos = RayData.grid + RayData.normal
                 Helper.insertBlock(Blockpos.X, Blockpos.Y, Blockpos.Z, Block)
                 return true
             end, "Interact", 1)
