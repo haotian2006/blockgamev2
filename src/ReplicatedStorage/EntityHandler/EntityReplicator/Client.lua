@@ -34,11 +34,14 @@ end
 function Client.createEntityFrom(data)
     local Entity = EntityHandler.new(data.Type,data.Guid)
     if not Entity then return end 
+    for i,v in data do
+        Entity[i] = v
+    end
     if data.Guid == tostring(LOCAL_PLAYER.UserId) then
         Data.setPlayerEntity(Entity)
     end
     for i,v in data do
-        Entity[i] = v
+        EntityHandler.set(Entity, i,v)
     end
     return Entity
 end
@@ -81,8 +84,11 @@ function Client.handleData(data)
         local Guid = Entity.Guid
         EntityHolder.removeEntity(Guid)
         EntityHolder.unLink(data)
-        if Entity and Entity.__model then
-            Entity.__model:Destroy()
+        if Guid == tostring(LOCAL_PLAYER.UserId) then
+            Data.setPlayerEntity(nil)
+        end
+        if Entity and Entity.model then
+            Entity.model:Destroy()
         end
         return
     end
@@ -143,8 +149,8 @@ function Client.readKey(keyData)
             table.remove(key,idx_)
             local Entity = EntityHolder.getEntity(Guid)
             EntityHolder.removeEntity(Guid)
-            if Entity and Entity.__model then
-                Entity.__model:Destroy()
+            if Entity and Entity.model then
+                Entity.model:Destroy()
             end
             --delete entity
         end

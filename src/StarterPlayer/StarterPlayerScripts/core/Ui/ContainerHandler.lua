@@ -14,6 +14,8 @@ local UserInputService = game:GetService("UserInputService")
 local resourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local ItemHandler = require(game.ReplicatedStorage.Item)
 local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+local DataHandler = require(game.ReplicatedStorage.Data)
+local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 
 local Events = game:GetService("ReplicatedStorage").Events.Container
 
@@ -36,6 +38,7 @@ end
 function handler.init(c)
     ClientContainer = c
     getItemAt = ClientContainer.getItemAt
+    DEFAULTICON = DEFAULTICON or resourceHandler.getUI("IconFrame")
 end
 
 function handler.getOrCreateFrame(name,isContainer)
@@ -45,7 +48,7 @@ function handler.getOrCreateFrame(name,isContainer)
         if not uiContainter then return end 
         frames[name] = uiContainter.Frame:Clone()
     else
-        local uiContainter = resourceHandler.getUI(name):Clone()
+        local uiContainter = resourceHandler.getUI(name)
         if not uiContainter then return end 
         frames[name] = uiContainter:Clone()
     end
@@ -226,6 +229,7 @@ function handler.updateAll()
     handler.displayHover(x,y,true)
 end
 
+
 handler.OnOpen = Signal.new()
 handler.OnClose = Signal.new()
 
@@ -236,6 +240,9 @@ function handler.open(name)
     if container.Init then
         container.Init(gui,ClientContainer.getAllContainers())
     end
+
+    --TODO: Fire open function
+
     handler.OnOpen:Fire(name)
     handler.update(gui, name)
 
@@ -255,6 +262,12 @@ function handler.open(name)
     return gui
 
 end 
+
+function handler.closeAll()
+    for i,v in EnabledGUi do
+        handler.close(i,true)
+    end
+end
 
 function handler.close(name,forceClose,fromOpen)
     if not  EnabledGUi[name] then return end 
@@ -279,6 +292,10 @@ end
 
 local open = false
 game:GetService("UserInputService").InputBegan:Connect(function(a0: InputObject, a1: boolean)  
+    local entity = DataHandler.getPlayerEntity()
+    if EntityHandler.isDead(entity) then 
+        return
+    end
     if a0.KeyCode == Enum.KeyCode.E then
         if open then
             handler.open("InventoryFrame")
@@ -354,6 +371,10 @@ function handler.onClick(x,y,isRightClick)
 end
 
 UserInputService.InputBegan:Connect(function(keyCode: InputObject, a1: boolean) 
+    local entity = DataHandler.getPlayerEntity()
+    if EntityHandler.isDead(entity) then 
+        return
+    end
     local p = keyCode.Position
     if keyCode.UserInputType == Enum.UserInputType.MouseButton1 then
         handler.onClick(p.X,p.Y,false)

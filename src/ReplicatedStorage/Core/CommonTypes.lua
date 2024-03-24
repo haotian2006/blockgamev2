@@ -29,7 +29,7 @@ export type Entity = {
     HeadRotation : Vector2,
     Type : string,
     Guid : string,
-    __dead : boolean?,
+    died : boolean?,
 }
 
 

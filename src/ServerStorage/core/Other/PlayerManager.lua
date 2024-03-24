@@ -8,6 +8,7 @@ local RunService = game:GetService("RunService")
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local DataHandler = require(game.ReplicatedStorage.Data)
 local Serializer = require(game.ReplicatedStorage.Core.Serializer)
+local Events = require(game.ReplicatedStorage.Events)
 
 local EntityParser = Serializer.wrap(Serializer.Types.entity)
 
@@ -26,6 +27,7 @@ local function getData(player:Player)
     if not info then return end 
     local c = EntityParser.desterilize(info.Entity)
     info.Entity = EntityHandler.fromData(c)
+
 
     return info
 end
@@ -47,9 +49,26 @@ function PlayerManager.createBaseData(player:Player)
     local Entity = EntityHandler.new("Player",player.UserId)
     Entity.Position = Vector3.new(0,100,0)
     EntityHandler.setOwner(Entity,player)
-    data.Entity = Entity
 
+    data.Entity = Entity
+    
     return data
+end
+
+function PlayerManager.respawn(Player)
+    local data = Data[Player]
+    if not data then return end 
+    local Entity = data.Entity
+
+    DataHandler.removeEntity(Entity)
+    task.wait(2)
+    local new =  EntityHandler.new("Player",Player.UserId)
+    EntityHandler.destroy(Entity)
+    new.Position = Vector3.new(0,100,0)
+    EntityHandler.setOwner(new,Player)
+    DataHandler.addEntity(new)
+
+   data.Entity = new
 end
 
 function PlayerManager.save(Player)
@@ -79,6 +98,7 @@ for i,v in Players:GetPlayers() do
     PlayerAdded(v)
 end
 
+
 Players.PlayerAdded:Connect(PlayerAdded)
 
 Players.PlayerRemoving:Connect(function(player)
@@ -87,6 +107,15 @@ Players.PlayerRemoving:Connect(function(player)
     if not data then return end 
     EntityHandler.destroy(data.Entity)
     Data[player] = nil
+end)
+
+Events.RespawnEntity.listen(function(_,player)
+    local data = Data[player]
+    if not data then return end 
+    local Entity = data.Entity
+    if EntityHandler.isDead(Entity) then
+        PlayerManager.respawn(player)
+    end
 end)
 
 local LastTime = os.time()+15

@@ -11,8 +11,17 @@ local TaskData = {
 
 }
 local TaskOrderRemote:RemoteEvent = game.ReplicatedStorage.Events.TaskUpdater
+
+local Holder = require(script.Parent.Parent.EntityHolder)
+local Utils = require(script.Parent.Parent.Utils)
+
 local RunService = game:GetService("RunService")
 local IS_CLIENT = RunService:IsClient()
+
+local player 
+if IS_CLIENT then
+    player = game:GetService("Players").LocalPlayer
+end
 
 local function fixOrderTask()
     table.clear(OrderTask)
@@ -38,6 +47,12 @@ function Tasks.clearDataFor(uuid)
 end
 
 function Tasks.attachDataTo(uuid,task,data,SendToOwner)
+    local Entity = Holder.getEntity(uuid)
+    if not Entity then return end 
+    if IS_CLIENT and not Utils.isOwner(Entity, player) then
+        return 
+    end
+
     TaskData[uuid] = TaskData[uuid] or {}
     local taskFolder = TaskData[uuid][task] or {}
     TaskData[uuid][task] = taskFolder
@@ -72,7 +87,13 @@ function Tasks.encode(uuid,isOwner)
     return newData or nil
 end
 
-function Tasks.decode(uuid,data)
+function Tasks.decode(uuid,data,from)
+    local Entity = Holder.getEntity(uuid)
+    if not Entity then return end 
+    if not IS_CLIENT and not Utils.isOwner(Entity, from) then
+        return 
+    end
+    
    for _,tData in data do
         local task = TaskOrder[tonumber(tData[1]) or 1]
         local callback = callBacks[task or 1]

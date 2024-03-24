@@ -92,15 +92,16 @@ function Server.replicate(IsSecondTick)
     end
     for _,Player in Players do
         local ClientEntity = Holder.getEntity(tostring(Player.UserId))
-        if not ClientEntity then continue end 
 
         local PlayerTasks = {}
         local PlayerEntities = {}
         Entities[Player] = PlayerEntities
         PlayerTaskData[Player] = PlayerTasks
-
-        local Nearby = Utils.getEntitiesNear(ClientEntity,RenderDistance,true)
-        table.insert(Nearby,ClientEntity)
+        local Nearby = {}
+        if ClientEntity then
+            Nearby = Utils.getEntitiesNear(ClientEntity,RenderDistance,true)
+            table.insert(Nearby,ClientEntity)
+        end
         for _,entity in Nearby do
             if entity.doReplication == false then continue end 
             local GUID = entity.Guid
@@ -239,7 +240,7 @@ TCP.OnServerEvent:Connect(function(player,otherData)
             if not entity then continue end 
             uuid = entity.Guid
         end
-        EntityTasks.decode(uuid,data[1])
+        EntityTasks.decode(uuid,data[1],player)
     end
 end)
 

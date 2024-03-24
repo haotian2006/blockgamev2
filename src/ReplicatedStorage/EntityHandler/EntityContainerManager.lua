@@ -87,9 +87,7 @@ end
 function manager.OnDeath(self)
     if not  self.__containers  then return end 
     if IS_SERVER then
-        for i,v in  self.__containers  do
-            ServerContainer.removeAll(self.Guid)
-        end
+        ServerContainer.removeAll(self.Guid)
     end
 end
 

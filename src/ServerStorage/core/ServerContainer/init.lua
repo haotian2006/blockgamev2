@@ -247,6 +247,9 @@ local tasks ={
 }
 
 Send.OnServerEvent:Connect(function(player,task,...)
+    local Entity = Data.getEntity(tostring(player.UserId))
+    if not Entity then return end 
+    if not EntityUtils.isOwner(Entity, player) then return end 
     if not tasks[task] then return end
     tasks[task](player,...)
 end)
@@ -254,6 +257,7 @@ end)
 Request.OnServerInvoke = function(player,uuid,container)
     uuid = tostring(uuid)
     local c = LoadedContainers[uuid] and LoadedContainers[uuid][container]
+    if not c then return nil end 
     Container.setOpened(c, player)
     if not c then return end 
     local cloned = table.clone(c)

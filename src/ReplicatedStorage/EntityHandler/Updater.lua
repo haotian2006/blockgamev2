@@ -9,7 +9,74 @@ local EntityHolder = require(script.Parent.EntityHolder)
 local Runner = require(game.ReplicatedStorage.Runner)
 local Data = require(game.ReplicatedStorage.Data)
 local Players = game:GetService("Players")
+local function InitServer()
+    local Simulated = Data.getSimulated()
+    local BehaviorHandler = require(game.ServerStorage.core.Entity.EntityBehaviorHandler)
+    local tick = 0
+    local framesUntilTick = 0
+    local SimulatedEntities = {}
+    local WhenToRun = {}
+    local function updateInfo()
+        table.clear(SimulatedEntities)
+        table.clear(WhenToRun)
+        for chunk in Simulated do
+            local C = Data.getChunkFrom(chunk)
+            if not C then continue end 
+            for i,v in C.Entities do
+                table.insert(SimulatedEntities,v)
+            end
+        end
+        local amtPerChunk = math.ceil(#SimulatedEntities/3)
+        local idx = 1
+        local passes = 0
+        local t = {}
+        WhenToRun[idx] = t
+        for _,v in SimulatedEntities do
+            if passes >= amtPerChunk then
+                idx +=1
+                passes = 0
+                t = {}
+                WhenToRun[idx] = t
+            end
+            t[v] = true
+            passes+=1
+        end
+    end
+    local deltatime = {
 
+    }
+    local function run()
+        framesUntilTick+=1
+        if framesUntilTick>=3 then
+            framesUntilTick = 0
+            updateInfo()
+        end
+        local LastTime = deltatime[framesUntilTick+1] or os.clock()-1/20
+        local current = os.clock()
+        deltatime[framesUntilTick+1] = current
+        local dt  = current-LastTime
+      
+
+        for i,v in Players:GetPlayers() do
+            local e = Data.getEntityFromPlayer(v)
+            if not e then return end 
+            Handler.updateChunk(e)
+        end
+        local torun = WhenToRun[framesUntilTick+1] or {}
+        for v in torun do
+            debug.profilebegin("Update")
+            if torun[v] then
+                BehaviorHandler.run(v) 
+            end
+            debug.profileend()
+            Handler.update(v, dt)
+        end
+    end
+    updateInfo()
+    Runner.bindToHeartbeat("Updater",function(p,dt)
+        Runner.runParallel(run,0,p)
+    end,5)
+end
 
 local Init
 function Updater.Init()
@@ -28,23 +95,7 @@ function Updater.Init()
             end
         end,5)
     else
-        local Simulated = Data.getSimulated()
-        local BehaviorHandler = require(game.ServerStorage.core.Entity.EntityBehaviorHandler)
-        Runner.bindToStepped("Updater",function(p,deltaTime)
-            for i,v in Players:GetPlayers() do
-                local e = Data.getEntityFromPlayer(v)
-                if not e then return end 
-                Handler.updateChunk(e)
-            end
-           for chunk in Simulated do
-            local C = Data.getChunkFrom(chunk)
-            if not C then continue end 
-            for i,v in C.Entities do
-                BehaviorHandler.run(v)
-                Handler.update(v, deltaTime)
-            end
-           end
-        end,5)
+        InitServer()
     end
 
     Init = true

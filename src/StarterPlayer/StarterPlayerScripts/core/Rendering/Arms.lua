@@ -7,15 +7,48 @@ local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local EntityRender = require(game.ReplicatedStorage.EntityHandler.Render)
 local Animator = require(game.ReplicatedStorage.EntityHandler.Animator)
 
+
 local Camera = workspace.CurrentCamera
 
 local CurrentArms
 local RenderHand 
+local CurrentEntity 
+local HealthChanged  
+
+local Highlight:Highlight? 
+
+local lastThread
+
+local function OnChange(e)
+    if HealthChanged then
+        HealthChanged:Disconnect()
+    end
+    if not e then return end 
+    HealthChanged = EntityHandler.getPropertyChanged(e, "Health")
+    HealthChanged = HealthChanged:Connect(function(new,old)
+        if (new < old) and Highlight then
+
+            if lastThread and coroutine.status(lastThread) == "running" then
+                task.cancel(lastThread)
+            end
+            Highlight.Enabled = true
+            local t = task.delay(.3, function()
+                Highlight.Enabled = false
+            end)
+
+            lastThread = t
+        end
+    end)
+end
 
 function Arms.update(dt)
-    local CurrentEntity = PlayerEntity() 
+    local Entity = PlayerEntity() 
+    if CurrentEntity ~= Entity then
+        OnChange(Entity)
+        CurrentEntity = Entity
+    end
     if not CurrentArms or not  CurrentEntity then return end 
-    local Model:Model = CurrentArms.__model
+    local Model:Model = CurrentArms.model
     local Head =  Model.Head
     Head.Anchored = true
     Head.CFrame = Camera.CFrame*CFrame.new(-.6,1.7,2.5)
@@ -67,8 +100,17 @@ function Arms.Init()
     if not Model then return end 
 
     Model = Model:Clone()
-    CurrentArms.__model = Model
+    EntityHandler.set(CurrentArms, "model",Model)
+
+
     Model:ScaleTo(.15)
+
+    Highlight = ResourceHandler.getAsset("DamageHighlight")
+
+    if Highlight then
+        Highlight.Enabled = false
+        Highlight.Parent = Model
+    end
 
     Model.Parent = Camera
 
@@ -83,7 +125,7 @@ function Arms.setTransparency(value)
     EntityRender.setTransparency(CurrentArms, value)
 
     if value == 0 and   (RenderHand == false)  then
-        CurrentArms.__model["Right Arm"].LocalTransparencyModifier = 1
+        CurrentArms.model["Right Arm"].LocalTransparencyModifier = 1
     end
 end
 
@@ -99,6 +141,7 @@ function Arms.playerAnimation(ani)
     if not Entity then return end 
     Animator.play(Entity, ani)
 end
+
 
 game:GetService("UserInputService").InputBegan:Connect(function(k)
     if not CurrentArms or k.UserInputType ~= Enum.UserInputType.MouseButton1 then return end 

@@ -132,10 +132,9 @@ function  Controller.createBinds()
         InputHandler.bindFunctionTo(`{i}-Controller`,v,i)
     end
 end
+
 function Controller.setCameraTo(entity)
-   if entity and entity.__model and entity.__model:FindFirstChild("Eye") then
         CustomCamera.bindToEntity(entity)
-   end
 end
 
 function Controller.getMouse()

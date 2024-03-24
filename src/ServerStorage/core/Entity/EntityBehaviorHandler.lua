@@ -97,13 +97,19 @@ function BehaviorManager.isRunning(self,name,checkSameType)
 end
 
 function BehaviorManager.run(self)
+    local ran = 0 
     for i,name in BehaviorManager.getAndCacheAll(self) do
         local func = BehaviorHandler.getEntityBehavior(name) or {}
         if not func.Function then continue end   
         local data = BehaviorManager.get(self,name)
         if not data then continue end 
+        if func.CanBeDead ~= true and EntityHandler.isDead(self) then
+            continue
+        end
         func.Function(self,data)
+        ran +=1
     end
+    return ran ~= 0 
 end
 
 local Init = false

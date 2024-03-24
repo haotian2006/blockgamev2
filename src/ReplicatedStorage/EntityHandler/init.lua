@@ -1,5 +1,7 @@
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
 local IS_CLIENT = RunService:IsClient()
 local IS_SERVER = not IS_CLIENT
 local LOCAL_PLAYER = game.Players.LocalPlayer or {UserId = "NAN"}
@@ -21,6 +23,28 @@ local Data = require(game.ReplicatedStorage.Data)
 local Itemhandler = require(game.ReplicatedStorage.Item)
 local FieldType = require(script.EntityFieldTypes)
 local CommonTypes = require(game.ReplicatedStorage.Core.CommonTypes)
+local Runner = require(game.ReplicatedStorage.Runner)
+local ClientUtils = require(script.ClientUtils)
+local ServerContainer 
+
+
+local DamagedFolder 
+local NormalFolder = workspace:FindFirstChild("Entities")
+
+if IS_CLIENT then
+    local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
+    DamagedFolder = Instance.new("Model",workspace)
+    DamagedFolder.Name = "Entities_Damaged"
+    task.spawn(function()
+        ResourceHandler.wait()
+        local DamageHighlighter = ResourceHandler.getAsset("DamageHighlight")
+        if DamageHighlighter then
+            DamageHighlighter:Clone().Parent = DamagedFolder
+        end
+    end)
+else
+    ServerContainer = require(game.ServerStorage:WaitForChild("core").ServerContainer)
+end
 
 local OwnersExists = Utils.ownerExists
 
@@ -36,10 +60,14 @@ Entity.FieldTypes = FieldType
 Entity.Container = EntityContainerManager
 Entity.Animator = Animator
 Entity.Utils = Utils
+
+
+Entity.onDeath = function(x) end  -- Werid roblox type error
+
 --DEFAULTS
 Entity.Gravity = 32--9.81
 Entity.Speed = 0
-Entity.RotationSpeedMultiplier = 6*2
+Entity.RotationSpeedMultiplier = 12--6*2
 
 --CONSTANDS
 local DEFAULT_DEATH_TIME = 10
@@ -51,7 +79,31 @@ local UpdateCallbacks = {
         Entity.updateChunk(self)
     end,
     Health = function(self,changed)
-      
+        local last = Entity.get(self, "Health")
+        if IS_CLIENT then
+            local model = self.model
+            if (changed < last) and model then
+                local lastThread = Entity.getTemp(self, "damageThread")
+                if lastThread and coroutine.status(lastThread) == "running" then
+                    task.cancel(lastThread)
+                end
+                model.Parent = DamagedFolder
+                local t = task.delay(.3, function()
+                    if model.Parent ~= DamagedFolder then return end 
+                    model.Parent = NormalFolder
+                end)
+
+                Entity.setTemp(self, "damageThread",t)
+            end
+        end
+        if (changed or 1) <= 0 then
+            Entity.onDeath(self)
+        end
+    end,
+    died = function(self,value)
+        if value then
+            Entity.onDeath(self)
+        end
     end
 }
 
@@ -118,6 +170,12 @@ function Entity.initialize(self)
         self.__loadedAnimations = {}
     end
     Entity.updateChunk(self)
+    local health = Entity.get(self, "Health")
+    
+
+    if (health or 1) <= 0 or self.died then
+        Entity.onDeath(self)
+    end
 end
 
 
@@ -297,18 +355,19 @@ function Entity.set(self,key,value)
     if self[key] ~= value then
         self.__changed[key] = IS_SERVER and true or nil
     end
-    self[key] = value
     local cb = UpdateCallbacks[key]
     if cb then
         cb(self,value)
     end
     local Signals = self.__signals 
     if Signals and Signals[key] then
-        Signals[key]:Fire(value)
+        local last = Entity.get(self, key)
+        Signals[key]:Fire(value,last)
     end
+    self[key] = value
 end
 
-function Entity.getPropertyChanged(self,property)
+function Entity.getPropertyChanged(self,property):CommonTypes.ProtectedEvent<any,any>
     local Signals = self.__signals or {}
     self.__signals = Signals
     if Signals[property] then
@@ -377,6 +436,9 @@ function Entity.setPosition(self,pos)
 end
 
 function Entity.setMoveDireaction(self,Direaction)
+    if Direaction ~= Direaction then
+        Direaction = Vector3.zero
+    end
     Utils.followMovement(self,Vector2.new(Direaction.X,Direaction.Z).Unit)
     self.moveDir = Direaction
 end
@@ -404,14 +466,18 @@ function Entity.getSpeed(self,RAWGET)
     return Entity.get(self,"Speed")
 end
 
-function Entity.takeDamage(self,damage,RAWGET)
+function Entity.takeDamage(self,RAWGET,damage)
     if not RAWGET then
         local x = Entity.getAndCache(self,"takeDamage.method")
         if x and x ~= Entity.takeDamage then 
-            return x(self)
+            return x(self,damage)
         end 
     end
-    return Entity.get(self,"Speed")
+    local Health = Entity.get(self, "Health")
+    if Health then 
+        Entity.set(self, "Health", Health-(damage or 0))
+    end 
+    return true
 end
 
 --4.9
@@ -451,17 +517,19 @@ end
 
 function Entity.isDead(self)
     if not self then return true end 
-    return self.__dead or false 
+    return self.died or self.__destroyed or false
 end
 
 function Entity.canCrouch(self,unCrouch)
-    if unCrouch and CollisionHandler.isGrounded(self,true) then
+    if unCrouch and CollisionHandler.isGrounded(self,true) or self.died then
         return false
    end
+   --More checks later
    return true 
 end
 
 function Entity.crouch(self,isDown,fromClient)
+    if self.died then return end 
     local CrouchHeight = Entity.get(self,"CrouchLower")
     if not CrouchHeight then return end 
     self.Crouching = self.Crouching or false
@@ -514,6 +582,7 @@ function Entity.updateChunk(self)
 end
 
 function Entity.updateTurning(self,dt)
+    if self.died then return end 
     local targetHead = self.__localData.HeadRotation
     local targetBody = self.__localData.Rotation
     local head,body = self.HeadRotation,self.Rotation
@@ -549,6 +618,9 @@ end
 function Entity.updatePosition(self,dt)
     if Entity.isOwner(self,LOCAL_PLAYER) then 
         local velocity = Entity.getTotalVelocity(self)
+        if velocity == Vector3.zero and not Animator.isPlaying(self,"Walk")  then 
+            return Vector3.zero,Vector3.zero,false
+        end
        -- self:UpdateIdleAni()
         local p2 = self.Position+velocity*dt--self.Position:Lerp(self.Position+velocity,dt) 
         --local e = velocity
@@ -566,7 +638,7 @@ function Entity.updatePosition(self,dt)
                 Animator.stop(self,"Walk",.1)
                end
             end
-        else
+        elseif not self.died then 
             local speed = (newPosition*Vector3.new(1,0,1) - self.Position*Vector3.new(1,0,1)).Magnitude/dt/(Entity.getAndCache(self,"Speed"))
             if not Animator.isPlaying(self,"Walk") then
                 Animator.play(self,"Walk")
@@ -614,6 +686,9 @@ function Entity.updateGravity(self,dt)
         yValue = bodyVelocity.Y + (-Gravity)*dt
         FramesInAir = FramesInAir +1
     else 
+        if FramesInAir == 0 then
+            return
+        end
         FramesInAir = 0 
     end
     self.FramesInAir  = FramesInAir
@@ -644,7 +719,7 @@ end
 
 local DEBUGSERVER = false
 local function Server_visualiser(self)
-    local model = self.__model
+    local model = self.model
     local hb =  Entity.getHitbox(self)
     if not model then
         model = Instance.new("Part")
@@ -653,7 +728,7 @@ local function Server_visualiser(self)
         model.Transparency = .6
         model.Color = Color3.new(1.000000, 0.560784, 0.560784)
         model.Name = self.Guid
-        self.__model = model
+        Entity.set(self, "model",model)
     end
     model.Size = hb*3
     model.Position = self.Position*3
@@ -662,34 +737,71 @@ end
 function Entity.update(self,dt)
     if self.__destroyed then return end 
     if Entity.isOwner(self,LOCAL_PLAYER) then
+        debug.profilebegin("update")
+        Entity.updateGrounded(self,dt)
+        Entity.updateDespawn(self,dt)
         local direationVector,normal,shouldJump = Entity.updatePosition(self,dt)
         Entity.updateChunk(self)
-        Entity.updateGrounded(self,dt)
         Entity.updateGravity(self,dt)
         Entity.updateTurning(self,dt)
         Entity.updateMovement(self,dt,normal)
-        Entity.updateDespawn(self,dt)
+        debug.profileend()
     else
         Entity.updateChunk(self)
     end
     if DEBUGSERVER and IS_SERVER then
-        Server_visualiser(self)
+        Runner.run(Server_visualiser,self) 
     end
 end 
 
-function Entity.onDeath(self)
-    self.__dead = true
-
-    local DeathDespawn = Entity.get(self, "DeathDespawn")
-    if DeathDespawn ~= false then 
-        self.DespawnTime = DeathDespawn or DEFAULT_DEATH_TIME
-    end 
+function Entity.onDeath(self:CommonTypes.Entity)
+    self.died = true
+    if self.__localData.dead then return end 
+    self.__localData.dead = true
+    Entity.setMoveDireaction(self,Vector3.zero) 
+    if IS_SERVER then
+        self.died = false
+        Entity.set(self,"died",true)
+        ServerContainer.EntityClose(self)
+        local DeathDespawn = Entity.get(self, "DeathDespawn")
+        Entity.setOwner(self,nil)
+        if DeathDespawn ~= false then 
+            self.DespawnTime = DeathDespawn or DEFAULT_DEATH_TIME
+        end 
+        print("died Server")
+    else
+        local model_:Model = ClientUtils.getModel(self)
+        task.delay(model_ and 0 or 1, function()
+            self.died = false
+            Entity.set(self,"died",true)
+            local OnDeath:AnimationTrack = Animator.getOrLoad(self,"Death")
+            local model:Model = ClientUtils.getModel(self)
+            if not model then return end 
+            if OnDeath then
+                OnDeath:Play()
+                OnDeath.Stopped:Once(function()
+                    OnDeath:Play(0, 1, 0) 
+                    OnDeath.TimePosition = OnDeath.Length -.0001
+                end)
+            else
+                local weld:Weld = self.__cachedData["MainWeld"] 
+                local hitBox = Entity.getHitbox(self)
+                if weld and hitBox then
+                    TweenService:Create(weld,TweenInfo.new(.5),{C0 = weld.C0*CFrame.new(-hitBox.Y*3/2,-hitBox.Y*3/2,0)*CFrame.Angles(0,0,math.rad(90))}):Play()
+                end
+            end
+            local modelData = ClientUtils.get(self,"Model")
+            if type(modelData) == "table" and modelData.OnDeath then
+                modelData.OnDeath(self)
+            end
+        end)
+    end
 
 end
 
 function Entity.destroy(self)
-    if self.__model then
-        self.__model:Destroy()
+    if self.model then
+        self.model:Destroy()
     end
     self.__destroyed = true
     Holder.removeEntity(self.Guid)

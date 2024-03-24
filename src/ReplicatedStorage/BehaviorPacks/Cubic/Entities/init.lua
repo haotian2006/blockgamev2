@@ -24,7 +24,7 @@ local entity = {
     
         }
     },
-;    ["Special:Arm"] = {
+   ["Special:Arm"] = {
         components ={
             EyeLevel = 1.5,
             Hitbox = Vector2.new(0.6,1.79),

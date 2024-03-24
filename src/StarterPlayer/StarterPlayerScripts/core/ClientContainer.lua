@@ -110,6 +110,7 @@ function ClientContainer.getAndLoadFromServer(uuid,name)
     local cc = ClientContainer.getContainer( name)
     if cc then return cc end 
     local CData = Request:InvokeServer(uuid,name)
+    if not CData then return end 
     CData[#CData+1] = {__Parent = uuid,__Name = name}
     ClientContainer.loadContainer(name, CData)
     return CData
@@ -142,7 +143,12 @@ Update.OnClientEvent:Connect(function(data)
 end)
 
 Datahandler.PlayerEntityChanged:Connect(function(e)  
-    if not e then return end 
+    if not e then
+        loadedContainers["Crafting"] = nil
+        loadedContainers["Holding"] = nil
+        loadedContainers["Inventory"] = nil
+        return 
+    end 
     ClientContainer.getAndLoadFromServer(e.Guid,"Crafting")
     ClientContainer.getAndLoadFromServer(e.Guid,"Holding")
     ClientContainer.getAndLoadFromServer(e.Guid,"Inventory")

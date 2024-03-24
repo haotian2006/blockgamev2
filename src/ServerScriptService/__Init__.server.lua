@@ -33,13 +33,15 @@ IndexUtils.preComputeAll()
 
 require(game.ServerStorage.core.ServerContainer)
 require(game.ServerStorage.core.Chunk)
-task.delay(20, function()
-  local Item = Handler.new("Npc")
-  Item.Position = Vector3.new(0, 90, 0)
-  --Item.Item = "c:GodStick"
-
- -- print("added")
-  Data.addEntity(Item)
+task.delay(15, function()
+ for i =1,1 do
+    local Item = Handler.new("Npc")
+    Item.Position = Vector3.new(0, 90, 0)
+    --Item.Item = "c:GodStick"
+ 
+  -- print("added")
+    Data.addEntity(Item)
+ end
 end)
 
 local Item = Handler.new("c:Item")

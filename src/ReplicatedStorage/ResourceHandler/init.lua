@@ -7,6 +7,8 @@ local BTexture = require(script.BlockTexture)
 local Other = require(script.Other)
 local ItemParser = require(script.Item)
 
+local signal = require(game.ReplicatedStorage.Libarys.Signal)
+
 local Data = {
     Animations = {},
     Items = {},
@@ -41,6 +43,14 @@ local function addTo(to,from)
         if to[i] then continue end 
         to[i] = v
     end
+end
+
+local ready = signal.new()
+
+function ResourceHandler.wait()
+    if not ready then return true end 
+    ready:Wait()
+    return true
 end
 
 function ResourceHandler.AddInstanceChildren(Object,AssetObj,depth)
@@ -109,6 +119,8 @@ function ResourceHandler.Init()
     BTexture.init(Blocks)
     BlockParse.init(Blocks)
     ItemParser.Init(Data.Items,Data.Family)
+    ready:Fire()
+    ready = nil
 end
 
 function ResourceHandler.getAsset(id)

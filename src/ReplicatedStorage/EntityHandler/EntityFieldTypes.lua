@@ -18,7 +18,7 @@ local FieldTypesTable = {
         return t and t.Name
     end)),
     __ownership = DataTypes.float64,
-    __dead = DataTypes.bool,
+    died = DataTypes.bool,
 
     --<BASIC>
     DespawnTime = DataTypes.parse(DataTypes.optional(DataTypes.float32),function(t)

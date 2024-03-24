@@ -18,6 +18,7 @@ function Chunk.new(x,z,Block:buffer?,biomes:nil|buffer|number,transparencyData)
     self.BiomeMap = biomes
     self.TransparencyBuffer = transparencyData
     self.Status = {
+        Simulated = false,
         Version = 0; 
     }
     self.Data = {
@@ -34,6 +35,10 @@ end
 
 function Chunk.getStatus(self,key)
     return self.Status[key]
+end
+
+function Chunk.isSimulated(self)
+    return self.Status.Simulated
 end
 
 function Chunk.setStatus(self,key,value)

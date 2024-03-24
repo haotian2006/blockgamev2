@@ -19,6 +19,7 @@ local Camera = {}
 local PauseRotation = false
 local Mode = "First"
 local Subject
+local IsPaused = false
 
 function Camera.UpdateTransparency()
      if not Subject then return end 
@@ -52,6 +53,18 @@ function Camera.bindToEntity(Entity)
      Camera.setMode(Mode)
 end
 
+function Camera.getBaseCamera():Camera
+     return CurrentCamera
+end
+
+function Camera.lookAt(lookVector)
+     local rotationX = math.atan2(lookVector.Y, math.sqrt(lookVector.X^2 + lookVector.Z^2))
+     local rotationY = math.atan2(-lookVector.X, -lookVector.Z)
+
+
+     CameraRotation = Vector2.new(-rotationY,-rotationX)
+end
+
 function Camera.setPos(pos)
      loc = pos
 end
@@ -61,6 +74,7 @@ function Camera.getCFrame()
 end
 
 function Camera.setMode(mode)
+     if IsPaused then return end 
      Mode = mode or "First"
      Camera.UpdateTransparency()
      Arms.setMode(Mode)
@@ -70,7 +84,17 @@ function Camera.getMode(Mode)
      Mode = Mode 
 end
 
-local function Update() 
+function Camera.pause(unpause)
+     IsPaused = not unpause
+end
+
+function Camera.isPaused()
+     return IsPaused
+end
+
+
+function Camera.Update() 
+     if IsPaused then return end
      CurrentCamera.CameraType =  Enum.CameraType.Scriptable
      UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
      if not PauseRotation then 
@@ -121,7 +145,7 @@ local function Update()
      CurrentCamera.CFrame = toSet
 end
 
-RunService:BindToRenderStep("UpdateCamera-BaseCamera",1,Update)
+RunService:BindToRenderStep("UpdateCamera-BaseCamera",1,Camera.Update)
  
 
 return Camera

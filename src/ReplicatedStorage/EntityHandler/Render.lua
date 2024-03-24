@@ -140,7 +140,7 @@ function Render.renderHolding(self,holding,special)
 
     local Item = holding or self.Holding or ""
     local Name = type(Item) == "table" and ItemClass.tostring(Item) or ""
-    local entity = self.__model
+    local entity = self.model
     if not entity then return  end 
     local cache = Entity.getCache(self)
     local attachment = cache["RENDER_RightAttach"]
@@ -225,7 +225,7 @@ function Render.setTransparencyOfModel(model,t)
 end
 
 function Render.setTransparency(entity,value)
-    local model = entity.__model
+    local model = entity.model
     if not model then return end 
     Render.setTransparencyOfModel(model, value)
 end
@@ -244,15 +244,16 @@ function Render.findModelFrom(self)
 end
 
 function Render.createModel(self)
-    if self.__model then self.__model:Destroy() self.__model = nil end 
+    if self.model then 
+        self.model:Destroy() 
+        Entity.set(self, "model",nil)
+    end 
     local hitbox = createHitBox(self)
     createEntityModel(self,hitbox)
     --hitbox.PrimaryPart.CFrame = CFrame.new(self.Position*Settings.GridSize )
     --hitbox:PivotTo( CFrame.new(self.Position*Settings.GridSize ))
-    self.__model = hitbox
-    if Entity.isOwner(self,game.Players.LocalPlayer) and  Core.Client then
-        Core.Client.Controller.getCamera().bindToEntity(self)
-    end
+    Entity.set(self, "model",hitbox)
+
     Render.renderHolding(self)
 
     if Data.getPlayerEntity() == self then
@@ -263,7 +264,7 @@ function Render.createModel(self)
 end
 
 function Render.updateHitbox(self,targetH,targetE)
-    local model = self.__model
+    local model = self.model
     if not model then return end 
     if not  (Render.checkIfChanged(self,"EyeLevel") or Render.checkIfChanged(self,"Hitbox")) then return end 
     local EntityModel = model:FindFirstChild("EntityModel")
@@ -288,13 +289,13 @@ function Render.updateHitbox(self,targetH,targetE)
 end
 
 function Render.updatePosition(self)
-    local model = self.__model
+    local model = self.model
     if not model or not model.PrimaryPart then return end 
     model.PrimaryPart.CFrame = CFrame.new((self.Position)*Settings.GridSize )
 end 
 
 function Render.updateRotation(self,bypass)
-    local model:Model = self.__model
+    local model:Model = self.model
     if not model or self.IsDead then return end 
     local cR,cHR = Render.checkIfChanged(self,"Rotation"), Render.checkIfChanged(self,"HeadRotation")
     if not (cR or cHR) and not bypass then return end 

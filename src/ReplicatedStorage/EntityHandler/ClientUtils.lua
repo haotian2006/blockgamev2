@@ -10,7 +10,7 @@ function Utils.getResource(self)
 end
 
 function Utils.getModel(self)
-    return self.__model
+    return self.model
 end
 
 local function getKey(key)

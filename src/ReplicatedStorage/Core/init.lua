@@ -28,6 +28,7 @@ local Client = {
     Controller = "Controller",
     Helper = "Helper",
     ResourceHandler = ReplicatedStorage:FindFirstChild("ResourceHandler"),
+    ClientService = "core.ClientManager"
 }
 
 export type dataTypeInterface<T> = SerializerTypes.dataTypeInterface<T>
@@ -150,6 +151,10 @@ export type BlockClass = {
     parse : (Data:number|{}) -> number
 }
 
+export type ClientService = {
+    SendRespawnEvent : ()->(),
+}
+
 export type DataService = {
     getPlayerEntity: ()->Entity?,
 }
@@ -160,6 +165,7 @@ export type Client = {
     Controller : Controller,
     Helper : ClientHelper,
     ResourceHandler : ResourceHandler,
+    ClientService : ClientService
 }
 
 export type Shared = {

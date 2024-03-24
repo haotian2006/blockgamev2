@@ -16,6 +16,7 @@ return {
            end
         end,
         Type = {"Movement","Turning"},
+        CanBeDead = false,
     }, 
     ['c:regen'] = {
         Function = function(entity,info)

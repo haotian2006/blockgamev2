@@ -36,6 +36,7 @@ function Hotbar.UpdateSlot(slot)
     SlotRemote:FireServer(slot)
 
     local Entity = GetLocalPlayer()
+    if not Entity then return end 
     if Entity ~= lastEntity then
         lastEntity = Entity
         local _,s = EntityHandler.getSlot(Entity)
@@ -56,8 +57,9 @@ function Hotbar.UpdateSlot(slot)
 end
 Data.PlayerEntityChanged:Connect(function()
     
-    task.delay(.2,function()
+    task.delay(.5,function()
         Hotbar.UpdateSlot()
+        ContainerHandler.updateAll()
     end)
     task.delay(.5,function()
         -- Hotbar.UpdateSlot(3)

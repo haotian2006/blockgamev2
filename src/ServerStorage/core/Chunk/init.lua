@@ -81,12 +81,12 @@ local function startMainLoop()
             if not AllChunks[i] then
                 Simulated[i] = nil
                 if C then
-                    C.Data.Simulated = false
+                    C.Status.Simulated = false
                 end
                 continue
             end
             if not C then continue end 
-            C.Data.Simulated = true
+            C.Status.Simulated = true
         end
         for i,v in AllChunks do
             if Data.getChunkFrom(i) or requested[i] then continue end 

@@ -15,7 +15,7 @@ end
 
 function Animator.loadAnimation(self,animationName)
     if not IS_CLIENT then return warn("[METHOD] loadAnimation cannot be called from the server") end
-    local model = self.__model 
+    local model = self.model 
     self.__loadedAnimations = self.__loadedAnimations or {}
     if not model then return end 
     local animator:Animator = model:FindFirstChild("AnimationController",true):FindFirstChildOfClass("Animator")
@@ -28,24 +28,29 @@ function Animator.loadAnimation(self,animationName)
     self.__loadedAnimations[animationName] = animator:LoadAnimation(ani)
     return self.__loadedAnimations[animationName] 
 end
+
 function Animator.getOrLoad(self,animation)
     if not IS_CLIENT then return end 
     self.__loadedAnimations = self.__loadedAnimations or {}
     return self.__loadedAnimations[animation]  or Animator.loadAnimation(self,animation) 
 end
+
 function Animator.get(self,animation)
     if not IS_CLIENT then return end 
     return self.__loadedAnimations[animation]
 end
+
 function Animator.remove(self,animation,fadeTime)
     if IS_CLIENT then 
         Animator.stop(self,animation,fadeTime)
     end
     self.__animations[animation] = nil
 end
+
 function Animator.getSpeed(self,Animation)
     return  self.__animations[Animation]
 end
+
 function Animator.clear(self)
     table.clear(self.__animations)
     if IS_CLIENT then
