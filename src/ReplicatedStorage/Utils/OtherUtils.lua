@@ -115,4 +115,25 @@ function Utils.findKeyDiffrences(old,new)
     return ToAdd,ToRemove,same
 end
 
+function Utils.timeOut(timeOut,fx,...)
+    local running 
+    local data
+    local delayed
+    local spawned = task.spawn(function(...)
+        data = fx(...)
+        if running then
+            task.cancel(delayed)
+            task.spawn(running)
+        end
+    end,...)
+    if data then return data end 
+    running = coroutine.running()
+    delayed = task.delay(timeOut or 5, function()
+        task.cancel(spawned)
+        task.spawn(running)
+    end)
+    coroutine.yield()
+    return data or nil
+end
+
 return Utils
