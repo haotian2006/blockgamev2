@@ -55,8 +55,8 @@ return function ()
                 return
             end
 
-            bufferWriter.u16(Item[1])
-            bufferWriter.u8(Item[2])
+            bufferWriter.u16(Item[1] or 0)
+            bufferWriter.u8(Item[2] or 0)
           
             local size = bufferWriter.getCursor() - cursor
             if size > END then

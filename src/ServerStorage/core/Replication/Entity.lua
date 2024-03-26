@@ -13,7 +13,7 @@ Events.AttackEntity.listen(function(data: string, player: Player?)
 
     local lookat = Utils.calculateLookAt(p)
     local dir:Vector3 = (lookat).Unit+Vector3.new(0,.5)
-    --EntityHandler.applyVelocity(e, Vector3.new(dir.X*100,dir.Y*30,dir.Z*100))
+    EntityHandler.applyVelocity(e, Vector3.new(dir.X*100,dir.Y*30,dir.Z*100))
     EntityHandler.takeDamage(e,false, 5)
 end)
 

@@ -68,7 +68,7 @@ function container.getParent(self)
 end
 
 function container.getName(self)
-    return self[#self].__Name
+    return self[#self].__Name or self[1]
 end
 
 function container.setOpened(self,player)
@@ -78,6 +78,8 @@ function container.setOpened(self,player)
         Opened = {}
         data.__Opened = Opened
    end
+   local i = table.find(Opened,player)
+   if i then return end 
    table.insert(Opened,player)
 end
 
@@ -107,6 +109,25 @@ function container.getValueAt(self,idx)
     return getValue(self[idx+1])
 end
 
+function container.getAllItems(self)
+    local Items = {}
+    local l = #self
+    for i,v in self do
+        if i == 1 or i == l or v == "" then continue end 
+        table.insert(Items,v)
+    end
+    return Items
+end
+
+function container.clear(self)
+    local l = #self
+    for i,v in self do
+        if i == 1 or i == l or v == "" then continue end 
+        self[i] = ""
+        update(self, i-1, v)
+    end
+end
+
 function container.getContainerData(self)
     return BehaviorHandler.getContainer(self[1])  or {Frames ={}}
 end
@@ -123,6 +144,11 @@ end
 
 function container.size(self)
     return #self-2
+end
+
+function container.playerCanModify(self,player)
+    local opened = container.getOpened(self)
+    return table.find(opened, player) ~= nil
 end
 
 function container.resize(self,newSize)

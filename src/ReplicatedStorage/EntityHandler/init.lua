@@ -222,9 +222,15 @@ function Entity.hold(self,Item)
     local lastHold = self.__localData["Holding"]
     if Itemhandler.equals(lastHold,Item) then return end 
     local Holding = self.Holding
-    Itemhandler.onDequip(Holding,self)
+    if Entity.isOwner(self,LOCAL_PLAYER) then
+        Itemhandler.onDequip(Holding,self)
+    end
+
     Entity.set(self, "Holding", Item or "")
-    Itemhandler.onEquip(Item,self)
+
+    if Entity.isOwner(self,LOCAL_PLAYER) then
+        Itemhandler.onEquip(Item,self)
+    end
     self.__localData["Holding"] = Item
 end
 
@@ -405,7 +411,7 @@ local MAX_VECTOR = Vector3.one*MAX_MAG
 local MIN_VECTOR = Vector3.one*-MAX_MAG
 
 function Entity.setVelocity(self,name,vector:Vector3?)
-    if vector == Vector3.zero then
+    if vector == Vector3.zero or vector ~= vector then
         vector = nil
     end
     if vector and vector.Magnitude> MAX_MAG then
@@ -762,13 +768,26 @@ function Entity.onDeath(self:CommonTypes.Entity)
     if IS_SERVER then
         self.died = false
         Entity.set(self,"died",true)
-        ServerContainer.EntityClose(self)
+        ServerContainer.PushBackFor(self)
         local DeathDespawn = Entity.get(self, "DeathDespawn")
         Entity.setOwner(self,nil)
         if DeathDespawn ~= false then 
             self.DespawnTime = DeathDespawn or DEFAULT_DEATH_TIME
         end 
-        print("died Server")
+        local Random = Random.new()
+        for _,container in self.__containers or {} do
+            local items = Container.getAllItems(container)
+            for i,v in items do
+                local item = Utils.createItemEntity(v[1], v[2], nil)
+                print(item)
+                Entity.applyVelocity(item,Random:NextUnitVector()*Random:NextNumber(1,10))
+                -- Entity.setPosition(Item,Utils.getEyePosition(self))
+                item.Position = Utils.getEyePosition(self)
+                Holder.addEntity(item)
+            end
+            
+            Container.clear(container)
+        end
     else
         local model_:Model = ClientUtils.getModel(self)
         task.delay(model_ and 0 or 1, function()
@@ -801,7 +820,9 @@ end
 
 function Entity.destroy(self)
     if self.model then
-        self.model:Destroy()
+        spawn(function() -- this dosn't run in parallel
+            self.model:Destroy()
+        end)
     end
     self.__destroyed = true
     Holder.removeEntity(self.Guid)
@@ -816,5 +837,6 @@ function Entity.destroy(self)
         v:DisconnectAll() 
     end
     self.__signals = nil
+    Entity.hold(self,"")
 end
 return Entity

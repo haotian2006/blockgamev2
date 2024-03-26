@@ -5,6 +5,7 @@ local EnabledGUi = {
 }
 
 local OpenedGUi = {}
+local Forced = {}
 
 local Rendered = 0
 
@@ -39,6 +40,7 @@ function handler.init(c)
     ClientContainer = c
     getItemAt = ClientContainer.getItemAt
     DEFAULTICON = DEFAULTICON or resourceHandler.getUI("IconFrame")
+    ClientContainer.ContainerUpdated:Connect(handler.updateAll)
 end
 
 function handler.getOrCreateFrame(name,isContainer)
@@ -211,6 +213,7 @@ function handler.update(gui,name)
         local first, middle, last = v.Name:match("^(.-)%.(.-)%.([^%.]+)$")
         if first ~= "Container" then continue end 
         local data = getItemAt(middle, last)
+
         if not data or data == "" then 
             handler.clearFrame(v)
             continue 
@@ -233,8 +236,9 @@ end
 handler.OnOpen = Signal.new()
 handler.OnClose = Signal.new()
 
-function handler.open(name)
+function handler.open(name,forced)
     handler.close(name,true,true)
+    Forced[name] = forced and true or nil
     local container = resourceHandler.getUiContainer(name)
     local gui:ScreenGui = container.Frame:Clone()
     if container.Init then
@@ -270,6 +274,7 @@ function handler.closeAll()
 end
 
 function handler.close(name,forceClose,fromOpen)
+    if Forced[name] then return end 
     if not  EnabledGUi[name] then return end 
     local container = resourceHandler.getUiContainer(name)
     if container.OnClose then
@@ -313,10 +318,10 @@ function handler.processLeft(frame,mainFound)
     end
     if not frame then return end 
     local container,idx = getFrameInfo(frame.Name)
-    local click = ClientContainer.getContainer(container)
-    local Holding = ClientContainer.getContainer("Holding")
+    local click = ClientContainer.get(container)
+    local Holding = ClientContainer.get("Holding")
 
-    ClientContainer.send(1,ClientContainer.getPath(Holding),ClientContainer.getPath(click),1,idx)
+    ClientContainer.send(1,ClientContainer.createPath(Holding),ClientContainer.createPath(click),1,idx)
 
     --ContinerClass.swap(Holding, click, 1, idx, true)
 end
@@ -327,9 +332,9 @@ function handler.processRight(frame,mainFound)
     end
     if not frame then return end 
     local container,idx = getFrameInfo(frame.Name)
-    local click = ClientContainer.getContainer(container)
+    local click = ClientContainer.get(container)
    
-    ClientContainer.send(2,ClientContainer.getPath(click),idx)
+    ClientContainer.send(2,ClientContainer.createPath(click),idx)
 end
 
 local Debounce = 1/20

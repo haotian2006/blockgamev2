@@ -149,7 +149,7 @@ function Utils.createItemEntity(Item,count,lifetime)
     Item_.ItemId = Item[1]
     Item_.ItemVariant = Item[2]
     Item_.ItemCount =count
-    Entity.setTemp(Item_,"AliveTime",time()+(lifetime or 0))
+    Entity.setTemp(Item_,"AliveTime",time()+(lifetime or .1))
     return Item_
 end
 

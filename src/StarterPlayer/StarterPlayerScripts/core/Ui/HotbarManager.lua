@@ -22,9 +22,11 @@ local HotBarSelect:Frame
 
 function Hotbar.setContainer(c)
     ClientContainer = c
+    c.ContainerUpdated:Connect(Hotbar.UpdateSlot)
 end
 
 function Hotbar.UpdateRender(Entity)
+    if not Entity then return end 
     Render.renderHolding(Entity)
 end
 
@@ -43,7 +45,7 @@ function Hotbar.UpdateSlot(slot)
         slot = s or slot
         lastSlot = slot 
     end
-    local Inventory = ClientContainer.getContainer("Inventory")
+    local Inventory = ClientContainer.get("Inventory")
     if not Entity or not Inventory then return end
     local Item = Inventory[slot+1]
     EntityHandler.hold(Entity,type(Item) == "table" and Item[1] or "")
@@ -100,7 +102,7 @@ end,"HotBarUpdateWheel",200)
 Client.getUpdateEvent("Holding"):Connect(Hotbar.UpdateRender)
 
 function Hotbar.Init() 
-    HotBarGUI = ContainerHandler.open("Hotbar")
+    HotBarGUI = ContainerHandler.open("Hotbar",true)
     HotBarSelect = ResourceHandler.getUI("HotbarSelect")
     if not HotBarGUI then return end 
     if HotBarSelect then

@@ -87,6 +87,7 @@ function Client.handleData(data)
         if Guid == tostring(LOCAL_PLAYER.UserId) then
             Data.setPlayerEntity(nil)
         end
+        EntityHandler.destroy(Entity)
         if Entity and Entity.model then
             Entity.model:Destroy()
         end

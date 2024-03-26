@@ -1,6 +1,8 @@
 
 
 --// rojo sourcemap default.project.json --output sourcemap.json
+local Events = require(game.ReplicatedStorage.Events)
+
 local LocalPlayer =  game:GetService("Players").LocalPlayer
 
 task.wait(2)
@@ -44,3 +46,5 @@ require(Core.Rendering.Arms).Init()
 require(Core.Ui.HotbarManager).Init()
 
 require(Core.ClientManager)
+
+Events.PlayerFullyLoaded:send(true)

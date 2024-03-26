@@ -35,19 +35,29 @@ local LoadedContainers = {
 --    } 
 }
 
-function ServerContainer.registerNewContainer(uuid,Container)
+function ServerContainer.registerNewContainer(uuid,cont)
     LoadedContainers[uuid] =  LoadedContainers[uuid] or {}
-
-    LoadedContainers[uuid][Container[1]] =  Container
+    LoadedContainers[uuid][Container.getName(cont)] =  cont
 end
 
-function ServerContainer.removeContainer(uuid,Container)
+function ServerContainer.removeContainer(uuid,cont)
    if not LoadedContainers[uuid] then return end 
-   LoadedContainers[uuid][Container] = nil 
+   LoadedContainers[uuid][cont] = nil 
 end
 
 function ServerContainer.removeAll(uuid)
-     LoadedContainers[uuid] = nil
+    if not  LoadedContainers[uuid] then return end 
+    local all = {}
+    for i,v in  LoadedContainers[uuid] do
+        local opened = Container.getOpened(v)
+        for i,v in opened do
+            all[v] = true
+        end
+    end
+    LoadedContainers[uuid] = nil
+    for i,v in all do
+        Send:FireClient(i,3,uuid)
+    end
  end
 
 function ServerContainer.getAllContainersFor(uuid)
@@ -150,10 +160,9 @@ function ServerContainer.close(player,path)
     local parent = Container.getParent(container)
     if parent == tostring(player.UserId) then return end 
     Container.removeOpen(container, player)
-
 end
 
-function ServerContainer.EntityClose(entity)
+function ServerContainer.PushBackFor(entity)
     local container = entity.__containers
     if not container then return end 
     local tobePushedBack = {}
@@ -186,12 +195,27 @@ end
 function ServerContainer.playerCloseUi(player)
     local entity = Data.getEntity(tostring(player.UserId))
     if not entity then return end 
-    ServerContainer.EntityClose(entity)
+    ServerContainer.PushBackFor(entity)
 end
 
 local currentIdk = {}
 function ServerContainer.setUpdateData(c,data)
     currentIdk[c] = data
+end
+
+function ServerContainer.sendContainer(container,player,name)
+    local data = container[#container]
+    local c = table.clone(container)
+    c[#c] = nil
+    Container.setOpened(container,player)
+    Send:FireClient(player,1,data.__Parent,name,data.__Name,c)
+end
+
+function ServerContainer.sendEntity(entity,player)
+    if not entity.__containers then return end 
+    for i,v in entity.__containers do
+        ServerContainer.sendContainer(v,player,i)
+    end
 end
 
 local rate = 1/20

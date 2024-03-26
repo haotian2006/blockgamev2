@@ -47,7 +47,7 @@ return {
             local maxCount = Item.getMaxCount(item) or 64
             Entity.ItemCount  = Entity.ItemCount  or 1
             for i,v in Utils.getEntitiesNear(Entity,1.25) do
-                if Handler.isType(v, 'Player') then
+                if Handler.isType(v, 'Player') and not Handler.isDead(v) then
 
                     local c = Handler.Container.getContainer(v, "Inventory")
                     if not c then return end 
