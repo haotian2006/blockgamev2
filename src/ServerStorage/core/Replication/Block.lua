@@ -44,7 +44,7 @@ BlockR.OnServerInvoke = function(player,coord,isBreak)
         end
     end 
     
-    if not blockComp then return false end 
+    if not blockComp or at == blockComp then return false end 
     Chunk.insertBlockAt(chunk, lx,ly,lz, blockComp)
     if blockComp == 0 then
         local Item = Entity.new("c:Item")
