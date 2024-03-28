@@ -80,7 +80,7 @@ end)
 
 InputHandler.bindFunctionTo("HotBarScroll",function(input,isDown,isTyping,keys) 
     if isTyping or not isDown then return end 
-    local isUp = input.Position.Z > 0
+    local isUp = input.Position.Z < 0
     local slot = lastSlot
     if isUp then
         slot +=1 

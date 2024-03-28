@@ -106,7 +106,7 @@ end
 local maxRenderDistance = 16
 
 local lastDir,lastChunk =  camera.CFrame.LookVector,getChunkLocation(camera.CFrame.Position/3-Vector3.yAxis)
-function helper.startSearch(start,direaction)
+function helper.startSearch(start,direction)
     local maxVisited = maxRenderDistance*230
     local searchQueue = Queue.new(maxVisited+100)
 
@@ -147,7 +147,7 @@ function helper.startSearch(start,direaction)
                     return
                 end
             end
-            if not inFrustum(vector, start, direaction) then
+            if not inFrustum(vector, start, direction) then
                 return 
             end
             visited[vector] = 1
@@ -172,11 +172,11 @@ function helper.update(force,StartTime,Update)
         return 
     end
     Update.Value +=1
-    local direaction = camera.CFrame.LookVector
+    local direction = camera.CFrame.LookVector
     local chunk = getChunkLocation(camera.CFrame.Position/3-Vector3.yAxis)
-    if direaction ~= lastDir or lastChunk ~= chunk  or force then
+    if direction ~= lastDir or lastChunk ~= chunk  or force then
         
-        lastDir = direaction
+        lastDir = direction
         lastChunk = chunk
         fov = math.cos(camera.FieldOfView+math.rad(15))
         debug.profilebegin("StartSearch")

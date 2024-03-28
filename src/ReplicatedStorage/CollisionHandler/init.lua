@@ -17,8 +17,8 @@ task.spawn(function()
     EntityService = Shared.awaitModule("EntityService")::Core.EntityService
 end)
 local function getincreased(min,goal2,increased2)
-	local direaction = min - goal2
-	return goal2 +increased2*-math.sign(direaction)
+	local direction = min - goal2
+	return goal2 +increased2*-math.sign(direction)
 end
 collisions.calculateAdjustedGoal = getincreased
 local function round(x)
@@ -41,7 +41,7 @@ function collisions.getBlock(x,y,z)
     end
 end
 
-function collisions.createEntityParams(Guids,Types,checkGlobal)
+function collisions.createEntityParams(Guids,Types,WhiteList,checkGlobal)
     local guids = {}
     local types = {}
     for i,v in Guids or {} do
@@ -53,7 +53,8 @@ function collisions.createEntityParams(Guids,Types,checkGlobal)
     return {
         Guids = guids,
         Types = types,
-        CheckGlobal = checkGlobal
+        CheckGlobal = checkGlobal,
+        IsWhiteList = WhiteList,
     }
 end
 
@@ -75,6 +76,8 @@ function collisions.getEntitiesInBox(center,size,EntityParams)
     local Guids = EntityParams.Guids
     local types = EntityParams.Types
 
+    local IsBlack = not EntityParams.IsWhiteList
+
     if not EntityParams.CheckGlobal then
         local centerX = (center.X // 8)
         local centerZ = (center.Z // 8)
@@ -91,7 +94,7 @@ function collisions.getEntitiesInBox(center,size,EntityParams)
                 local chunk = DataH.getChunkFrom(coords)
                 if not chunk then continue end 
                 for i,entity:Core.Entity in chunk.Entities do
-                    if Guids[entity.Guid] or types[entity.Type] then continue end 
+                    if (Guids[entity.Guid] or types[entity.Type]) and IsBlack then continue end 
                     local HitBox = EntityService.getHitbox(entity)
                     local Size = HitBox/2
                     local entityMinCorner = entity.Position - Size
@@ -110,7 +113,7 @@ function collisions.getEntitiesInBox(center,size,EntityParams)
         end
     else
         for _, entity:Core.Entity in     DataH.getAllEntities() do
-            if Guids[entity.Guid] or types[entity.Type] then continue end 
+            if (Guids[entity.Guid] or types[entity.Type]) and IsBlack then continue end 
             local HitBox = EntityService.getHitbox(entity)
             local Size = HitBox/2
             local entityMinCorner = entity.Position - Size

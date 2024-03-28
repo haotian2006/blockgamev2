@@ -1,7 +1,12 @@
 local Utils = {}
 local CollisonHandler = require(game.ReplicatedStorage.CollisionHandler)
 
-function Utils.doesBlockCollideWithEntityAt(block,at)
-    local EntitiesAt = CollisonHandler.getEntitiesInBox(at, Vector3.new(3,3,3))
+Utils.createEntityParams = CollisonHandler.createEntityParams
+
+local BlockParams = CollisonHandler.createEntityParams(nil, {"c:Item"})
+function Utils.doesBlockCollideWithEntityAt(block,at,params)
+    local EntitiesAt = CollisonHandler.getEntitiesInBox(at, Vector3.new(1,1,1),params or BlockParams)
     return #EntitiesAt > 0 
 end
+
+return Utils

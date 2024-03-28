@@ -10,6 +10,8 @@ local Entity = require(game.ReplicatedStorage.EntityHandler)
 local BlockClass = require(game.ReplicatedStorage.Block)
 local ItemClass =require(game.ReplicatedStorage.Item)
 local ContaineClass = require(game.ReplicatedStorage.Container)
+local CollisionUtils = require(game.ReplicatedStorage.Utils.CollisionUtils)
+
 local Block = {}
 
 function Block.update(x,y,z,id)
@@ -41,9 +43,11 @@ BlockR.OnServerInvoke = function(player,coord,isBreak)
             local BlockId = BlockClass.getBlockId(BlockName)
             blockComp = BlockClass.compress(BlockId, nil, var)
             ContaineClass.setCount(Containter, Loc, -1)
+            local colliding = CollisionUtils.doesBlockCollideWithEntityAt(at,coord)
+            if colliding then return end 
         end
     end 
-    
+
     if not blockComp or at == blockComp then return false end 
     Chunk.insertBlockAt(chunk, lx,ly,lz, blockComp)
     if blockComp == 0 then

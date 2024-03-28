@@ -69,6 +69,7 @@ function PlayerManager.createBaseData(player:Player)
     }
     local Entity = EntityHandler.new("Player",player.UserId)
     Entity.Position = Vector3.new(0,100,0)
+    Entity.DisplayName = player.Name
     EntityHandler.setOwner(Entity,player)
 
     data.Entity = Entity
@@ -87,6 +88,7 @@ function PlayerManager.respawn(Player)
     data.AttemptingToRespawn  = true
     task.wait(1)
     local new =  EntityHandler.new("Player",Player.UserId)
+    new.DisplayName = Player.Name
     new.Position = Vector3.new(0,100,0)
     EntityHandler.setOwner(new,Player)
     DataHandler.addEntity(new)

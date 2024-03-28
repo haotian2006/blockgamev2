@@ -9,7 +9,10 @@ local entity = {
             MaxHealth = 10000,
             DespawnTime = 300,
             ["c:Item_Loop.behavior"] = {
-                
+                priority = 1,
+            },
+            ["c:MoveUpIfInBlock.behavior"] = {
+                priority = 2,
             }
         },
         component_groups = {

@@ -4,6 +4,7 @@ local Data = require(game.ReplicatedStorage.Data)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local RenderHandler = require(script.Parent.core.chunk.Rendering.Handler)
 local BlockReplication = require(script.Parent.core.Replication.Block)
+local CollisionUtils = require(game.ReplicatedStorage.Utils.CollisionUtils)
 local Events = require(game.ReplicatedStorage.Events)
 
 
@@ -21,6 +22,8 @@ function Helper.insertBlock(x,y,z,block)
     if not chunk then  return false end
     local idx = to1d[lx][ly][lz]
     local old =   Chunk.getblock(chunk, idx)
+    local colliding =CollisionUtils.doesBlockCollideWithEntityAt(old,Vector3.new(x,y,z))
+    if colliding then return false end 
     Chunk.insertBlock(chunk, idx, block)
     RenderHandler.blockUpdate(x, y, z)
     local pass = BlockReplication.update(x,y,z,block == 0)

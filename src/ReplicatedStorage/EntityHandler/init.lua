@@ -312,34 +312,6 @@ function Entity.getAndCache(self,string)
     return cached
 end
 
-local function convertv2tov3(vector)
-    if typeof(vector) == "Vector2" then
-         return Vector3.new(vector.X,vector.Y,vector.X)
-    end
-    return vector
-end
-
-function Entity.getHitbox(self)
-    local HString = "Hitbox"
-    if self[HString] then
-        return convertv2tov3(self[HString])
-    end
-    local Cahced = self.__cachedData[HString]
-    if Cahced then
-        if typeof(Cahced) == "Vector2" then
-            local v3 = Vector3.new(Cahced.X,Cahced.Y,Cahced.X)
-            self.__cachedData[HString] = v3
-            return v3
-        end
-        return Cahced
-    end
-
-    local HitBox = Entity.get(self,HString)
-    HitBox = convertv2tov3(HitBox)
-    self.__cachedData[HString] = HitBox
-    return HitBox
-end
-
 function Entity.get(self,string) 
     if self[string] ~= nil then
         return self[string]
@@ -383,6 +355,36 @@ function Entity.getPropertyChanged(self,property):CommonTypes.ProtectedEvent<any
     Signals[property] = s
     return s.Event
 end
+do
+
+local function convertToV3(vector)
+    if typeof(vector) == "Vector2" then
+            return Vector3.new(vector.X,vector.Y,vector.X)
+    end
+    return vector
+end
+
+function Entity.getHitbox(self)
+    local HString = "Hitbox"
+    if self[HString] then
+        return convertToV3(self[HString])
+    end
+    local Cahced = self.__cachedData[HString]
+    if Cahced then
+        if typeof(Cahced) == "Vector2" then
+            local v3 = Vector3.new(Cahced.X,Cahced.Y,Cahced.X)
+            self.__cachedData[HString] = v3
+            return v3
+        end
+        return Cahced
+    end
+
+    local HitBox = Entity.get(self,HString)
+    HitBox = convertToV3(HitBox)
+    self.__cachedData[HString] = HitBox
+    return HitBox
+end
+    
 
 function Entity.rawSet(self,key,value)
     self[key] = value
@@ -409,7 +411,6 @@ end
 local MAX_MAG = 1000
 local MAX_VECTOR = Vector3.one*MAX_MAG
 local MIN_VECTOR = Vector3.one*-MAX_MAG
-
 function Entity.setVelocity(self,name,vector:Vector3?)
     if vector == Vector3.zero or vector ~= vector then
         vector = nil
@@ -441,12 +442,12 @@ function Entity.setPosition(self,pos)
     Entity.set(self, "Position", pos)
 end
 
-function Entity.setMoveDireaction(self,Direaction)
-    if Direaction ~= Direaction then
-        Direaction = Vector3.zero
+function Entity.setMoveDireaction(self,Direction)
+    if Direction ~= Direction then
+        Direction = Vector3.zero
     end
-    Utils.followMovement(self,Vector2.new(Direaction.X,Direaction.Z).Unit)
-    self.moveDir = Direaction
+    Utils.followMovement(self,Vector2.new(Direction.X,Direction.Z).Unit)
+    self.moveDir = Direction
 end
 
 function Entity.setDespawnTime(self,time)
@@ -457,23 +458,23 @@ function Entity.disableDespawnTimer(self,time)
     self.DespawnTime = -9999999
 end
 
-function Entity.getMoveDireaction(self,Direaction)
+function Entity.getMoveDireaction(self,Direction)
  return self.moveDir
 end
-
+end
 --@Overridable
-function Entity.getSpeed(self,RAWGET)
-    if not RAWGET then
-        local x = Entity.getAndCache(self,"getSpeed.method")
-        if x and x ~= Entity.getSpeed then 
-            return x(self)
+function Entity.getSpeed(self,isBase)
+    if not isBase then
+        local method = Entity.getAndCache(self,"getSpeed.method")
+        if method and method ~= Entity.getSpeed then 
+            return method(self)
         end 
     end
     return Entity.get(self,"Speed")
 end
 
-function Entity.takeDamage(self,RAWGET,damage)
-    if not RAWGET then
+function Entity.takeDamage(self,isBase,damage)
+    if not isBase then
         local x = Entity.getAndCache(self,"takeDamage.method")
         if x and x ~= Entity.takeDamage then 
             return x(self,damage)

@@ -12,6 +12,8 @@ local Player = game:GetService("Players").LocalPlayer
 local ClientUtils = require(script.Parent.ClientUtils)
 local Core = require(game.ReplicatedStorage.Core)
 
+local NameTag = ResourceHandler.getAsset("NameTag")
+
 local DEFAULT_ROTATION = Vector2.new(360,360)
 local function createAselectionBox(parent,color) 
     local sb = Instance.new("SelectionBox",parent) 
@@ -214,6 +216,25 @@ function Render.renderHolding(self,holding,special)
     return 
 end
 
+function Render.setNameTagState(self,Enabled)
+    NameTag = NameTag or ResourceHandler.getAsset("NameTag")
+    local DisplayName =  Entity.get(self, "DisplayName") 
+    if not DisplayName or not NameTag then return end 
+    local model:Model = ClientUtils.getModel(self)
+    if not model then return end 
+    local Eye = model:FindFirstChild("Eye")
+    if not Eye then return end 
+    local NameTag:BillboardGui = Eye:FindFirstChild("NameTag") or NameTag:Clone()
+    local StudsOffset = ClientUtils.get(self, "NameTagOffset") or Vector3.new(0,2,0)
+    NameTag.StudsOffset = StudsOffset
+    NameTag.Parent = Eye
+    local Display = NameTag:FindFirstChild("Display",true)
+    if not Display then return end 
+    Display.Text = DisplayName
+    NameTag.Enabled = Enabled
+    
+end
+
 function Render.setTransparencyOfModel(model,t)
     for i,v:BasePart|Texture|Decal in model:GetDescendants() do
         if v:IsA("Texture") or v:IsA("Decal") then
@@ -256,8 +277,8 @@ function Render.createModel(self)
 
     Render.renderHolding(self)
 
-    if Data.getPlayerEntity() == self then
-       -- Render.setTransparency(self,1) 
+    if Data.getPlayerEntity() ~= self or true then
+        Render.setNameTagState(self, true)
     end
     hitbox.Parent = workspace.Entities
     return hitbox

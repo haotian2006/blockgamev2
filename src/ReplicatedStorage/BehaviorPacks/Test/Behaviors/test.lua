@@ -9,8 +9,8 @@ return {
               continue
           end
            -- part.Position = Utils.getEyePosition(v)*3
-            local direaction = ((v.Position-entity.Position )*Vector3.new(1,0,1)).Unit*.3
-            Handler.setMoveDireaction(entity,direaction) 
+            local direction = ((v.Position-entity.Position )*Vector3.new(1,0,1)).Unit*.3
+            Handler.setMoveDireaction(entity,direction) 
            -- Utils.lookAt(entity,v)
             found = true
             break

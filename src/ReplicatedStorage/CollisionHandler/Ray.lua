@@ -43,9 +43,9 @@ local function drawLine(startVector, endVector,color,name)
     linePart.Parent = DebugFolder
 end
 
-local function createBroadPhase(start,direaction)
-    local middle = (start + direaction/2)
-    return middle,Vector3.new(abs(direaction.X),abs(direaction.Y),abs(direaction.Z))+Vector3.zero*2
+local function createBroadPhase(start,direction)
+    local middle = (start + direction/2)
+    return middle,Vector3.new(abs(direction.X),abs(direction.Y),abs(direction.Z))+Vector3.zero*2
 end
 
 local function precomputeEntityCorners(Entities)
@@ -108,9 +108,9 @@ local function createRayResult(Block,Entity,hit,grid,normal)
     }
 end
 
-local function FindFirstEntityInRay(start:Vector3,direaction:Vector3,Entities)
-    local TotalDistance = direaction.Magnitude
-    local Increment = direaction.Unit*ENTITY_INTERVAL
+local function FindFirstEntityInRay(start:Vector3,direction:Vector3,Entities)
+    local TotalDistance = direction.Magnitude
+    local Increment = direction.Unit*ENTITY_INTERVAL
     local CurrentPos =  start
     local Distance = 0
     local Hit 
