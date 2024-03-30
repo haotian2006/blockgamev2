@@ -10,7 +10,7 @@ end
 function Distribution.sample(self,random:Random)
     local min = self[1]
     local max = self[2]
-    return random:NextInteger(min, max)
+    return random:NextNumber(min, max)
 end
 
 return Distribution

@@ -4,7 +4,7 @@ local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local subChunkHelper = require(script.Parent.SubChunkHelper)
-ResourceHandler.loadComponet("Blocks")
+ResourceHandler.loadComponent("Blocks")
 IndexUtils.preCompute(true)
 local chunkData ={}
 local Width,Height = GameSettings.getChunkSize()

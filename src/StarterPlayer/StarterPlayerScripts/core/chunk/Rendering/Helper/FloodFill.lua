@@ -1,4 +1,4 @@
-local Stack = require(game.ReplicatedStorage.Libarys.DataStructures.Stack)
+local Stack = require(game.ReplicatedStorage.Libs.DataStructures.Stack)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local to1D= IndexUtils.to1D
 local directions1D = {

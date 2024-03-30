@@ -1,5 +1,5 @@
 local r = {}
-local mathUtil = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local mathUtil = require(game.ReplicatedStorage.Libs.MathFunctions)
 r.indexPairs = {
     "0,0,0",
     "-0,-0,-1",

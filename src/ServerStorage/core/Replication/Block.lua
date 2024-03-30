@@ -9,7 +9,7 @@ local Data = require(game.ReplicatedStorage.Data)
 local Entity = require(game.ReplicatedStorage.EntityHandler)
 local BlockClass = require(game.ReplicatedStorage.Block)
 local ItemClass =require(game.ReplicatedStorage.Item)
-local ContaineClass = require(game.ReplicatedStorage.Container)
+local ContainerClass = require(game.ReplicatedStorage.Container)
 local CollisionUtils = require(game.ReplicatedStorage.Utils.CollisionUtils)
 
 local Block = {}
@@ -22,7 +22,7 @@ local RandomObj = Random.new()
 BlockR.OnServerInvoke = function(player,coord,isBreak)
     local playerEntity = Data.getEntityFromPlayer(player)
     if not playerEntity then return end 
-    local holding,Loc,Containter = Entity.getSlot(playerEntity)
+    local holding,Loc,Container = Entity.getSlot(playerEntity)
     local blockComp
     
     local x,y,z = coord.X,coord.Y,coord.Z
@@ -42,9 +42,9 @@ BlockR.OnServerInvoke = function(player,coord,isBreak)
             local var = holding[1][2]
             local BlockId = BlockClass.getBlockId(BlockName)
             blockComp = BlockClass.compress(BlockId, nil, var)
-            ContaineClass.setCount(Containter, Loc, -1)
-            local colliding = CollisionUtils.doesBlockCollideWithEntityAt(at,coord)
+            local colliding = CollisionUtils.doesBlockCollideWithEntityAt(blockComp,coord)
             if colliding then return end 
+            ContainerClass.setCount(Container, Loc, -1)
         end
     end 
 

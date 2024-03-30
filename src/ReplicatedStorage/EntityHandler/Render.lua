@@ -2,7 +2,7 @@
 local RunService = game:GetService("RunService")
 local Entity = require(script.Parent)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
-local Maths = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local Maths = require(game.ReplicatedStorage.Libs.MathFunctions)
 local Settings = require(game.ReplicatedStorage.GameSettings)
 local utils = require(script.Parent.Utils)
 local Data = require(game.ReplicatedStorage.Data)
@@ -226,6 +226,7 @@ function Render.setNameTagState(self,Enabled)
     if not Eye then return end 
     local NameTag:BillboardGui = Eye:FindFirstChild("NameTag") or NameTag:Clone()
     local StudsOffset = ClientUtils.get(self, "NameTagOffset") or Vector3.new(0,2,0)
+    NameTag.AlwaysOnTop = false
     NameTag.StudsOffset = StudsOffset
     NameTag.Parent = Eye
     local Display = NameTag:FindFirstChild("Display",true)

@@ -13,7 +13,7 @@ local Blocks = {
 }
 
 local Cache = {}
-local Debris = require(game.ReplicatedStorage.Libarys.Debris)
+local Debris = require(game.ReplicatedStorage.Libs.Debris)
 local BlockFolder = Debris.getFolder("BlockFolder", 10)
 
 function block.exists(str)

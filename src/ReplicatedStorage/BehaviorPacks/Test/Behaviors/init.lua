@@ -12,13 +12,13 @@ return {
            -- part.Position = Utils.getEyePosition(v)*3
             local direction = ((v.Position-entity.Position )*Vector3.new(1,0,1)).Unit*.3
 
-            Handler.setMoveDireaction(entity,direction) 
+            Handler.setMoveDirection(entity,direction) 
            -- Utils.lookAt(entity,v)
             found = true
             break
            end
            if not found then
-            Handler.setMoveDireaction(entity,Vector3.zero) 
+            Handler.setMoveDirection(entity,Vector3.zero) 
             Handler.removeComponent(entity, "ManFaceMan")
            end
         end,

@@ -28,30 +28,30 @@ end
 function collisions.getBlock(x,y,z)
     local cx,cz = ConversionUtils.getChunk(x, y, z)
     local chunk = DataH.getChunk(cx,cz)
-    local localgrid = Vector3.new(round(x)%ChunkWidth+1,round(y),round(z)%ChunkWidth+1)
+    local localized = Vector3.new(round(x)%ChunkWidth+1,round(y),round(z)%ChunkWidth+1)
     local Grid = Vector3.new(round(x),round(y),round(z))
     if chunk then
-        if localgrid.Y > ChunkHeight or localgrid.Y <=0 then
-            return false,localgrid,Grid
+        if localized.Y > ChunkHeight or localized.Y <=0 then
+            return false,localized,Grid
         end
-        local b = ChunkHandler.getBlockAt(chunk,localgrid.X,localgrid.Y,localgrid.Z)
-        return b,localgrid,Grid
+        local b = ChunkHandler.getBlockAt(chunk,localized.X,localized.Y,localized.Z)
+        return b,localized,Grid
     else
-       return -1,localgrid,Grid
+       return -1,localized,Grid
     end
 end
 
 function collisions.createEntityParams(Guids,Types,WhiteList,checkGlobal)
-    local guids = {}
+    local guid = {}
     local types = {}
     for i,v in Guids or {} do
-        guids[v] = true
+        guid[v] = true
     end
     for i,v in Types or {} do
         types[v] = true
     end
     return {
-        Guids = guids,
+        Guids = guid,
         Types = types,
         CheckGlobal = checkGlobal,
         IsWhiteList = WhiteList,
@@ -368,24 +368,13 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
         Entry.Z = -math.huge
         Exit.Z = math.huge
     end
-    local entrytime = math.max(math.max(Entry.X,Entry.Z),Entry.Y)
-    --[[ debugging
-    if entrytime == Entry.X then
-        a = "a"
-    elseif entrytime == Entry.Y then
-        a = "b"
-    else 
-        a = "c"
-    end
-    if entrytime == Entry.X and entrytime == Entry.Z then
-        a = "d"
-    end
-    ]]
-    if entrytime >= mintime then return 1.0,1 end
-    if entrytime < 0 then return 1.0,entrytime end
+    local entryTime = math.max(math.max(Entry.X,Entry.Z),Entry.Y)
 
-    local exittime = math.min(math.min(Exit.X,Exit.Z),Exit.Y)
-    if entrytime > exittime then return 1.0,3 end
+    if entryTime >= mintime then return 1.0,1 end
+    if entryTime < 0 then return 1.0,entryTime end
+
+    local exitTime = math.min(math.min(Exit.X,Exit.Z),Exit.Y)
+    if entryTime > exitTime then return 1.0,3 end
     if Entry.X > 1 then
         if b2.X + s2.X <b1.X or b1.X + s1.X > b2.X then
             return 1,4
@@ -415,9 +404,9 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
             normal = vector3(0,-math.sign(velocity.Y),0)
         end 
     end
-    return entrytime,normal
+    return entryTime,normal
 end
---serveronly 
+--serverOnly 
 if RunService:IsClient() then return collisions end
 local Push = 0.3
 function collisions.entityvsentity(entity,entity2)

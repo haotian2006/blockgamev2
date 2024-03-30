@@ -3,7 +3,7 @@ local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local CollisionHandler = require(game.ReplicatedStorage.CollisionHandler)
 local DataHandler = require(game.ReplicatedStorage.Data)
 local CUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
-local MathUtils = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local MathUtils = require(game.ReplicatedStorage.Libs.MathFunctions)
 local GameSetting = require(game.ReplicatedStorage.GameSettings)
 local Chx,ChY = GameSetting.getChunkSize()
 local Entity

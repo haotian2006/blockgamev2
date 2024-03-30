@@ -7,7 +7,7 @@ local Data = require(game.ReplicatedStorage.Data)
 local LPE = Data.getPlayerEntity
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local EntityUtils = EntityHandler.Utils
-local MathLib = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local MathLib = require(game.ReplicatedStorage.Libs.MathFunctions)
 local Mouse = require(script.mouse)
 local CustomCamera = require(script.Camera)
 local EntityTaskReplicator = require(game.ReplicatedStorage.EntityHandler.EntityReplicator.EntityTaskReplicator)
@@ -24,8 +24,8 @@ task.wait()
 local RenderHandler = require(script.Parent.core.chunk.Rendering.Handler)
 
 
-local Funcs = {}
-function Funcs.Crouch(key,IsDown,GPE,inputs)
+local Functions = {}
+function Functions.Crouch(key,IsDown,GPE,inputs)
     local Player = LPE()
     if EntityHandler.isDead(Player) or  Player.Crouching or not IsDown then return end 
     EntityHandler.crouch(Player,true)
@@ -37,29 +37,29 @@ end
 
 local ray = require(game.ReplicatedStorage.CollisionHandler.Ray)
 
-local heightlight = Instance.new("Part",workspace)
-heightlight.Size = Vector3.new(3,3,3)
-heightlight.Anchored = true
-heightlight.Transparency = 1
-local H = Instance.new("Highlight",heightlight)
-H.Adornee = heightlight
+local highlights = Instance.new("Part",workspace)
+highlights.Size = Vector3.new(3,3,3)
+highlights.Anchored = true
+highlights.Transparency = 1
+local H = Instance.new("Highlight",highlights)
+H.Adornee = highlights
 H.DepthMode = "Occluded"
 H.FillTransparency = 1
 
 local hb = false
-function Funcs.HitBoxs(key,IsDown,GPE,inputs)
+function Functions.HitBoxes(key,IsDown,GPE,inputs)
     if not IsDown then return end 
     hb = not hb
 end
 
 local function AttackBlock(RayData)
     if not RayData.block then return end 
-    local Blockpos = RayData.grid
-    Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,0)
+    local BlockPos = RayData.grid
+    Helper.insertBlock(BlockPos.X,BlockPos.Y,BlockPos.Z,0)
     return true
 end
 
-function Funcs.Attack(key,IsDown,GPE,inputs)
+function Functions.Attack(key,IsDown,GPE,inputs)
     if not IsDown then return end 
     local RayData = Mouse.getRay()
     if AttackBlock(RayData) then return end 
@@ -71,7 +71,7 @@ function Funcs.Attack(key,IsDown,GPE,inputs)
 end
 local Order = {"First","Second","Third"}
 local orderIdx = 1
-function Funcs.CameraMode(key,IsDown,GPE,input)
+function Functions.CameraMode(key,IsDown,GPE,input)
     if not IsDown then return end 
     orderIdx +=1
     if orderIdx >3 then
@@ -80,7 +80,7 @@ function Funcs.CameraMode(key,IsDown,GPE,input)
     CustomCamera.setMode(Order[orderIdx])
 end
 
-function Funcs.Interact(key,IsDown,GPE,inputs)
+function Functions.Interact(key,IsDown,GPE,inputs)
     if not IsDown then return end 
     local RayData = Mouse.getRay()
     if not RayData.block then return end 
@@ -106,12 +106,12 @@ function  Controller.createBinds()
         local RightVector = CameraCFrame.RightVector
         LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit -- Vector3.new(1,0,0)
         RightVector = Vector3.new(RightVector.X,0,RightVector.Z).Unit --Vector3.new(0,0,1)
-        local foward = LookVector*(F and 1 or 0)
+        local forward = LookVector*(F and 1 or 0)
         local Back = -LookVector*(B and 1 or 0)
         local Left = -RightVector*(L and 1 or 0)
         local Right = RightVector*(R and 1 or 0)
-        local velocity = foward + Back + Left+ Right
-        local v2 = foward + Back*-1 + (B and -1 or 1)*(Left+ Right)
+        local velocity = forward + Back + Left+ Right
+        local v2 = forward + Back*-1 + (B and -1 or 1)*(Left+ Right)
         velocity = ((velocity.Unit ~= velocity.Unit) and Vector3.new(0,0,0) or velocity.Unit)
         v2 = ((v2.Unit ~= v2.Unit) and Vector3.new(0,0,0) or v2.Unit)
         if velocity:FuzzyEq(Vector3.zero,0.01) then
@@ -120,7 +120,7 @@ function  Controller.createBinds()
            IsMoving = true
         end
         
-        EntityHandler.setMoveDireaction(Entity,velocity) 
+        EntityHandler.setMoveDirection(Entity,velocity) 
         local pitch,yaw = MathLib.GetP_YawFromVector3((CameraCFrame.LookVector))
         EntityUtils.rotateHeadTo(Entity,pitch,yaw)
         if InputHandler.isDown("Jump") then
@@ -128,7 +128,7 @@ function  Controller.createBinds()
         end
     end)
     
-    for i,v in Funcs do
+    for i,v in Functions do
         InputHandler.bindFunctionTo(`{i}-Controller`,v,i)
     end
 end
@@ -149,7 +149,7 @@ function Controller.destroyBinds()
     if not Binded then return end 
     Binded = false
     InputHandler.unbindFromRender("#Controller-Handler")
-    for i,v in Funcs do
+    for i,v in Functions do
         InputHandler.unbindFunction(`{i}-Controller`)
     end
 end

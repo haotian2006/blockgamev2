@@ -2,7 +2,7 @@ local Data = {}
 local EntityHolder = require(game.ReplicatedStorage.EntityHandler.EntityHolder)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils) 
 local BlockUtils = require(game.ReplicatedStorage.Utils.BlockUtils)
-local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+local Signal = require(game.ReplicatedStorage.Libs.Signal)
 local Chunk = require(game.ReplicatedStorage.Chunk)
 
 debug.setmemorycategory("CUBICAL STORAGE")

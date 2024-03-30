@@ -46,7 +46,7 @@ export type ProtectedEvent<T...> = CommonTypes.ProtectedEvent<T...>
 
 
 
-export type Action = string | 'Foward' | 'Left' | 'Right' | 'Back' | 'Jump' | 'Attack' | 'Interact' | 'Crouch' | 'HitBoxs' | 'Freecam' | 'Inventory'
+export type Action = string | 'Foward' | 'Left' | 'Right' | 'Back' | 'Jump' | 'Attack' | 'Interact' | 'Crouch' | 'HitBoxes' | 'Freecam' | 'Inventory'
 
 export type ControllerEvent = Signal<EnumItem,boolean,string,{number:string}>
 export type TempControllerEvent = ControllerEvent & {

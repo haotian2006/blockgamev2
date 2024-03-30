@@ -1,4 +1,4 @@
-local ByteNet = require(game.ReplicatedStorage.Libarys.ByteNet)
+local ByteNet = require(game.ReplicatedStorage.Libs.ByteNet)
 
 return ByteNet.defineNamespace("CubicalWorld", function()
     return {

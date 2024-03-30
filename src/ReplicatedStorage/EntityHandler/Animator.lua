@@ -9,7 +9,7 @@ local ClientUtils = require(script.Parent.ClientUtils)
 AnimatorR.init(Animator)
 
 local a = Instance.new("Animation",script)
-local function getspeed(speed)
+local function getSpeed(speed)
     return if speed  == -69 then nil else speed
 end
 
@@ -62,77 +62,30 @@ end
 function Animator.isPlaying(self,animation)
     return  self.__animations[animation] and true or false
 end
-function Animator.play2(self,animation,fadeTime,weight,speed,SendToOwner)
-    SendToOwner = if SendToOwner ==nil then true else false
-    if IS_CLIENT then
-        local Ani =  Animator.getOrLoad(self,animation)
-        if Ani then
-            Ani:Play(fadeTime,weight,getspeed(speed))
-        end
-    end
-    self.__animations[animation] = speed or -69
-    AnimatorR.sendTask(self,"play",SendToOwner,animation,fadeTime,weight,speed)
-end
-function Animator.adjustSpeed2(self,animation,speed,SendToOwner)
-    SendToOwner = if SendToOwner ==nil then true else false
-    if IS_CLIENT then
-        local Ani =  Animator.getOrLoad(self,animation)
-        if Ani then
-            Ani:AdjustSpeed(getspeed(speed))
-        end
-    end
-    self.__animations[animation] = speed or -69
-    AnimatorR.sendTask(self,"adjustSpeed",SendToOwner,animation,speed)
-end
-function Animator.adjustWeight2(self,animation,weight,SendToOwner)
-    SendToOwner = if SendToOwner ==nil then true else false
-    if IS_CLIENT then
-        local Ani =  Animator.getOrLoad(self,animation)
-        if Ani then
-            Ani:AdjustWeight(weight or 1)
-        end
-    end
-    AnimatorR.sendTask(self,"adjustWeight",SendToOwner,animation,weight)
-end
 
-function Animator.stop2(self,animation,fadeTime,SendToOwner)
-    SendToOwner = if SendToOwner ==nil then true else false
-    if IS_CLIENT and self.__loadedAnimations[animation] then
-        self.__loadedAnimations[animation]:Stop(fadeTime)
-    end
-    AnimatorR.sendTask(self,"stop",SendToOwner,animation,fadeTime)
-    self.__animations[animation] = nil
-end
-
-function Animator.stopAll2(self,fadeTime,SendToOwner)
-    SendToOwner = if SendToOwner ==nil then true else false
-    for i,v in self.__loadedAnimations or {} do
-        v:Stop(fadeTime)
-    end
-    table.clear(self.__animations)
-    AnimatorR.sendTask(self,"stopAll",SendToOwner,fadeTime)
-end
-
-function Animator.playLocal(self,animation,fadeTime,weight,speed)
+function Animator.playLocal(self,animation,fadeTime,weight,speed,looped)
     if IS_CLIENT then
         local ani = Animator.getOrLoad(self,animation)
         if not ani then return end 
-        ani:Play(fadeTime,weight,getspeed(speed))
+        ani.Looped = if looped then true else false
+        ani:Play(fadeTime,weight,getSpeed(speed))
         self.__animations[animation] = speed or  -69
     else
         self.__animations[animation] = speed or  -69
     end
 end
+
 function Animator.adjustSpeedLocal(self,animation,speed)
     if IS_CLIENT then
         local Ani =  Animator.getOrLoad(self,animation)
         if Ani then
-            Ani:AdjustSpeed(getspeed(speed))
+            Ani:AdjustSpeed(getSpeed(speed))
         end
     else
         self.__animations[animation] = speed or  -69
     end
 end
+
 function Animator.adjustWeightLocal(self,animation,weight)
     if IS_CLIENT then
         local Ani =  Animator.getOrLoad(self,animation)
@@ -143,6 +96,7 @@ function Animator.adjustWeightLocal(self,animation,weight)
 
     end
 end
+
 function Animator.stopLocal(self,animation,fadeTime)
     if IS_CLIENT and self.__loadedAnimations[animation] then
         self.__loadedAnimations[animation]:Stop(fadeTime)
@@ -161,16 +115,18 @@ function Animator.stopAllLocal(self,fadeTime)
 end
 
 
-function Animator.play(self,animation,fadeTime,weight,speed)
+function Animator.play(self,animation,fadeTime,weight,speed,looped)
     if IS_CLIENT then
-        local Ani =  Animator.getOrLoad(self,animation)
+        local Ani:AnimationTrack =  Animator.getOrLoad(self,animation)
         if Ani then
-            Ani:Play(fadeTime,weight,getspeed(speed))
+            Ani.Looped = if looped then true else false
+            Ani:Play(fadeTime,weight,getSpeed(speed))
         end
     end
     self.__animations[animation] = speed or -69
-    AnimatorR.sendTask(self,"play",false,animation,fadeTime,weight,speed)
+    AnimatorR.sendTask(self,"play",false,animation,fadeTime,weight,speed,looped)
 end
+
 function Animator.stop(self,animation,fadeTime)
     if IS_CLIENT and self.__loadedAnimations[animation] then
         self.__loadedAnimations[animation]:Stop(fadeTime)
@@ -180,6 +136,7 @@ function Animator.stop(self,animation,fadeTime)
     end
     self.__animations[animation] = nil
 end
+
 function Animator.stopAll(self,fadeTime)
     for i,v in self.__loadedAnimations or {} do
         v:Stop(fadeTime)
@@ -187,11 +144,12 @@ function Animator.stopAll(self,fadeTime)
     table.clear(self.__animations)
     AnimatorR.sendTask(self,"stopAll",false,fadeTime)
 end
+
 function Animator.adjustSpeed(self,animation,speed)
     if IS_CLIENT then
         local Ani =  Animator.getOrLoad(self,animation)
         if Ani then
-            Ani:AdjustSpeed(getspeed(speed))
+            Ani:AdjustSpeed(getSpeed(speed))
         end
     end
     speed = speed or 1
@@ -199,6 +157,7 @@ function Animator.adjustSpeed(self,animation,speed)
     self.__animations[animation] = speed or -69
     AnimatorR.sendTask(self,"adjustSpeed",true,animation,speed)
 end
+
 function Animator.adjustWeight(self,animation,weight)
     if IS_CLIENT then
         local Ani =  Animator.getOrLoad(self,animation)

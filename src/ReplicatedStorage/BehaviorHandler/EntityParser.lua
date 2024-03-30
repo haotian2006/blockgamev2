@@ -1,4 +1,4 @@
-local Family
+local family
 
 local function parseString(str,container)
     local part,t = str:match("([^%.]*)%.?(.*)")
@@ -13,8 +13,8 @@ local function parse(name,data)
     }
 
     local family 
-    if data.Family then
-        family = Family[data.Family]
+    if data.family then
+        family = family[data.family]
         parsed.family = family
     end
 
@@ -38,7 +38,7 @@ local function parse(name,data)
 end
 
 return function (toParse,Family_)
-    Family = Family_
+    family = Family_
     for name,info in toParse do
         local parsed = parse(name,info)
         toParse[name] = parsed

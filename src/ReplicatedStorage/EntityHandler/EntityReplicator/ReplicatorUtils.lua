@@ -1,5 +1,5 @@
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
-local Math = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local Math = require(game.ReplicatedStorage.Libs.MathFunctions)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")

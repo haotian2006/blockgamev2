@@ -10,7 +10,7 @@ local Removed
 if IsServer then
     Removed = {}
     Holder.Removed = {}
-    local Queue = require(game.ReplicatedStorage.Libarys.DataStructures.Queue)
+    local Queue = require(game.ReplicatedStorage.Libs.DataStructures.Queue)
     local MaxSize = 2^16
     local SecondarySize = 2^12
     local IdQueue = Queue.new(2^12)

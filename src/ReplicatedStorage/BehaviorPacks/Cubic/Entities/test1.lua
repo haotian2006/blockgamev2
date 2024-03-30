@@ -1,3 +1,0 @@
-return {
-    RealName = "c:test"
-}

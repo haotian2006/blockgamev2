@@ -15,29 +15,29 @@ end
 
 local function parseItem(name,data)
     local parsed = {}
-    local Default = data.Default
+    local default = data.default
     local family = {}
-    if data.Family then
-        family = Family[data.Family]
+    if data.family then
+        family = Family[data.family] or {}
     end
-    local toCheck = Default or data
+    local toCheck = default or data
     for i,v in family do 
         if toCheck[i] then continue end
         toCheck[i] = v
     end
     toCheck.Texture = parseTexture(toCheck.Texture)
     toCheck.Icon = parseTexture(toCheck.Icon)
-    if not Default then 
+    if not default then 
         data.__NoDefault = true
         return data 
     end 
-    parsed.Default = Default
-    local Variants = data.Variants or {Default}
-    --parsed.Variants = Variants
-    for varoant,vData in next,Variants do 
+    parsed.default = default
+    local variants = data.variants or {default}
+    --parsed.variants = variants
+    for varoant,vData in next,variants do 
         vData.Texture = parseTexture(vData.Texture)
         vData.Icon = parseTexture(vData.Icon)
-        for Attribue,value in Default do
+        for Attribue,value in default do
             if vData[Attribue] then 
                 continue 
             end 

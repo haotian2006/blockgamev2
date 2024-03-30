@@ -1,5 +1,5 @@
 local helper = {}
-local Queue = require(game.ReplicatedStorage.Libarys.DataStructures.Queue)
+local Queue = require(game.ReplicatedStorage.Libs.DataStructures.Queue)
 
 local AntiLag = require(script.Parent.Parent.Config).ANTI_LAG
 

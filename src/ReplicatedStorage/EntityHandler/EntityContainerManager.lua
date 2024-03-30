@@ -40,7 +40,7 @@ function manager.getContainer(self,name)
     return   self.__containers[name]
 end
 
-function manager.changedComponets(self)
+function manager.changedComponents(self)
     local Containers = {}
     for i,v in self.__components do
         for Container,data in v.Containers or {} do

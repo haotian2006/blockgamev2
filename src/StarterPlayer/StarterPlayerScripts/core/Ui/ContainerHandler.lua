@@ -14,7 +14,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local resourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local ItemHandler = require(game.ReplicatedStorage.Item)
-local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+local Signal = require(game.ReplicatedStorage.Libs.Signal)
 local DataHandler = require(game.ReplicatedStorage.Data)
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 

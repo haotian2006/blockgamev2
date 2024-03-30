@@ -1,25 +1,25 @@
-local Family
+local family
 local function parse(name,data)
     local parsed = {}
-    local Default = data.Default
+    local default = data.default
     local family = {}
-    if data.Family then
-        family = Family[data.Family]
+    if data.family then
+        family = family[data.family]
     end
-    local toCheck = Default or data
+    local toCheck = default or data
     for i,v in family do 
         if toCheck[i] then continue end
         toCheck[i] = v
     end
-    if not Default then 
+    if not default then 
         data.__NoDefault = true
         return data 
     end 
-    parsed.Default = Default
-    local Variants = data.Variants or {Default}
-    --parsed.Variants = Variants
-    for varoant,vData in next,Variants do 
-        for Attribue,value in Default do
+    parsed.default = default
+    local variants = data.variants or {default}
+    --parsed.variants = variants
+    for varoant,vData in next,variants do 
+        for Attribue,value in default do
             if vData[Attribue] then continue end 
             vData[Attribue] = value
         end
@@ -29,7 +29,7 @@ local function parse(name,data)
 end
 
 return function (toParse,Family_)
-    Family = Family_
+    family = Family_
     for name,info in toParse do
         local parsed = parse(name,info)
         toParse[name] = parsed

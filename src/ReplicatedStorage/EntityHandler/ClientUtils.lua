@@ -38,16 +38,16 @@ function Utils.get(self,key)
     local special = getKey(string)
     if self[special] then return self[special] end 
     local data = Utils.getResource(self)
-    local Variants = data.Variants
+    local variants = data.variants
     for i,v in self.__components do
         local name = v.Name
-        local vData = Variants[name]
+        local vData = variants[name]
         if not vData then continue end 
         if vData[key] then
             return vData[key]
         end
     end
-    return data.Default[key]
+    return data.default[key]
 
 end
 

@@ -1,4 +1,4 @@
-local signal = require(game.ReplicatedStorage.Libarys.Signal)
+local signal = require(game.ReplicatedStorage.Libs.Signal)
 local TS = {}
 TS.__index = TS
 local TempEvents 

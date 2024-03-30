@@ -1,6 +1,6 @@
 local Chunk = {}
 
-local Stack = require(game.ReplicatedStorage.Libarys.DataStructures.Stack)
+local Stack = require(game.ReplicatedStorage.Libs.DataStructures.Stack)
 
 local MaxBuffers = 1000
 local Buffers = Stack.new(MaxBuffers)

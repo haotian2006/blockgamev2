@@ -4,7 +4,7 @@ local Controller = {}
 local Data = require(game.ReplicatedStorage.Data) 
 local PlayerSettingsPath = script.Parent:WaitForChild("PlayerSettings")
 local KeyBinds = require(PlayerSettingsPath:WaitForChild("KeybindHelper"))
-local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+local Signal = require(game.ReplicatedStorage.Libs.Signal)
 local TempSignal = require(script.TempSignal)
 Data.set("PlayerController",script) 
 local State = "Keyboard"

@@ -2,16 +2,16 @@ local Block = {}
 
 local function parseBlock(name,data)
     local parsed = {}
-    local Default = data.Default
-    if not Default then 
+    local default = data.default
+    if not default then 
         data.__NoDefault = true
         return data 
     end 
-    parsed.Default = Default
-    local Variants = data.Variants or {Default}
-    --parsed.Variants = Variants
-    for varoant,vData in next,Variants do 
-        for Attribue,value in Default do
+    parsed.default = default
+    local variants = data.variants or {default}
+    --parsed.variants = variants
+    for varoant,vData in next,variants do 
+        for Attribue,value in default do
             if vData[Attribue] then continue end 
             vData[Attribue] = value
         end

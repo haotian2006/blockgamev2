@@ -48,7 +48,7 @@ local function createBroadPhase(start,direction)
     return middle,Vector3.new(abs(direction.X),abs(direction.Y),abs(direction.Z))+Vector3.zero*2
 end
 
-local function precomputeEntityCorners(Entities)
+local function precomputedEntityCorners(Entities)
     local Corners = {}
     for _, entity:Core.Entity in Entities do
         local HitBox = EntityService.getHitbox(entity)
@@ -143,7 +143,7 @@ local function traceRay(start,direction:Vector3,CheckForEntities,DEBUG)
         local middle,size = createBroadPhase(start,direction)
         CheckForEntities.CheckGlobal = true
         EntitiesInRegion = collisionHandler.getEntitiesInBox(middle,size,CheckForEntities)
-        EntitiesInRegion = precomputeEntityCorners(EntitiesInRegion)
+        EntitiesInRegion = precomputedEntityCorners(EntitiesInRegion)
         EntitiesInRegion = next(EntitiesInRegion) and EntitiesInRegion or nil
     end
     local t = 0
@@ -159,22 +159,22 @@ local function traceRay(start,direction:Vector3,CheckForEntities,DEBUG)
     local iz = round(pz+.5)
 
 
-    local stepx = if dx> 0 then 1 else -1
-    local stepy = if dy> 0 then 1 else -1
-    local stepz = if dz> 0 then 1 else -1
+    local stepX = if dx> 0 then 1 else -1
+    local stepY = if dy> 0 then 1 else -1
+    local stepZ = if dz> 0 then 1 else -1
 
     local txDelta = abs(1/dx)--math.sqrt(1+(dz/dx)^2) 
     local tyDelta = abs(1/dy)
     local tzDelta = abs(1/dz)--math.sqrt(1+(dx/dz)^2) 
 
 
-    local xdist = if stepx >0 then (ix +1 - px) else (px - ix)
-    local ydist = if stepy >0 then (iy +1 - py) else (py - iy)
-    local zdist = if stepz >0 then (iz +1 - pz) else (pz - iz)
+    local xDist = if stepX >0 then (ix +1 - px) else (px - ix)
+    local yDist = if stepY >0 then (iy +1 - py) else (py - iy)
+    local zDist = if stepZ >0 then (iz +1 - pz) else (pz - iz)
 
-    local txMax = if txDelta<inf then txDelta*xdist else inf
-    local tyMax = if tyDelta<inf then tyDelta*ydist else inf
-    local tzMax = if tzDelta<inf then tzDelta*zdist else inf
+    local txMax = if txDelta<inf then txDelta*xDist else inf
+    local tyMax = if tyDelta<inf then tyDelta*yDist else inf
+    local tzMax = if tzDelta<inf then tzDelta*zDist else inf
 
     local steppedIndex = -1
     local block,lcoord,grid
@@ -195,7 +195,7 @@ local function traceRay(start,direction:Vector3,CheckForEntities,DEBUG)
         end
 
         if block ~= 0 and block  then
-            local normal = Vector3.new(steppedIndex == 0 and -stepx,steppedIndex == 1 and -stepy,steppedIndex == 2 and -stepz)
+            local normal = Vector3.new(steppedIndex == 0 and -stepX,steppedIndex == 1 and -stepY,steppedIndex == 2 and -stepZ)
 
             if DEBUG then
                 drawLine(start*3,hitPos*3)
@@ -206,46 +206,46 @@ local function traceRay(start,direction:Vector3,CheckForEntities,DEBUG)
         end
         if (txMax<tyMax) then
             if (txMax<tzMax) then
-                ix += stepx
+                ix += stepX
                 t = txMax
                 txMax += txDelta
                 steppedIndex =0
 
             else
-                iz += stepz
+                iz += stepZ
 				t = tzMax
 				tzMax += tzDelta
 				steppedIndex = 2
             end
         else
             if (tyMax < tzMax) then
-				iy += stepy
+				iy += stepY
 				t = tyMax
 				tyMax += tyDelta
 				steppedIndex = 1
 			else 
-				iz += stepz
+				iz += stepZ
 				t = tzMax
 				tzMax += tzDelta
 				steppedIndex = 2
             end
         end
         if EntitiesInRegion then
-            local Entitys,hasEntity = getEntitiesInVoxel(grid,EntitiesInRegion)
+            local Entities,hasEntity = getEntitiesInVoxel(grid,EntitiesInRegion)
             if hasEntity then
-                local normal = Vector3.new(steppedIndex == 0 and -stepx,steppedIndex == 1 and -stepy,steppedIndex == 2 and -stepz)
+                local normal = Vector3.new(steppedIndex == 0 and -stepX,steppedIndex == 1 and -stepY,steppedIndex == 2 and -stepZ)
                 local endPos = Vector3.new(px+t*dx , py+t*dy , pz+t*dz)
 
-                local found,hit = FindFirstEntityInRay(hitPos, endPos-hitPos, Entitys)
+                local found,hit = FindFirstEntityInRay(hitPos, endPos-hitPos, Entities)
                 if found then
                     return createRayResult(nil,found,hit,grid,normal)
                 end
             end
         end
       if DEBUG then
-            drawLine(current*3,current*3 + Vector3.new(txMax)*stepx/5,BrickColor.Green(),`cx: {txMax}`)
-            drawLine(current*3,current*3 + Vector3.new(0,tyMax)*stepy/5,BrickColor.Blue())
-            drawLine(current*3,current*3 + Vector3.new(0,0,tzMax)*stepz/5,BrickColor.Yellow(),`cz: {tzMax}`)
+            drawLine(current*3,current*3 + Vector3.new(txMax)*stepX/5,BrickColor.Green(),`cx: {txMax}`)
+            drawLine(current*3,current*3 + Vector3.new(0,tyMax)*stepY/5,BrickColor.Blue())
+            drawLine(current*3,current*3 + Vector3.new(0,0,tzMax)*stepZ/5,BrickColor.Yellow(),`cz: {tzMax}`)
       end
     end
     local hitPos = Vector3.new(px+t*dx , py+t*dy , pz+t*dz)
@@ -259,7 +259,7 @@ end
 Ray.createEntityParams = collisionHandler.createEntityParams
 
 function Ray.cast(start:Vector3,direction:Vector3,EntityParams)
-    if (direction.Magnitude == 0) then error("Attemped to cast a ray with the length of 0") end 
+    if (direction.Magnitude == 0) then error("Attempted to cast a ray with the length of 0") end 
     return traceRay(start, direction,EntityParams)
 end
 

@@ -24,14 +24,15 @@ local Families = Data.Family
 local BehaviorPacks = game.ReplicatedStorage.BehaviorPacks or Instance.new("Folder",game.ReplicatedStorage)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local ResourcePacks = require(ReplicatedStorage.ResourceHandler) 
+
 
 --Parsers
 local parser = require(script.defaultParser)
 BehaviorPacks.Name = "BehaviorPacks"
 
 local function CheckKeyLength(Key)
-    if not Key then return end 
+    if type(Key) ~= "string" then return Key end 
+    Key = Key
     if #Key > 50 then
         Key = string.sub(Key, 1,50)
     end
@@ -40,78 +41,65 @@ end
 
 
 local function addTo(to,from)
+    if type(from) ~= "table" then
+        return false
+    end
     for i,v in from do
-        i = CheckKeyLength(i)
+        local realName = type(v) == "table" and v.RealName
+        i = CheckKeyLength(realName or i)
         if to[i] then continue end 
         to[i] = v
     end
+    return true
 end
 
-local function FormatTable(x,p)
-    p = p or {}
-    for i,v in x do
-        if type(v) == "table" and v.RealName then
-            i = CheckKeyLength(v.RealName)
-        end
-        p[i] = v
-    end 
-    return p
-end
-local function AddInstanceChildren(Object,Folder,depth)
+
+local function ParseChildren(Object,MainModule)
     for i,stuff in Object:GetChildren() do
         local Key = CheckKeyLength(stuff.Name)
         if stuff:IsA("Folder") then
-            Folder[Key] = Folder[Key] or {}
-           -- Folder[stuff.Name].ISFOLDER = true
-            AddInstanceChildren(stuff,Folder[Key],depth+1)
+            ParseChildren(stuff,MainModule)
         elseif stuff:IsA("ModuleScript") then
             local data = require(stuff)
             local key = (type(data) == "table" and CheckKeyLength(data.RealName)) or Key
-            Folder[key] = Folder[key] or {}
-            local touse =  type(data) =="table" and FormatTable(data) or data
+            MainModule[key] = MainModule[key] or data
 
-            if depth <=0 and false then
-                addTo(Folder[key] , touse)
-            else
-                Folder[key] = touse
-            end
-            AddInstanceChildren(stuff,Folder[key],depth+1)
         else
-            Folder[Key] = stuff
+            MainModule[Key] = stuff
         end
     end
 end
-local function loop(v)
+local function LoadComponent(v)
     local Key = CheckKeyLength(v.Name)
     if v:IsA("Folder") then
         Data[Key] = Data[Key] or {}
-        Data[Key].ISFOLDER = true
-        AddInstanceChildren(v, Data[Key],0)
+        ParseChildren(v, Data[Key])
     elseif v:IsA("ModuleScript") and Key ~= "Info" then
-        Data[v.Name] = Data[v.Name] or {}
+        Data[Key] = Data[Key] or {}
         local data = require(v)
-        addTo(Data[Key], type(data) =="table" and FormatTable(data) or data)
-        AddInstanceChildren(v, Data[Key],0)
+        addTo(Data[Key], data)
+        ParseChildren(v, Data[Key])
     end
 end
-function BehaviorHandler.LoadPack(PackName:string,loadComponet)
+
+function BehaviorHandler.LoadPack(PackName:string,loadComponent)
     local pack = BehaviorPacks:FindFirstChild(PackName)
     if pack then
-        if loadComponet then
-            if pack:FindFirstChild(loadComponet) then
-                loop(pack:FindFirstChild(loadComponet))
+        if loadComponent then
+            if pack:FindFirstChild(loadComponent) then
+                LoadComponent(pack:FindFirstChild(loadComponent))
             end
             return
         end
         for i,v in pack:GetChildren() do
-            loop(v)
+            LoadComponent(v)
         end 
     end
 end
 local Init = false
-function BehaviorHandler.loadComponet(Componet) 
+function BehaviorHandler.loadComponent(Component) 
     for i,v in BehaviorPacks:GetChildren()do
-        BehaviorHandler.LoadPack(v.Name,Componet)
+        BehaviorHandler.LoadPack(v.Name,Component)
     end
 end
 function BehaviorHandler.Init() 
@@ -121,7 +109,6 @@ function BehaviorHandler.Init()
     end
     parser(Blocks,Families)
     parser(Items,Families)
-    print(Data.Entities)
     Init = true
     return BehaviorHandler 
 end
@@ -150,15 +137,12 @@ function BehaviorHandler.getBlock (name,id)
     if not blockData then 
         return 
     end 
-    if blockData.__NoDefault then
-        return blockData
-    end
     
     if not id or id == 0 then
-        return  blockData.Default
+        return  blockData.default
     end
 
-    return blockData[(id and id or "1")] or blockData.Default
+    return blockData[(id and id or "default")] or blockData.default
 end
 
 function BehaviorHandler.getBlockCollisionBox(Name)

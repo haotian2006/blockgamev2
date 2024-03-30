@@ -3,12 +3,12 @@ local EntityV2 = game.ReplicatedStorage.EntityHandler
 local ReplicationUtils = require(EntityV2.EntityReplicator.ReplicatorUtils)
 local EntityHolder = require(EntityV2.EntityHolder)
 local EntityHandler = require(EntityV2)
-local math = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local math = require(game.ReplicatedStorage.Libs.MathFunctions)
 local Data = require(game.ReplicatedStorage.Data)
 local Render = require(script.Parent.Parent.Render)
 local Animator = require(script.Parent.Parent.Animator)
 local EntityTasks = require(script.Parent.TaskReplicator)
-local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+local Signal = require(game.ReplicatedStorage.Libs.Signal)
 
 local LOCAL_PLAYER = game.Players.LocalPlayer
 local Client = {}

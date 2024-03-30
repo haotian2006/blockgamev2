@@ -16,7 +16,7 @@ end
 function BTexture.init(AllBlocks)
     for block,BlockInfo in AllBlocks do
         if block == "ISFOLDER" then continue end 
-        if not BlockInfo.Default then 
+        if not BlockInfo.default then 
             BlockInfo.Texture = parseTexture(BlockInfo.Texture)
             continue
         end

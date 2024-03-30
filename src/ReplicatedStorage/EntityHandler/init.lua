@@ -7,11 +7,11 @@ local IS_SERVER = not IS_CLIENT
 local LOCAL_PLAYER = game.Players.LocalPlayer or {UserId = "NAN"}
 
 
-local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+local Signal = require(game.ReplicatedStorage.Libs.Signal)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local Chunk = require(game.ReplicatedStorage.Chunk)
-local MathUtils = require(game.ReplicatedStorage.Libarys.MathFunctions)
+local MathUtils = require(game.ReplicatedStorage.Libs.MathFunctions)
 local Animator = require(script.Animator)
 local Holder = require(script.EntityHolder)
 local Utils = require(script.Utils)
@@ -20,7 +20,7 @@ local EntityTaskReplicator = require(script.EntityReplicator.EntityTaskReplicato
 local Container = require(game.ReplicatedStorage.Container)
 local EntityContainerManager = require(script.EntityContainerManager)
 local Data = require(game.ReplicatedStorage.Data)
-local Itemhandler = require(game.ReplicatedStorage.Item)
+local ItemHandler = require(game.ReplicatedStorage.Item)
 local FieldType = require(script.EntityFieldTypes)
 local CommonTypes = require(game.ReplicatedStorage.Core.CommonTypes)
 local Runner = require(game.ReplicatedStorage.Runner)
@@ -192,13 +192,13 @@ function Entity.addComponent(self,component,index)
     table.insert(self.__components,index or 1,componentData)
     self.__changed["__components"] = true
     if IS_SERVER then
-        EntityContainerManager.changedComponets(self)
+        EntityContainerManager.changedComponents(self)
     end
 end
 
-function Entity.hasComponet(self,componet)
+function Entity.hasComponent(self,component)
     for i,v in self.__components do
-        if v.Name == componet then
+        if v.Name == component then
             return i
         end
     end
@@ -214,22 +214,22 @@ function Entity.removeComponent(self,name)
         end
     end
     if IS_SERVER then
-        EntityContainerManager.changedComponets(self)
+        EntityContainerManager.changedComponents(self)
     end
 end
---//Get/seters
+--//Get/setters
 function Entity.hold(self,Item)
     local lastHold = self.__localData["Holding"]
-    if Itemhandler.equals(lastHold,Item) then return end 
+    if ItemHandler.equals(lastHold,Item) then return end 
     local Holding = self.Holding
     if Entity.isOwner(self,LOCAL_PLAYER) then
-        Itemhandler.onDequip(Holding,self)
+        ItemHandler.onDequip(Holding,self)
     end
 
     Entity.set(self, "Holding", Item or "")
 
     if Entity.isOwner(self,LOCAL_PLAYER) then
-        Itemhandler.onEquip(Item,self)
+        ItemHandler.onEquip(Item,self)
     end
     self.__localData["Holding"] = Item
 end
@@ -292,6 +292,12 @@ function Entity.clearCache(self)
     table.clear(self.__cachedData)
 end
 
+function Entity.getMethod(self:CommonTypes.Entity,method,cannotBeBase)
+    local info = BehaviorHandler.getEntity(self.Type)
+    if not info or not info.methods then return end 
+    return info.methods[method] or (not cannotBeBase and Entity[method])
+end
+
 function Entity.getAndCache(self,string)
     if self[string] ~= nil then
         return self[string] 
@@ -330,12 +336,13 @@ function Entity.get(self,string)
 end
 
 function Entity.set(self,key,value)
-    if self[key] ~= value then
-        self.__changed[key] = IS_SERVER and true or nil
+    if self[key] == value then
+       return false
     end
-    local cb = UpdateCallbacks[key]
-    if cb then
-        cb(self,value)
+    self.__changed[key] = IS_SERVER and true or nil
+    local callBacks = UpdateCallbacks[key]
+    if callBacks then
+        callBacks(self,value)
     end
     local Signals = self.__signals 
     if Signals and Signals[key] then
@@ -343,6 +350,7 @@ function Entity.set(self,key,value)
         Signals[key]:Fire(value,last)
     end
     self[key] = value
+    return true
 end
 
 function Entity.getPropertyChanged(self,property):CommonTypes.ProtectedEvent<any,any>
@@ -442,7 +450,7 @@ function Entity.setPosition(self,pos)
     Entity.set(self, "Position", pos)
 end
 
-function Entity.setMoveDireaction(self,Direction)
+function Entity.setMoveDirection(self,Direction)
     if Direction ~= Direction then
         Direction = Vector3.zero
     end
@@ -462,11 +470,11 @@ function Entity.getMoveDireaction(self,Direction)
  return self.moveDir
 end
 end
---@Overridable
+--@Override
 function Entity.getSpeed(self,isBase)
     if not isBase then
-        local method = Entity.getAndCache(self,"getSpeed.method")
-        if method and method ~= Entity.getSpeed then 
+        local method = Entity.getMethod(self,"getSpeed")
+        if method then 
             return method(self)
         end 
     end
@@ -475,9 +483,9 @@ end
 
 function Entity.takeDamage(self,isBase,damage)
     if not isBase then
-        local x = Entity.getAndCache(self,"takeDamage.method")
-        if x and x ~= Entity.takeDamage then 
-            return x(self,damage)
+        local method = Entity.getMethod(self,"takeDamage")
+        if method then 
+            return method(self)
         end 
     end
     local Health = Entity.get(self, "Health")
@@ -513,7 +521,7 @@ end
 function Entity.jump(self,JumpPower)
     if not self.Grounded or  CollisionHandler.isGrounded(self,true) then return end 
     local bodyVelocity = Entity.getVelocity(self,"Physics") or Vector3.zero
-    local JumpPower = JumpPower or Entity.get(self,"jumpPower")
+    JumpPower = JumpPower or Entity.get(self,"JumpPower") or 0
     Entity.setVelocity(self,"Physics",bodyVelocity + Vector3.new(0,JumpPower,0))
     self.Grounded = false
 end
@@ -638,8 +646,8 @@ function Entity.updatePosition(self,dt)
             newPosition = newP
             normal = n or normal
         end
-        local direationVector = newPosition - self.Position
-        if Vector3.new(direationVector.X,0,direationVector.Z):FuzzyEq(Vector3.zero,0.001) then
+        local directionVector = newPosition - self.Position
+        if Vector3.new(directionVector.X,0,directionVector.Z):FuzzyEq(Vector3.zero,0.001) then
             if  self.__localData.LastUpdate and (os.clock()- self.__localData.LastUpdate)>.018  then
                if Animator.isPlaying(self,"Walk") then
                 Animator.stop(self,"Walk",.1)
@@ -658,7 +666,7 @@ function Entity.updatePosition(self,dt)
             -- self:SetState('Moving',true)
         end
         self.Position = newPosition--interpolate(self.Position,newp,dt) 
-        return direationVector,normal,shouldJump
+        return directionVector,normal,shouldJump
     end
     return
 end
@@ -725,7 +733,7 @@ function Entity.updateMovement(self,dt,normal)
 end
 
 local DEBUGSERVER = false
-local function Server_visualiser(self)
+local function Server_visualizer(self)
     local model = self.model
     local hb =  Entity.getHitbox(self)
     if not model then
@@ -757,7 +765,7 @@ function Entity.update(self,dt)
         Entity.updateChunk(self)
     end
     if DEBUGSERVER and IS_SERVER then
-        Runner.run(Server_visualiser,self) 
+        Runner.run(Server_visualizer,self) 
     end
 end 
 
@@ -765,7 +773,7 @@ function Entity.onDeath(self:CommonTypes.Entity)
     self.died = true
     if self.__localData.dead then return end 
     self.__localData.dead = true
-    Entity.setMoveDireaction(self,Vector3.zero) 
+    Entity.setMoveDirection(self,Vector3.zero) 
     if IS_SERVER then
         self.died = false
         Entity.set(self,"died",true)
@@ -821,7 +829,7 @@ end
 
 function Entity.destroy(self)
     if self.model then
-        spawn(function() -- this dosn't run in parallel
+        spawn(function() -- this exists out of parallel
             self.model:Destroy()
         end)
     end

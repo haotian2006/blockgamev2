@@ -7,7 +7,7 @@ local BTexture = require(script.BlockTexture)
 local Other = require(script.Other)
 local ItemParser = require(script.Item)
 
-local signal = require(game.ReplicatedStorage.Libarys.Signal)
+local signal = require(game.ReplicatedStorage.Libs.Signal)
 
 local Data = {
     Animations = {},
@@ -74,12 +74,12 @@ function ResourceHandler.AddInstanceChildren(Object,AssetObj,depth)
         end
     end
 end 
-function ResourceHandler.loadComponet(Componet) 
+function ResourceHandler.loadComponent(Componet) 
     for i,v in ResourcePacks:GetChildren()do
         ResourceHandler.LoadPack(v.Name,Componet)
     end
 end
-function ResourceHandler.LoadPack(PackName:string,loadComponet)
+function ResourceHandler.LoadPack(PackName:string,loadComponent)
     local pack = ResourcePacks:FindFirstChild(PackName)
     if not pack then return end 
     local function x(v)
@@ -96,9 +96,9 @@ function ResourceHandler.LoadPack(PackName:string,loadComponet)
             
         end
     end
-    if loadComponet then
-        if pack:FindFirstChild(loadComponet) then
-            x(pack:FindFirstChild(loadComponet))
+    if loadComponent then
+        if pack:FindFirstChild(loadComponent) then
+            x(pack:FindFirstChild(loadComponent))
         end
         return
     end
@@ -143,10 +143,10 @@ function ResourceHandler.getBlockData(name,id)
     --     return blockData[biome]
     -- end
     if not id or id == 0 then
-        return  blockData.Default
+        return  blockData.default
     end
 
-    return blockData[(id and id or "1")] or blockData.Default
+    return blockData[(id and id or "1")] or blockData.default
 end
 
 function ResourceHandler.getAllBlocks()
@@ -169,10 +169,10 @@ function ResourceHandler.getItem(name,id)
     --     return blockData[biome]
     -- end
     if not id or id == 0 then
-        return  itemData.Default
+        return  itemData.default
     end
 
-    return itemData[(id and id or "1")] or itemData.Default
+    return itemData[(id and id or "1")] or itemData.default
 end
 function ResourceHandler.getUiContainer(name)
     if Data.Containers then
@@ -191,7 +191,7 @@ function ResourceHandler.getEntityModel(name)
 end
 
 function ResourceHandler.getFamily(name)
-    return Data.Family[name]
+    return Data.family[name]
 end
 
 function ResourceHandler.getAllData()

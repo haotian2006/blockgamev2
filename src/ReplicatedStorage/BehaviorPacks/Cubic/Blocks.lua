@@ -3,8 +3,9 @@ local Blocks = {
     
 
     ['c:grassBlock'] = {
-        Default = {},
-        Variants = {}
+        default = {},
+        variants = {},
+        
     },
     ['c:foodBlock'] = {
 

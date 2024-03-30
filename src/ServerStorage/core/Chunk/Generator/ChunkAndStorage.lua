@@ -6,7 +6,7 @@ local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
 local Precompute = OtherUtils.preComputeSquare(Config.StructureRange)
 local preComputeLength = #Precompute
 
-local Stack = require(game.ReplicatedStorage.Libarys.DataStructures.Stack)
+local Stack = require(game.ReplicatedStorage.Libs.DataStructures.Stack)
 local indexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 indexUtils.preComputeAll()
 

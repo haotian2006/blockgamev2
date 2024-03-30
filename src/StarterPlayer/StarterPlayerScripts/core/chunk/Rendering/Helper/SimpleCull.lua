@@ -19,7 +19,7 @@ end
 
 
 local borders = {}
-local preComputeLoop = {}
+local preComputedLoop = {}
 
 do
     local temp = {}
@@ -41,15 +41,15 @@ end
 do
     for x = 1,8 do
         for z = 1,8 do
-            preComputeLoop[Vector3.new(x,0,z)] = GetBorders(x,z)
+            preComputedLoop[Vector3.new(x,0,z)] = GetBorders(x,z)
         end
     end
 end
 
-function Tasks.cull(chunk,center,centerData,north,east,south,west,sections )
+function Tasks.cull(chunk,centerBlockData,center,north,east,south,west,sections )
     local function checkBlock(x,y,z,chunk)
         local id = to1D[x][y][z]
-        return buffer.readu8(chunk or centerData, (id-1)) == 0
+        return buffer.readu8(chunk or center, (id-1)) == 0
     end
     local b1,b2,b3,b4
     local function cull(x,y,z)
@@ -81,7 +81,7 @@ function Tasks.cull(chunk,center,centerData,north,east,south,west,sections )
     local loc = {}
 
     debug.profilebegin("cull")
-    for pos,borders in preComputeLoop do
+    for pos,borders in preComputedLoop do
         local x,z = pos.X,pos.Z
         b1,b2,b3,b4 = unpack(borders)
         for ly =0,31 do
@@ -90,11 +90,11 @@ function Tasks.cull(chunk,center,centerData,north,east,south,west,sections )
             for oy = 0,7 do
                 local y = ly*8+oy+1
                 local idx = IndexUtils.to1D[x][y][z]
-                local v = buffer.readu8( centerData, (idx-1)) 
+                local v = buffer.readu8( center, (idx-1)) 
                 if v ~= 0 then continue end 
                 local can,i = cull(x,y,z)
                 if not can then
-                    local real = buffer.readu32(center, (idx-1)*4)
+                    local real = buffer.readu32(centerBlockData, (idx-1)*4)
                     loc[idx] = Vector3.new(real,i)
                 end
             end

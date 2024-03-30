@@ -33,17 +33,17 @@ end
 
 function parser.Entities(name,data)
     local parsed = {
-         Default = {
+         default = {
              Model = "Player"
          },
-         Variants = data.Variants or {}
+         variants = data.variants or {}
     }
  
-    if not data.Default then
-         parsed.Default = table.clone(data)
+    if not data.default then
+         parsed.default = table.clone(data)
     end
-    UnpackModel(parsed.Default,getModel(parsed.Default.Model))
-    for i,v in parsed.Variants do
+    UnpackModel(parsed.default,getModel(parsed.default.Model))
+    for i,v in parsed.variants do
         UnpackModel(v,getModel(v.Model))
     end
     return parsed

@@ -3,70 +3,75 @@ local Core = require(game.ReplicatedStorage.Core)
  
 return {
     ["c:dirt"] = {
-        Family = "c:block",
-        Default = {
+        family = "c:item_block",
+        default = {
           
         },
-        Variants = {}
+        variants = {},
+        events = {}
     },
     ["c:grassBlock"] = {
-        Family = "c:block",
-        Default = {
+        family = "c:item_block",
+        default = {
           
         },
-        Variants = {
+        variants = {
             {
                 
             }
         }
     },
     ["c:stone"] = {
-        Family = "c:block",
-        Default = {
+        family = "c:item_block",
+        default = {
           
         },
-        Variants = {}
+        variants = {}
     },
     ["c:leaf"] = {
-        Family = "c:block",
-        Default = {
+        family = "c:item_block",
+        default = {
           
         },
-        Variants = {}
+        variants = {}
     },
     ["c:wood"] = {
-        Family = "c:block",
-        Default = {
+        family = "c:item_block",
+        default = {
           
         },
-        Variants = {}
+        variants = {}
     },
     ["c:GodStick"] = {
-        OnEquipped = function(self,entity)
-            if not Core.Client then return end 
-            local Mouse = Core.Client.Controller.getMouse()
-            Mouse.setRayLength(3)
-        end,
-        
-        OnDequipped = function(self,entity)
-            if not Core.Client then return end 
-            local Mouse = Core.Client.Controller.getMouse()
-            Mouse.setRayLength(nil)
-        end,
+        events = {
+            OnEquipped = function(self,entity)
+                if not Core.Client then return end 
+                local Mouse = Core.Client.Controller.getMouse()
+                Mouse.setRayLength(3)
+            end,
+            
+            OnDequipped = function(self,entity)
+                if not Core.Client then return end 
+                local Mouse = Core.Client.Controller.getMouse()
+                Mouse.setRayLength(nil)
+            end,
+        },
         MaxCount = 1,
     },
     ["c:LongStick"] = {
-        OnEquipped = function(self,entity)
-            if not Core.Client then return end 
-            local Mouse = Core.Client.Controller.getMouse()
-            Mouse.setRayLength(100)
-        end,
-        
-        OnDequipped = function(self,entity)
-            if not Core.Client then return end 
-            local Mouse = Core.Client.Controller.getMouse()
-            Mouse.setRayLength(nil)
-        end,
+        events = {
+            OnEquipped = function(self,entity)
+                if not Core.Client then return end 
+                local Mouse = Core.Client.Controller.getMouse()
+                Mouse.setRayLength(100)
+            end,
+            
+            OnDequipped = function(self,entity)
+                if not Core.Client then return end 
+                local Mouse = Core.Client.Controller.getMouse()
+                Mouse.setRayLength(nil)
+            end,
+        },
         MaxCount = 1,
     }
 }  

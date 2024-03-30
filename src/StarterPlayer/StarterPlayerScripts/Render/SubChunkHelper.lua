@@ -1,8 +1,8 @@
 local helper = {}
 local Chunk = require(game.ReplicatedStorage.Chunk)
 local chunks = {}
-local Stack = require(game.ReplicatedStorage.Libarys.DataStructures.Stack)
-local Queue = require(game.ReplicatedStorage.Libarys.DataStructures.Queue)
+local Stack = require(game.ReplicatedStorage.Libs.DataStructures.Stack)
+local Queue = require(game.ReplicatedStorage.Libs.DataStructures.Queue)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local to1DVector = IndexUtils.to1DVector
 local to1D= IndexUtils.to1D

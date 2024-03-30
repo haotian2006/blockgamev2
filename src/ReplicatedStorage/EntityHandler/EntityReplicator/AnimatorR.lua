@@ -15,9 +15,9 @@ local Tasks = {
 }
 
 local encodeFunc = {
-    play = function(animation,fadeTime,weight,speed)
+    play = function(animation,fadeTime,weight,speed,looped)
         local v2 = if fadeTime or weight then Vector2.new(fadeTime or 0.100000001,weight or 1) else nil
-        return {Vector2.new(1,speed or 1),animation,v2}
+        return {Vector2.new(1,speed or 1),animation,v2,looped}
     end,
     stop = function(animation,fadeTime)
         return {Vector2.new(2,fadeTime or 0.100000001),animation}
@@ -37,7 +37,7 @@ local decodeFunc = {
     play = function(entity,data)
         local a = data[3] or {}
 
-        Animator.play(entity,data[2],a.X,a.Y,data[1].Y)
+        Animator.play(entity,data[2],a.X,a.Y,data[1].Y,data,data[4])
     end,
     stop = function(entity,data)
 
@@ -57,7 +57,7 @@ local decodeFunc = {
 local decodeFuncLocal = {
     play = function(entity,data)
         local a = data[3] or {}
-        Animator.playLocal(entity,data[2],a.X,a.Y,data[1].Y)
+        Animator.playLocal(entity,data[2],a.X,a.Y,data[1].Y,data[4])
     end,
     stop = function(entity,data)
         Animator.stopLocal(entity,data[2],data[1].Y)
@@ -85,24 +85,24 @@ function AnimatorR.sendTask(entity,task,SendToOwner,...)
     end
 end
 
-local function Recieve(uuid,data)
+local function Receive(uuid,data)
     local Entity = EntityHolder.getEntity(uuid)
     if not Entity then return end 
-    local decodefunc 
+    local decodedFunction
     if IS_CLIENT then
         if type(data) == "table" then
-            decodefunc= decodeFunc[Tasks[data[1].X]]
+            decodedFunction= decodeFunc[Tasks[data[1].X]]
         else
-            decodefunc= decodeFunc[Tasks[data.X]]
+            decodedFunction= decodeFunc[Tasks[data.X]]
         end
-        decodefunc(Entity,data)
+        decodedFunction(Entity,data)
     else
         if type(data) == "table" then
-            decodefunc= decodeFuncLocal[Tasks[data[1].X]]
+            decodedFunction= decodeFuncLocal[Tasks[data[1].X]]
         else
-            decodefunc= decodeFuncLocal[Tasks[data.X]]
+            decodedFunction= decodeFuncLocal[Tasks[data.X]]
         end
-        decodefunc(Entity,data)
+        decodedFunction(Entity,data)
         TaskReplicator.attachDataTo(uuid,"Animator",data)
     end
 end
@@ -111,6 +111,6 @@ function AnimatorR.init(animator)
     Animator = animator
 end
 
-TaskReplicator.bind("Animator",Recieve)
+TaskReplicator.bind("Animator",Receive)
 
 return AnimatorR

@@ -90,14 +90,14 @@ end
 local sides = {Right = true,Left = true,Top = true,Bottom = true,Back = true,Front =true}
 
 function Item.createItemModel(Item_)
-    local itemdata = Item.getItemInfoR(Item_)
-    if not itemdata  then return end 
+    local itemData = Item.getItemInfoR(Item_)
+    if not itemData  then return end 
     local stuff = {}
-    local texture = itemdata.Texture
-    local mesh = itemdata.Mesh 
+    local texture = itemData.Texture
+    local mesh = itemData.Mesh 
     if not mesh then return end 
     mesh = mesh:Clone()
-    if not texture then return mesh,itemdata end 
+    if not texture then return mesh,itemData end 
     if type(texture) == "function" then
         texture = texture(Item_)
     end
@@ -117,7 +117,7 @@ function Item.createItemModel(Item_)
     for i,v in stuff do
         v.Parent = mesh
     end
-    return mesh,itemdata
+    return mesh,itemData
 end
 
 
@@ -147,28 +147,25 @@ function Item.getDataFrom(name,id)
     if not ItemData then 
         return 
     end 
-    if ItemData.__NoDefault then
-        return ItemData
-    end
-    
-    if not id or id == 0 then
-        return  ItemData.Default
-    end
 
-    return ItemData[(id and id or "1")] or ItemData.Default
+    if not id or id == 0 then
+        return  ItemData.default
+    end
+    return ItemData[(id and id or "1")] or ItemData.default
 end
 
+
 function Item.onEquip(self,entity)
-    local data = Item.getData(self)
-    if data and data.OnEquipped then
-        data.OnEquipped(self,entity)
+    local event = Item.getEvent(self, "OnEquipped")
+    if event then
+        event(self,entity)
     end
 end
  
 function Item.onDequip(self,entity)
-    local data = Item.getData(self)
-    if data and data.OnDequipped then
-        data.OnDequipped(self,entity)
+    local event = Item.getEvent(self, "OnDequipped")
+    if event then
+        event(self,entity)
     end
 end
 local getDataFrom = Item.getDataFrom 
@@ -183,6 +180,20 @@ function Item.get(Item,key)
     return behData[key]
 end
 
+function Item.getEvent(self,event)
+    local Name = Item.getName(self)
+    local data = Items[Name]
+    if not data then return end 
+    return data.events[event]
+end
+
+function Item.getMethod(self,method)
+    local Name = Item.getName(self)
+    local data = Items[Name]
+    if not data then return end 
+    return data.methods[method]
+end
+
 function Item.getMaxCount(item)
     return ( getData(item)  or {}).MaxCount or 64 
 end
@@ -191,18 +202,18 @@ local initAlready = false
 function Item.Init()
     if initAlready then return end 
     initAlready = true
-    local itemindex 
+    local itemIndex 
     if Synchronizer.isActor() then
-        itemindex = Synchronizer.getDataActor("ItemData")
+        itemIndex = Synchronizer.getDataActor("ItemData")
     elseif Synchronizer.isClient() then
-        itemindex = Synchronizer.getDataClient("ItemData")
+        itemIndex = Synchronizer.getDataClient("ItemData")
     else
         local Saved = Synchronizer.getSavedData("ItemData")
         if Saved then
-            itemindex = Saved
+            itemIndex = Saved
         end
         local newAdded = false
-        update(itemindex)
+        update(itemIndex)
         for blockName,_ in Items do
             if table.find(ItemsIndex, blockName) then continue end 
             table.insert(ItemsIndex,blockName)
@@ -213,7 +224,7 @@ function Item.Init()
         end
         Synchronizer.setData("ItemData",ItemsIndex)
     end
-    update(itemindex)
+    update(itemIndex)
     for i,v in ItemsIndex do
         ItemKeys[v] = i
     end

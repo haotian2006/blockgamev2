@@ -6,7 +6,7 @@ local LocalPlayer = game:GetService("Players").LocalPlayer
 local Container = require(game.ReplicatedStorage.Container)
 local UiContainer = require(script.Parent.Ui.ContainerHandler)
 local HotbarManager = require(script.Parent.Ui.HotbarManager)
-local Signal = require(game.ReplicatedStorage.Libarys.Signal)
+local Signal = require(game.ReplicatedStorage.Libs.Signal)
 local Datahandler = require(game.ReplicatedStorage.Data)
 
 local ContainerAdded = Signal.protected()

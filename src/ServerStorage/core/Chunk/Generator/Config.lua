@@ -1,5 +1,6 @@
+local gameSettings = require(game.ReplicatedStorage.GameSettings)
 return {
-    RegionSize = 32,
+    RegionSize = gameSettings.RegionSize,
     Actors = 2, 
 
     --//Debris

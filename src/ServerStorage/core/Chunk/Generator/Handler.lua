@@ -16,7 +16,7 @@ local MaxCarver = Configs.MaxCarver
 local MaxFeature = Configs.MaxFeature
 
 --//Requires
-local Queue = require(game.ReplicatedStorage.Libarys.DataStructures.Queue)
+local Queue = require(game.ReplicatedStorage.Libs.DataStructures.Queue)
 local Generator = game.ServerStorage.Generation.generation
 local RegionHelper = require(script.Parent.RegionHelper)
 local Communicator = require(script.Parent.Communicator)
