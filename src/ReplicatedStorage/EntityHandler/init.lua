@@ -481,11 +481,11 @@ function Entity.getSpeed(self,isBase)
     return Entity.get(self,"Speed")
 end
 
-function Entity.takeDamage(self,isBase,damage)
+function Entity.takeDamage(self,damage,isBase)
     if not isBase then
         local method = Entity.getMethod(self,"takeDamage")
         if method then 
-            return method(self)
+            return method(self,damage)
         end 
     end
     local Health = Entity.get(self, "Health")
@@ -656,7 +656,7 @@ function Entity.updatePosition(self,dt)
         elseif not self.died then 
             local speed = (newPosition*Vector3.new(1,0,1) - self.Position*Vector3.new(1,0,1)).Magnitude/dt/(Entity.getAndCache(self,"Speed"))
             if not Animator.isPlaying(self,"Walk") then
-                Animator.play(self,"Walk")
+                Animator.play(self,"Walk",nil,nil,nil,true)
             end
             if speed >=0.05 then
                 Animator.adjustSpeed(self,"Walk",speed)

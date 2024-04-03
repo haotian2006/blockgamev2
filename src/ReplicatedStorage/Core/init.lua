@@ -82,7 +82,7 @@ export type Mouse = {
     getRay : () -> RayResults,
     setRayLength : (Length:number) -> (),
     setHighlighting : (Value:boolean) ->(),
-    getHighlighting : () -> boolean,
+    isHighlighting : () -> boolean,
     update : () -> (),
 }
 

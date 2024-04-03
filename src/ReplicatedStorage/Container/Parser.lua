@@ -28,8 +28,8 @@ return function ()
         Serializer = Core.Shared.awaitModule("Serializer")
         local bufferWriter = Serializer.writter
 
-        local ItemWritter = Serializer.Types.item.write
-        local StringWritter = Serializer.Types.string.write
+        local ItemWriter = Serializer.Types.item.write
+        local StringWriter = Serializer.Types.string.write
         local ItemReader = Serializer.Types.item.read
         local StringReader = Serializer.Types.string.read
         local alloc = bufferWriter.alloc
@@ -45,7 +45,7 @@ return function ()
             local Type,length = StringReader(b,arrayCursor)
             arrayCursor+=length
             Container[1] = Type
-
+ 
 			for i = 2, arrayLength do
                 local amt,len = u8Read(b,arrayCursor)
                 arrayCursor+=len
@@ -68,15 +68,15 @@ return function ()
             local size = ContainerHandler.size(container)+1
             alloc(2)
 			u16(size) -- write length, 2 bytes
-            StringWritter(container[1])
+            StringWriter(container[1])
 			for i = 2, size do
                 local at = container[i]
                 if at == "" then
                     u8Write(0)
-                    ItemWritter("")
+                    ItemWriter("")
                 else
                     u8Write(at[2])
-                    ItemWritter(at[1])
+                    ItemWriter(at[1])
                 end
 			end
             --StringWritter(container[#container].__Name or container[1])

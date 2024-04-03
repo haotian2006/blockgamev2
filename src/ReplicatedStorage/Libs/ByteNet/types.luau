@@ -11,7 +11,7 @@ export type namespaceData = {
 
 -- Externally used for defining packets
 export type packetProps<T> = {
-	value: T,
+	value: T, 
 	reliabilityType: ("reliable" | "unreliable")?,
 	callbackBehavior: {
 		spawnThread: boolean,

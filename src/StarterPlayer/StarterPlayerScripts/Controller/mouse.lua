@@ -13,13 +13,13 @@ local EntityUtils = EntityHandler.Utils
 local EnableHighlight = true
 local CurrentRay = {}
 
-local heightlight = Instance.new("Part",workspace)
-heightlight.Size = Vector3.new(3,3,3)
-heightlight.Anchored = true
-heightlight.Transparency = 1
-heightlight.Name = "SelectionPart"
-local H = Instance.new("SelectionBox",heightlight)
-H.Adornee = heightlight
+local highlight = Instance.new("Part",workspace)
+highlight.Size = Vector3.new(3,3,3)
+highlight.Anchored = true
+highlight.Transparency = 1
+highlight.Name = "SelectionPart"
+local H = Instance.new("SelectionBox",highlight)
+H.Adornee = highlight
 H.LineThickness = .05
 
 local length = 5
@@ -28,7 +28,7 @@ function mouse.setHighlighting(value)
     EnableHighlight = value or false
 end
 
-function mouse.getHighlighting()
+function mouse.isHighlighting()
     return EnableHighlight  
 end
 
@@ -50,11 +50,11 @@ function mouse.updateRay()
     local CameraCFrame = CustomCamera.getCFrame()
     local Results =  Ray.cast(EntityUtils.getEyePosition(Entity), (CameraCFrame.LookVector*Vector3.new(1,1,1)).Unit*length,RayParams)
     local block = Results.block
-    local Blockpos = Results.grid
+    local BlockPos = Results.grid
     if block == -1 or not block then 
         H.Visible = false 
     else
-        heightlight.Position = Blockpos*3
+        highlight.Position = BlockPos*3
         H.Visible = EnableHighlight
     end 
     CurrentRay = Results

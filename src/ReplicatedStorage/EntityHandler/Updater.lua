@@ -42,7 +42,7 @@ local function InitServer()
             passes+=1
         end
     end
-    local deltatime = {
+    local deltaTime = {
 
     }
     local function run()
@@ -51,9 +51,9 @@ local function InitServer()
             framesUntilTick = 0
             updateInfo()
         end
-        local LastTime = deltatime[framesUntilTick+1] or os.clock()-1/20
+        local LastTime = deltaTime[framesUntilTick+1] or os.clock()-1/20
         local current = os.clock()
-        deltatime[framesUntilTick+1] = current
+        deltaTime[framesUntilTick+1] = current
         local dt  = current-LastTime
       
 
@@ -62,10 +62,10 @@ local function InitServer()
             if not e then return end 
             Handler.updateChunk(e)
         end
-        local torun = WhenToRun[framesUntilTick+1] or {}
-        for v in torun do
+        local shouldRun = WhenToRun[framesUntilTick+1] or {}
+        for v in shouldRun do
             debug.profilebegin("Update")
-            if torun[v] then
+            if shouldRun[v] then
                 BehaviorHandler.run(v) 
             end
             debug.profileend()

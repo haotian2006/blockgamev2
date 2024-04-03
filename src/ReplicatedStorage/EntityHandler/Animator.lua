@@ -67,7 +67,7 @@ function Animator.playLocal(self,animation,fadeTime,weight,speed,looped)
     if IS_CLIENT then
         local ani = Animator.getOrLoad(self,animation)
         if not ani then return end 
-        ani.Looped = if looped then true else false
+        ani.Looped = if looped == nil then ani.Looped else looped
         ani:Play(fadeTime,weight,getSpeed(speed))
         self.__animations[animation] = speed or  -69
     else
@@ -119,7 +119,7 @@ function Animator.play(self,animation,fadeTime,weight,speed,looped)
     if IS_CLIENT then
         local Ani:AnimationTrack =  Animator.getOrLoad(self,animation)
         if Ani then
-            Ani.Looped = if looped then true else false
+            Ani.Looped = if looped == nil then Ani.Looped else looped
             Ani:Play(fadeTime,weight,getSpeed(speed))
         end
     end

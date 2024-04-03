@@ -16,7 +16,7 @@ local NoiseManager = require(game.ServerStorage.Generation.math.noise)
 local layers = require(game.ServerStorage.Generation.generation.biomes.layers)
 local Biomes = require(game.ReplicatedStorage.Biomes)
 local Utils = require(Generation.math.utils)
-local Regirstry = require(script.Parent.Parent.Registry)
+local Registry = require(script.Parent.Parent.Registry)
 local UInt32 = 2^32-1
 
 local to1D = IndexUtils.to1D
@@ -55,11 +55,11 @@ end
 
 
 function Shaper.color(cx,cz,Shape,Surface,Biome)
-    local ISBUFFER = type(Biome) ~= "number"
+    local IS_BUFFER = type(Biome) ~= "number"
     local currentBiome  = {}
-    if not ISBUFFER then
+    if not IS_BUFFER then
         local BiomeName = Biomes.getBiomeFrom(Biome)
-        currentBiome = Regirstry.getBiome(BiomeName)
+        currentBiome = Registry.getBiome(BiomeName)
     end
     local Cache = {} 
     local MainBlock = currentBiome.MainBlock 
@@ -67,10 +67,10 @@ function Shaper.color(cx,cz,Shape,Surface,Biome)
     local SecondaryBlock = currentBiome.SecondaryBlock
     local SecondaryLength = (currentBiome.SecondaryLength )
 
-    local function getBiome(idx):Regirstry.Biome
+    local function getBiome(idx):Registry.Biome
         if Cache[idx] then return Cache[idx] end 
         local BiomeName = Biomes.getBiomeFrom(buffer.readu16(Biome, (idx-1)*2))
-        local b = Regirstry.getBiome(BiomeName)
+        local b = Registry.getBiome(BiomeName)
 
         Cache[idx] = b or currentBiome
         return b
@@ -79,9 +79,9 @@ function Shaper.color(cx,cz,Shape,Surface,Biome)
     local times = 0
     for x = 1,8 do
         for z = 1,8 do
-            local idx2D = IndexUtils.to1DXZ[x][z]
-            local Surfacey = buffer.readu8(Surface, idx2D-1)
-            if ISBUFFER then
+            local idx2D = IndexUtils.to1DXZ[x][z] 
+            local SurfaceY = buffer.readu8(Surface, idx2D-1)
+            if IS_BUFFER then
                 local biome = getBiome(idx2D)
                 if currentBiome ~= biome then
                     MainBlock = biome.MainBlock
@@ -97,9 +97,9 @@ function Shaper.color(cx,cz,Shape,Surface,Biome)
                 local value = buffer.readu32(Shape, idx_)
                 local color = 0
                 if value == UInt32 then
-                    local diff = Surfacey-y
+                    local diff = SurfaceY-y
                     color = MainBlock
-                    if Surfacey == y then
+                    if SurfaceY == y then
                         color = SurfaceBlock
                     elseif diff < SecondaryLength and diff>0 then
                         color = SecondaryBlock
@@ -169,7 +169,7 @@ function Shaper.sampleDensityNoise(cx,cz,qx,qz,biome)
     local ISBUFFER = type(biome) ~= "number"
     if not ISBUFFER then
         local BiomeName = Biomes.getBiomeFrom(biome)
-        local b = Regirstry.getBiome(BiomeName)
+        local b = Registry.getBiome(BiomeName)
         height = b.Elevation 
         Factor = b.Factor 
         noise_scale = b.NoiseScale 
@@ -183,7 +183,7 @@ function Shaper.sampleDensityNoise(cx,cz,qx,qz,biome)
     if ISBUFFER then
         local idx = IndexUtils.to1DXZ[x][z]
         local BiomeName = Biomes.getBiomeFrom(buffer.readu16(biome, (idx-1)*2))
-        local b = Regirstry.getBiome(BiomeName)
+        local b = Registry.getBiome(BiomeName)
         height = b.Elevation 
         Factor = b.Factor 
         noise_scale = b.NoiseScale 
@@ -244,13 +244,14 @@ function Shaper.blendNoise(C,N,E,NE)
     return b
 end
 
+
 function Shaper.computeBlendedAir(center,top,left,topLeft)
     local noise000,noise001,noise010,noise011,noise100,noise101,noise110,noise111 = 1,1,1,1,1,1,1,1
     local b = buffer.create(256*8*8)
     debug.profilebegin("Blend air")
     local LastY 
     local surfaceBuffer = buffer.create(8*8)
-    local calculate = {}
+    local calculated = {}
     for y = 255,0,-1 do 
         local yp = YprecentageCache[y+1]
         local ly = (y)//8
@@ -273,11 +274,11 @@ function Shaper.computeBlendedAir(center,top,left,topLeft)
                 local zp = YprecentageCache[z]
                 local value = lerp3(xp, yp, zp, noise000, noise100, noise010, noise110, noise001, noise101, noise011, noise111)
                 local bool = value>0 and 1 or 0
-                local idx2d =IndexUtils.to1DXZ[x][z] 
-                if not calculate[idx2d] then
+                local idx2d = to1DXZ[x][z] 
+                if not calculated[idx2d] then
                     if  (bool == 1) then
                         buffer.writeu8(surfaceBuffer, idx2d-1, y)
-                        calculate[idx2d] = true
+                        calculated[idx2d] = true
                     end
                 end
                 if bool == 0 then continue end 

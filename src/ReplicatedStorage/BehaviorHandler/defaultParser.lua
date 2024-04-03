@@ -19,17 +19,21 @@ local function getFamily(families)
     for _,v in families do
         local data = Family[v]
         for key,value in data do
+            if key == "RealName" then continue end 
             if key == "events" then
                 for eventName,event in value do
+                    if CombinedEvents[eventName] then continue end 
                     CombinedEvents[eventName] = getValue(event)
                 end
                 continue
             elseif key == "methods" then
                 for methodName,method in value do
+                    if CombinedMethods[methodName] then continue end 
                     CombinedMethods[methodName] = getValue(method)
                 end
                 continue
             end
+            if Combined[key] then continue end 
             Combined[key] = getValue(value)
         end
     end
@@ -60,6 +64,7 @@ local function parse(name,data)
     end
 
     for i,v in family do 
+        if i == "RealName" then continue end 
         if default[i] then continue end
         default[i] = v
     end

@@ -174,7 +174,7 @@ function Item.getData(item)
 end
 local getData = Item.getData
 
-function Item.get(Item,key)
+function Item.get(Item,key) 
     local behData = getData(Item)
     if not behData then return end 
     return behData[key]
@@ -187,12 +187,25 @@ function Item.getEvent(self,event)
     return data.events[event]
 end
 
-function Item.getMethod(self,method)
+function Item.getMethod(self,method,cannotBeBase)
     local Name = Item.getName(self)
     local data = Items[Name]
     if not data then return end 
-    return data.methods[method]
+    return data.methods[method] or  (not cannotBeBase and Item[method])
 end
+
+--@Override
+function Item.getBreakMultiplayer(self,block,isBase)
+    if not isBase then
+        local method = Item.getMethod(self,"getBreakMultiplayer")
+        if method then 
+            return method(self)
+        end 
+    end
+    return 1
+end
+
+
 
 function Item.getMaxCount(item)
     return ( getData(item)  or {}).MaxCount or 64 

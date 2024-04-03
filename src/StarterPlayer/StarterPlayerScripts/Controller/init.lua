@@ -11,6 +11,7 @@ local MathLib = require(game.ReplicatedStorage.Libs.MathFunctions)
 local Mouse = require(script.mouse)
 local CustomCamera = require(script.Camera)
 local EntityTaskReplicator = require(game.ReplicatedStorage.EntityHandler.EntityReplicator.EntityTaskReplicator)
+local BlockBreaker = require(script.BlockBreaker)
 
 local DataHandler = require(game.ReplicatedStorage.Data)
 local ConversionUtil = require(game.ReplicatedStorage.Utils.ConversionUtils)
@@ -34,7 +35,7 @@ function Functions.Crouch(key,IsDown,GPE,inputs)
     until (not InputHandler.isDown("Crouch") and   EntityHandler.canCrouch(Player,true))
     EntityHandler.crouch(Player,false)
 end
-
+ 
 local ray = require(game.ReplicatedStorage.CollisionHandler.Ray)
 
 local highlights = Instance.new("Part",workspace)
@@ -55,10 +56,10 @@ end
 local function AttackBlock(RayData)
     if not RayData.block then return end 
     local BlockPos = RayData.grid
-    Helper.insertBlock(BlockPos.X,BlockPos.Y,BlockPos.Z,0)
+   -- Helper.insertBlock(BlockPos.X,BlockPos.Y,BlockPos.Z,0)
     return true
 end
-
+  
 function Functions.Attack(key,IsDown,GPE,inputs)
     if not IsDown then return end 
     local RayData = Mouse.getRay()

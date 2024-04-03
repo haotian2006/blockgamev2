@@ -63,6 +63,8 @@ function block.getResourceFrom(compressedBlock)
     return resource
 end
 
+
+--//BlockId:13 bits, rotation: 3 Variant: 8 bits Extra Data: 8
 function block.compress(blockID, rotation, otherData)
     otherData = otherData or 0
     rotation = rotation or 0

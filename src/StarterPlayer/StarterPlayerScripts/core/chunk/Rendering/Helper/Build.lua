@@ -78,12 +78,12 @@ function Builder.build(chunk,Meshed)
     local i = 0
     for key,data in Meshed do
     
-        local blockID,rot,id = Block.decompressCache(data.data.X)
         local partName = toStringBlockInfo(data)
         if Rendered[partName] then 
             removed[partName] = true 
             continue 
         end 
+        local blockID,rot,id = Block.decompressCache(data.data.X)
         
         rot = RotationUtils.indexPairs[rot]
         local walls = data.data.Y

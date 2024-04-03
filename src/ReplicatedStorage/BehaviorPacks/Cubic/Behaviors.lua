@@ -1,6 +1,6 @@
 local Utils = require(game.ReplicatedStorage.EntityHandler.Utils)
 local Handler = require(game.ReplicatedStorage.EntityHandler)
-local Containter = require(game.ReplicatedStorage.Container)
+local Container = require(game.ReplicatedStorage.Container)
 local Item = require(game.ReplicatedStorage.Item)
 local CollisionHandler = require(game.ReplicatedStorage.CollisionHandler)
 
@@ -66,7 +66,7 @@ return {
 
                         local c = Handler.Container.getContainer(v, "Inventory")
                         if not c then return end 
-                        local leftOver = Containter.add(c,Item.new(Entity.ItemId, Entity.ItemVariant), Entity.ItemCount or 0) or 0
+                        local leftOver = Container.add(c,Item.new(Entity.ItemId, Entity.ItemVariant), Entity.ItemCount or 0) or 0
                         if leftOver>0 then
                             Entity.ItemCount = leftOver
                         else
@@ -78,15 +78,15 @@ return {
                         if time()-Alive_ <=0 then continue end 
                         if maxCount <= v.ItemCount then continue end 
                         local sum = Entity.ItemCount + v.ItemCount
-                        local diffrence = 0
+                        local difference = 0
                         if sum > maxCount then
                             sum = maxCount
-                            diffrence = maxCount-sum
+                            difference = maxCount-sum
                         end
                         Handler.set(Entity, "ItemCount", sum)
-                        Handler.set(v, "ItemCount", diffrence)
+                        Handler.set(v, "ItemCount", difference)
                         Handler.setDespawnTime(Entity, nil)
-                        if diffrence == 0 then
+                        if difference == 0 then
                             Handler.destroy(v)
                         end
                     end

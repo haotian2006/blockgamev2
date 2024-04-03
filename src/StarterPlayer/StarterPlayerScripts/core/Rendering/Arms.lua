@@ -135,14 +135,21 @@ function Arms.setMode(mode)
     end
 end
 
-function Arms.playAnimation(ani,fadeTime,weight,speed)
-    Animator.playLocal(CurrentArms, ani)
+function Arms.isPlaying(ani)
+    if not CurrentArms then return false end 
+    return Animator.isPlaying(CurrentArms, ani)
+end
+
+function Arms.playAnimation(ani,fadeTime,weight,speed,loop)
+    if not CurrentArms then return end 
+    Animator.playLocal(CurrentArms, ani,fadeTime,weight,speed,loop)
     local Entity = PlayerEntity()
     if not Entity then return end 
-    Animator.play(Entity, ani,fadeTime,weight,speed)
+    Animator.play(Entity, ani,fadeTime,weight,speed,loop)
 end
 
 function Arms.stopAnimation(ani,fadeTime)
+    if not CurrentArms then return end 
     Animator.stop(CurrentArms, ani)
     local Entity = PlayerEntity()
     if not Entity then return end 
@@ -151,11 +158,6 @@ end
 
 
 
-game:GetService("UserInputService").InputBegan:Connect(function(k)
-    if not CurrentArms or k.UserInputType ~= Enum.UserInputType.MouseButton1 then return end 
-
-    Arms.playAnimation("Attack")
-end)
 
 game:GetService("RunService").RenderStepped:Connect(Arms.update)
 

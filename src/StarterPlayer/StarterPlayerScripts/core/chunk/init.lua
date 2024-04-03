@@ -140,8 +140,7 @@ game:GetService("RunService").Heartbeat:Connect(function(a0: number)
             if checked[i] then continue end  
             destroyed[i] = true
             Recieved[i] = nil
-           -- Render.deloadChunk(i)
-           -- RenderHandler.requestDeload(i)
+   
         end
         Config.InRadius = checked
         for i,v in Builder.Rendered do

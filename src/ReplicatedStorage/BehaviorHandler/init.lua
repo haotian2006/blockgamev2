@@ -28,6 +28,7 @@ local RunService = game:GetService("RunService")
 
 --Parsers
 local parser = require(script.defaultParser)
+local familyParser = require(script.parseFamily)
 BehaviorPacks.Name = "BehaviorPacks"
 
 local function CheckKeyLength(Key)
@@ -107,6 +108,8 @@ function BehaviorHandler.Init()
     for i,v in BehaviorPacks:GetChildren()do
         BehaviorHandler.LoadPack(v.Name)
     end
+    familyParser(Families)
+    print(Families)
     parser(Blocks,Families)
     parser(Items,Families)
     Init = true

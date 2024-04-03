@@ -27,7 +27,7 @@ local Manipulator = require(script.Parent.Saver.RegionDataHandler)
 local RegionManager = require(script.Parent.Saver.RegionHandler)
 
 local Start_Time = os.clock()
-local _,ACTORID = Communicator.getActor()
+local _,ACTOR_ID = Communicator.getActor()
 
 Overworld.Init()
 local preComputedArea = OtherUtils.preComputeSquare(Configs.StructureRange)
@@ -289,7 +289,7 @@ local function RequestBuild(chunk)
     if InBuildQueue[chunk] then return end 
     InBuildQueue[chunk] = true
     local Region = RegionHelper.GetIndexFromChunk(chunk)
-    if Region ~= ACTORID then
+    if Region ~= ACTOR_ID then
         AddToReplicator(RequestBuildTable, Region,chunk)
         return
     end
@@ -298,7 +298,7 @@ end
 
 --//Main
 local function MainHandler(chunk)
-    local InRegion = RegionHelper.GetIndexFromChunk(chunk) == ACTORID
+    local InRegion = RegionHelper.GetIndexFromChunk(chunk) == ACTOR_ID
     if InRegion  then
         local Shape,Biome = RegionManager.getChunkData(chunk)
         if Shape then
@@ -455,11 +455,9 @@ local function MainHandler(chunk)
     task.cancel(Failed)
     ChunkObj.Failed  = nil
 end
-sa = game:GetService("HttpService")
-timesaa = 0
-palletBuffer = buffer.create(2_500_000)
-blockBuffer = buffer.create(2_500_000)
-bs,ps = 0,0
+
+
+
 local function MainLoop()
     for i =1 , 5 do
         local chunk = Queue.dequeue(MainQueue)
