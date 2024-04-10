@@ -37,6 +37,7 @@ end
 
 
 function Biome.getBiomeFrom(id)
+    if not id or id == -1 then return "null" end 
     return Biomes[id+1]
 end
 

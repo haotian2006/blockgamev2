@@ -8,7 +8,7 @@ local TO1DVector = IndexUtils.to1DVector
 local SECTION_HEIGHT = 16 --No touchy pls
 local MAX_SECTIONS = 256/SECTION_HEIGHT
 local MAXBITS = 9
-local WRITTERS = {
+local WRITERS = {
     [0] = function() end ,
 }
 local READERS = {
@@ -19,7 +19,7 @@ do
     local sampleR = bitBuffer.reader(buffer.create(0))
     for i = 1,MAXBITS do
         local str = `UInt{i}`
-        WRITTERS[i] = sample[str]
+        WRITERS[i] = sample[str]
         READERS[i] = sampleR[str]
     end
 end
@@ -68,14 +68,14 @@ local function SterSectionHelper(SizeOfPallet)
     end
     local palletBuffer = buffer.create(SizeOfPallet*4)
     buffer.copy(palletBuffer, 0, LargePalletBuffer,0,SizeOfPallet*4)
-    local writterObj = bitBuffer.writer(LargeBlockBuffer)
-    local fx = WRITTERS[bitsNeed]
-    debug.profilebegin("writter")
+    local writerObj = bitBuffer.writer(LargeBlockBuffer)
+    local fx = WRITERS[bitsNeed]
+    debug.profilebegin("writer")
     for i,v in blockTable do
-        fx(writterObj,v)
+        fx(writerObj,v)
     end
     debug.profileend()
-    local Cursor = writterObj.byte + (writterObj.bit > 0 and 1 or 0)
+    local Cursor = writerObj.byte + (writerObj.bit > 0 and 1 or 0)
     local blockBuffer = buffer.create(Cursor)
     buffer.copy(blockBuffer, 0, LargeBlockBuffer,0,Cursor)
     buffer.fill(LargeBlockBuffer, 0, 0,Cursor)

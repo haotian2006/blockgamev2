@@ -1,6 +1,6 @@
 return {
    {
-      RealName = 'c:plains',
+      Alias = 'c:plains',
 
       Elevation  = 10, 
       Factor = 100, 
@@ -26,16 +26,16 @@ return {
       }
    },
    { 
-    RealName = 'c:ocean',
+    Alias = 'c:ocean',
     Elevation = 11,
     Factor = 100,
 
    },
    { 
-      RealName = 'c:snow',
+      Alias = 'c:snow',
       Elevation = 14,
       Factor = 300,
-      SurfaceBlock = {'c:grassBlock',0,1},
+      SurfaceBlock = {'c:grassBlock',1,0},
       NoiseScale = .5,
       SurfaceScale = 1,
       Caves = true,
@@ -52,7 +52,7 @@ return {
 
    },
    { 
-      RealName = 'c:hill',
+      Alias = 'c:hill',
       Elevation = 14,
       Factor = 100,
       SurfaceScale = .1;
@@ -62,7 +62,7 @@ return {
 
    },
      { 
-      RealName = 'c:desert',
+      Alias = 'c:desert',
       Elevation = 7,
       Factor = 50,
   

@@ -2,6 +2,10 @@ local Item = {}
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local Synchronizer = require(game.ReplicatedStorage.Synchronizer)
+local Block
+task.delay(2, function()
+    Block = require(game.ReplicatedStorage.Block)
+end)
 
 local Items = BehaviorHandler.getAllData().Items
 
@@ -195,14 +199,46 @@ function Item.getMethod(self,method,cannotBeBase)
 end
 
 --@Override
-function Item.getBreakMultiplayer(self,block,isBase)
+function Item.getBlock(self,isBase)
     if not isBase then
-        local method = Item.getMethod(self,"getBreakMultiplayer")
+        local method = Item.getMethod(self,"getBlock",true)
         if method then 
             return method(self)
         end 
     end
-    return 1
+    return nil 
+end
+function Item.getBreakMultiplier(self,block,isBase)
+    if not isBase then
+        local method = Item.getMethod(self,"getBreakMultiplier",true)
+        if method then 
+            return method(self,block)
+        end 
+    end
+    local ItemInfo = getData(self)
+    local Base = Item.get(self, "BaseBlockMultiplier") or 1
+    if not ItemInfo then return  Base end
+    local Multipliers = ItemInfo.BlockMultiplier or {}
+    for _,Multiplier in Multipliers do
+        local Name = Multiplier.Name
+        local Type = string.lower(Multiplier.Type or "block")
+        local times = Multiplier.Multiplier or 1
+        
+        local Id = Block.decompress(block)
+        local str = Block.getBlock(Id)
+
+        local passed = false
+        if Type == "block" then
+            passed = str == Name
+        elseif Type == "family" then
+            local Data = BehaviorHandler.getBlock(str)
+            passed = BehaviorHandler.isFamily(Data, Name)
+        end
+        if passed then 
+            return times
+        end
+    end
+    return Base
 end
 
 

@@ -18,7 +18,7 @@ end
 
 local END = 2^16-1
 return function ()
-    local funcx = {}
+    local func = {}
     task.defer(function()
         local Core = require(game.ReplicatedStorage.Core)
         local ItemHandler = require(script.Parent)
@@ -28,11 +28,13 @@ return function ()
         local Serializer = Core.Shared.Serializer
         Serializer = Core.Shared.awaitModule("Serializer")
         local bufferWriter = Serializer.writter
-
+        local getBuffer = bufferWriter.getBuffer
+        local getCursor = bufferWriter.getCursor
         local alloc = bufferWriter.alloc
         local u16 = bufferWriter.u16
         local u32 = bufferWriter.u32
-        funcx.read = function(b, cursor)
+        local u8 = bufferWriter.u8
+        func.read = function(b, cursor)
            -- local constructed = {}
             local startCursor = cursor
             local traversed = 0
@@ -46,8 +48,8 @@ return function ()
       
             return ItemHandler.new(id,var), size
         end
-        funcx.write = function(Item)
-            local cursor = bufferWriter.getCursor()
+        func.write = function(Item)
+            local cursor = getCursor()
             alloc(2)
             u16(0)
             
@@ -55,21 +57,21 @@ return function ()
                 return
             end
 
-            bufferWriter.u16(Item[1] or 0)
-            bufferWriter.u8(Item[2] or 0)
-          
-            local size = bufferWriter.getCursor() - cursor
+            u16(Item[1] or 0)
+            u8(Item[2] or 0)
+            --//write components 
+            local size = getCursor() - cursor
             if size > END then
                 warn("Item Size OverFlow")
                 size = END
             end
-            buffer.writeu16(bufferWriter.getBuffer(), cursor, size)
+            buffer.writeu16(getBuffer(), cursor, size)
         end
     
-        funcx.isType = function(value)
+        func.isType = function(value)
             return (type(value) == "table" and value[1]) or value == ""
         end
     end)
-    return funcx
+    return func
 end
 

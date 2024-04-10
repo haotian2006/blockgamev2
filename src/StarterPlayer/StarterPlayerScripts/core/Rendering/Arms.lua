@@ -150,7 +150,7 @@ end
 
 function Arms.stopAnimation(ani,fadeTime)
     if not CurrentArms then return end 
-    Animator.stop(CurrentArms, ani)
+    Animator.stop(CurrentArms, ani,fadeTime)
     local Entity = PlayerEntity()
     if not Entity then return end 
     Animator.stop(Entity, ani,fadeTime)

@@ -7,6 +7,8 @@ IndexConverter.preCompute2D()
 local ResourchHandler = require(game.ReplicatedStorage.ResourceHandler)
 local IS_CLIENT = game:GetService("RunService"):IsClient()
 local to1d = IndexConverter.to1D
+local to1dXZ = IndexConverter.to1DXZ
+
 
 function Chunk.new(x,z,Block:buffer?,biomes:nil|buffer|number,transparencyData)
     local self = {
@@ -59,7 +61,7 @@ function Chunk.getBiome(self,idx)
 end
 
 function Chunk.getBiomeAt(self,x,z)
-    local idx = IndexConverter.to1DXZ[x][z]
+    local idx = to1dXZ[x//1][z//1]
     return if typeof(self.BiomeMap) =='buffer' then buffer.readu16(self.BiomeMap, (idx-1)*2) else self.BiomeMap
 end
 
@@ -83,16 +85,17 @@ if IS_CLIENT then
         UpdateTransparency(self,idx,block)
     end 
 end
+local insertBlock =  Chunk.insertBlock
 
 function Chunk.insertBlockAt(self,x,y,z,block)
-    Chunk.insertBlock(self, to1d[x][y][z], block)
+    insertBlock(self, to1d[x//1][y//1][z//1], block)
 end
 
-function Chunk.getblock(self,idx)
+function Chunk.getBlock(self,idx)
    return buffer.readu32(self.Blocks, (idx-1)*4)
 end
-
+local getBlock = Chunk.getBlock
 function Chunk.getBlockAt(self,x,y,z)
-    return Chunk.getblock(self, to1d[x][y][z])
+    return getBlock(self, to1d[x//1][y//1][z//1])
 end
 return table.freeze(Chunk)

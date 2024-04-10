@@ -46,8 +46,8 @@ local function addTo(to,from)
         return false
     end
     for i,v in from do
-        local realName = type(v) == "table" and v.RealName
-        i = CheckKeyLength(realName or i)
+        local Alias = type(v) == "table" and v.Alias
+        i = CheckKeyLength(Alias or i)
         if to[i] then continue end 
         to[i] = v
     end
@@ -62,7 +62,7 @@ local function ParseChildren(Object,MainModule)
             ParseChildren(stuff,MainModule)
         elseif stuff:IsA("ModuleScript") then
             local data = require(stuff)
-            local key = (type(data) == "table" and CheckKeyLength(data.RealName)) or Key
+            local key = (type(data) == "table" and CheckKeyLength(data.Alias)) or Key
             MainModule[key] = MainModule[key] or data
 
         else
@@ -109,14 +109,22 @@ function BehaviorHandler.Init()
         BehaviorHandler.LoadPack(v.Name)
     end
     familyParser(Families)
-    print(Families)
     parser(Blocks,Families)
     parser(Items,Families)
+    --print(BehaviorHandler.isFamily(Blocks["c:grassBlock"], "item_block"))
     Init = true
     return BehaviorHandler 
 end
 
+function BehaviorHandler.isFamily(t,family)
+    if t.__Family then 
+        return t.__Family[family]
+    end
+    return false
+end
+
 --//getters
+
 function BehaviorHandler.getItemData(name)
     if not Data.Items then return end
     return Data.Items[name]
@@ -135,7 +143,12 @@ function BehaviorHandler.getItem(name)
     return Data.Items[name]
 end
 
-function BehaviorHandler.getBlock (name,id)
+
+function BehaviorHandler.getBlock (name)
+    return Blocks[name]
+end
+
+function BehaviorHandler.getBlockInfo (name,id)
     local blockData = Blocks[name]
     if not blockData then 
         return 

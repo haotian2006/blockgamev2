@@ -1,5 +1,6 @@
 local Family = {
-    RealName = "block_base",
+    Alias = "block_base",
+    Inheritance = "item_block",
     BreakSpeed = 1
 }
 

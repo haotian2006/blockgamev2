@@ -1,7 +1,7 @@
 local Region = {}
 local Https = game:GetService("HttpService")
 
-local ChunkCompresser = require(script.Parent.Chunk)
+local ChunkCompressor = require(script.Parent.Chunk)
 local RegionHelper = require(script.Parent.Parent.RegionHelper)
 local RegionDataHandler = require(script.Parent.RegionDataHandler)
 local Communicator = require(script.Parent.Parent.Communicator)
@@ -11,7 +11,7 @@ local Queue = require(game.ReplicatedStorage.Libs.DataStructures.Queue)
 local ActorRegionData = Debirs.getFolder("ActorRegionData", 1 )
 local Config = require(script.Parent.Parent.Config)
 local DataStorehandler = require(game.ServerStorage.core.Other.DataStoreHandler)
-
+local WorldConfig = require(game.ReplicatedStorage.WorldConfig)
 local dss = DataStorehandler.getWorldStore()
 
 local Options = Instance.new("DataStoreGetOptions")
@@ -60,7 +60,7 @@ local ToSave = {}
 
 local OnCloseSave = {}
 
-local function AttempToSaveBlock(region,toRemove)
+local function AttemptToSaveBlock(region,toRemove)
     local data =  ToSave[region]
     if data == 1 or not data then return end 
     ToSave[region] = 1
@@ -116,21 +116,31 @@ local function RemoveAndShift(info,offset,amt,totalSize)
     end
 end
 
+local function len(t)
+    local i = 0
+    for _,v in t do i +=1 end 
+
+    return i
+end
 local CompressRegionsQueue = Queue.new(1000)
 local CurrentlyUpdating = 0
+local processing = {}
 local function UpdateChunk(region,toRemove,Entities,hadChanges)
     local start = os.clock()
     local Data = Regions_Loaded[region]
+    processing[region] = true
     if  not Entities then
-        print("no Found")
-        print(toRemove)
+        print("no Found "..region)
+
     end
     if not Entities and Data then
         Entities =   Data.CompressedEntity
     end
     local NewChunks = Data.NewChunks
     local Info,Bdata = Region.getData(region)
+    local hadNo = false
     if not Info then
+        hadNo = true
         Info,Bdata = RegionDataHandler.createChunkInfoBuffer(),buffer.create(0)
     end
     local HadUpdates = false
@@ -148,7 +158,7 @@ local function UpdateChunk(region,toRemove,Entities,hadChanges)
         else 
             local offset = RegionDataHandler.getLoc(Info,Rid)
             if not offset then continue end 
-            Biome,BlockData = ChunkCompresser.Des(Bdata, offset)
+            Biome,BlockData = ChunkCompressor.Des(Bdata, offset)
         end
         for _,v2 in rest do
             local idx,value = v2.X-1,v2.Y
@@ -163,13 +173,14 @@ local function UpdateChunk(region,toRemove,Entities,hadChanges)
         if hadChanges then
             ToSave[region] = {Data.CompressedString,Entities}
             task.spawn(function()
-                AttempToSaveBlock(region,toRemove)
+                AttemptToSaveBlock(region,toRemove)
             end)
         end
         if toRemove then
             ActorRegionData:remove(region)
             Regions_Loaded[region] = nil
         end 
+        processing[region] = nil
         return 
     end 
     local NewData = {}
@@ -212,13 +223,15 @@ local function UpdateChunk(region,toRemove,Entities,hadChanges)
     -- local e = os.clock()-start
     -- print(e*1000,"ms")
     -- print("Frames",e*60)
+   -- print(#json,buffer.len(combined),buffer.len(Bdata),region,hadNo,len(Changed),#ToCompress)
     Data.CompressedString = json
     ActorRegionData:remove(region)
 
-    ToSave[region] = {json,Entities}
+    ToSave[region] = {json,Entities,WorldConfig.Version}
     task.spawn(function()
-        AttempToSaveBlock(region,toRemove)
+        AttemptToSaveBlock(region,toRemove)
     end)
+    processing[region] = nil
 end
 
 function Region.getData(region)
@@ -273,7 +286,7 @@ function Region.Loop()
             break 
         end
         Saved = false
-        local b = ChunkCompresser.Ster(nextItem[2], nextItem[3])
+        local b = ChunkCompressor.Ster(nextItem[2], nextItem[3])
         local other = nextItem[4]
         other[2] -=1
         other[3][nextItem[1]] = b
@@ -285,10 +298,11 @@ function Region.Loop()
 end
 
 Communicator.bindToMessage("UpdateAllRegions",function(from)
+    task.wait(10)
     for i,v in ToSave do
         if v == 1 then continue end 
         task.spawn(function()
-            AttempToSaveBlock(i, true)
+            AttemptToSaveBlock(i, true)
         end)
     end
 end)
@@ -320,22 +334,23 @@ end)
 
 game:BindToClose(function()
     Config.OnClose = true
-    task.wait(.5)
+    task.wait(1)
+    while next(ToUpdate) or next(ToSave) or next(processing) do
+        task.wait() 
+    end
     for i,v in ToSave do
         if v == 1 then continue end 
         task.spawn(function()
-            AttempToSaveBlock(i, true)
+            AttemptToSaveBlock(i, true)
         end)
     end
-    while next(ToUpdate) or next(ToSave) do
-        task.wait() 
-    end
+    task.wait(1)
     for i,v in OnCloseSave do
         task.spawn(function()
             local sus,err = pcall(function(...)  
                 dss:SetAsync(tostring(i),v)
             end)
-            print("BINDTOCLOSE SAVED REGION",i,"|",regionNum,#(v[1] or {})+#(v[2]or{}))
+            print("BINDTOCLOSE SAVED REGION",i,"|",regionNum,#(v[1] or {})+#(v[2]or{}),#(v[1] or {}),#(v[2]or{}))
             if not sus then
                 warn(err)
             end
@@ -345,6 +360,7 @@ game:BindToClose(function()
     while next(OnCloseSave) do
         task.wait()
     end
+ 
     Communicator.sendMessageMain("OnClose",true)
 end)
 

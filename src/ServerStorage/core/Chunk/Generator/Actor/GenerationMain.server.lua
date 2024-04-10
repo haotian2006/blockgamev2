@@ -14,5 +14,5 @@ end)
 local storage = unpack(require(Generator.ChunkAndStorage))
 
 script.Parent.Info.OnInvoke = function()
-    return storage.getInfo()
+    return storage.getStats()
 end

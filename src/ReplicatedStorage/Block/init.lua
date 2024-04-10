@@ -57,21 +57,61 @@ function block.getResource(Block,Id)
 end
 
 function block.getResourceFrom(compressedBlock)
-    local type,rot,id = block.decompress(compressedBlock)
+    local type,id = block.decompress(compressedBlock)
     local resource = ResourceHandler.getBlock(Blocks[type+1])
     --//TODO: implement block ids
     return resource
 end
 
+function block.getDataFrom(BlockName,variant)
+    return BehaviorHandler.getBlockInfo(BlockName, variant)
+end
 
---//BlockId:13 bits, rotation: 3 Variant: 8 bits Extra Data: 8
-function block.compress(blockID, rotation, otherData)
-    otherData = otherData or 0
-    rotation = rotation or 0
-    if otherData == 0  and rotation == 0 then return blockID end 
-    local packedValue = bit32.bor(bit32.lshift(otherData, 22), bit32.lshift(rotation, 16), blockID)
+function block.getData(CompressedBLock)
+    local Id,Variant = block.decompress(CompressedBLock)
+    local str = block.getBlock(Id)
+    local data = block.getDataFrom(str,Variant)
+    return data
+end
+
+function block.get(BLOCK,key)
+    local Id,Variant = block.decompress(BLOCK)
+    local str = block.getBlock(Id)
+    local data = block.getDataFrom(str,Variant)
+    if not data then return end 
+    return data[key]
+end
+
+
+
+--//BlockId:14 bits , Variant: 7 bits , Extra Data/rot(3): 11
+function block.compress(blockID, variant, extra)
+    variant = variant or 0
+    extra = extra or 0
+    
+    if variant == 0 and extra == 0 then
+        return blockID
+    end
+    
+    local packedValue = bit32.bor(
+        bit32.lshift(extra, 21),
+        bit32.lshift(variant, 14),
+        blockID
+    )
+    
     return packedValue
 end
+
+--[[
+function block.compress(blockID, rotation, variant,extra)
+    variant = variant or 0
+    extra = extra or 0
+    rotation = rotation or 0
+    if extra == 0  and rotation == 0 then return blockID end 
+    local packedValue = bit32.bor(bit32.lshift(variant, 22), bit32.lshift(rotation, 16), blockID)
+    return packedValue
+end
+
 
 function block.decompress(packedValue)
     if packedValue <65536 then
@@ -83,18 +123,28 @@ function block.decompress(packedValue)
     return blockID, rotation, other
 end
 
-function block.decompressCache(packedValue)
-    local current = BlockFolder:get(packedValue)
-    if  current then return  unpack(current) end 
-    local x,y,z = block.decompress(packedValue)
-    BlockFolder:set(packedValue,{x,y,z}) 
-    return x,y,z
+
+]]
+--[[
+   
+]]
+function block.decompress(packedValue)
+    if packedValue <16382 then
+        return packedValue
+    end
+    local blockID = bit32.band(packedValue, 16383)  -- 13
+    local variant = bit32.rshift(bit32.band(packedValue, 0b111111100000000000000), 14)  -- 8
+    local extra = bit32.rshift(bit32.band(packedValue, 0b11111111111000000000000000000000), 21)  -- 11
+
+    return blockID, variant, extra
 end
+
+
 
 function block.parse(t)
     if type(t) == "table" then
         if t.Block then 
-            return block.compress(block.getBlockId(t.Block), t.Rotation or 0, t.Id or 0)
+            return block.compress(block.getBlockId(t.Block), t.Id or 0, t.Rotation)
         else
             return block.compress(block.getBlockId(t[1]), t[2] or 0, t[3] or 0)
         end

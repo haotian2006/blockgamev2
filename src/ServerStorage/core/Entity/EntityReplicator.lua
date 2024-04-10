@@ -220,6 +220,7 @@ UDP.OnServerEvent:Connect(function(player,data)
         local rEntity = Holder.getEntity(id)
         if not rEntity then continue  end
         local decode = ReplicationUtils.fastDecode(entity,rEntity)
+    
         for i,v in decode do
             rEntity[i] = v
         end
@@ -240,6 +241,7 @@ TCP.OnServerEvent:Connect(function(player,otherData)
             if not entity then continue end 
             uuid = entity.Guid
         end
+
         EntityTasks.decode(uuid,data[1],player)
     end
 end)

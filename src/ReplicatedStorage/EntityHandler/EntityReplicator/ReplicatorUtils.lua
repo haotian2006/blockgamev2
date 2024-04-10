@@ -87,7 +87,7 @@ function Replication.getFastChanges(self)
     if old["Position"] ~= self["Position"] then
         changes["Position"] = self["Position"] 
         if IS_CLIENT then
-            changes["Position"]  += Entity.getTotalVelocity(self)*1/30
+            --changes["Position"]  += Entity.getTotalVelocity(self)*1/30
         end
     end
     old["Position"] =   changes["Position"] or  self["Position"] 
@@ -132,6 +132,7 @@ function Replication.fastEncode(self,idk)
     local changes = Replication.getFastChanges(self)
 
     local pos = changes.Position
+
     local Chunk 
     local toUpdate = table.create(2)
     local Changed = false

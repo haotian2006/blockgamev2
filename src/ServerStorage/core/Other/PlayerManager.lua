@@ -10,6 +10,8 @@ local DataHandler = require(game.ReplicatedStorage.Data)
 local Serializer = require(game.ReplicatedStorage.Core.Serializer)
 local Events = require(game.ReplicatedStorage.Events)
 local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
+local Container = require(game.ReplicatedStorage.Container)
+local WorldConfig = require(game.ReplicatedStorage.WorldConfig)
 
 local EntityParser = Serializer.wrap(Serializer.Types.entity)
 
@@ -65,15 +67,15 @@ end
 
 function PlayerManager.createBaseData(player:Player)
     local data ={
-
+        version = WorldConfig.Version
     }
     local Entity = EntityHandler.new("Player",player.UserId)
     Entity.Position = Vector3.new(0,100,0)
     Entity.DisplayName = player.Name
     EntityHandler.setOwner(Entity,player)
-
+    local c =  EntityHandler.Container.getContainer(Entity, "Inventory")
     data.Entity = Entity
-    
+    Container.add(c, {1,1}, 1, false)
     return data
 end
 
@@ -118,6 +120,7 @@ game.ReplicatedStorage.Events.DoSmt.OnServerEvent:Connect(function(p)
     local x = DataHandler.getEntityFromPlayer(p)
     local h =     EntityHandler.get(x, "Health")
     EntityHandler.set(x, "Health", h-5)
+    EntityHandler.applyVelocity(x,Vector3.new(3,-30,0))
 end)
 
 

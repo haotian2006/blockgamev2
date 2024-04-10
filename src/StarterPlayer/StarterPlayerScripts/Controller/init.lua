@@ -10,6 +10,7 @@ local EntityUtils = EntityHandler.Utils
 local MathLib = require(game.ReplicatedStorage.Libs.MathFunctions)
 local Mouse = require(script.mouse)
 local CustomCamera = require(script.Camera)
+local UiHandler = require(script.Parent.core.Ui)
 local EntityTaskReplicator = require(game.ReplicatedStorage.EntityHandler.EntityReplicator.EntityTaskReplicator)
 local BlockBreaker = require(script.BlockBreaker)
 
@@ -59,7 +60,17 @@ local function AttackBlock(RayData)
    -- Helper.insertBlock(BlockPos.X,BlockPos.Y,BlockPos.Z,0)
     return true
 end
-  
+
+local OpenedDebug = false
+function Functions.DebugMenu(key)
+    OpenedDebug = not OpenedDebug
+    if OpenedDebug then
+        UiHandler.open('DebugMenu')
+    else
+        UiHandler.close('DebugMenu')
+    end
+end
+
 function Functions.Attack(key,IsDown,GPE,inputs)
     if not IsDown then return end 
     local RayData = Mouse.getRay()

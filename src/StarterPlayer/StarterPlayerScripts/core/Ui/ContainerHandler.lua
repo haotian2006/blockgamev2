@@ -93,7 +93,8 @@ end
 local LastDisplayed
 function handler.displayInfo(x,y)
     local ItemInfoFrame = handler.getOrCreateFrame("ItemInfoFrame",false)
-    ItemInfoFrame.Main.Position = UDim2.new(0,x+handler.getOrCreateFrame("HoldingFrame",true).Main.AbsoluteSize.X,0,y+30)
+    if not ItemInfoFrame then return end 
+    ItemInfoFrame:WaitForChild("Main").Position = UDim2.new(0,x+handler.getOrCreateFrame("HoldingFrame",true).Main.AbsoluteSize.X,0,y+30)
     local frame,middle,last = handler.getContainerAt(x, y)
     if not frame then
         ItemInfoFrame.Enabled = false
@@ -121,6 +122,7 @@ end
 local LastFrame
 function handler.displayHover(x,y,override)
     local HoverFrame = handler.getOrCreateFrame("HoverFrame",false)
+    if not HoverFrame then return end 
     local frame = handler.getContainerAt(x, y)
     if not frame then
         HoverFrame.Visible = false
@@ -143,6 +145,7 @@ end
 local lastHolding
 function handler.updateHolding(x,y,override)
     local holding = handler.getOrCreateFrame("HoldingFrame",true)
+    if not holding then return end 
     local current = ClientContainer.getHolding()
     if not current then
         holding.Enabled = false

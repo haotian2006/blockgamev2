@@ -17,13 +17,13 @@ end
 function UI.getOrCreateFrame(name,isContainer)
     if frames[name] then return frames[name] end 
     if isContainer then 
-        local uiContainter = resourceHandler.getUiContainer(name)
-        if not uiContainter then return end 
-        frames[name] = uiContainter.Frame:Clone()
+        local uiContainer = resourceHandler.getUiContainer(name)
+        if not uiContainer then return end 
+        frames[name] = uiContainer.Frame:Clone()
     else
-        local uiContainter = resourceHandler.getUI(name):Clone()
-        if not uiContainter then return end 
-        frames[name] = uiContainter:Clone()
+        local uiContainer = resourceHandler.getUI(name):Clone()
+        if not uiContainer then return end 
+        frames[name] = uiContainer:Clone()
     end
     if not frames[name] then return end 
     frames[name].Parent =  Player.PlayerGui
@@ -35,10 +35,22 @@ function UI.getOrCreateFrame(name,isContainer)
     return frames[name]
 end
 
+local function getModule(frame:Frame)
+    local Init = frame:FindFirstChild("MainScript",true)
+    if not Init then return end 
+    if typeof(Init) == "Instance" and Init:IsA("ModuleScript") then
+        return require(Init)
+    end
+    return 
+end
+
 function UI.open(name)
     local gui =  UI.getOrCreateFrame(name)
     if not gui then return end 
-    --TODO: Fire open function
+    local module = getModule(gui)
+    if module and module.open then
+        module.open()
+    end
 
     gui.Enabled = true
     gui.Parent = PlayerGui
@@ -50,10 +62,16 @@ end
 
 function UI.close(name)
     if not EnabledGUi[name] then return end 
+
     --TODO: Fire open function
     local gui = EnabledGUi[name]
     gui.Enabled = false
     gui.Parent = PlayerGui
+
+    local module = getModule(gui)
+    if module and module.close then
+        module.close()
+    end
 
     EnabledGUi[name] = nil
     

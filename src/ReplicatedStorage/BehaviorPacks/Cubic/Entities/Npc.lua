@@ -1,7 +1,7 @@
 local entity = {
 
     components ={
-        MaxNeckRotation = Vector2.new(60,310),
+        MaxNeckRotation = Vector2.new(60,80),
         Name = "Npc",
         EyeLevel = 1.5,
         Hitbox = Vector2.new(0.6,1.79),
@@ -22,6 +22,7 @@ local entity = {
     },
     component_groups = {
         ManFaceMan = {
+            Speed = 100,
             ['c:ManFaceManSwitch.behavior'] = "NIL",
             ['c:goToPlayer.behavior'] ={
                 priority = 1,

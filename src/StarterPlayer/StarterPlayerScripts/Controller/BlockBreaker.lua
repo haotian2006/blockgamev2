@@ -1,11 +1,17 @@
 local BlockBreaker = {}
 
+local CubicalEvents = require(game.ReplicatedStorage.Events)
+
 local InputHandler = require(script.Parent.Parent.InputHandler)
 local Mouse = require(script.Parent.mouse)
 local Data = require(game.ReplicatedStorage.Data)
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local Helper = require(script.Parent.Parent.Helper)
 local Arms = require(script.Parent.Parent.core.Rendering.Arms)
+local ItemHandler = require(game.ReplicatedStorage.Item)
+local BlockHandler = require(game.ReplicatedStorage.Block)
+local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
+local BlockBreaking = require(script.Parent.Parent.core.Rendering.BlockBreaking)
 
 local RunService = game:GetService("RunService")
 
@@ -16,25 +22,21 @@ local progress = 0
 
 local LastInfo 
 
-local function isSame(dictionary1, dictionary2)
-
-    if type(dictionary1) ~= "table" or type(dictionary2) ~= "table" then
-        return dictionary1 == dictionary2
+local function compareItem(item1,item2)
+    if not item1 and not item2 then
+        return true
+    elseif not item1 or not item2 then
+        return false
     end
-
-    for key, value in (dictionary1) do
-        if dictionary2[key] ~= value then
-            return false
-        end
-    end
-
-    for key, _ in (dictionary2) do
-        if dictionary1[key] == nil then
-            return false
-        end
-    end
-    return true
+    return ItemHandler.equals(item1,item2)
 end
+
+local function isSame(dictionary1, dictionary2)
+    if not dictionary1 or not dictionary2 then return false end 
+    return dictionary1.Block  == dictionary2.Block  and dictionary1.BlockPos == dictionary2.BlockPos and compareItem(dictionary1.Holding,dictionary2.Holding)
+end
+
+local getAssets = ResourceHandler.getAsset
 
 local function createInfo()
     if not InputHandler.isDown("Attack") then return end 
@@ -47,22 +49,37 @@ local function createInfo()
         Block = RayData.block, 
         BlockPos = RayData.grid,
         --CurrentSlot = EntityHandler.getSlot(Entity),
-       -- Holding = EntityHandler.getHolding(Entity)
+        Holding = EntityHandler.getHolding(Entity)
     }
     return Info
 end
 
-local function updateProgress(value)
-    progress = 0
+local TotalFrames 
+
+local wasAttacking = false
+
+local function updateProgress(value,Takes)
+    progress = value
+    if Takes then
+        TotalFrames = TotalFrames or getAssets("BlockBreakTextures")
+        local percentage = Takes/(#TotalFrames)
+        local Frame = progress//percentage+1
+        BlockBreaking.setPrimary(wasAttacking,Frame)
+    end
 end
 
 
 local function Update(dt)
     local info = createInfo()
     if not info  then 
-        Arms.stopAnimation("Attack")
+        if wasAttacking then
+            CubicalEvents.StopBreakingBlock.send()
+            Arms.stopAnimation("Attack")
+        end
         updateProgress(0)
         LastInfo = nil
+        wasAttacking = false 
+        BlockBreaking.setPrimary(nil,1)
         return 
     end 
     if not isSame(LastInfo, info) then
@@ -71,12 +88,21 @@ local function Update(dt)
         end
         updateProgress(0)
         LastInfo = info
+        CubicalEvents.StartBreakingBlockServer.send(info.BlockPos)
     end
-    progress+=dt*2
+    wasAttacking = info.BlockPos
+    local Multiplier = 1
+    local TimeToBreak = BlockHandler.get( info.Block, "BreakTime") or 1
+    if info.Holding then
+        Multiplier = ItemHandler.getBreakMultiplier(info.Holding, info.Block) or 1
+    end
 
-    if progress >1 then
-        local grid = LastInfo.BlockPos
-        Helper.insertBlock(grid.X, grid.Y, grid.Z, 0)
+    progress+=dt*Multiplier
+    updateProgress(progress,TimeToBreak)
+
+    if progress > TimeToBreak then
+        local grid = info.BlockPos
+       -- Helper.insertHoldingBlock(grid.X, grid.Y, grid.Z)
     end
   
 end

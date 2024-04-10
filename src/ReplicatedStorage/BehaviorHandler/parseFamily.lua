@@ -5,12 +5,19 @@ local function getValue(x)
     return if x == "NIL" then nil else x 
 end
 
+local function combineSet(set,other)
+    for i,v in other do
+        set[i] = true
+    end
+end
+
 local function combineFamily(f1,f2)
     local Combined = f1
     local CombinedMethods = f1.methods or {}
     local CombinedEvents = f1.events or {}
+    combineSet(  f1.__Family,f2.__Family)
     for key,value in f2 do
-        if key == "RealName" then continue end 
+        if key == "Alias" then continue end 
         if key == "events" then
             for eventName,event in value do
                 if CombinedEvents[eventName] then continue end 
@@ -24,7 +31,7 @@ local function combineFamily(f1,f2)
             end
             continue
         end
-        if Combined[key] then continue end 
+        if Combined[key] or key == "__Family" then continue end 
         Combined[key] = getValue(value)
     end
 end
@@ -41,6 +48,7 @@ local function setupFamily(name,visited)
     end 
     local Inherited = data.Inheritance
     data.__INIT = true
+    data.__Family = {[name] = true}
     visited[name] = true
     if type(Inherited) ~= "string" then 
         return
@@ -48,6 +56,7 @@ local function setupFamily(name,visited)
     setupFamily(Inherited,visited)
     local ParentData = allFamilies[Inherited]
     combineFamily(data,ParentData)
+    table.freeze(data.__Family)
 end
 
 

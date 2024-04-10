@@ -31,6 +31,7 @@ return function ()
         local alloc = bufferWriter.alloc
         local u16 = bufferWriter.u16
         local u32 = bufferWriter.u32
+        local getCursor = bufferWriter.getCursor
         funcx.read = function(b, cursor)
             local constructed = {}
             local startCursor = cursor
@@ -56,7 +57,7 @@ return function ()
         end
         funcx.write = function(Entity)
             alloc(2)
-            local cursor = bufferWriter.getCursor()
+            local cursor = getCursor()
             u16(0)
             for key,value in Entity do
                 local index = KeyIndex[key]
@@ -68,7 +69,7 @@ return function ()
                 u16(index)
                 parser.write(value)
             end 
-            local size = bufferWriter.getCursor() - cursor
+            local size = getCursor() - cursor
             if size > END then
                 warn("Entity Size OverFlow")
                 size = END

@@ -4,6 +4,7 @@ local Entities = require(script.entity)
 local Serializer = require(script.Serializer)
 local SerializerTypes = require(script.Serializer.types)
 local CommonTypes = require(script.CommonTypes)
+local StatsService = require(script.StatsService)
 
 local ISCLIENT = RunService:IsClient()
 local Modules = {
@@ -20,7 +21,8 @@ local Shared = {
     ItemService = "Item",
     BlockService = "Block",
     EntityService = "EntityHandler",
-    DataService = "Data"
+    DataService = "Data",
+    StatsService = "Libs.Stats"
     
 }
 local Client = {
@@ -75,7 +77,7 @@ export type ResourceHandler = {
 }
 
 export type ClientHelper = {
-    insertBlock : (x:number,y:number,z:number,block:number) -> ()
+    insertHoldingBlock : (x:number,y:number,z:number) -> ()
 }
 
 export type Mouse = {
@@ -145,9 +147,9 @@ export type BlockClass = {
     exists : (Str:string) ->boolean,
     getBlockId : (Str:string) -> number?,
     getBlock : (Id:number) -> string?,
-    compress : (BlockId:number,Rotation:number?,Variant:number?) -> number,
+    compress : (BlockId:number,Variant:number?,Rotation:number?) -> number,
     decompress : (PackedValue:number) -> (number,number,number),
-    decompressCache : (PackedValue:number) -> (number,number,number),
+
     parse : (Data:number|{}) -> number
 }
 
@@ -176,6 +178,7 @@ export type Shared = {
     EntityService : Entities.EntityHandler,
     Serializer : Serializer.Serializer,
     DataService : DataService,
+    StatsService : StatsService.Stats
 
 }
 

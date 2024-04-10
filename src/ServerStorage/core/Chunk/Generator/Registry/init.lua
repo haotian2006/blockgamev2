@@ -17,7 +17,7 @@ local Registered = {
 }
 
 export type Biome = {
-    RealName :string,
+    Alias :string,
 
     Elevation : number,
     Factor : number,
@@ -101,7 +101,7 @@ end
 function parseFunc.Biomes(data,name)
     if name and Registered.Biomes[name] then return Registered.Biomes[name] end
     local Parsed = {
-        RealName = name,
+        Alias = name,
 
         Elevation = data.Elevation or 1,
         Factor = data.Factor or 1,

@@ -438,7 +438,9 @@ function Entity.getVelocity(self,name)
 end
 
 function Entity.applyVelocity(self,velocity)
+
     if IS_SERVER and OwnersExists(self) then
+        
          EntityTaskReplicator.doTask(self, "applyVelocity",true,velocity)
          return
     end
@@ -466,14 +468,14 @@ function Entity.disableDespawnTimer(self,time)
     self.DespawnTime = -9999999
 end
 
-function Entity.getMoveDireaction(self,Direction)
+function Entity.getMoveDirection(self,Direction)
  return self.moveDir
 end
 end
 --@Override
 function Entity.getSpeed(self,isBase)
     if not isBase then
-        local method = Entity.getMethod(self,"getSpeed")
+        local method = Entity.getMethod(self,"getSpeed",true)
         if method then 
             return method(self)
         end 
@@ -483,7 +485,7 @@ end
 
 function Entity.takeDamage(self,damage,isBase)
     if not isBase then
-        local method = Entity.getMethod(self,"takeDamage")
+        local method = Entity.getMethod(self,"takeDamage",true)
         if method then 
             return method(self,damage)
         end 
@@ -558,7 +560,7 @@ function Entity.crouch(self,isDown,fromClient)
         if not  fromClient then 
             Entity.set(self,"Position",self.Position+Vector3.new(0,-CrouchHeight/2,0))
         end
-        Animator.playLocal(self,"Crouch",nil,nil,nil)
+        Animator.playLocal(self,"Crouch",nil,nil,nil,true)
     else
         self.Hitbox = Vector2.new(currentHitBox.X, currentHitBox.Y+CrouchHeight)
         self.EyeLevel = EyeLevel+CrouchHeight

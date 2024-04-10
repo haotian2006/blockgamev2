@@ -3,7 +3,7 @@ local Core = require(game.ReplicatedStorage.Core)
  
 return {
     ["c:dirt"] = {
-        family = "c:item_block",
+        family = "item_block",
         default = {
           
         },
@@ -11,7 +11,7 @@ return {
         events = {}
     },
     ["c:grassBlock"] = {
-        family = "c:item_block",
+        family = "item_block",
         default = {
           
         },
@@ -22,27 +22,54 @@ return {
         }
     },
     ["c:stone"] = {
-        family = "c:item_block",
+        family = "item_block",
         default = {
           
         },
         variants = {}
     },
     ["c:leaf"] = {
-        family = "c:item_block",
+        family = "item_block",
         default = {
           
         },
         variants = {}
     },
     ["c:wood"] = {
-        family = "c:item_block",
+        family = "item_block",
         default = {
           
         },
         variants = {}
     },
+    --[[
+     BlockMultiplier = {
+          {
+            Name = "c:grass",
+            Type = "Block" | "Family"
+            Multiplier = 2
+          }
+        },
+    ]]
     ["c:GodStick"] = {
+        default = {
+          BlockMultiplier = {
+            {
+                Name = "c:dirt",
+                Type = "Block",
+                Multiplier = 20
+              },
+              {
+                Name = "block_base",
+                Type = "Family",
+                Multiplier = 20
+              }
+
+          },
+        },
+        methods = {
+          
+        },
         events = {
             OnEquipped = function(self,entity)
                 if not Core.Client then return end 
@@ -58,6 +85,7 @@ return {
         },
         MaxCount = 1,
     },
+  
     ["c:LongStick"] = {
         events = {
             OnEquipped = function(self,entity)

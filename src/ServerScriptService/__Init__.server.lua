@@ -47,7 +47,6 @@ end)
 local Item = Handler.new("c:Item")
 Item.Position = Vector3.new(254, 257.395999908447266, 143)
 Item.Item = "c:GodStick"
---hold.addEntity(Item)
 
 local EntityContainer = require(game.ReplicatedStorage.EntityHandler.EntityContainerManager)
 local ItemHandler = require(game.ReplicatedStorage.Item)
@@ -55,6 +54,7 @@ local Container = require(game.ReplicatedStorage.Container)
 require(game.ReplicatedStorage.Libs.Crafting).Init()
 
 require(game.ServerStorage.core.Replication.Entity)
+require(game.ReplicatedStorage.Libs.Stats)
 
 ItemHandler.Init()
 
@@ -65,6 +65,8 @@ local PlayerManager = require(game.ServerStorage.core.Other.PlayerManager)
 
 local Serializer = require(game.ReplicatedStorage.Core.Serializer)
 local EntityWrapper = Serializer.wrap(Serializer.Types.entity)
+
+
 local function OnPlayerAdded(player)
   local entity = Handler.new("Player",player.UserId)
   --entity.Position = Vector3.new(522//3, 257.395999908447266, -671.44//3)

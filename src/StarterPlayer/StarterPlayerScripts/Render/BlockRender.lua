@@ -32,13 +32,13 @@ function render.render(chunk,meshed,override)
     for key,data in meshed do
         times +=1
         if not generate then break end 
-        local blockID,rot,id = Block.decompressCache(data.data.X)
+        local blockID,id = Block.decompress(data.data.X)
         local partName = `{tostring(data.data)}|{tostring(data.size)}|{tostring(data.midPoint)}`
         if chunkData[partName] then 
             removed[partName] = true 
             continue 
         end 
-        rot = RotationUtils.indexPairs[rot]
+        --rot = RotationUtils.indexPairs[rot]
         local walls = data.data.Y
         local BlockName = Block.getBlock(blockID)
         local p,textures = Texture.CreateBlock(BlockName,walls)
@@ -94,13 +94,13 @@ function render.renderOLD(chunk,meshed)
 
         --     task.wait() 
         -- end
-        local blockID,rot,id = Block.decompressCache(data.data.X)
+        local blockID,id = Block.decompress(data.data.X)
         local partName = `{tostring(data.data)}|{tostring(data.size)}|{tostring(data.midPoint)}`
         if parts[partName] then 
             parts[partName] = nil 
             continue 
         end 
-        rot = RotationUtils.indexPairs[rot]
+      --  rot = RotationUtils.indexPairs[rot]
         local walls = data.data.Y
         local BlockName = Block.getBlock(blockID)
         local p = Texture.CreateBlock(BlockName,walls)

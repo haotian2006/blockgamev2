@@ -63,7 +63,7 @@ function ResourceHandler.AddInstanceChildren(Object,AssetObj,depth)
             ResourceHandler.AddInstanceChildren(stuff,Folder[key],depth+1)
         elseif stuff:IsA("ModuleScript") then
             local data = require(stuff)
-            key = data.RealName or key
+            key = data.Alias or key
             if depth <=0 and false then
                 addTo(Folder[key] , data)
             else

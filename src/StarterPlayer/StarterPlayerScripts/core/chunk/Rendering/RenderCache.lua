@@ -28,7 +28,7 @@ do
     end
 end
 
-function Storage.getStatus()
+function Storage.getStats()
     return #NotInUseB,#NotInUseT
 end
 

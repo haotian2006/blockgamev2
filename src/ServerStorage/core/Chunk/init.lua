@@ -2,12 +2,18 @@ local manager = {}
 local Remote:RemoteEvent = game.ReplicatedStorage.Events.Chunk
 local Data = require(game.ReplicatedStorage.Data)
 local Generator2 = require(script.Generator)
+local BlockClass = require(game.ReplicatedStorage.Block)
 local ChunkClass = require(game.ReplicatedStorage.Chunk)
+local ItemClass = require(game.ReplicatedStorage.Item)
 local Builder = require(script.ChunkBuilder)
 local RegionHandler = require(script.RegionManager)
 local EntityUtils = require(game.ReplicatedStorage.Utils.EntityUtils)
 local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
 local EntityRegionManager = require(script.Parent.Entity.EntityRegionSaver)
+local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
+local CollisionUtils = require(game.ReplicatedStorage.Utils.CollisionUtils)
+local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local Events = require(game.ReplicatedStorage.Events)
 
 local SIMULATED_DISTANCE = 6
 local RENDER_DISTANCE  = 13
@@ -97,9 +103,6 @@ local function startMainLoop()
     end)
 end
 
-function manager.init()
-    
-end
 
 
 Generator2.Init().Event:Connect(function(msgType,data)

@@ -2,8 +2,9 @@ local Config = {}
 
 local Info = {
     Seed = 3456713,
-    WorldGuid = "1sa",
-    SavingEnabled = false,
+    WorldGuid = "-11",
+    SavingEnabled = true,
+    Version = "0.0.0"
 }
 Info.__index = Info
 Info.__newindex = Info

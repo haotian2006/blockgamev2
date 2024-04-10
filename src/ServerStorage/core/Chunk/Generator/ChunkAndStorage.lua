@@ -46,7 +46,7 @@ local Chunks = {}
 local InUse = {}
 
 --//Storage
-function Storage.getInfo()
+function Storage.getStats()
     local chunkAmt = 0
     local ChunkDataAmt = 0
     for _ in Chunks do

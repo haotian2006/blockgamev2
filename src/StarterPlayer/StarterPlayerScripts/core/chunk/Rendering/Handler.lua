@@ -303,7 +303,7 @@ local function enqueueSub(chunk)
     SubChunkInQueue[chunk] = true
 end
 
-function Handler.getStatus()
+function Handler.getStats()
     return getSize(LargeSubChunkQueue)-2,getSize(CullQueue),getSize(Builder.InQueue)
 end
 

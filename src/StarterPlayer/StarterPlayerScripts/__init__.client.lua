@@ -46,5 +46,6 @@ require(Core.Rendering.Arms).Init()
 require(Core.Ui.HotbarManager).Init()
 
 require(Core.ClientManager)
+require(game.ReplicatedStorage.Libs.Stats)
 
 Events.PlayerFullyLoaded:send(true)

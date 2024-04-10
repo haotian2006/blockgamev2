@@ -3,7 +3,10 @@ local Blocks = {
     
 
     ['c:grassBlock'] = {
-        default = {},
+        family = "block_base",
+        default = {
+            BreakTime = .5
+        },
         variants = {},
         
     },
@@ -14,11 +17,11 @@ local Blocks = {
 
     },
     ['c:dirt'] = {
-       
+        BreakTime = 1
     },
 
     ['c:stone'] = {
-      
+        BreakTime = 0
     },
 
     ['c:wood'] = {

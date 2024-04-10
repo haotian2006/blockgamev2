@@ -28,6 +28,7 @@ Keys.Keyboard = {
     Slot9 = {'nine',"HotBarUpdate"}, 
     MouseWheel = {"mousewheel","HotBarUpdateWheel"},
     Inventory = {'e','Inventory'},
+    DebugMenu = {'f3',"DebugMenu"},
     ["Camera Mode"] = {"q","CameraMode"}
 }
 

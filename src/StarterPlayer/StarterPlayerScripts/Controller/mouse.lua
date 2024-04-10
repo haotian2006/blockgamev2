@@ -20,7 +20,7 @@ highlight.Transparency = 1
 highlight.Name = "SelectionPart"
 local H = Instance.new("SelectionBox",highlight)
 H.Adornee = highlight
-H.LineThickness = .05
+H.LineThickness = .01
 
 local length = 5
 

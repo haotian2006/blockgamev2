@@ -83,11 +83,11 @@ function Builder.build(chunk,Meshed)
             removed[partName] = true 
             continue 
         end 
-        local blockID,rot,id = Block.decompressCache(data.data.X)
+        local blockID,id = Block.decompress(data.data.X)
         
-        rot = RotationUtils.indexPairs[rot]
         local walls = data.data.Y
         local BlockName = Block.getBlock(blockID)
+
         local p,textures = Texture.CreateBlock(BlockName,walls,nil,id)
         p.Size = data.size*3
         i+=1

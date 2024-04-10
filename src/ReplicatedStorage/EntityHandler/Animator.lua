@@ -120,6 +120,7 @@ function Animator.play(self,animation,fadeTime,weight,speed,looped)
         local Ani:AnimationTrack =  Animator.getOrLoad(self,animation)
         if Ani then
             Ani.Looped = if looped == nil then Ani.Looped else looped
+
             Ani:Play(fadeTime,weight,getSpeed(speed))
         end
     end
