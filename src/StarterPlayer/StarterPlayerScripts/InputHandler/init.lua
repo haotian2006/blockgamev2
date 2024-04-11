@@ -14,6 +14,9 @@ local TempEvents = {}
 local RenderEvents = {}
 local InGui = false
 
+local InputBegan = Signal.protected()
+local InputEnded = Signal.protected()
+
 local Core = require(game.ReplicatedStorage.Core)
 
 export type ControllerEvent = Core.ControllerEvent
@@ -55,9 +58,9 @@ function  Controller.unbindFromRender(Name)
     RunService:UnbindFromRenderStep(`InputHandler|{Name}`)
 end
 
-function Controller.bindFunctionTo(Name,func,action,priority)
+function Controller.bindFunctionTo(Name,func,action,priority,notGPE,notInGui)
     if BindedFunctions[Name] then  warn(`{Name} is already Binded`) end 
-    local d = {action,func,priority or 20}
+    local d = {action,func,priority or 20,notGPE,notInGui}
     BindedFunctions[Name] = d
     keyPairsBinded[action] = keyPairsBinded[action] or {}
     table.insert(keyPairsBinded[action],d)
@@ -78,7 +81,12 @@ function Controller.unbindFunction(name)
 end
  
 local function runFunctions(action,input,down,IsTyping,keys)
+    local InGui = Controller.inGui()
     for i,v in keyPairsBinded[action] or {} do 
+        local notGPE,notInGui = v[4],v[5]
+        if InGui and notInGui then continue end 
+        if IsTyping and notGPE then continue end 
+
         local status =  v[2](input,down,IsTyping,keys)
         if status == true then --Enum.ContextActionResult.Sink
             break
@@ -101,14 +109,16 @@ end
 local enabled = true
 UserInputService.InputBegan:Connect(function(keycode)
     if keycode.KeyCode == Enum.KeyCode.Y then
-        enabled = not enabled
+       -- enabled = not enabled
     end
 end)
+
 
 local function HandleInputBegan(input,IsTyping)
     if not enabled then return end 
    local actions = KeyBinds.getActionsFromKey(input)
    for v,keys in actions do
+        InputBegan:Fire(v,IsTyping,keys)
         ActionsDown[v] = true
         if events[v] then
             events[v]:Fire(input,true,IsTyping,keys)
@@ -127,6 +137,7 @@ local function HandleInputEnded(input,IsTyping)
     if not enabled then return end 
     local actions = KeyBinds.getActionsFromKey(input)
    for v,keys in actions do
+        InputEnded:Fire(input,IsTyping,keys)
         ActionsDown[v] = nil
         if events[v] then
             events[v]:Fire(input,false,IsTyping,keys)
@@ -141,6 +152,16 @@ local function HandleInputEnded(input,IsTyping)
         end
    end
 end
+
+Controller.InputBegan = InputBegan.Event
+Controller.InputEnded = InputEnded.Event
+Controller.UISInputEnded = UserInputService.InputEnded
+Controller.UISInputBegan = UserInputService.InputBegan
+Controller.UISInputChanged = UserInputService.InputChanged
+Controller.UISKeyDown = function(keycode:Enum.KeyCode)
+    return UserInputService:IsKeyDown(keycode)
+end
+
 
 UserInputService.InputChanged:Connect(HandleInputBegan)
 UserInputService.InputBegan:Connect(HandleInputBegan)

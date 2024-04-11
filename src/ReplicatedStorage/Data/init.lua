@@ -11,6 +11,8 @@ local Other = {}
 local PlayerEntity = nil 
 local Simulated = {}
 
+local ChunkAdded = Signal.protected()
+
 function Data.getSimulated()
     return Simulated
 end
@@ -35,6 +37,8 @@ function Data.getAllEntities()
     return EntityHolder.getAllEntities()
 end
 function Data.insertChunk(x,y,chunk)
+    ChunkAdded:Fire(x,y)
+    EntityHolder.OnChunkAdded(x, y)
     Chunks[Vector3.new(x,0,y)] = chunk
 end
 
@@ -101,6 +105,7 @@ function Data.setPlayerEntity(e)
 end
 
 Data.PlayerEntityChanged = PlayerEntityChanged.Event
+Data.ChunkAdded = ChunkAdded.Event
 
 
 return table.freeze(Data)

@@ -7,6 +7,7 @@ local Data = require(game.ReplicatedStorage.Data)
 local Chx,ChY = GameSetting.getChunkSize()
 local Entity 
 local EntityHolder = require(script.Parent.EntityHolder)
+local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local Utils = {}
 
 function Utils.Init(entity)
@@ -154,6 +155,8 @@ function Utils.createItemEntity(Item,count,lifetime)
 end
 
 function Utils.dropItem(self,item,count,velocity)
+    local pos = Utils.getEyePosition(self)
+    local cx,cz = ConversionUtils.getChunk(pos.X, pos.Y, pos.Z)
     local mag = 29
     if type(velocity) == "number" then
         mag = velocity
@@ -163,10 +166,9 @@ function Utils.dropItem(self,item,count,velocity)
     local Item = Utils.createItemEntity(item, count, 1)
     Entity.applyVelocity(Item,velocity)
     -- Entity.setPosition(Item,Utils.getEyePosition(self))
-    Item.Position = Utils.getEyePosition(self)
+    Item.Position = pos
     EntityHolder.addEntity(Item)
 end
-
 --//Turning
 local DEAFULT_TURN = Vector2.new(180,180)
 function Utils.setRotation(self,target)

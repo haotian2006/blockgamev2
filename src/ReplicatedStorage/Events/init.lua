@@ -19,7 +19,8 @@ local cubicalWorld = ByteNet.defineNamespace("CubicalWorld", function()
             [4] = ByteNet.float32
         })}),
         StartBreakingBlockServer = ByteNet.definePacket({value = ByteNet.vec3}),
-        StopBreakingBlock = ByteNet.definePacket({value = ByteNet.optional(ByteNet.string)})
+        StopBreakingBlock = ByteNet.definePacket({value = ByteNet.optional(ByteNet.string)}),
+        DropItem = ByteNet.definePacket({value = ByteNet.nothing})
     }
 end)
 

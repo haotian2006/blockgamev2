@@ -2,6 +2,8 @@ local Holder = {}
 local Entities = {}
 Holder.Entities = Entities
 local IdEntity = {}
+
+local NotInChunk = {}
 local runservice = game:GetService("RunService")
 local IsServer = runservice:IsServer()
 local getNextId,returnId
@@ -59,6 +61,9 @@ function Holder.addEntity(Guid,entity)
 
     if entity then
         Handler.updateChunk(entity)
+        if not entity.__isPart then
+            NotInChunk[Guid] = entity
+        end
     end
     Entities[Guid] = entity
 end
@@ -78,6 +83,7 @@ function Holder.removeEntity(Guid)
 
     Handler.updateChunk(e)
     Entities[Guid] = nil
+    NotInChunk[Guid] = nil
 
 end
 
@@ -115,6 +121,16 @@ end
 
 function Holder.init(entity)
     Handler = entity
+end
+
+function Holder.OnChunkAdded(x,z)
+    for i,v in NotInChunk do
+        Handler.updateChunk(v)
+
+        if v.__isPart then
+            NotInChunk[i] = nil
+        end
+    end
 end
 
 return Holder

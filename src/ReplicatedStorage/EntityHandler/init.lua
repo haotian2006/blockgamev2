@@ -62,7 +62,7 @@ Entity.Animator = Animator
 Entity.Utils = Utils
 
 
-Entity.onDeath = function(x) end  -- Werid roblox type error
+Entity.onDeath = function(x,y) end  -- Werid roblox type error
 
 --DEFAULTS
 Entity.Gravity = 32--9.81
@@ -263,7 +263,7 @@ function Entity.getSlot(self)
     local container, index = slot:match("^(.-)%.([^%.]+)$")
     local idx = tonumber(index)
     if not container then
-        return "",idx
+        return "",idx,container
     end
 
     local containerToLook = EntityContainerManager.getContainer(self,container)
@@ -560,7 +560,7 @@ function Entity.crouch(self,isDown,fromClient)
         if not  fromClient then 
             Entity.set(self,"Position",self.Position+Vector3.new(0,-CrouchHeight/2,0))
         end
-        Animator.playLocal(self,"Crouch",nil,nil,nil,true)
+        Animator.playLocal(self,"Crouch",true)
     else
         self.Hitbox = Vector2.new(currentHitBox.X, currentHitBox.Y+CrouchHeight)
         self.EyeLevel = EyeLevel+CrouchHeight
@@ -658,7 +658,7 @@ function Entity.updatePosition(self,dt)
         elseif not self.died then 
             local speed = (newPosition*Vector3.new(1,0,1) - self.Position*Vector3.new(1,0,1)).Magnitude/dt/(Entity.getAndCache(self,"Speed"))
             if not Animator.isPlaying(self,"Walk") then
-                Animator.play(self,"Walk",nil,nil,nil,true)
+                Animator.play(self,"Walk",true)
             end
             if speed >=0.05 then
                 Animator.adjustSpeed(self,"Walk",speed)
@@ -734,6 +734,13 @@ function Entity.updateMovement(self,dt,normal)
     Entity.setVelocity(self,"Physics",Vector3.new(newX,bodyVelocity.Y,newZ))
 end
 
+function Entity.checkInVoid(self)
+    local pos = self.Position 
+    if pos.Y <= -50 then
+        Entity.onDeath(self,true)
+    end
+end
+
 local DEBUGSERVER = false
 local function Server_visualizer(self)
     local model = self.model
@@ -766,12 +773,15 @@ function Entity.update(self,dt)
     else
         Entity.updateChunk(self)
     end
+    if IS_SERVER then
+        Entity.checkInVoid(self)
+    end 
     if DEBUGSERVER and IS_SERVER then
         Runner.run(Server_visualizer,self) 
     end
 end 
 
-function Entity.onDeath(self:CommonTypes.Entity)
+function Entity.onDeath(self:CommonTypes.Entity,Special:boolean?)
     self.died = true
     if self.__localData.dead then return end 
     self.__localData.dead = true
@@ -782,15 +792,19 @@ function Entity.onDeath(self:CommonTypes.Entity)
         ServerContainer.PushBackFor(self)
         local DeathDespawn = Entity.get(self, "DeathDespawn")
         Entity.setOwner(self,nil)
-        if DeathDespawn ~= false then 
+        if DeathDespawn ~= false  then 
             self.DespawnTime = DeathDespawn or DEFAULT_DEATH_TIME
         end 
         local Random = Random.new()
         for _,container in self.__containers or {} do
+            if Special then
+                Container.clear(container)
+                continue
+            end
             local items = Container.getAllItems(container)
             for i,v in items do
                 local item = Utils.createItemEntity(v[1], v[2], nil)
-                print(item)
+
                 Entity.applyVelocity(item,Random:NextUnitVector()*Random:NextNumber(1,10))
                 -- Entity.setPosition(Item,Utils.getEyePosition(self))
                 item.Position = Utils.getEyePosition(self)

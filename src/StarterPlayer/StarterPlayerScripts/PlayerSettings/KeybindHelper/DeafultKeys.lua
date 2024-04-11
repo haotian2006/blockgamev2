@@ -7,7 +7,7 @@ local Keys = {}
 }
 ]]
 Keys.Keyboard = {
-    Foward = {'w',"Foward"},
+    Forward = {'w',"Forward"},
     Left = {'a',"Left"},
     Right = {'d',"Right"},
     Back = {'s',"Back"},
@@ -29,7 +29,8 @@ Keys.Keyboard = {
     MouseWheel = {"mousewheel","HotBarUpdateWheel"},
     Inventory = {'e','Inventory'},
     DebugMenu = {'f3',"DebugMenu"},
-    ["Camera Mode"] = {"q","CameraMode"}
+    DropItem = {'q',"DropItem"},
+    ["Camera Mode"] = {"f4","CameraMode"}
 }
 
 --<>

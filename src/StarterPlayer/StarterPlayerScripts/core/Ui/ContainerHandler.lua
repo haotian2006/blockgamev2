@@ -17,8 +17,14 @@ local ItemHandler = require(game.ReplicatedStorage.Item)
 local Signal = require(game.ReplicatedStorage.Libs.Signal)
 local DataHandler = require(game.ReplicatedStorage.Data)
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local InputHandler = require(script.Parent.Parent.Parent.InputHandler)
 
 local Events = game:GetService("ReplicatedStorage").Events.Container
+
+local InGui = {}
+function handler.initInGUi(t)
+    InGui = t
+end
 
 local ClientContainer = {}
 
@@ -247,6 +253,10 @@ function handler.open(name,forced)
     if container.Init then
         container.Init(gui,ClientContainer.getAllContainers())
     end
+    if container.TriggerInGui then
+        InGui[gui] = true
+        InputHandler.setGui(true)
+    end
 
     --TODO: Fire open function
 
@@ -279,13 +289,20 @@ end
 function handler.close(name,forceClose,fromOpen)
     if Forced[name] then return end 
     if not  EnabledGUi[name] then return end 
+    local Frame =   EnabledGUi[name]
     local container = resourceHandler.getUiContainer(name)
+    if InGui[Frame] then
+        InGui[Frame] = nil
+        if not next(InGui) then
+            InputHandler.setGui(false)
+        end
+    end
     if container.OnClose then
-        container.OnClose( EnabledGUi[name])
+        container.OnClose(Frame)
     end
     handler.OnClose:Fire(name)
     if not container.AlwaysOpen or forceClose then
-        EnabledGUi[name]:Destroy()
+        Frame:Destroy()
         EnabledGUi[name] = nil
 
         local Index = table.find(OpenedGUi, name)
@@ -298,21 +315,7 @@ function handler.close(name,forceClose,fromOpen)
     end
 end
 
-local open = false
-game:GetService("UserInputService").InputBegan:Connect(function(a0: InputObject, a1: boolean)  
-    local entity = DataHandler.getPlayerEntity()
-    if EntityHandler.isDead(entity) then 
-        return
-    end
-    if a0.KeyCode == Enum.KeyCode.E then
-        if open then
-            handler.open("InventoryFrame")
-        else
-            handler.close("InventoryFrame")
-        end
-        open = not open
-    end
-end) 
+
 
 function handler.processLeft(frame,mainFound)
     if not mainFound and not frame then

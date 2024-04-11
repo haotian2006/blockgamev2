@@ -3,6 +3,7 @@ local Core = require(game.ReplicatedStorage.Core)
 return {
     Alias = "item_block",
     events = {
+        --[[
         OnEquipped = function(self,entity)
             if not Core.Client then return end 
             local InputService = Core.Client.InputService
@@ -27,6 +28,7 @@ return {
             local InputService = Core.Client.InputService
             InputService.unbindFunction("PlaceBlock")
         end
+        ]]
     },
     methods = {
         getBlock = function(Item)

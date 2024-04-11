@@ -3,6 +3,7 @@ local InputHandler = require(script.Parent:WaitForChild("InputHandler"))
 local UIS = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
 local IsMoving = false 
+local Events = require(game.ReplicatedStorage.Events)
 local Data = require(game.ReplicatedStorage.Data)
 local LPE = Data.getPlayerEntity
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
@@ -11,6 +12,7 @@ local MathLib = require(game.ReplicatedStorage.Libs.MathFunctions)
 local Mouse = require(script.mouse)
 local CustomCamera = require(script.Camera)
 local UiHandler = require(script.Parent.core.Ui)
+local UiContainer = require(script.Parent.core.Ui.ContainerHandler)
 local EntityTaskReplicator = require(game.ReplicatedStorage.EntityHandler.EntityReplicator.EntityTaskReplicator)
 local BlockBreaker = require(script.BlockBreaker)
 
@@ -61,8 +63,23 @@ local function AttackBlock(RayData)
     return true
 end
 
+local OpenInv 
+function Functions.Inventory(key,IsDown,GPE)
+    local entity = DataHandler.getPlayerEntity()
+    if (EntityHandler.isDead(entity) and not OpenInv) or not IsDown then 
+        return
+    end
+    if OpenInv then
+        UiContainer.open("InventoryFrame")
+    else
+        UiContainer.close("InventoryFrame")
+    end
+    OpenInv = not OpenInv
+end
+
 local OpenedDebug = false
-function Functions.DebugMenu(key)
+function Functions.DebugMenu(key,IsDown)
+    if  IsDown then return end 
     OpenedDebug = not OpenedDebug
     if OpenedDebug then
         UiHandler.open('DebugMenu')
@@ -92,12 +109,17 @@ function Functions.CameraMode(key,IsDown,GPE,input)
     CustomCamera.setMode(Order[orderIdx])
 end
 
-function Functions.Interact(key,IsDown,GPE,inputs)
+function Functions.DropItem(key,IsDown,GPE)
     if not IsDown then return end 
+    Events.DropItem.send()
+end
+
+function Functions.Interact(key,IsDown,GPE,inputs)
+    if not IsDown or InputHandler.inGui() then return end 
     local RayData = Mouse.getRay()
     if not RayData.block then return end 
     local Blockpos = RayData.grid+RayData.normal
-  --  Helper.insertBlock(Blockpos.X,Blockpos.Y,Blockpos.Z,2)
+    Helper.insertHoldingBlock(Blockpos.X,Blockpos.Y,Blockpos.Z)
 end
 local Binded = false
 function  Controller.createBinds()
@@ -109,7 +131,7 @@ function  Controller.createBinds()
     InputHandler.bindToRender("#Controller-Handler",20,function(dt)
         local Entity = LPE()
         if EntityHandler.isDead(Entity) then return end 
-        local F = InputHandler.isDown("Foward")
+        local F = InputHandler.isDown("Forward")
         local B = InputHandler.isDown("Back")
         local L = InputHandler.isDown("Left")
         local R = InputHandler.isDown("Right")

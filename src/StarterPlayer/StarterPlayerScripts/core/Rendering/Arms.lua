@@ -140,12 +140,12 @@ function Arms.isPlaying(ani)
     return Animator.isPlaying(CurrentArms, ani)
 end
 
-function Arms.playAnimation(ani,fadeTime,weight,speed,loop)
+function Arms.playAnimation(ani,loop,fadeTime,weight,speed)
     if not CurrentArms then return end 
-    Animator.playLocal(CurrentArms, ani,fadeTime,weight,speed,loop)
+    Animator.playLocal(CurrentArms, ani,loop,fadeTime,weight,speed)
     local Entity = PlayerEntity()
     if not Entity then return end 
-    Animator.play(Entity, ani,fadeTime,weight,speed,loop)
+    Animator.play(Entity, ani,loop,fadeTime,weight,speed)
 end
 
 function Arms.stopAnimation(ani,fadeTime)

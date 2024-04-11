@@ -7,6 +7,7 @@ local ItemClass = require(game.ReplicatedStorage.Item)
 local Container = require(game.ReplicatedStorage.Container)
 local Data = require(game.ReplicatedStorage.Data)
 local EntityUtils = require(game.ReplicatedStorage.EntityHandler.Utils)
+local Runner = require(game.ReplicatedStorage.Runner)
 
 local Events = game:GetService("ReplicatedStorage").Events.Container
 local Send:RemoteEvent = Events.Send
@@ -55,9 +56,11 @@ function ServerContainer.removeAll(uuid)
         end
     end
     LoadedContainers[uuid] = nil
-    for i,v in all do
-        Send:FireClient(i,3,uuid)
-    end
+    Runner.run(function()
+        for i,v in all do
+            Send:FireClient(i,3,uuid)
+        end
+    end)
  end
 
 function ServerContainer.getAllContainersFor(uuid)

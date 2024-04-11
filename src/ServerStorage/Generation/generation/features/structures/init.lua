@@ -9,7 +9,7 @@ local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local Carver = require(script.Parent.Parent.Parent.math.Carver2)
 local Storage = unpack(require(game.ServerStorage.core.Chunk.Generator.ChunkAndStorage))
 local BlockHandler = require(game.ReplicatedStorage.Block)
-local BiomeHelper = require(game.ReplicatedStorage.Biomes)
+local BiomeHelper = require(game.ReplicatedStorage.Handler.Biomes)
 local Biomes 
 
 local to1dXZ = IndexUtils.to1DXZ

@@ -2,13 +2,13 @@
 local mathUtils = script.Parent.Parent.Parent.math
 local NoiseHandler = require(mathUtils.noise)
 local Range = require(mathUtils.range)
-local BiomeHandler = require(game.ReplicatedStorage.Biomes)
+local BiomeHandler = require(game.ReplicatedStorage.Handler.Biomes)
 local blockHandler = require(game.ReplicatedStorage.Block)
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local Storage = unpack(require(game.ServerStorage.core.Chunk.Generator.ChunkAndStorage))
 local to1d = IndexUtils.to1D
 local to1DXZ = IndexUtils.to1DXZ
-local BiomeHelper = require(game.ReplicatedStorage.Biomes)
+local BiomeHelper = require(game.ReplicatedStorage.Handler.Biomes)
 local foliage = {}
 local Biomes = {}
 --[[

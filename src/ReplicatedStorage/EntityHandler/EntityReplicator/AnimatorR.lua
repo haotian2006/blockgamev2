@@ -37,7 +37,7 @@ local decodeFunc = {
     play = function(entity,data)
         local a = data[3] or {}
 
-        Animator.play(entity,data[2],a.X,a.Y,data[1].Y,data,data[4])
+        Animator.play(entity,data[2],data[4],a.X,a.Y,data[1].Y,data)
     end,
     stop = function(entity,data)
 
@@ -57,7 +57,7 @@ local decodeFunc = {
 local decodeFuncLocal = {
     play = function(entity,data)
         local a = data[3] or {}
-        Animator.playLocal(entity,data[2],a.X,a.Y,data[1].Y,data[4])
+        Animator.playLocal(entity,data[2],data[4],a.X,a.Y,data[1].Y)
     end,
     stop = function(entity,data)
         Animator.stopLocal(entity,data[2],data[1].Y)

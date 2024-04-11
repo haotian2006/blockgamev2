@@ -9,6 +9,8 @@ local resourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local PlayerGui = Player:WaitForChild("PlayerGui")
 local frames = {}
 local EnabledGUi = {}
+local InGui = {}
+Container.initInGUi(InGui)
 
 function UI.closeAll()
     Container.closeAll()

@@ -39,7 +39,7 @@ end
 local getAssets = ResourceHandler.getAsset
 
 local function createInfo()
-    if not InputHandler.isDown("Attack") then return end 
+    if not InputHandler.isDown("Attack") or InputHandler.inGui() then return end 
     local RayData = Mouse.getRay()
     local Entity = GetPlayerEntity()
     if not Entity then return end 
@@ -84,7 +84,7 @@ local function Update(dt)
     end 
     if not isSame(LastInfo, info) then
         if not Arms.isPlaying("Attack") then
-            Arms.playAnimation("Attack", nil, nil, nil,true)
+            Arms.playAnimation("Attack",true)
         end
         updateProgress(0)
         LastInfo = info

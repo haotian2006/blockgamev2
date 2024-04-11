@@ -334,6 +334,10 @@ end)
 
 game:BindToClose(function()
     Config.OnClose = true
+    if not WorldConfig.SavingEnabled then
+        Communicator.sendMessageMain("OnClose",true)
+        return
+    end
     task.wait(1)
     while next(ToUpdate) or next(ToSave) or next(processing) do
         task.wait() 

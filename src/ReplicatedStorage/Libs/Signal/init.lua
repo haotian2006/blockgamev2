@@ -7,7 +7,7 @@ local Protected = require(script.Protected)
 
 
 function Signal.new(IsFast)
-    return if IsFast then Fast.new() else Good.new()
+    return (if IsFast then Fast.new() else Good.new())
 end
 
 function Signal.protected()
@@ -37,4 +37,4 @@ export type Protected<T...> = {
 }
 
 
-return Signal:: {new: (isFast:boolean?) -> Signal<...any>,protected:() -> Protected<...any>}
+return Signal:: {new: (isFast:boolean?) -> Signal<...any>,protected: () -> Protected<...any>}

@@ -6,7 +6,7 @@ local carver2 = require(MathPath.Carver2)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local Storage = unpack(require(game.ServerStorage.core.Chunk.Generator.ChunkAndStorage))
 local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
-local BiomeHelper = require(game.ReplicatedStorage.Biomes)
+local BiomeHelper = require(game.ReplicatedStorage.Handler.Biomes)
 local Biomes
 local to1d = IndexUtils.to1D
 

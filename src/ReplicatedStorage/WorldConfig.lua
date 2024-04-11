@@ -3,7 +3,7 @@ local Config = {}
 local Info = {
     Seed = 3456713,
     WorldGuid = "-11",
-    SavingEnabled = true,
+    SavingEnabled = false,
     Version = "0.0.0"
 }
 Info.__index = Info

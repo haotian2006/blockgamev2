@@ -59,7 +59,7 @@ require(game.ReplicatedStorage.Libs.Stats)
 ItemHandler.Init()
 
 local Blocks = require(game.ReplicatedStorage.Block).Init()
-require(game.ReplicatedStorage.Biomes).init()
+require(game.ReplicatedStorage.Handler.Biomes).init()
 
 local PlayerManager = require(game.ServerStorage.core.Other.PlayerManager)
 
