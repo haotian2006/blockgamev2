@@ -70,7 +70,7 @@ return (
 
 			entity = require(game.ReplicatedStorage.EntityHandler.Parser)(),
 			item = require(game.ReplicatedStorage.Handler.Item.Parser)(),
-			container = require(game.ReplicatedStorage.Container.Parser)(),
+			container = require(game.ReplicatedStorage.Handler.Container.Parser)(),
 		})
 	}) :: any
 ) :: Serializer

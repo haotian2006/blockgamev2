@@ -2,7 +2,7 @@ local Events = require(game.ReplicatedStorage.Events)
 local EntityHolder = require(game.ReplicatedStorage.EntityHandler.EntityHolder)
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local DataHandler = require(game.ReplicatedStorage.Data)
-local containerHandler = require(game.ReplicatedStorage.Container)
+local containerHandler = require(game.ReplicatedStorage.Handler.Container)
 local Utils = EntityHandler.Utils
 
 Events.AttackEntity.listen(function(data: string, player: Player?)  

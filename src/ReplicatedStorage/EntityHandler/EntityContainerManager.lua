@@ -1,6 +1,6 @@
 local manager = {}
 
-local ContainerManager = require(game.ReplicatedStorage.Container)
+local ContainerManager = require(game.ReplicatedStorage.Handler.Container)
 
 local IS_SERVER = game:GetService("RunService"):IsServer()
 local ServerContainer 

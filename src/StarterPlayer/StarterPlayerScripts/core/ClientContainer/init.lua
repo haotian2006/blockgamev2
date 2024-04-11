@@ -3,7 +3,7 @@ local Item = require(game.ReplicatedStorage.Handler.Item)
 
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
-local Container = require(game.ReplicatedStorage.Container)
+local Container = require(game.ReplicatedStorage.Handler.Container)
 local UiContainer = require(script.Parent.Ui.ContainerHandler)
 local HotbarManager = require(script.Parent.Ui.HotbarManager)
 local Signal = require(game.ReplicatedStorage.Libs.Signal)

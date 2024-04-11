@@ -1,4 +1,4 @@
-local Container = require(game.ReplicatedStorage.Container)
+local Container = require(game.ReplicatedStorage.Handler.Container)
 local Crafting = require(game.ReplicatedStorage.Libs.Crafting)
 return {
     Crafting = {

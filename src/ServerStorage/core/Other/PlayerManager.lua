@@ -10,7 +10,7 @@ local DataHandler = require(game.ReplicatedStorage.Data)
 local Serializer = require(game.ReplicatedStorage.Core.Serializer)
 local Events = require(game.ReplicatedStorage.Events)
 local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
-local Container = require(game.ReplicatedStorage.Container)
+local Container = require(game.ReplicatedStorage.Handler.Container)
 local WorldConfig = require(game.ReplicatedStorage.WorldConfig)
 
 local EntityParser = Serializer.wrap(Serializer.Types.entity)

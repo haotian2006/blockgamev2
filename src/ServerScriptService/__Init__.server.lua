@@ -50,7 +50,7 @@ Item.Item = "c:GodStick"
 
 local EntityContainer = require(game.ReplicatedStorage.EntityHandler.EntityContainerManager)
 local ItemHandler = require(game.ReplicatedStorage.Handler.Item)
-local Container = require(game.ReplicatedStorage.Container)
+local Container = require(game.ReplicatedStorage.Handler.Container)
 require(game.ReplicatedStorage.Libs.Crafting).Init()
 
 require(game.ServerStorage.core.Replication.Entity)

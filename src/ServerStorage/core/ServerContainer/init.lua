@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local ItemClass = require(game.ReplicatedStorage.Handler.Item)
-local Container = require(game.ReplicatedStorage.Container)
+local Container = require(game.ReplicatedStorage.Handler.Container)
 local Data = require(game.ReplicatedStorage.Data)
 local EntityUtils = require(game.ReplicatedStorage.EntityHandler.Utils)
 local Runner = require(game.ReplicatedStorage.Runner)
