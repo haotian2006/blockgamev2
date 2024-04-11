@@ -1,7 +1,7 @@
 local Crafting = {}
 
 local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
-local ItemHandler = require(game.ReplicatedStorage.Item)
+local ItemHandler = require(game.ReplicatedStorage.Handler.Item)
 
 local Recipies = {}
 local Categories = {}

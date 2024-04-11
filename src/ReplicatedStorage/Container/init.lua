@@ -1,7 +1,7 @@
 local container = {}
 local RunService = game:GetService("RunService")
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
-local ItemClass = require(game.ReplicatedStorage.Item)
+local ItemClass = require(game.ReplicatedStorage.Handler.Item)
 local Changed = {}
 
 function container.new(type,size,parent,name,callBack)

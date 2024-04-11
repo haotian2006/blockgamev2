@@ -1,5 +1,5 @@
 local ClientContainer = {}
-local Item = require(game.ReplicatedStorage.Item)
+local Item = require(game.ReplicatedStorage.Handler.Item)
 
 local LocalPlayer = game:GetService("Players").LocalPlayer
 

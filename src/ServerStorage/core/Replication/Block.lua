@@ -11,7 +11,7 @@ local Chunk = require(game.ReplicatedStorage.Chunk)
 local Data = require(game.ReplicatedStorage.Data)
 local Entity = require(game.ReplicatedStorage.EntityHandler)
 local BlockClass = require(game.ReplicatedStorage.Handler.Block)
-local ItemClass =require(game.ReplicatedStorage.Item)
+local ItemClass =require(game.ReplicatedStorage.Handler.Item)
 local ContainerClass = require(game.ReplicatedStorage.Container)
 local CollisionUtils = require(game.ReplicatedStorage.Utils.CollisionUtils)
 

@@ -3,7 +3,7 @@ local ServerContainer = {}
 local RunService = game:GetService("RunService")
 
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
-local ItemClass = require(game.ReplicatedStorage.Item)
+local ItemClass = require(game.ReplicatedStorage.Handler.Item)
 local Container = require(game.ReplicatedStorage.Container)
 local Data = require(game.ReplicatedStorage.Data)
 local EntityUtils = require(game.ReplicatedStorage.EntityHandler.Utils)

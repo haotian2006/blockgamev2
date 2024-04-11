@@ -7,7 +7,7 @@ local BlockReplication = require(script.Parent.core.Replication.Block)
 local CollisionUtils = require(game.ReplicatedStorage.Utils.CollisionUtils)
 local Events = require(game.ReplicatedStorage.Events)
 local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
-local ItemHandler = require(game.ReplicatedStorage.Item)
+local ItemHandler = require(game.ReplicatedStorage.Handler.Item)
 
 
 local to1d = IndexUtils.to1D

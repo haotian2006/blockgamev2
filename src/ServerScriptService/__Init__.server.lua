@@ -49,7 +49,7 @@ Item.Position = Vector3.new(254, 257.395999908447266, 143)
 Item.Item = "c:GodStick"
 
 local EntityContainer = require(game.ReplicatedStorage.EntityHandler.EntityContainerManager)
-local ItemHandler = require(game.ReplicatedStorage.Item)
+local ItemHandler = require(game.ReplicatedStorage.Handler.Item)
 local Container = require(game.ReplicatedStorage.Container)
 require(game.ReplicatedStorage.Libs.Crafting).Init()
 

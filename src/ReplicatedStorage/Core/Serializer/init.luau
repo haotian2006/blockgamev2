@@ -69,7 +69,7 @@ return (
 			map = map,
 
 			entity = require(game.ReplicatedStorage.EntityHandler.Parser)(),
-			item = require(game.ReplicatedStorage.Item.Parser)(),
+			item = require(game.ReplicatedStorage.Handler.Item.Parser)(),
 			container = require(game.ReplicatedStorage.Container.Parser)(),
 		})
 	}) :: any
