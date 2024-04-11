@@ -2,7 +2,7 @@ local Texture = {}
 local rotationUtils = require(game.ReplicatedStorage.Utils.RotationUtils)
 local GameSettings = require(game.ReplicatedStorage.GameSettings)
 local blockSize = GameSettings.GridSize
-local BlockHandler = require(game.ReplicatedStorage.Block)
+local BlockHandler = require(game.ReplicatedStorage.Handler.Block)
 local RenderStorage = require(script.Parent.RenderCache)
 
 local LocalPlayer = game:GetService("Players").LocalPlayer

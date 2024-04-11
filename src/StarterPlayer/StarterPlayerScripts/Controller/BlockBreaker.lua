@@ -9,7 +9,7 @@ local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
 local Helper = require(script.Parent.Parent.Helper)
 local Arms = require(script.Parent.Parent.core.Rendering.Arms)
 local ItemHandler = require(game.ReplicatedStorage.Item)
-local BlockHandler = require(game.ReplicatedStorage.Block)
+local BlockHandler = require(game.ReplicatedStorage.Handler.Block)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local BlockBreaking = require(script.Parent.Parent.core.Rendering.BlockBreaking)
 
@@ -94,7 +94,7 @@ local function Update(dt)
     local Multiplier = 1
     local TimeToBreak = BlockHandler.get( info.Block, "BreakTime") or 1
     if info.Holding then
-        Multiplier = ItemHandler.getBreakMultiplier(info.Holding, info.Block) or 1
+        Multiplier = ItemHandler.getBreakMultiplier(info.Holding, info.Handler.Block) or 1
     end
 
     progress+=dt*Multiplier

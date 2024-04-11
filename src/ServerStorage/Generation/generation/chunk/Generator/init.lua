@@ -1,6 +1,5 @@
 local Generator = {}
 local Chunk = require(game.ReplicatedStorage.Chunk)
-local BlockPool = require(game.ReplicatedStorage.Block.BlockPool)
 local BiomeWorkers = require(script.WorkerHandler).create("Biomes",6)
 local OtherWorkers = require(script.WorkerHandler).create("Biomes",14)
 function Generator.DoWork(task,...)

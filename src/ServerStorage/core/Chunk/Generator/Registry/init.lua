@@ -1,6 +1,6 @@
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 local AllData = BehaviorHandler.getAllData()
-local Block = require(game.ReplicatedStorage.Block)
+local Block = require(game.ReplicatedStorage.Handler.Block)
 local Features = game.ServerStorage.Generation.generation.features
 local Biomes = {}
 local StructureMain = require(Features.structures)

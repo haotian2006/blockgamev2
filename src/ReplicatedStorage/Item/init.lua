@@ -4,7 +4,7 @@ local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local Synchronizer = require(game.ReplicatedStorage.Synchronizer)
 local Block
 task.delay(2, function()
-    Block = require(game.ReplicatedStorage.Block)
+    Block = require(game.ReplicatedStorage.Handler.Block)
 end)
 
 local Items = BehaviorHandler.getAllData().Items

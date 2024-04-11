@@ -10,7 +10,7 @@ local Runner = require(game.ReplicatedStorage.Runner)
 local PlayerScripts = game:GetService("Players").LocalPlayer.PlayerScripts
 local Render = require(PlayerScripts:WaitForChild("Render"))
 local BlockRender = require(PlayerScripts:WaitForChild("Render"):WaitForChild("BlockRender"))
-local BlockPool = require(game.ReplicatedStorage.Block.BlockPool)
+
 local SubChunkHelper = require(PlayerScripts:WaitForChild("Render"):WaitForChild("SubChunkHelper"))
 
 local Worker = require(PlayerScripts:WaitForChild("ClientWorker"))

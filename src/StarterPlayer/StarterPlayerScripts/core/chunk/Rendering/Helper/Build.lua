@@ -1,6 +1,6 @@
 local Builder = {}
 local DataHandler = require(game.ReplicatedStorage.Data)
-local Block = require(game.ReplicatedStorage.Block)
+local Block = require(game.ReplicatedStorage.Handler.Block)
 local RotationUtils = require(game.ReplicatedStorage.Utils.RotationUtils)
 local Cache = require(script.Parent.Parent.RenderCache)
 local Texture = require(script.Parent.Parent.BlockTexture)

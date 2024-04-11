@@ -6,7 +6,7 @@ local IndexUtils = require(game.ReplicatedStorage.Utils.IndexUtils)
 local Carver2 = require(script.Parent.Parent.Parent.math.Carver2)
 local Storage = unpack(require(game.ServerStorage.core.Chunk.Generator.ChunkAndStorage))
 local Distributions = require(script.Parent.Parent.Parent.math.Distributions)
-local BlockHandler = require(game.ReplicatedStorage.Block)
+local BlockHandler = require(game.ReplicatedStorage.Handler.Block)
 local BiomeHelper = require(game.ReplicatedStorage.Handler.Biomes)
 local Distribution = require(script.Parent.Parent.Parent.math.Distributions)
 

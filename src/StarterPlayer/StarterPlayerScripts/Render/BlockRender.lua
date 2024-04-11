@@ -1,6 +1,6 @@
 local render = {}
 local Texture = require(script.Parent.BlockTexture)
-local Block = require(game.ReplicatedStorage.Block)
+local Block = require(game.ReplicatedStorage.Handler.Block)
 local RotationUtils = require(game.ReplicatedStorage.Utils.RotationUtils)
 local storage = require(script.Parent.RenderStorage)
 

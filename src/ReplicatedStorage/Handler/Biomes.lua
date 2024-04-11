@@ -3,7 +3,7 @@ local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
 
 local Synchronizer = require(game.ReplicatedStorage.Synchronizer)
 local Loading = require(game.ReplicatedStorage.Libs.Signal).new()
-local Block = require(game.ReplicatedStorage.Block)
+local Block = require(game.ReplicatedStorage.Handler.Block)
 
 local Biomes = {
     --'c:ocean',

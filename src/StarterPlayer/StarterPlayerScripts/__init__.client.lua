@@ -20,7 +20,7 @@ require(game.ReplicatedStorage.ResourceHandler).Init()
 require(game.Players.LocalPlayer.PlayerScripts.core.ClientContainer)
 
 local Synchronizer = require(game.ReplicatedStorage.Synchronizer).Init()
-local Blocks = require(game.ReplicatedStorage.Block).Init()
+local Blocks = require(game.ReplicatedStorage.Handler.Block).Init()
 local Item = require(game.ReplicatedStorage.Item).Init()
 local controller = require(script.Parent:WaitForChild("Controller"))
 require(game.ReplicatedStorage.Handler.Biomes).init()
