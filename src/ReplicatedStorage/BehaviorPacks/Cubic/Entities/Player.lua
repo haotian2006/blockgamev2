@@ -1,4 +1,4 @@
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local entity = {
 
     components ={
@@ -6,7 +6,7 @@ local entity = {
         Name = "Player",
         EyeLevel = 1.5,
         Hitbox = Vector2.new(0.6,1.79),
-        JumpPower = 4.94, 
+        JumpPower = 8.94, 
         Speed = 4.317,--4.317 ,--5.612,
         CollideWithEntities = true,
         Health = 20,

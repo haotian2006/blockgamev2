@@ -1,7 +1,7 @@
 local client = {}
 
 local DataHandler = require(game.ReplicatedStorage.Data)
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local Controller = require(script.Parent.Parent.Controller)
 local UiManager = require(script.Parent.Ui)
 local Events = require(game.ReplicatedStorage.Events)

@@ -16,7 +16,7 @@ local resourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local ItemHandler = require(game.ReplicatedStorage.Handler.Item)
 local Signal = require(game.ReplicatedStorage.Libs.Signal)
 local DataHandler = require(game.ReplicatedStorage.Data)
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local InputHandler = require(script.Parent.Parent.Parent.InputHandler)
 
 local Events = game:GetService("ReplicatedStorage").Events.Container

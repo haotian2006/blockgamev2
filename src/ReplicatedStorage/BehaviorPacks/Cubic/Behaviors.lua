@@ -1,5 +1,5 @@
-local Utils = require(game.ReplicatedStorage.EntityHandler.Utils)
-local Handler = require(game.ReplicatedStorage.EntityHandler)
+local Utils = require(game.ReplicatedStorage.Handler.EntityHandler.Utils)
+local Handler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local Container = require(game.ReplicatedStorage.Handler.Container)
 local Item = require(game.ReplicatedStorage.Handler.Item)
 local CollisionHandler = require(game.ReplicatedStorage.CollisionHandler)

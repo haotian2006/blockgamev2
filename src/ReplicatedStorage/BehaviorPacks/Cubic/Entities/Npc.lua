@@ -10,7 +10,7 @@ local entity = {
         CollideWithEntities = true,
         Health = 20,
         MaxHealth = 20,
-        AutoJump = false,
+        AutoJump = true,
         CrouchLower = 0.3,
         ["c:ManFaceManSwitch.behavior"] = {
             priority = 3
@@ -22,7 +22,6 @@ local entity = {
     },
     component_groups = {
         ManFaceMan = {
-            Speed = 100,
             ['c:ManFaceManSwitch.behavior'] = "NIL",
             ['c:goToPlayer.behavior'] ={
                 priority = 1,

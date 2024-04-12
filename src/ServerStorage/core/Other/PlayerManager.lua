@@ -5,7 +5,7 @@ local DataStorehandler = require(game.ServerStorage.core.Other.DataStoreHandler)
 local DataStore = DataStorehandler.getWorldStore()
 local RunService = game:GetService("RunService")
 
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local DataHandler = require(game.ReplicatedStorage.Data)
 local Serializer = require(game.ReplicatedStorage.Core.Serializer)
 local Events = require(game.ReplicatedStorage.Events)

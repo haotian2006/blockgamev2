@@ -2,10 +2,10 @@
 local Arms = {}
 local Data = require(game.ReplicatedStorage.Data)
 local PlayerEntity = Data.getPlayerEntity
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
-local EntityRender = require(game.ReplicatedStorage.EntityHandler.Render)
-local Animator = require(game.ReplicatedStorage.EntityHandler.Animator)
+local EntityRender = require(game.ReplicatedStorage.Handler.EntityHandler.Render)
+local Animator = require(game.ReplicatedStorage.Handler.EntityHandler.Animator)
 
 
 local Camera = workspace.CurrentCamera

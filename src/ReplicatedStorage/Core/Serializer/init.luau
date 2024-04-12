@@ -68,7 +68,7 @@ return (
 			specialStruct = specialStruct,
 			map = map,
 
-			entity = require(game.ReplicatedStorage.EntityHandler.Parser)(),
+			entity = require(game.ReplicatedStorage.Handler.EntityHandler.Parser)(),
 			item = require(game.ReplicatedStorage.Handler.Item.Parser)(),
 			container = require(game.ReplicatedStorage.Handler.Container.Parser)(),
 		})

@@ -20,7 +20,7 @@ local Shared = {
     Ray = "CollisionHandler.Ray",
     ItemService = "Handler.Item",
     BlockService = "Handler.Block",
-    EntityService = "EntityHandler",
+    EntityService = "Handler.EntityHandler",
     DataService = "Data",
     StatsService = "Libs.Stats"
     
@@ -29,7 +29,7 @@ local Client = {
     InputService = "InputHandler",
     Controller = "Controller",
     Helper = "Helper",
-    ResourceHandler = ReplicatedStorage:FindFirstChild("ResourceHandler"),
+    ResourceService = ReplicatedStorage:FindFirstChild("ResourceHandler"),
     ClientService = "core.ClientManager"
 }
 
@@ -67,7 +67,7 @@ export type InputService = {
     inGui : () -> boolean
 }
 
-export type ResourceHandler = {
+export type ResourceService = {
     getAsset : (name:string) ->any,
     getBlockData : (name:string,id:number?) -> {},
     getEntityModel : (name:string) -> {
@@ -166,7 +166,7 @@ export type Client = {
     InputService : InputService,
     Controller : Controller,
     Helper : ClientHelper,
-    ResourceHandler : ResourceHandler,
+    ResourceService : ResourceService,
     ClientService : ClientService
 }
 

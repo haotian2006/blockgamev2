@@ -13,7 +13,14 @@ function Collision.Init(entity)
 end
 
 local INCREMENT = 1/2
+
 local vector3 = Vector3.new
+local getBroadPhase =CollisionHandler.GetBroadPhase
+local sweptAABB = CollisionHandler.SweptAABB
+local AABBCheck = CollisionHandler.AABBcheck
+local getBlock = CollisionHandler.getBlock
+local generateHitboxes = CollisionHandler.GenerateHitboxes
+
 local function calculateAdjustedGoal(min,goal2,increased2)
 	return goal2 +increased2*-math.sign( min - goal2)
 end
@@ -75,54 +82,54 @@ end
 
 local ZERO = 0--9.99999993922529e-09 
 
-function Collision.shouldjump(entity,bp,bs)
+function Collision.shouldJump(entity,bp,bs)
     local pos = entity.Position
     local hitbox = Entity.getHitbox(entity)
-    local feetpos = pos.Y - hitbox.y/2 
-    local blockfeet = bp.Y - bs.Y/2
-    local jumpneeded = bs.Y -(feetpos - blockfeet)
-    local blockheight =  bp.Y + bs.Y/2
-    blockheight = vector3(bp.X,blockheight,bp.Z)
-    if jumpneeded > bs.Y or jumpneeded<= 0 then
+    local feetPos = pos.Y - hitbox.y/2 
+    local blockFeetPos = bp.Y - bs.Y/2
+    local jumpNeeded = bs.Y -(feetPos - blockFeetPos)
+    local blockHeight =  bp.Y + bs.Y/2
+    blockHeight = vector3(bp.X,blockHeight,bp.Z)
+    if jumpNeeded > bs.Y or jumpNeeded<= 0 then
         return 
     end
     local AutoJump = Entity.get(entity,"AutoJump")
     local Step = Entity.get(entity,"SmallStep")
-    if (Step and ( typeof(Step) =="boolean" and .5 or Step) >= jumpneeded ) then
-        return "Small",jumpneeded,blockheight
-    elseif (AutoJump and ( (typeof(AutoJump) == "boolean" and 1 or AutoJump)) >= jumpneeded) then
-        return "Full",jumpneeded,blockheight
+    if (Step and ( typeof(Step) =="boolean" and .5 or Step) >= jumpNeeded ) then
+        return "Small",jumpNeeded,blockHeight
+    elseif (AutoJump and ( (typeof(AutoJump) == "boolean" and 1 or AutoJump)) >= jumpNeeded) then
+        return "Full",jumpNeeded,blockHeight
     end
     return 
 end
 function Collision.entityVsTerrain(entity,velocity)
     local position = entity.Position
-    local remainingtime = 1
+    local remainingTime = 1
     local normal =  Vector3.zero
     local normal_ = Vector3.zero
     local MinTime
-    local blockdata
+    local blockData
     local newPosition
-    local Shouldjump 
+    local shouldJump 
     for i =1,3,1 do
         velocity = vector3(
-            velocity.X * (1-math.abs(normal.X))*remainingtime,
-            velocity.Y * (1-math.abs(normal.Y))*remainingtime,
-            velocity.Z * (1-math.abs(normal.Z))*remainingtime
+            velocity.X * (1-math.abs(normal.X))*remainingTime,
+            velocity.Y * (1-math.abs(normal.Y))*remainingTime,
+            velocity.Z * (1-math.abs(normal.Z))*remainingTime
             )
-        local blockdata_
-        local Shouldjump_
-        MinTime,normal_,blockdata_,velocity,newPosition,Shouldjump_ = Collision.entityVsTerrainLoop(entity,position,velocity)
-        if Shouldjump_ then
-            Shouldjump = true
+        local blockData_
+        local shouldJump_
+        MinTime,normal_,blockData_,velocity,newPosition,shouldJump_ = Collision.entityVsTerrainLoop(entity,position,velocity)
+        if shouldJump_ then
+            shouldJump = true
         end
         if newPosition then position = newPosition end 
-        blockdata = blockdata or blockdata_
+        blockData = blockData or blockData_
         
         normal += normal_
 
-        local placevelocity = velocity*MinTime
-        position += placevelocity
+        local placeVelocity = velocity*MinTime
+        position += placeVelocity
         if MinTime <1 then     --epsilon 
             if velocity.X >0 and velocity.X ~= ZERO then
                 position = vector3(position.X - 0.001,position.Y,position.Z)
@@ -140,32 +147,17 @@ function Collision.entityVsTerrain(entity,velocity)
                 position = vector3(position.X,position.Y ,position.Z+ 0.001)
             end
         end
-        remainingtime = 1.0-MinTime
-        if remainingtime <=0 then break end
+        remainingTime = 1.0-MinTime
+        if remainingTime <=0 then break end
         
     end
-    --[[ REMAKE
-    if  entity.NotSaved and Shouldjump ==false then 
-        if entity.NotSaved.NOGRAVITY then
-            position += vector3(0,.01,0)
-            entity.NotSaved.NoFall = true
-            entity:Gravity(.1)
-            task.delay(0,function()
-                task.wait()
-                entity.NotSaved.NoFall = false
-                entity.NotSaved.NOGRAVITY = false
-            end)
-        end
-    elseif Shouldjump then
-        entity.NotSaved.NoFall = false
-        entity.NotSaved.NOGRAVITY = false
-    end
-    ]]
-    return  position,normal,blockdata,Shouldjump
+
+    return  position,normal,blockData,shouldJump
 end
 
+local entityVsTerrainLoop 
 function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
-    local shouldjump = false
+    local shouldJump = false
     
     local hitbox = Entity.getHitbox(entity)
     local min = vector3(
@@ -180,87 +172,62 @@ function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
     )
     
     local normal = Vector3.zero
-    local mintime = 1
-    local blockdata 
-    local gridsize = .5
-    local bppos,bpsize = CollisionHandler.GetBroadPhase(position,vector3(hitbox.X,hitbox.Y,hitbox.X),velocity)
+    local minTime = 1
+    local blockData 
+    local GRID_SIZE = .5
+    local broadPhasePos,broadPhaseSize = getBroadPhase(position,vector3(hitbox.X,hitbox.Y,hitbox.X),velocity)
     whitelist = whitelist or {}
     
     local whitelistClone = table.clone(whitelist)
 
-    for x = min.X,calculateAdjustedGoal(min.X,max.X,gridsize),gridsize do    
-    for y = min.Y,calculateAdjustedGoal(min.Y,max.Y,gridsize),gridsize do
-    for z = min.Z,calculateAdjustedGoal(min.Z,max.Z,gridsize),gridsize do
-        local block,localGrid,Grid = CollisionHandler.getBlock(x,y,z)
+    for x = min.X,calculateAdjustedGoal(min.X,max.X,GRID_SIZE),GRID_SIZE do    
+    for y = min.Y,calculateAdjustedGoal(min.Y,max.Y,GRID_SIZE),GRID_SIZE do
+    for z = min.Z,calculateAdjustedGoal(min.Z,max.Z,GRID_SIZE),GRID_SIZE do
+        local block,localGrid,Grid = getBlock(x,y,z)
         local GridStr = tostring(Grid)
         if whitelist and whitelist[GridStr] then continue end
         if block then
             if block == 0 then continue end 
-            local typejump, heightneeded,maxheight
-            local currentmin = 1
-            local newpos ,newsize = Grid,Vector3.one
-            local hbdata,CanCollide = CollisionHandler.GenerateHitboxes(block,newpos)
+            local jumpType, heightNeeded,maxHeight
+            local currentMin = 1
+            local newPos ,newsize = Grid,Vector3.one
+            local hitBoxData,CanCollide = generateHitboxes(block,newPos)
             local loop = 0
             if not CanCollide then continue end 
-            for i,v in hbdata do
-                local newpos,newsize = v[2],v[1]
+            for i,v in hitBoxData do
+                local hitBoxPos,hitBoxSize = v[2],v[1]
                 if whitelist[GridStr..','..loop] then
                     continue 
                 end
-                if  CollisionHandler.AABBcheck(bppos,newpos,bpsize,newsize,true) then  
-                    local collisiontime,newnormal1 = CollisionHandler.SweaptAABB(position,newpos,vector3(hitbox.X,hitbox.Y,hitbox.X),newsize,velocity,mintime)
-                    if collisiontime < 1 then
-                        if collisiontime < currentmin or loop == 0 then
-                            blockdata = {block,GridStr,newpos,newsize,i}
-                            currentmin = collisiontime
-                            normal = newnormal1
+                if  AABBCheck(broadPhasePos,hitBoxPos,broadPhaseSize,hitBoxSize,true) then  
+                    local collisionTime,currentNormal = sweptAABB(position,hitBoxPos,vector3(hitbox.X,hitbox.Y,hitbox.X),hitBoxSize,velocity,minTime)
+                    if collisionTime < 1 then
+                        if collisionTime < currentMin or loop == 0 then
+                            blockData = {block,GridStr,hitBoxPos,hitBoxSize,i}
+                            currentMin = collisionTime
+                            normal = currentNormal
                         end
-                        local a,b,c = Collision.shouldjump(entity,newpos,newsize)
-                        if a and (not heightneeded or c.Y >=maxheight.Y ) then
-                            typejump, heightneeded,maxheight = a,b,c
+                        local a,b,c = Collision.shouldJump(entity,hitBoxPos,hitBoxSize)
+                        if a and (not heightNeeded or c.Y >=maxHeight.Y ) then
+                            jumpType, heightNeeded,maxHeight = a,b,c
                         end
                     end
                 end
-                whitelist[GridStr..((loop == 0 and #hbdata == 1) and '' or loop)] = true 
+                whitelist[GridStr..((loop == 0 and #hitBoxData == 1) and '' or loop)] = true 
                 loop +=1
             end
-            mintime = currentmin < mintime and currentmin or mintime
-            if mintime < 1 and (typejump) then
-                local dir = (maxheight-position).Unit
-                if typejump == "Small" and entity.Grounded and heightneeded >=0.1 then
-                    heightneeded += 0.023
-                    whitelistClone[GridStr] = true
-                    --checks if it would hit a wall
-                    local mintime2,normal2,blockdata2 = Collision.entityVsTerrainLoop(entity,position,vector3(velocity.X,velocity.Y+heightneeded,velocity.Z),whitelistClone,"Small")
-                    if mintime2 <1 then
-                        return loop and .1
-                    end
-                    local beforeChange = position
-                    entity.NotSaved.NOGRAVITY = true
-                    position += vector3(0,heightneeded,0)
-                    local bfv = velocity
-                    if velocity.Y <0 then
-                        velocity = vector3(velocity.X,0,velocity.Z)
-                    end
-
-                    local m2,n2,z2 = Collision.entityVsTerrainLoop(entity,position,velocity,nil,"Small")
-
-                    if m2 >= 1 then
-                        return m2,n2,z2 ,velocity,position,false
-                    end
-
-                    position = beforeChange
-                    velocity = bfv
-                    return  m2,n2,z2,velocity,position,nil,false
-                elseif typejump == "Full" and (Entity.get(entity,"AutoJump") or false)   then
+            minTime = currentMin < minTime and currentMin or minTime
+            if minTime < 1 and (jumpType) then
+                local dir = (maxHeight-position).Unit
+                if jumpType == "Small" and entity.Grounded and heightNeeded >=0.1 then
+                   --TODO: REDO LATER
+                elseif jumpType == "Full" and (Entity.get(entity,"AutoJump") or false)   then
                     local AutoJump = Entity.get(entity,"AutoJump")
                     whitelistClone[GridStr] = true
-                    local m2,n2,z2 = Collision.entityVsTerrainLoop(entity,position,vector3(velocity.X, (AutoJump and (typeof(AutoJump) == "boolean" and 1 or AutoJump)),velocity.Z),whitelistClone,"Full")
+                    local m2,n2,z2 = entityVsTerrainLoop(entity,position,vector3(velocity.X, (AutoJump and (typeof(AutoJump) == "boolean" and 1 or AutoJump)),velocity.Z),whitelistClone,"Full")
                     if not m2 or m2 <1 then
-                        if loop then
-                            return  .1
-                        end
-                        shouldjump = true
+          
+                       shouldJump = true
                     end
                 end
             end
@@ -268,8 +235,9 @@ function Collision.entityVsTerrainLoop(entity,position,velocity,whitelist,loop)
         end 
         end 
     end 
-    return mintime,normal,blockdata,velocity,nil,nil,shouldjump
+    return minTime,normal,blockData,velocity,nil,shouldJump
 end
+entityVsTerrainLoop = Collision.entityVsTerrainLoop
 
 function  Collision.isGrounded(entity,CheckForBlockAboveInstead)
     local position = entity.Position

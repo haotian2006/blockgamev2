@@ -1,6 +1,6 @@
 local mouse = {}
 
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local Ray = require(game.ReplicatedStorage.CollisionHandler.Ray)
 local DataHandler = require(game.ReplicatedStorage.Data)
 local CustomCamera = require(script.Parent.Camera)

@@ -1,7 +1,7 @@
 local tasks = {}
 local RunService = game:GetService("RunService")
 local IS_CLIENT = RunService:IsClient()
-local EntityV2 = game.ReplicatedStorage.EntityHandler
+local EntityV2 = game.ReplicatedStorage.Handler.EntityHandler
 local EntityHolder = require(EntityV2.EntityHolder)
 local EntityHandler 
 local TaskReplicator = require(script.Parent.TaskReplicator)

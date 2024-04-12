@@ -521,7 +521,8 @@ end
 
 --//Other
 function Entity.jump(self,JumpPower)
-    if not self.Grounded or  CollisionHandler.isGrounded(self,true) then return end 
+    if not self.Grounded or  CollisionHandler.isGrounded(self,true) or self.__localData.Jumped  then return end
+    self.__localData.Jumped = true 
     local bodyVelocity = Entity.getVelocity(self,"Physics") or Vector3.zero
     JumpPower = JumpPower or Entity.get(self,"JumpPower") or 0
     Entity.setVelocity(self,"Physics",bodyVelocity + Vector3.new(0,JumpPower,0))
@@ -647,7 +648,7 @@ function Entity.updatePosition(self,dt)
             local newP,n = CollisionHandler.stayOnEdge(self,newPosition)
             newPosition = newP
             normal = n or normal
-        end
+        end 
         local directionVector = newPosition - self.Position
         if Vector3.new(directionVector.X,0,directionVector.Z):FuzzyEq(Vector3.zero,0.001) then
             if  self.__localData.LastUpdate and (os.clock()- self.__localData.LastUpdate)>.018  then
@@ -710,6 +711,7 @@ function Entity.updateGravity(self,dt)
     end
     self.FramesInAir  = FramesInAir
     Entity.setVelocity(self,"Physics",Vector3.new(bodyVelocity.X,yValue,bodyVelocity.Z))
+    self.__localData.Jumped = nil
 end
 
 function Entity.updateMovement(self,dt,normal)
@@ -769,6 +771,9 @@ function Entity.update(self,dt)
         Entity.updateGravity(self,dt)
         Entity.updateTurning(self,dt)
         Entity.updateMovement(self,dt,normal)
+        if shouldJump then
+            Entity.jump(self)
+        end
         debug.profileend()
     else
         Entity.updateChunk(self)

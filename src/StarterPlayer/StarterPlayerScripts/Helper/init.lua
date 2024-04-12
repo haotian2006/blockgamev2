@@ -6,7 +6,7 @@ local RenderHandler = require(script.Parent.core.chunk.Rendering.Handler)
 local BlockReplication = require(script.Parent.core.Replication.Block)
 local CollisionUtils = require(game.ReplicatedStorage.Utils.CollisionUtils)
 local Events = require(game.ReplicatedStorage.Events)
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local ItemHandler = require(game.ReplicatedStorage.Handler.Item)
 
 

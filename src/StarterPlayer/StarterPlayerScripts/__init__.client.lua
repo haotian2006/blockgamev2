@@ -24,10 +24,10 @@ local Blocks = require(game.ReplicatedStorage.Handler.Block).Init()
 local Item = require(game.ReplicatedStorage.Handler.Item).Init()
 local controller = require(script.Parent:WaitForChild("Controller"))
 require(game.ReplicatedStorage.Handler.Biomes).init()
-local FieldType = require(game.ReplicatedStorage.EntityHandler.EntityFieldTypes)
+local FieldType = require(game.ReplicatedStorage.Handler.EntityHandler.EntityFieldTypes)
 FieldType.Init()
 
-local EntityV2 = game.ReplicatedStorage.EntityHandler
+local EntityV2 = game.ReplicatedStorage.Handler.EntityHandler
 local Client = require(EntityV2.EntityReplicator.Client)
 local Updater = require(EntityV2.Updater)
 Client.Init()

@@ -12,7 +12,7 @@ local OtherUtils = require(game.ReplicatedStorage.Utils.OtherUtils)
 local EntityRegionManager = require(script.Parent.Entity.EntityRegionSaver)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils)
 local CollisionUtils = require(game.ReplicatedStorage.Utils.CollisionUtils)
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local Events = require(game.ReplicatedStorage.Events)
 
 local SIMULATED_DISTANCE = 6

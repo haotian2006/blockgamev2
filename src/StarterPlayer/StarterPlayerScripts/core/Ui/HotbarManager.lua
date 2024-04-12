@@ -1,9 +1,9 @@
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local ContainerHandler = require(script.Parent.ContainerHandler)
-local Client = require(game.ReplicatedStorage.EntityHandler.EntityReplicator.Client)
-local Render = require(game.ReplicatedStorage.EntityHandler.Render)
+local Client = require(game.ReplicatedStorage.Handler.EntityHandler.EntityReplicator.Client)
+local Render = require(game.ReplicatedStorage.Handler.EntityHandler.Render)
 local Data = require(game.ReplicatedStorage.Data)
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local InputHandler = require(script.Parent.Parent.Parent:WaitForChild("InputHandler"))
 local ClientContainer
 

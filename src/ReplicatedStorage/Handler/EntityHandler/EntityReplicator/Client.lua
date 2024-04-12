@@ -1,5 +1,5 @@
 local RunService = game:GetService("RunService")
-local EntityV2 = game.ReplicatedStorage.EntityHandler
+local EntityV2 = game.ReplicatedStorage.Handler.EntityHandler
 local ReplicationUtils = require(EntityV2.EntityReplicator.ReplicatorUtils)
 local EntityHolder = require(EntityV2.EntityHolder)
 local EntityHandler = require(EntityV2)

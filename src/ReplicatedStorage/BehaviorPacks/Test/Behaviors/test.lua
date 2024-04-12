@@ -1,5 +1,5 @@
-local Utils = require(game.ReplicatedStorage.EntityHandler.Utils)
-local Handler = require(game.ReplicatedStorage.EntityHandler)
+local Utils = require(game.ReplicatedStorage.Handler.EntityHandler.Utils)
+local Handler = require(game.ReplicatedStorage.Handler.EntityHandler)
 
 return {
         Function = function(entity,info)

@@ -1,1 +1,1 @@
-return require(game.ReplicatedStorage.EntityHandler.Utils)
+return require(game.ReplicatedStorage.Handler.EntityHandler.Utils)

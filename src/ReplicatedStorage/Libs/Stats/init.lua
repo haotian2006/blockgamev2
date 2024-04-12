@@ -5,7 +5,7 @@ local StatsService = game:GetService("Stats")
 
 local Data = require(game.ReplicatedStorage.Data)
 local BiomeHandler = require(game.ReplicatedStorage.Handler.Biomes)
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local RegionUtils = require(game.ReplicatedStorage.Utils.RegionUtils)
 
 local IS_SERVER = RunService:IsServer()

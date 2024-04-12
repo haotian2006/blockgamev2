@@ -304,7 +304,7 @@ end
 
 
 
-function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
+function  collisions.SweptAABB(b1,b2,s1,s2,velocity,mintime)
     local aaa = b2
     local a = b1.X-s1.X/2
     b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)--get the bottem left corners

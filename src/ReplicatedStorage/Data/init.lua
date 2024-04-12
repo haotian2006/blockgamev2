@@ -1,5 +1,5 @@
 local Data = {}
-local EntityHolder = require(game.ReplicatedStorage.EntityHandler.EntityHolder)
+local EntityHolder = require(game.ReplicatedStorage.Handler.EntityHandler.EntityHolder)
 local ConversionUtils = require(game.ReplicatedStorage.Utils.ConversionUtils) 
 local BlockUtils = require(game.ReplicatedStorage.Utils.BlockUtils)
 local Signal = require(game.ReplicatedStorage.Libs.Signal)

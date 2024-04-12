@@ -6,14 +6,14 @@ local IsMoving = false
 local Events = require(game.ReplicatedStorage.Events)
 local Data = require(game.ReplicatedStorage.Data)
 local LPE = Data.getPlayerEntity
-local EntityHandler = require(game.ReplicatedStorage.EntityHandler)
+local EntityHandler = require(game.ReplicatedStorage.Handler.EntityHandler)
 local EntityUtils = EntityHandler.Utils
 local MathLib = require(game.ReplicatedStorage.Libs.MathFunctions)
 local Mouse = require(script.mouse)
 local CustomCamera = require(script.Camera)
 local UiHandler = require(script.Parent.core.Ui)
 local UiContainer = require(script.Parent.core.Ui.ContainerHandler)
-local EntityTaskReplicator = require(game.ReplicatedStorage.EntityHandler.EntityReplicator.EntityTaskReplicator)
+local EntityTaskReplicator = require(game.ReplicatedStorage.Handler.EntityHandler.EntityReplicator.EntityTaskReplicator)
 local BlockBreaker = require(script.BlockBreaker)
 
 local DataHandler = require(game.ReplicatedStorage.Data)
