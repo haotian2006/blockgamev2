@@ -247,12 +247,15 @@ handler.OnClose = Signal.new()
 
 function handler.open(name,forced)
     handler.close(name,true,true)
-    Forced[name] = forced and true or nil
     local container = resourceHandler.getUiContainer(name)
     local gui:ScreenGui = container.Frame:Clone()
     if container.Init then
-        container.Init(gui,ClientContainer.getAllContainers())
+        if container.Init(gui,ClientContainer) == false then
+            
+            return
+        end
     end
+    Forced[name] = forced and true or nil
     if container.TriggerInGui then
         InGui[gui] = true
         InputHandler.setGui(true)

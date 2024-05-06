@@ -14,7 +14,7 @@ local map = require(script.dataTypes.map)
 local optional = require(script.dataTypes.optional)
 local string = require(script.dataTypes.string)
 local struct = require(script.dataTypes.struct)
-local specialStruct = require(script.dataTypes.specialStruct)
+
 local uint16 = require(script.dataTypes.uint16)
 local uint32 = require(script.dataTypes.uint32)
 local uint8 = require(script.dataTypes.uint8)
@@ -65,7 +65,6 @@ return (
 			array = array,
 			optional = optional,
 			struct = struct,
-			specialStruct = specialStruct,
 			map = map,
 
 			entity = require(game.ReplicatedStorage.Handler.EntityHandler.Parser)(),

@@ -29,7 +29,7 @@ Controller.getKeyFromInput = KeyBinds.getKeyFromInput
 function Controller.getState()
     return State
 end
-function Controller.createTemporyEventTo(Action): TempControllerEvent
+function Controller.createTemporaryEventTo(Action): TempControllerEvent
     local sign =TempSignal.new(Action,TempEvents)
     return sign
 end

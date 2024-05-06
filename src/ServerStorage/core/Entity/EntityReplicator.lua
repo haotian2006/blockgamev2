@@ -52,7 +52,7 @@ end
 
 local clientEntities = {} 
 
-local function FindDiffrences(player,data,IsSecondTick)
+local function FindDifferences(player,data,IsSecondTick)
     local ToRemove = {}
     local ToAdd = {}
     local Entities = clientEntities[player]
@@ -144,7 +144,7 @@ function Server.replicate(IsSecondTick)
         local current 
         EntityReplicateData[Player] = PlayerData
         EntityReplicateDataUDP[Player] = PlayerDataUDP
-        local _,toRemove = FindDiffrences(Player,data,IsSecondTick)
+        local _,toRemove = FindDifferences(Player,data,IsSecondTick)
         for Guid in toRemove do
             local id =  Holder.getIdFromGuid(Guid)
             checkedGUIDS[Guid] = true

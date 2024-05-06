@@ -1,4 +1,4 @@
-local block = {}
+local Block = {}
 --block.VOID = 65535
 local ResourceHandler = require(game.ReplicatedStorage.ResourceHandler)
 local BehaviorHandler = require(game.ReplicatedStorage.BehaviorHandler)
@@ -16,7 +16,7 @@ local Cache = {}
 local Debris = require(game.ReplicatedStorage.Libs.Debris)
 local BlockFolder = Debris.getFolder("BlockFolder", 10)
 
-function block.exists(str)
+function Block.exists(str)
     if Cache[str] then
         return true
     end
@@ -25,7 +25,7 @@ function block.exists(str)
     return if loc then true else false 
 end
 
-function block.getBlockId(str)
+function Block.getBlockId(str)
     if Cache[str] then
         return Cache[str]
     end
@@ -38,54 +38,65 @@ function block.getBlockId(str)
     return loc-1
 end
 
-function block.awaitBlock(str)
+function Block.awaitBlock(str)
     if not Loading then 
-        return block.getBlockId(str)
+        return Block.getBlockId(str)
     end 
     Loading.Event:Wait()
-    return block.getBlockId(str)
+    return Block.getBlockId(str)
 end
 
-function block.getBlock(id)
+function Block.getBlock(id)
     return Blocks[id+1] 
 end
 
-function block.getResource(Block,Id)
-    local resource = ResourceHandler.getBlock(Block)
+function Block.getResource(block,Id)
+    local resource = ResourceHandler.getBlock(block)
     --//TODO: implement block ids
     return resource
 end
 
-function block.getResourceFrom(compressedBlock)
-    local type,id = block.decompress(compressedBlock)
+function Block.getResourceFrom(block)
+    local type,id = Block.decompress(block)
     local resource = ResourceHandler.getBlock(Blocks[type+1])
     --//TODO: implement block ids
     return resource
 end
 
-function block.getDataFrom(BlockName,variant)
-    return BehaviorHandler.getBlockInfo(BlockName, variant)
+function Block.getDataFrom(blockName,variant)
+    return BehaviorHandler.getBlockInfo(blockName, variant)
 end
 
-function block.getData(CompressedBLock)
-    local Id,Variant = block.decompress(CompressedBLock)
-    local str = block.getBlock(Id)
-    local data = block.getDataFrom(str,Variant)
+function Block.getData(block)
+    local Id,Variant = Block.decompress(block)
+    local str = Block.getBlock(Id)
+    local data = Block.getDataFrom(str,Variant)
     return data
 end
 
-function block.get(BLOCK,key)
-    local Id,Variant = block.decompress(BLOCK)
-    local str = block.getBlock(Id)
-    local data = block.getDataFrom(str,Variant)
+function Block.get(block,key)
+    local Id,Variant = Block.decompress(block)
+    local str = Block.getBlock(Id)
+    local data = Block.getDataFrom(str,Variant)
     if not data then return end 
     return data[key]
 end
 
+function Block.getBaseData(block)
+    local Id = Block.decompress(block)
+    local str = Block.getBlock(Id)
+    return BehaviorHandler.getBlock(str)
+end
+
+function Block.getEvent(block,event)
+    local data = Block.getBaseData(block)
+    if not data then return end 
+    return data.events[event]
+end
 
 
 --//BlockId:14 bits , Variant: 7 bits , Extra Data/rot(3): 11
-function block.compress(blockID, variant, extra)
+function Block.compress(blockID, variant, extra)
     variant = variant or 0
     extra = extra or 0
     
@@ -128,7 +139,7 @@ end
 --[[
    
 ]]
-function block.decompress(packedValue)
+function Block.decompress(packedValue)
     if packedValue <16382 then
         return packedValue
     end
@@ -141,21 +152,21 @@ end
 
 
 
-function block.parse(t)
+function Block.parse(t)
     if type(t) == "table" then
         if t.Block then 
-            return block.compress(block.getBlockId(t.Block), t.Id or 0, t.Rotation)
+            return Block.compress(Block.getBlockId(t.Block), t.Id or 0, t.Rotation)
         else
-            return block.compress(block.getBlockId(t[1]), t[2] or 0, t[3] or 0)
+            return Block.compress(Block.getBlockId(t[1]), t[2] or 0, t[3] or 0)
         end
     elseif type(t) == "number" then
         return t
     end
-    return block.getBlockId(t)
+    return Block.getBlockId(t)
 end
 
 local initAlready = false
-function block.Init()
+function Block.Init()
     if initAlready then return end 
     initAlready = true
     if Synchronizer.isActor() then
@@ -169,7 +180,7 @@ function block.Init()
         end
         local newAdded = false
         for blockName,_ in BehaviorHandler.getAllData().Blocks do
-            if block.exists(blockName) then continue end 
+            if Block.exists(blockName) then continue end 
             table.insert(Blocks,blockName)
             newAdded = true
         end
@@ -181,7 +192,7 @@ function block.Init()
     local t = Loading
     Loading = nil
     t:Fire()
-    return block
+    return Block
 end
 
-return block
+return Block

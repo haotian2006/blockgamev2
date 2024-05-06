@@ -9,8 +9,6 @@ local load = bufferWriter.loadDefault
 local dump = bufferWriter.dump
 local exportChannel = bufferWriter.export
 
-
-
 return function(value: types.dataTypeInterface<any>)
 
 

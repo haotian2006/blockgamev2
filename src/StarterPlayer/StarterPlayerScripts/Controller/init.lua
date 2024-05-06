@@ -14,6 +14,7 @@ local CustomCamera = require(script.Camera)
 local UiHandler = require(script.Parent.core.Ui)
 local UiContainer = require(script.Parent.core.Ui.ContainerHandler)
 local EntityTaskReplicator = require(game.ReplicatedStorage.Handler.EntityHandler.EntityReplicator.EntityTaskReplicator)
+local BlockHandler = require(game.ReplicatedStorage.Handler.Block)
 local BlockBreaker = require(script.BlockBreaker)
 
 local DataHandler = require(game.ReplicatedStorage.Data)
@@ -118,9 +119,16 @@ function Functions.Interact(key,IsDown,GPE,inputs)
     if not IsDown or InputHandler.inGui() then return end 
     local RayData = Mouse.getRay()
     if not RayData.block then return end 
-    local Blockpos = RayData.grid+RayData.normal
-    Helper.insertHoldingBlock(Blockpos.X,Blockpos.Y,Blockpos.Z)
+    local event = BlockHandler.getEvent(RayData.block, "onInteract") 
+    if event then
+        if not event(RayData.block,RayData.grid,LPE()) then
+            return
+        end
+    end
+    local BlockPos = RayData.grid+RayData.normal
+    Helper.insertHoldingBlock(BlockPos.X,BlockPos.Y,BlockPos.Z)
 end
+
 local Binded = false
 function  Controller.createBinds()
     if Binded then 

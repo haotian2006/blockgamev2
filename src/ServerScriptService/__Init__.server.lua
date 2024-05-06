@@ -89,6 +89,15 @@ local function OnPlayerAdded(player)
  print(entity)
 
 end
+local entity = Handler.new("Player","test")
+local craftingContainer = EntityContainer.getContainer(entity, "Inventory")
+Container.set(craftingContainer, 2, ItemHandler.new("c:dirt"), 75)
+
+local ServerContainerManager = require(game.ServerStorage.core.ServerContainer)
+;(game.ReplicatedStorage.Events.DoSmt::RemoteEvent).OnServerEvent:Connect(function(player,x)
+  ServerContainerManager.sendContainer(craftingContainer, player,"Inventory")
+end)
+
 
 
 -- for i,v in game:GetService("Players"):GetPlayers() do

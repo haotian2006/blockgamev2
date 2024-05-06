@@ -22,7 +22,8 @@ return {
       -- SecondaryBlock = 'c:dirt',
       -- MainBlock = "c:stone",
       Structures = {
-         "c:tree"
+         "c:tree",
+         "c:village"
       }
    },
    { 

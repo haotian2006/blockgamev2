@@ -24,7 +24,7 @@ export type Parser<T> = {
 -- Library type
 export type DataTypes = {
 	struct: <T>(format: T) -> dataTypeInterface<T>,
-	specialStruct: <T>(format: T,order:{}) -> dataTypeInterface<T>,
+
 	bool: boolean,
 	array: <T>(value: T) -> { dataTypeInterface<T> },
 	optional: <T>(value: T) -> dataTypeInterface<T>?,

@@ -377,14 +377,14 @@ function Entity.getHitbox(self)
     if self[HString] then
         return convertToV3(self[HString])
     end
-    local Cahced = self.__cachedData[HString]
-    if Cahced then
-        if typeof(Cahced) == "Vector2" then
-            local v3 = Vector3.new(Cahced.X,Cahced.Y,Cahced.X)
+    local Cached = self.__cachedData[HString]
+    if Cached then
+        if typeof(Cached) == "Vector2" then
+            local v3 = Vector3.new(Cached.X,Cached.Y,Cached.X)
             self.__cachedData[HString] = v3
             return v3
         end
-        return Cahced
+        return Cached
     end
 
     local HitBox = Entity.get(self,HString)
@@ -704,7 +704,7 @@ function Entity.updateGravity(self,dt)
         yValue = bodyVelocity.Y + (-Gravity)*dt
         FramesInAir = FramesInAir +1
     else 
-        if FramesInAir == 0 then
+        if FramesInAir == 0 and bodyVelocity.Y == 0 then
             return
         end
         FramesInAir = 0 

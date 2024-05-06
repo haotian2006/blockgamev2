@@ -83,6 +83,13 @@ function container.setOpened(self,player)
    table.insert(Opened,player)
 end
 
+function container.hasOpened(self,player)
+    local data = self[#self]
+    local Opened = data.__Opened
+    if not Opened then return false end 
+    return table.find(Opened, player) and true or false
+end
+
 function container.removeOpen(self,player)
     local data = self[#self]
     local Opened = data.__Opened

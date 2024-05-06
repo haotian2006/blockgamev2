@@ -56,7 +56,7 @@ export type TempControllerEvent = ControllerEvent & {
 }
 
 export type InputService = {
-    createTemporyEventTo : (Action:Action) -> TempControllerEvent,
+    createTemporaryEventTo : (Action:Action) -> TempControllerEvent,
     getOrCreateEventTo : (Action:Action) -> ControllerEvent,
     destroyAllEventsFor : (Action:Action) -> (),
     bindToRender : (Name:string,callback:(dt:number)->()) -> (),

@@ -8,13 +8,10 @@ local Entity = Data.getPlayerEntity
 local EntityUtils = require(game.ReplicatedStorage.Utils.EntityUtils)
 local Runner = require(game.ReplicatedStorage.Runner)
 local PlayerScripts = game:GetService("Players").LocalPlayer.PlayerScripts
-local Render = require(PlayerScripts:WaitForChild("Render"))
-local BlockRender = require(PlayerScripts:WaitForChild("Render"):WaitForChild("BlockRender"))
 
-local SubChunkHelper = require(PlayerScripts:WaitForChild("Render"):WaitForChild("SubChunkHelper"))
 
 local Worker = require(PlayerScripts:WaitForChild("ClientWorker"))
-local ChunkWorkers =Worker.create("Chunk Worker", 3,nil,script.ChunkTasks)
+local ChunkWorkers =Worker.create("Chunk Worker", 3,script.Rendering.Actor,script.ChunkTasks)
 local RemoteEvent:RemoteEvent = game.ReplicatedStorage.Events.Chunk
 local destroyed = {}
 function Chunk.requestChunk(chunk)

@@ -302,12 +302,11 @@ function collisions.GenerateHitboxes(data,position)
     return t,CanCollide 
 end
 
+local sum,amt = 0,0
 
-
-function  collisions.SweptAABB(b1,b2,s1,s2,velocity,mintime)
-    local aaa = b2
-    local a = b1.X-s1.X/2
-    b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)--get the bottem left corners
+function  collisions.SweptAABBOLD(b1,b2,s1,s2,velocity,min_time)
+    local start = os.clock()
+    b1 = vector3(b1.X-s1.X/2,b1.Y-s1.Y/2,b1.Z-s1.Z/2)--get the bottom left corners
     b2 = vector3(b2.X-s2.X/2,b2.Y-s2.Y/2,b2.Z-s2.Z/2)
     local InvEntry = {X =0,Y=0,Z=0}
     local InvExit = {X =0,Y=0,Z=0}
@@ -326,13 +325,9 @@ function  collisions.SweptAABB(b1,b2,s1,s2,velocity,mintime)
         Entry.X = InvEntry.X/velocity.X
         Exit.X = InvExit.X/velocity.X
     else
-        -- InvEntry.X = (b2.X+s2.X) - b1.X
-        -- InvExit.X = b2.X - (b1.X+s1.X)
-
         Entry.X = -math.huge
         Exit.X = math.huge
     end
-  --  print(InvEntry.X,Entry.X,velocity.X)
     if velocity.Y> 0 then
         InvEntry.Y = b2.Y - (b1.Y+s1.Y)
         InvExit.Y = (b2.Y+s2.Y) - b1.Y
@@ -370,7 +365,7 @@ function  collisions.SweptAABB(b1,b2,s1,s2,velocity,mintime)
     end
     local entryTime = math.max(math.max(Entry.X,Entry.Z),Entry.Y)
 
-    if entryTime >= mintime then return 1.0,1 end
+    if entryTime >= min_time then return 1.0 end
     if entryTime < 0 then return 1.0,entryTime end
 
     local exitTime = math.min(math.min(Exit.X,Exit.Z),Exit.Y)
@@ -404,8 +399,141 @@ function  collisions.SweptAABB(b1,b2,s1,s2,velocity,mintime)
             normal = vector3(0,-math.sign(velocity.Y),0)
         end 
     end
+    sum += os.clock()-start
+    amt +=1
+    
     return entryTime,normal
 end
+
+
+function  collisions.SweptAABB(Pos1,Pos2,Size1,Size2,velocity,min_time)
+
+    local VelocityX = velocity.X    
+    local VelocityY = velocity.Y    
+    local VelocityZ = velocity.Z    
+
+    Pos1 = Pos1-Size1/2 --get the bottom left corners
+    Pos2 = Pos2-Size2/2
+
+    local XPos1 = Pos1.X
+    local YPos1 = Pos1.Y
+    local ZPos1 = Pos1.Z
+
+    local XPos2 = Pos2.X
+    local YPos2 = Pos2.Y
+    local ZPos2 = Pos2.Z
+
+    local XSize1 = Size1.X
+    local YSize1 = Size1.Y
+    local ZSize1 = Size1.Z
+
+    local XSize2 = Size2.X
+    local YSize2 = Size2.Y
+    local ZSize2 = Size2.Z
+
+
+    local InvEntryX,InvExitX,EntryX,ExitX = 0,0,0,0
+    local InvEntryY,InvExitY,EntryY,ExitY = 0,0,0,0
+    local InvEntryZ,InvExitZ,EntryZ,ExitZ = 0,0,0,0
+
+
+    if VelocityX > 0 then
+         InvEntryX = XPos2 - (XPos1 + XSize1)
+         InvExitX = (XPos2+XSize2) - XPos1
+
+         EntryX = InvEntryX/VelocityX
+         ExitX = InvExitX/VelocityX
+
+    elseif VelocityX <0 then
+         InvEntryX = (XPos2+XSize2) - XPos1
+         InvExitX = XPos2 - (XPos1 + XSize1)
+         EntryX = InvEntryX/VelocityX
+         ExitX = InvExitX/VelocityX
+    else
+        InvEntryX = (XPos2+XSize2) - XPos1
+        InvExitX = XPos2 - (XPos1 + XSize1)
+         EntryX = -math.huge
+         ExitX = math.huge
+    end
+    if VelocityY > 0 then
+         InvEntryY = YPos2 - (YPos1 + YSize1)
+         InvExitY = (YPos2+YSize2) - YPos1
+         EntryY = InvEntryY/VelocityY
+         ExitY = InvExitY/VelocityY
+    elseif VelocityY <0 then
+         InvEntryY = (YPos2+YSize2) - YPos1
+         InvExitY = YPos2 - (YPos1 + YSize1)
+         EntryY = InvEntryY/VelocityY
+         ExitY = InvExitY/VelocityY
+    else
+         InvEntryY = (YPos2+YSize2) - YPos1
+         InvExitY = YPos2 - (YPos1 + YSize1)
+         EntryY = -math.huge
+         ExitY = math.huge
+    end
+
+    if VelocityZ > 0 then
+        InvEntryZ = ZPos2 - (ZPos1+ZSize1)
+        InvExitZ = (ZPos2+ZSize2) - ZPos1
+        EntryZ = InvEntryZ/VelocityZ
+        ExitZ = InvExitZ/VelocityZ
+    elseif VelocityZ <0 then
+        InvEntryZ = (ZPos2+ZSize2) - ZPos1
+        InvExitZ = ZPos2 - (ZPos1+ZSize1)
+        EntryZ = InvEntryZ/VelocityZ
+        ExitZ = InvExitZ/VelocityZ
+    else
+        InvEntryZ = (ZPos2+ZSize2) - ZPos1
+        InvExitZ = ZPos2 - (ZPos1+ZSize1)
+
+        EntryZ = -math.huge
+        ExitZ = math.huge
+    end
+    local entryTime = math.max(math.max(EntryX,EntryZ),EntryY)
+
+    if entryTime >= min_time then return 1.0 end
+    if entryTime < 0 then return 1.0,entryTime end
+
+    local exitTime = math.min(math.min(ExitX,ExitZ),ExitY)
+    if entryTime > exitTime then return 1.0,3 end
+
+    if EntryX > 1 then
+        if XPos2 + XSize2 < XPos1 or XPos1 + XSize1 > XPos2 then
+            return 1,4
+        end
+    end
+    if EntryY > 1 then
+        if YPos2 + YSize2 < YPos1 or YPos1 + YSize1 > YPos2 then
+            return 1,5
+        end
+    end
+    if EntryZ > 1 then
+        if ZPos2 + ZSize2 < ZPos1 or ZPos1 + ZSize1 > ZPos2 then
+            return 1,6
+        end
+    end
+
+    local normal 
+    if EntryX > EntryZ then
+        if EntryX > EntryY then
+            normal = vector3(-math.sign(velocity.X),0,0)
+        else
+            normal = vector3(0,-math.sign(velocity.Y),0)
+        end
+    else
+        if EntryZ > EntryY then
+            normal = vector3(0,0, -math.sign(velocity.Z))
+        else
+            normal = vector3(0,-math.sign(velocity.Y),0)
+        end 
+    end
+
+    return entryTime,normal
+end
+
+
+
+
 --serverOnly 
 if RunService:IsClient() then return collisions end
 local Push = 0.3

@@ -1,4 +1,7 @@
 local behhandler = require(game.ReplicatedStorage.BehaviorHandler)
+
+local Core = require(game.ReplicatedStorage.Core)
+
 local Blocks = {
     
 
@@ -8,6 +11,20 @@ local Blocks = {
             BreakTime = .5
         },
         variants = {},
+        events = {
+            onInteract = function(coords,block,entity)
+                if Core.Client then
+                    local Client = Core.Client
+                    local InputService = Client.InputService
+
+                    if InputService.isDown("Crouch") then
+                        return InputService.isDown("Crouch")
+                    end
+                   ( game.ReplicatedStorage.Events.DoSmt::RemoteEvent):FireServer()
+                end
+
+            end
+        }
         
     },
     ['c:foodBlock'] = {

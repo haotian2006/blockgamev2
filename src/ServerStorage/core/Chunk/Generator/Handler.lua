@@ -260,7 +260,7 @@ local ReplicateOrder:{[number]:()->()|{}} = {
     {SendCarve,"SendCarve"},
     {SendFeatures,"SendFeatures"},
 }
-local function ReplicateLoop()
+local function ReplicationLoop()
     for i,v in ReplicateOrder do
         if os.clock()-Start_Time > .010 then break end
         if type(v) == "table" then
@@ -472,11 +472,11 @@ local RegionUpdateLoop = RegionManager.Loop
 local RunnerOrder = {
     MainLoop,
     BuildLoop,
-    ReplicateLoop,
+    ReplicationLoop,
     CarveLoop,
-    ReplicateLoop,
+    ReplicationLoop,
     FeatureLoop,
-    ReplicateLoop,
+    ReplicationLoop,
 }
 
 local index_ = 0

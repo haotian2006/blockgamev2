@@ -33,4 +33,24 @@ export type Entity = {
 }
 
 
+--//InputService
+export type Action = string | 'Forward' | 'Left' | 'Right' | 'Back' | 'Jump' | 'Attack' | 'Interact' | 'Crouch' | 'HitBoxes' | 'Freecam' | 'Inventory'
+
+export type ControllerEvent = Signal<EnumItem,boolean,string,{number:string}>
+export type TempControllerEvent = ControllerEvent & {
+    Destroy: (self: any) -> (),
+}
+
+
+export type RayResults = {
+    normal:Vector3,
+    entity:Entity?,
+    block:number?,
+    grid:Vector3,
+    hit:Vector3
+}
+
+
+
+
 return {}
