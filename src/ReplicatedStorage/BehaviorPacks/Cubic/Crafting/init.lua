@@ -35,6 +35,24 @@ recipes.KBStick = {
     }
 
 }
+
+recipes.Plank = {
+    Type = "Crafting",
+    Key = {
+        d = {
+            Item ='c:wood',
+            }
+    },
+    Shape = {
+        "d"
+    },
+    Result = {
+        Item = 'c:plank',
+        Count = 4
+    }
+
+
+}
 recipes.LongStick = {
     Type = "Crafting",
     Key = {

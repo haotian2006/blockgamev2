@@ -1,5 +1,5 @@
-local Types = require(script.Parent.Serializer.types)
-local CommonTypes = require(script.Parent.CommonTypes)
+local Ster_Types = require(script.Parent.Parent.Serializer.types)
+local CommonTypes = require(script.Parent.Parent.Types)
 
 type Entity = CommonTypes.Entity
 
@@ -19,7 +19,7 @@ export type EntityHandler = {
 export type FieldTypes = {
     getIndexFromField : (Field:string) -> number?,
     getKeyFromIndex : (Index:number) -> string?,
-    getParserFromField : (Field:string) -> Types.Parser<any>
+    getParserFromField : (Field:string) -> Ster_Types.Parser<any>
 }
 
 return {}

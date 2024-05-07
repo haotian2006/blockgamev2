@@ -42,6 +42,14 @@ return {
         },
         variants = {}
     },
+
+    ["c:plank"] = {
+        family = "item_block",
+        default = {
+          
+        },
+        variants = {}
+    },
     --[[
      BlockMultiplier = {
           {

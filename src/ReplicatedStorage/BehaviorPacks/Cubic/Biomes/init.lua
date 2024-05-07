@@ -53,11 +53,24 @@ return {
 
    },
    { 
-      Alias = 'c:hill',
-      Elevation = 14,
-      Factor = 100,
-      SurfaceScale = .1;
-      NoiseScale = .1,
+      Alias = 'c:hills',
+
+      Elevation  = 13, 
+      Factor = 100, 
+      NoiseScale = .3, 
+      SurfaceScale = .1,
+
+      SecondaryBlock = 'c:dirt',
+      MainBlock = "c:stone",
+
+
+
+
+       Caves = true,
+      -- --.01,
+      Structures = {
+         "c:tree",
+      }
    
      
 

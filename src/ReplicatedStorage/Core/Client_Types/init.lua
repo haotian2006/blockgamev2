@@ -1,4 +1,4 @@
-local CommonTypes = require(script.Parent.CommonTypes)
+local CommonTypes = require(script.Parent.Types)
 
 type TempControllerEvent = CommonTypes.TempControllerEvent
 type Action = CommonTypes.Action
@@ -52,9 +52,17 @@ export type Controller = {
     getCamera : () -> Camera
 }
 
-export type client = {
-    
-
+export type ClientService = {
+    SendRespawnEvent : ()->(),
 }
 
-return nil 
+export type Client = {
+    awaitModule:(module:string)->{},
+    InputService : InputService,
+    Controller : Controller,
+    Helper : ClientHelper,
+    ResourceService : ResourceService,
+    ClientService : ClientService
+}
+
+return {}

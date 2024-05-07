@@ -16,7 +16,7 @@ return  {
     override = 2,
     layout = {
         key = {
-            "c:wood","c:leaf","c:stone",0
+            "c:wood","c:leaf","c:plank",0
         },
         shape = function(CarvedOut,cx,cz,ofx,height,ofz,strut,random:Random)
             local path = Block.compress(2, 1)

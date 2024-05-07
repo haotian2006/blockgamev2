@@ -190,7 +190,7 @@ function container.setCount(self,idx,count)
         return 
     end 
    
-    local at =  container.get(self, idx)
+    local at =  self[idx+1]
     if at == "" then
         return
     end
@@ -334,6 +334,7 @@ function container.add(self,Item,count,canBeOutput)
 end
 
 function container.get(self,idx)
+    if container.checkOutOfBounds(self, idx) then return end 
     return self[idx+1]
 end
 

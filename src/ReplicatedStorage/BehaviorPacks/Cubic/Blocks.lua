@@ -21,6 +21,11 @@ local Blocks = {
                         return InputService.isDown("Crouch")
                     end
                    ( game.ReplicatedStorage.Events.DoSmt::RemoteEvent):FireServer()
+
+                    task.spawn(function()
+                        task.wait(1)
+                        require(game:GetService("Players").LocalPlayer.PlayerScripts.core.Ui.ContainerHandler).open("ChestFrame")
+                    end)
                 end
 
             end
@@ -34,6 +39,10 @@ local Blocks = {
 
     },
     ['c:dirt'] = {
+        BreakTime = 1
+    },
+
+    ['c:plank'] = {
         BreakTime = 1
     },
 

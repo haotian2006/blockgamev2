@@ -1,17 +1,18 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local Entities = require(script.entity)
-local Serializer = require(script.Serializer)
-local SerializerTypes = require(script.Serializer.types)
-local CommonTypes = require(script.CommonTypes)
-local StatsService = require(script.StatsService)
+local Client_Type = require(script.Client_Types)
+local Shared_Type = require(script.Shared_Types)
+local Server_Type = require(script.Server_Types)
+
 
 local ISCLIENT = RunService:IsClient()
 local Modules = {
     Shared = {
         Serializer = require(script:FindFirstChild("Serializer"))
     },
-    DataTypes = Serializer.Types,
+
+
+
     Initiated = false
 }
 
@@ -33,164 +34,17 @@ local Client = {
     ClientService = "core.ClientManager"
 }
 
-export type dataTypeInterface<T> = SerializerTypes.dataTypeInterface<T>
-export type Serializer = Serializer.Serializer
 
-export type Entity = CommonTypes.Entity
-export type EntityService = Entities.EntityHandler
-
-export type Connection = CommonTypes.Connection
-
-export type Signal<T...> = CommonTypes.Signal<T...>
-
-export type ProtectedSignal<T...> = CommonTypes.ProtectedSignal<T...>
-export type ProtectedEvent<T...> = CommonTypes.ProtectedEvent<T...>
-
-
-
-export type Action = string | 'Forward' | 'Left' | 'Right' | 'Back' | 'Jump' | 'Attack' | 'Interact' | 'Crouch' | 'HitBoxes' | 'Freecam' | 'Inventory'
-
-export type ControllerEvent = Signal<EnumItem,boolean,string,{number:string}>
-export type TempControllerEvent = ControllerEvent & {
-    Destroy: (self: any) -> (),
-}
-
-export type InputService = {
-    createTemporaryEventTo : (Action:Action) -> TempControllerEvent,
-    getOrCreateEventTo : (Action:Action) -> ControllerEvent,
-    destroyAllEventsFor : (Action:Action) -> (),
-    bindToRender : (Name:string,callback:(dt:number)->()) -> (),
-    unbindFromRender : (Name:string) -> (),
-    bindFunctionTo : (Name:string, callback:(Action:Action,IsDown:boolean,gpe:boolean,keys:{})->boolean,Action:Action,Priority:number) ->(),
-    unbindFunction : (Name:string) -> (),
-    isDown : (Name:Action) -> boolean,
-    inGui : () -> boolean
-}
-
-export type ResourceService = {
-    getAsset : (name:string) ->any,
-    getBlockData : (name:string,id:number?) -> {},
-    getEntityModel : (name:string) -> {
-        Model :Model,
-        Animations : {},
-    }
-}
-
-export type ClientHelper = {
-    insertHoldingBlock : (x:number,y:number,z:number) -> ()
-}
-
-export type Mouse = {
-    getRay : () -> RayResults,
-    setRayLength : (Length:number) -> (),
-    setHighlighting : (Value:boolean) ->(),
-    isHighlighting : () -> boolean,
-    update : () -> (),
-}
-
-export type Camera = {
-    bindToEntity : (Entity:Entity?) -> (),
-    setPos : (pos:Vector3) ->(),
-    getCFrame : () -> CFrame,
-    setMode : (Mode: "First"|"Second"|"Third") -> (),
-    getMode : () -> "First"|"Second"|"Third"
-}
-
-
-export type Controller = {
-    getMouse : () -> Mouse,
-    getCamera : () -> Camera
-}
-
-export type RayResults = {
-    normal:Vector3,
-    entity:Entity?,
-    block:number?,
-    grid:Vector3,
-    hit:Vector3
-}
-
-export type Ray = {
-    cast : (Start:Vector3,Direction:Vector3) -> RayResults
-}
-
-export type Item = {
-    string|number|{}
-}
-
-export type ItemInfo = {
-    Name : string,
-    DisplayName : string,
-    Id : number,
-    Icon : string|(Item:Item)->string,
-    Texture : string|{}|(Item:Item)->(string|{}),
-    Mesh : BasePart,
-    RenderHand : boolean,
-    AllData : {},
-}
-
-export type ItemClass = {
-    new: (Name:string,Id:number) -> Item,
-    equals: (Item1:Item,Item2:Item|string,Id:number?) -> boolean,
-    getDataFrom: (Name:string,Id:number) -> {},
-    getData:(Item:Item) -> {},
-    getMaxCount:(Item:Item) -> number,
-    get : (Item:Item,Key:string) -> any,
-    getItemInfoR : (Item:Item) -> ItemInfo,
-    createItemModel : (Item:Item) -> (BasePart?,ItemInfo),
-    getName : (Item:Item) -> string,
-    getIndexFromName : (name:string) -> number,
-    getNameFromIndex : (idx:number) -> string,
-}
-
-export type BlockClass = {
-    exists : (Str:string) ->boolean,
-    getBlockId : (Str:string) -> number?,
-    getBlock : (Id:number) -> string?,
-    compress : (BlockId:number,Variant:number?,Rotation:number?) -> number,
-    decompress : (PackedValue:number) -> (number,number,number),
-
-    parse : (Data:number|{}) -> number
-}
-
-export type ClientService = {
-    SendRespawnEvent : ()->(),
-}
-
-export type DataService = {
-    getPlayerEntity: ()->Entity?,
-}
 
 export type Client = {
     awaitModule:(module:string)->{},
-    InputService : InputService,
-    Controller : Controller,
-    Helper : ClientHelper,
-    ResourceService : ResourceService,
-    ClientService : ClientService
-}
+}&Client_Type.Client
 
-export type Shared = {
-    awaitModule:(module:string)->{},
-    Ray : Ray,
-    ItemService : ItemClass,
-    BlockService : BlockClass,
-    EntityService : Entities.EntityHandler,
-    Serializer : Serializer.Serializer,
-    DataService : DataService,
-    StatsService : StatsService.Stats
-
-}
-
+export type Shared = Shared_Type.Shared
 export type Server = {
     awaitModule:(module:string)->{},
 }
 
-
-
-export type Types =  {
-    entity:Entity
-}
 
 export type core = {
     Client:Client?,
@@ -199,6 +53,8 @@ export type core = {
     await:(core:"Client"|"Server"|"Shared") -> {Client|Server|Shared},
     Initiated : boolean,
 
+
+    Self : ModuleScript,
 }
 
 

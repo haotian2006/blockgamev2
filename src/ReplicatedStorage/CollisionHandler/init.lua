@@ -10,11 +10,13 @@ local ChunkWidth,ChunkHeight = GameSettings.getChunkSize()
 local rotationLib = require(game.ReplicatedStorage.Utils.RotationUtils)
 local DataH = require(game.ReplicatedStorage.Data)
 local Core = require(game.ReplicatedStorage.Core)
+local Types = require(game.ReplicatedStorage.Core.Types)
+local Shared_Types = require(game.ReplicatedStorage.Core.Shared_Types)
 local Shared:Core.Shared
-local EntityService:Core.EntityService
+local EntityService:Shared_Types.EntityService
 task.spawn(function()
     Shared = Core.await("Shared")::Core.Shared
-    EntityService = Shared.awaitModule("EntityService")::Core.EntityService
+    EntityService = Shared.awaitModule("EntityService")::Shared_Types.EntityService
 end)
 local function getincreased(min,goal2,increased2)
 	local direction = min - goal2
@@ -93,7 +95,7 @@ function collisions.getEntitiesInBox(center,size,EntityParams)
                 local coords = vector3(x,0,z)
                 local chunk = DataH.getChunkFrom(coords)
                 if not chunk then continue end 
-                for i,entity:Core.Entity in chunk.Entities do
+                for i,entity:Types.Entity in chunk.Entities do
                     if (Guids[entity.Guid] or types[entity.Type]) and IsBlack then continue end 
                     local HitBox = EntityService.getHitbox(entity)
                     local Size = HitBox/2
@@ -112,7 +114,7 @@ function collisions.getEntitiesInBox(center,size,EntityParams)
             end
         end
     else
-        for _, entity:Core.Entity in     DataH.getAllEntities() do
+        for _, entity:Types.Entity in     DataH.getAllEntities() do
             if (Guids[entity.Guid] or types[entity.Type]) and IsBlack then continue end 
             local HitBox = EntityService.getHitbox(entity)
             local Size = HitBox/2

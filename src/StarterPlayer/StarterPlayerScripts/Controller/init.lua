@@ -70,6 +70,10 @@ function Functions.Inventory(key,IsDown,GPE)
     if (EntityHandler.isDead(entity) and not OpenInv) or not IsDown then 
         return
     end
+    if InputHandler.inGui() and  OpenInv then
+        UiContainer.closeAll()
+        return
+    end
     if OpenInv then
         UiContainer.open("InventoryFrame")
     else

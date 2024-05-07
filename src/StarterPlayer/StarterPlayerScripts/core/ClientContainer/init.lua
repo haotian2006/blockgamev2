@@ -66,7 +66,8 @@ function ClientContainer.getItemAt(container,idx,x)
     if x then 
         print(LoadedContainers[container])
     end
-    return  Container.get( LoadedContainers[container], tonumber(idx))
+    if Container.checkOutOfBounds(LoadedContainers[container], tonumber(idx)) then return end 
+    return  LoadedContainers[container][(tonumber(idx)::number)+1]
 end
 
 
@@ -131,6 +132,7 @@ end
 
 local tasks = {
     [1] = function(Guid,display,name,container) --Load
+
         ClientContainer.create(Guid,name,container)
         display = display or name
         LoadedContainers[display] = container

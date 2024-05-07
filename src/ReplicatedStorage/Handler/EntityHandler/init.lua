@@ -22,7 +22,7 @@ local EntityContainerManager = require(script.EntityContainerManager)
 local Data = require(game.ReplicatedStorage.Data)
 local ItemHandler = require(game.ReplicatedStorage.Handler.Item)
 local FieldType = require(script.EntityFieldTypes)
-local CommonTypes = require(game.ReplicatedStorage.Core.CommonTypes)
+local CommonTypes = require(game.ReplicatedStorage.Core.Types)
 local Runner = require(game.ReplicatedStorage.Runner)
 local ClientUtils = require(script.ClientUtils)
 local ServerContainer 

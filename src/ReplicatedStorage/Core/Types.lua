@@ -32,6 +32,23 @@ export type Entity = {
     died : boolean?,
 }
 
+--//Item 
+export type Item = {
+    string|number|{}
+}
+
+export type ItemInfo = {
+    Name : string,
+    DisplayName : string,
+    Id : number,
+    Icon : string|(Item:Item)->string,
+    Texture : string|{}|(Item:Item)->(string|{}),
+    Mesh : BasePart,
+    RenderHand : boolean,
+    AllData : {},
+}
+
+
 
 --//InputService
 export type Action = string | 'Forward' | 'Left' | 'Right' | 'Back' | 'Jump' | 'Attack' | 'Interact' | 'Crouch' | 'HitBoxes' | 'Freecam' | 'Inventory'

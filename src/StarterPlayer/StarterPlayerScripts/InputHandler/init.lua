@@ -17,10 +17,11 @@ local InGui = false
 local InputBegan = Signal.protected()
 local InputEnded = Signal.protected()
 
-local Core = require(game.ReplicatedStorage.Core)
+local Types = require(game.ReplicatedStorage.Core.Types)
 
-export type ControllerEvent = Core.ControllerEvent
-export type TempControllerEvent = Core.TempControllerEvent
+
+export type ControllerEvent = Types.ControllerEvent
+export type TempControllerEvent = Types.TempControllerEvent
 
 
 Controller.getKeyFromInput = KeyBinds.getKeyFromInput

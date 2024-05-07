@@ -2,11 +2,14 @@ local Ray = {}
 local collisionHandler = require(script.Parent)
 
 local Core = require(game.ReplicatedStorage.Core)
-local Shared:Core.Shared
-local EntityService:Core.EntityService
+local Shared:Core.Shared 
+local SharedTypes = require(game.ReplicatedStorage.Core.Shared_Types)
+local EntityService:SharedTypes.EntityService
+local Types = require(game.ReplicatedStorage.Core.Types)
+
 task.spawn(function()
     Shared = Core.await("Shared")::Core.Shared
-    EntityService = Shared.awaitModule("EntityService")::Core.EntityService
+    EntityService = Shared.awaitModule("EntityService")::SharedTypes.EntityService
 end)
 
 local getBlock = collisionHandler.getBlock
@@ -50,7 +53,7 @@ end
 
 local function precomputedEntityCorners(Entities)
     local Corners = {}
-    for _, entity:Core.Entity in Entities do
+    for _, entity:Types.Entity in Entities do
         local HitBox = EntityService.getHitbox(entity)
         local Size = HitBox/2
         local entityMinCorner = entity.Position - Size
@@ -81,7 +84,7 @@ local function getEntitiesInVoxel(voxel,EntitiesCorners)
 
     local index = 1
     
-    for entity:Core.Entity,corner in EntitiesCorners do
+    for entity:Types.Entity,corner in EntitiesCorners do
 
         if corner.MaxX > minX and
             corner.MinX < maxX and

@@ -21,7 +21,7 @@ Base = add(layers.create("LandLayer",SEED,50,Base))
 Base = add(layers.create("LandLayer",SEED,70,Base))
 Base = add(layers.create("IslandLayer",SEED,2,Base))
 
---Base = add(layers.create("ColdLayer",SEED,2,Base))
+Base = add(layers.create("ColdLayer",SEED,2,Base))
 
 -- Base = add(layers.create("LandLayer",SEED,3,Base))
 -- Base = add(layers.create("WarmLayer",SEED,2,Base))

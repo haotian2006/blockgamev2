@@ -21,8 +21,9 @@ return function ()
     local funcx = {}
     task.defer(function()
         local Core = require(game.ReplicatedStorage.Core)
+        local SerializerTypes = require(game.ReplicatedStorage.Core.Serializer.types)
         local EntityFieldTypes = require(script.Parent.EntityFieldTypes)
-        local IndexKey,KeyIndex,KeyType:{[string]:Core.dataTypeInterface<any>} = EntityFieldTypes.getAllInfo()
+        local IndexKey,KeyIndex,KeyType:{[string]:SerializerTypes.dataTypeInterface<any>} = EntityFieldTypes.getAllInfo()
 
         local Serializer = Core.Shared.Serializer
         Serializer = Core.Shared.awaitModule("Serializer")

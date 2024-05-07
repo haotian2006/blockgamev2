@@ -217,7 +217,7 @@ end
 
 function handler.update(gui,name)
     local container = resourceHandler.getUiContainer(name)
-    if not gui then return end 
+    if not gui or not container then return end 
     for i,v in gui:GetDescendants() do -- Cache this in the future
         local first, middle, last = v.Name:match("^(.-)%.(.-)%.([^%.]+)$")
         if first ~= "Container" then continue end 
@@ -227,6 +227,7 @@ function handler.update(gui,name)
             handler.clearFrame(v)
             continue 
         end 
+     
         handler.renderFrame(v, data[1], data[2], container[middle], 0)
     end
 end
@@ -247,6 +248,7 @@ handler.OnClose = Signal.new()
 
 function handler.open(name,forced)
     handler.close(name,true,true)
+    handler.closeAll()
     local container = resourceHandler.getUiContainer(name)
     local gui:ScreenGui = container.Frame:Clone()
     if container.Init then

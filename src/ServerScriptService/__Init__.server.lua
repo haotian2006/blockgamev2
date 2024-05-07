@@ -95,7 +95,7 @@ Container.set(craftingContainer, 2, ItemHandler.new("c:dirt"), 75)
 
 local ServerContainerManager = require(game.ServerStorage.core.ServerContainer)
 ;(game.ReplicatedStorage.Events.DoSmt::RemoteEvent).OnServerEvent:Connect(function(player,x)
-  ServerContainerManager.sendContainer(craftingContainer, player,"Inventory")
+  ServerContainerManager.sendContainer(craftingContainer, player,"Chest")
 end)
 
 
